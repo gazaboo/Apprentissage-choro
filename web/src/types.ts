@@ -52,8 +52,28 @@ export type AudioKind = 'reference' | 'playback';
 /** Aisance technique déclarée à la fin d'un morceau. */
 export type Tempo = 'sous-tempo' | 'crispe' | 'fluide';
 
-/** Niveau de masquage de la partition à trous. */
-export type MaskLevel = 25 | 50 | 80;
+/**
+ * Niveau de masquage de la partition à trous.
+ *
+ * `'aucune'` n'est pas un taux : la partition disparaît entièrement, et le
+ * morceau se travaille à l'oreille et de mémoire seules.
+ */
+export type MaskLevel = 0 | 25 | 50 | 75 | 'aucune';
+
+/** Les paliers dans l'ordre d'affichage, du plus lisible au plus exigeant. */
+export const MASK_LEVELS: MaskLevel[] = [0, 25, 50, 75, 'aucune'];
+
+export const MASK_LEVEL_LABELS: Record<string, string> = {
+  '0': 'Aucun',
+  '25': '25 %',
+  '50': '50 %',
+  '75': '75 %',
+  aucune: 'Sans partition',
+};
+
+export function isMaskLevel(value: unknown): value is MaskLevel {
+  return (MASK_LEVELS as unknown[]).includes(value);
+}
 
 export interface SrsReview {
   date: string;

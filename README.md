@@ -103,38 +103,87 @@ poursuit ; l'interface s'adapte sans jamais planter :
 
 ---
 
-## Raccourcis clavier
+## Interface
 
-Pensés pour être atteints sans lâcher l'instrument.
+**Aucun raccourci clavier.** L'outil s'adresse à des musiciens, pas à des
+utilisateurs de clavier : chaque action a un bouton libellé, visible sans rien
+avoir appris. Tous les contrôles font au moins 44 × 44 px, pour être atteints
+d'une main, l'instrument dans l'autre.
 
-| Touche | Action |
-|---|---|
-| `Espace` | Lecture / Pause |
-| `P` | Basculer Référence ↔ Playback |
-| `H` | Indice éphémère : la mesure s'éclaircit **2 s** puis se re-masque |
-| `J` | Saut à froid, avec décompte 3 · 2 · 1 |
-| `G` | Ghost mode — masque l'image, garde l'audio |
-| `T` | Transposition suivante (sans couper la lecture) |
-| `1` – `5` | Note dans le questionnaire d'auto-évaluation |
-| `?` | Aide |
+**Lecteur audio seul.** L'iframe YouTube est déportée hors du champ de vision
+(`left: -9999px`, 1 × 1 px — jamais `display: none` ni `visibility: hidden`, qui
+coupent le son sur certains navigateurs) et pilotée par l'API IFrame. La vidéo
+n'apprend rien à qui travaille d'oreille ; seul l'audio compte.
 
-Les raccourcis sont liés au **code physique** des touches : ils restent au même
-endroit en AZERTY comme en QWERTY, et sont neutralisés dans les champs de saisie.
+**Barre de transport** — lecture/pause, défilement, vitesse (0,5× / 0,75× / 1×),
+et derrière un bouton « Réglages » : ce que vous écoutez, votre instrument,
+répéter un passage, se mettre à l'épreuve, cacher des mesures.
+
+Chaque réglage porte un titre en langue courante et une phrase disant à quoi il
+sert. Le vocabulaire de conception — *ghost mode*, *cold start*, *A-B loop*,
+*performance cues* — reste dans ce README et dans le code ; il ne remonte
+jamais dans l'interface.
+
+- **≥ 1024 px** : dock flottant arrondi en bas, centré. Replié, il tient sur une
+  rangée et laisse toute la hauteur à la partition, qui défile derrière.
+- **< 1024 px** : barre fixe en bas dans la zone du pouce ; les réglages
+  s'ouvrent en panneau par le bas, sur un bouton flottant.
+
+**Répéter un passage** — nommé par l'intention, jamais « boucle A-B » : le
+public visé ne cherche pas un mécanisme, il cherche à faire tourner un endroit
+difficile. Deux gestes, au choix :
+
+- **tracer** le passage à la souris ou au doigt sur une frise du morceau, qui
+  porte son mode d'emploi en clair tant qu'elle est vide (« Glissez ici pour
+  choisir le passage à répéter »), puis se règle en tirant ses deux bords ;
+- **marquer au vol** pendant que ça joue, avec un bouton unique dont le libellé
+  annonce toujours l'appui suivant : *Le passage commence ici* → *Le passage
+  finit ici* → *Arrêter de répéter*. C'est le fonctionnement d'une pédale de
+  boucle, déjà familier aux musiciens.
+
+Les bornes s'affichent « Début » et « Fin », et s'ajustent de 0,5 s au tap, 2 s
+à l'appui long — indispensable pour caler le passage sur le temps fort, en
+l'absence de tout repère structurel : le manifeste ne contient pas de
+timestamps. Le bouclage est maison : la position est sondée toutes les 100 ms,
+et la lecture ramenée au début dès qu'elle dépasse la fin.
+
+**Ce que la boucle donne à voir** — hors du passage, la barre de défilement est
+assombrie ; le passage reste éclairé, encadré de deux repères. Un badge résume
+`🔁 0:38 – 1:45 · 3 fois`, et un éclair bref parcourt le segment à chaque
+retour au début : le rebouclage s'entend, il doit aussi se voir.
+
+**Reprendre au hasard** — saut à un instant imprévu, décompte 3 · 2 · 1, puis
+lecture (*cold start*). **Écoute aveugle** — masque la position et la durée :
+sans repère visuel, on ne peut plus anticiper la structure.
 
 ---
 
 ## Masquage et répétition espacée
 
-**Trois paliers**, qui ne diffèrent pas que par la quantité :
+**Cinq paliers** : aucun masquage, 25 %, 50 %, 75 %, et **sans partition** —
+qui retire les pages entièrement, pour ne travailler qu'à l'oreille et de
+mémoire.
 
-- **25 %** — cadences et fins de phrases, là où se joue la résolution harmonique ;
-- **50 %** — damier, une mesure sur deux ;
-- **80 %** — tout sauf les repères cardinaux (débuts de système et jalons
-  réguliers) : ce sont les *performance cues*.
+Le tirage des mesures masquées est **aléatoire**, à une réserve près : les
+débuts de système sont épargnés tant que le taux le permet. Ce sont les
+*performance cues*, les points de reprise auxquels on se raccroche quand la
+mémoire lâche ; les préserver est ce qui distingue une partition à trous d'une
+page noire.
 
-Le motif est **déterministe** (dérivé de l'identifiant du morceau, de
-l'instrument et du palier) : on révise les mêmes trous d'une session à l'autre
-plutôt que de redécouvrir une partition différente à chaque chargement.
+Le motif est **stable d'un chargement à l'autre** (la graine est mémorisée avec
+les préférences) : on révise les mêmes trous plutôt que de redécouvrir une
+partition différente à chaque fois. Le bouton **Mélanger** fait avancer la
+graine, seule façon d'obtenir un nouveau tirage.
+
+Les masques sont en **verre dépoli clair** (blanc très légèrement chaud à 96 %
++ `backdrop-filter`) plutôt qu'en noir plein : sur du papier blanc, un panneau
+anthracite lit comme un défaut d'impression, alors qu'un calque à peine teinté
+lit comme une feuille posée sur la page. Un filet d'encre pâle et une ombre
+courte le décollent du papier. Au survol — ou au toucher maintenu — ils
+s'éclaircissent juste assez pour laisser filtrer la densité rythmique. Un tap
+déclenche l'**indice éphémère** : la mesure devient lisible **5 secondes**, puis
+se re-masque seule. Le retour automatique est le cœur du dispositif, il empêche
+de transformer l'indice en lecture passive.
 
 **SRS** : variante de SM-2 modulée par l'aisance technique — un morceau récité
 de mémoire mais injouable au tempo revient plus tôt (× 0,7 en sous-tempo,
@@ -165,7 +214,9 @@ web/
   src/
     main.ts                   routage et orchestration
     store.ts srs.ts session.ts
-    youtube.ts score.ts keyboard.ts dom.ts
+    youtube.ts                lecteur audio seul, ticker, répétition de passage
+    transport.ts sheet.ts     barre de transport et panneau de réglages
+    score.ts dom.ts
     views/dashboard.ts views/trainer.ts views/srsModal.ts
 ```
 
@@ -176,5 +227,8 @@ web/
   poppler. `opencv-python` et `numpy` restent, pour le repli raster.
 - **Vitesses de lecture 0,85× et 1,05× impossibles** : le lecteur YouTube
   n'accepte que les paliers de `getAvailablePlaybackRates()`. L'interface
-  propose 0,5× / 0,75× / 1× / 1,25×, applique le palier disponible le plus
-  proche et affiche la vitesse réellement obtenue.
+  propose 0,5× / 0,75× / 1×, applique le palier disponible le plus proche et
+  affiche la vitesse réellement obtenue.
+- **Pas de zones tactiles de transport sur la partition** : elles entreraient en
+  conflit avec l'indice éphémère, qui occupe déjà le tap sur une mesure masquée.
+  Le transport reste entièrement dans sa barre.

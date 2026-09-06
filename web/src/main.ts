@@ -9,7 +9,6 @@
 import './style.css';
 
 import { el, ui } from './dom';
-import { installKeyboard, setShortcuts } from './keyboard';
 import { buildRotation, pickSessionItems } from './session';
 import type { SessionBlock } from './session';
 import { loadProgress } from './store';
@@ -68,7 +67,6 @@ function advanceSession(): void {
 function showSessionSummary(): void {
   teardown?.();
   teardown = null;
-  setShortcuts({});
   root!.replaceChildren(
     el(
       'div',
@@ -160,7 +158,6 @@ function render(): void {
 }
 
 async function boot(): Promise<void> {
-  installKeyboard();
   try {
     const response = await fetch(MANIFEST_URL);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

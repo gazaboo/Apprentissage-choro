@@ -1,24 +1,34 @@
-/** Tableau de bord : vue d'ensemble du répertoire et lancement de la session. */
+/** Tableau de bord : vue d'ensemble du répertoire et lancement de la session.
+ *
+ * La liste ne porte qu'une information de décision par morceau — travailler,
+ * ou non. Le détail (retard exact, transpositions disponibles) reste
+ * accessible, mais en retrait : il n'aide pas à choisir, il encombre.
+ */
 
 import { el, ui } from '../dom';
-import { setShortcuts, SHORTCUT_HELP } from '../keyboard';
 import { pickSessionItems } from '../session';
-import { daysOverdue, statusOf, STATUS_LABELS } from '../srs';
-import type { Status } from '../srs';
+import { daysOverdue, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { getCard } from '../store';
 import type { InstrumentId, Song } from '../types';
 
-const STATUS_STYLES: Record<Status, string> = {
-  jamais: 'bg-zinc-700 text-zinc-300',
-  'a-reviser': 'bg-amber-400/20 text-amber-200',
-  'a-jour': 'bg-emerald-400/15 text-emerald-300',
+/** Les trois états SRS se ramènent à une seule décision pour l'utilisateur. */
+type Badge = 'a-travailler' | 'a-jour';
+
+const BADGE_LABELS: Record<Badge, string> = {
+  'a-travailler': 'À travailler',
+  'a-jour': 'À jour',
+};
+
+const BADGE_STYLES: Record<Badge, string> = {
+  'a-travailler': 'bg-amber-400/15 text-amber-200 ring-1 ring-amber-400/30',
+  'a-jour': 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/25',
 };
 
 interface Filters {
   composer: string;
   instrument: string;
-  status: string;
+  badge: string;
 }
 
 export interface DashboardContext {
@@ -27,16 +37,18 @@ export interface DashboardContext {
   startSession: (count: number) => void;
 }
 
-/** Meilleur statut parmi les partitions d'un morceau. */
-function songStatus(song: Song, progress: Progress): Status {
+/**
+ * Un morceau est « à jour » seulement si aucune de ses partitions ne réclame
+ * de révision — « jamais travaillé » compte donc comme du travail en attente.
+ */
+function songBadge(song: Song, progress: Progress): Badge {
   const statuses = song.instruments.map((instrument) =>
     statusOf(getCard(progress, song.id, instrument.id)),
   );
-  if (statuses.includes('a-reviser')) return 'a-reviser';
-  if (statuses.includes('a-jour')) return 'a-jour';
-  return 'jamais';
+  return statuses.every((status) => status === 'a-jour') ? 'a-jour' : 'a-travailler';
 }
 
+/** Détail du retard, réservé à l'infobulle du badge. */
 function dueLabel(song: Song, progress: Progress): string {
   const cards = song.instruments
     .map((instrument) => getCard(progress, song.id, instrument.id))
@@ -55,7 +67,7 @@ export function renderDashboard(
   context: DashboardContext,
 ): () => void {
   const { progress } = context;
-  const filters: Filters = { composer: '', instrument: '', status: '' };
+  const filters: Filters = { composer: '', instrument: '', badge: '' };
 
   const composers = [...new Set(songs.map((song) => song.composer).filter(Boolean))].sort();
   const instruments = new Map<InstrumentId, string>();
@@ -63,7 +75,7 @@ export function renderDashboard(
     for (const instrument of song.instruments) instruments.set(instrument.id, instrument.name);
   }
 
-  const list = el('div', { class: 'grid gap-3' });
+  const list = el('div', { class: 'grid gap-2' });
   const countLabel = el('p', { class: 'text-sm text-zinc-500' });
 
   function paintList(): void {
@@ -75,7 +87,7 @@ export function renderDashboard(
       ) {
         return false;
       }
-      if (filters.status && songStatus(song, progress) !== filters.status) return false;
+      if (filters.badge && songBadge(song, progress) !== filters.badge) return false;
       return true;
     });
 
@@ -97,8 +109,8 @@ export function renderDashboard(
       'select',
       {
         class:
-          'rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 ' +
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
+          'min-h-11 rounded-lg border border-zinc-700 bg-zinc-800 px-3 text-sm ' +
+          'text-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
         'aria-label': label,
       },
       el('option', { value: '' }, label),
@@ -121,34 +133,27 @@ export function renderDashboard(
     return button;
   });
 
-  const dueCount = songs.filter((song) => songStatus(song, progress) !== 'a-jour').length;
+  const dueCount = songs.filter((song) => songBadge(song, progress) === 'a-travailler').length;
 
   root.replaceChildren(
     el(
       'div',
-      { class: 'mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6' },
+      { class: 'mx-auto flex max-w-4xl flex-col gap-8 px-4 py-8' },
 
       el(
         'header',
-        { class: 'flex flex-wrap items-end justify-between gap-4' },
+        {},
+        el('h1', { class: 'text-3xl font-semibold text-zinc-100' }, 'Répertoire de choros'),
         el(
-          'div',
-          {},
-          el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, 'Répertoire de choros'),
-          el(
-            'p',
-            { class: 'text-sm text-zinc-500' },
-            `${songs.length} morceaux · ${dueCount} à travailler`,
-          ),
+          'p',
+          { class: 'mt-1 text-sm text-zinc-400' },
+          `${songs.length} morceaux · ${dueCount} à travailler`,
         ),
       ),
 
       el(
         'section',
-        {
-          class:
-            'rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-5',
-        },
+        { class: 'rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-5' },
         el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Session du jour'),
         el(
           'p',
@@ -170,7 +175,7 @@ export function renderDashboard(
             filters.composer = value;
           }),
           select(
-            'Tous les instruments',
+            'Toutes les transpositions',
             [...instruments].map(([id, name]) => [id, name]),
             (value) => {
               filters.instrument = value;
@@ -178,103 +183,63 @@ export function renderDashboard(
           ),
           select(
             'Tous les statuts',
-            (Object.keys(STATUS_LABELS) as Status[]).map((key) => [key, STATUS_LABELS[key]]),
+            (Object.keys(BADGE_LABELS) as Badge[]).map((key) => [key, BADGE_LABELS[key]]),
             (value) => {
-              filters.status = value;
+              filters.badge = value;
             },
           ),
           countLabel,
         ),
         list,
       ),
-
-      shortcutHelp(),
     ),
   );
 
   paintList();
-  setShortcuts({});
-  return () => setShortcuts({});
+  return () => {};
 }
 
 function songRow(song: Song, progress: Progress, context: DashboardContext): HTMLElement {
-  const status = songStatus(song, progress);
+  const badge = songBadge(song, progress);
   const row = el(
     'button',
     {
       type: 'button',
       class:
-        'flex w-full flex-wrap items-center justify-between gap-4 rounded-xl border ' +
-        'border-zinc-800 bg-zinc-900/60 px-4 py-3 text-left transition ' +
+        'flex w-full min-h-16 items-center justify-between gap-4 rounded-xl border ' +
+        'border-zinc-800 bg-zinc-900/50 px-4 py-3 text-left transition ' +
         'hover:border-zinc-600 hover:bg-zinc-800/60 focus:outline-none ' +
         'focus-visible:ring-2 focus-visible:ring-amber-400',
     },
     el(
       'span',
       { class: 'min-w-0' },
-      el('span', { class: 'block font-medium text-zinc-100' }, song.title),
+      el('span', { class: 'block text-lg font-medium text-zinc-100' }, song.title),
       el(
         'span',
-        { class: 'block text-sm text-zinc-500' },
+        { class: 'block text-sm text-zinc-400' },
         song.composer || 'Compositeur inconnu',
+      ),
+      el(
+        'span',
+        { class: 'block text-xs text-zinc-600' },
+        song.instruments.map((instrument) => instrument.name).join(' · '),
       ),
     ),
     el(
       'span',
-      { class: 'flex items-center gap-3' },
-      el(
-        'span',
-        { class: 'text-xs text-zinc-500' },
-        dueLabel(song, progress),
-      ),
-      el(
-        'span',
-        { class: 'flex gap-1' },
-        ...song.instruments.map((instrument) =>
-          el(
-            'span',
-            {
-              class:
-                'rounded border border-zinc-700 px-1.5 py-0.5 font-mono text-[11px] text-zinc-400',
-              title: instrument.name,
-            },
-            instrument.id.toUpperCase(),
-          ),
-        ),
-      ),
-      el(
-        'span',
-        { class: `rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[status]}` },
-        STATUS_LABELS[status],
-      ),
+      {
+        class:
+          `shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${BADGE_STYLES[badge]}`,
+        // Le retard exact ne sert qu'à qui le cherche : il ne pèse pas sur la
+        // lecture de la liste.
+        title: dueLabel(song, progress),
+      },
+      BADGE_LABELS[badge],
     ),
   );
   row.addEventListener('click', () => context.openSong(song.id));
   return row;
-}
-
-function shortcutHelp(): HTMLElement {
-  return el(
-    'details',
-    { class: 'rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-3' },
-    el(
-      'summary',
-      { class: 'cursor-pointer text-sm font-medium text-zinc-300' },
-      'Raccourcis clavier',
-    ),
-    el(
-      'dl',
-      { class: 'mt-3 grid gap-2 sm:grid-cols-2' },
-      ...SHORTCUT_HELP.flatMap(([key, description]) => [
-        el(
-          'div',
-          { class: 'flex items-center gap-3' },
-          el('dt', { class: ui.kbd }, key),
-          el('dd', { class: 'text-sm text-zinc-400' }, description),
-        ),
-      ]),
-    ),
-  );
 }
 
 export { pickSessionItems };

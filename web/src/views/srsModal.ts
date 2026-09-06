@@ -1,12 +1,11 @@
 /** Questionnaire d'auto-évaluation de fin de morceau.
  *
  * Conçu pour être rempli en moins de cinq secondes, instrument en main : deux
- * rangées de gros boutons, une note pré-suggérée d'après les indices
- * déclenchés, et les chiffres 1 à 5 utilisables au clavier.
+ * rangées de gros boutons et une note pré-suggérée d'après les indices
+ * déclenchés. Tout se fait au doigt, il n'y a rien à taper.
  */
 
 import { el, ui } from '../dom';
-import { setShortcuts } from '../keyboard';
 import { GRADE_LABELS, TEMPO_LABELS, suggestGrade } from '../srs';
 import type { Tempo } from '../types';
 
@@ -84,7 +83,6 @@ export function askSrs(
     const skip = el('button', { type: 'button', class: ui.button }, 'Passer');
 
     const close = (answer: SrsAnswer | null): void => {
-      setShortcuts({});
       overlay.remove();
       resolve(answer);
     };
@@ -120,26 +118,12 @@ export function askSrs(
         el('p', { class: `${ui.label} mt-5` }, 'Aisance technique et tempo'),
         el('div', { class: 'mt-2 grid grid-cols-3 gap-2' }, ...tempoButtons),
 
-        el(
-          'div',
-          { class: 'mt-6 flex items-center justify-between gap-3' },
-          el(
-            'span',
-            { class: 'text-xs text-zinc-600' },
-            'Touches 1 à 5 pour noter directement',
-          ),
-          el('div', { class: 'flex gap-2' }, skip, validate),
-        ),
+        el('div', { class: 'mt-6 flex flex-wrap justify-end gap-2' }, skip, validate),
       ),
     );
 
     document.body.appendChild(overlay);
     paint();
     validate.focus();
-
-    setShortcuts({
-      grade: setGrade,
-      escape: () => close(null),
-    });
   });
 }

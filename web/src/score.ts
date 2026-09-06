@@ -1,22 +1,25 @@
-/** Partition à trous : calque SVG de masquage et indice éphémère.
+/** Partition à trous : calque de masquage en verre dépoli et indice éphémère.
  *
- * Le SVG est dessiné en `viewBox="0 0 1 1"` : les boîtes du manifeste étant
- * déjà normalisées, elles s'y écrivent telles quelles et suivent l'image à
- * n'importe quelle taille, sans le moindre recalcul au redimensionnement.
+ * Les masques sont des boîtes CSS positionnées en pourcentages, et non des
+ * rectangles SVG : `backdrop-filter` ne s'applique qu'aux boîtes CSS. Les
+ * mesures du manifeste étant déjà normalisées entre 0 et 1, leurs coordonnées
+ * s'écrivent telles quelles en pourcentage et suivent l'image à n'importe
+ * quelle taille, sans le moindre recalcul au redimensionnement.
  */
 
 import type { Instrument, MaskLevel, Measure, Page } from './types';
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
 /** Durée exacte de l'indice éphémère, en millisecondes. */
-export const HINT_DURATION_MS = 2000;
-const HINT_OPACITY = '0.15';
+export const HINT_DURATION_MS = 5000;
+/** Opacité du masque pendant l'indice : la mesure devient lisible. */
+const HINT_OPACITY = '0.12';
 
 /**
  * Générateur pseudo-aléatoire déterministe (mulberry32).
  * Le motif de masquage doit être stable d'une session à l'autre : on veut
  * réviser les mêmes trous, pas redécouvrir une partition différente à chaque
- * chargement.
+ * chargement. Le bouton « Mélanger » fait avancer la graine, seule façon
+ * d'obtenir un nouveau tirage.
  */
 function seededRandom(seed: string): () => number {
   let h = 1779033703 ^ seed.length;
@@ -88,46 +91,30 @@ function buildSlots(instrument: Instrument): Slot[] {
 }
 
 /**
- * Choisit les mesures à masquer selon le niveau de difficulté.
+ * Tire au sort les mesures à masquer pour un taux donné.
  *
- * Les trois paliers ne sont pas qu'une question de quantité : ils ciblent des
- * objets cognitifs différents.
+ * Le tirage est aléatoire, à une réserve près : les débuts de système sont
+ * servis en dernier. Ce sont les *performance cues*, les points de reprise
+ * auxquels on se raccroche quand la mémoire lâche ; les épargner tant que le
+ * taux le permet est ce qui distingue une partition à trous d'une page noire.
  */
-function selectMasked(slots: Slot[], level: MaskLevel, seed: string): Set<number> {
-  const random = seededRandom(`${seed}|${level}`);
+function selectMasked(slots: Slot[], level: number, seed: string): Set<number> {
+  if (level <= 0) return new Set();
+  const random = seededRandom(seed);
 
-  /** Plus la priorité est haute, plus la mesure mérite d'être masquée. */
-  const priority = (slot: Slot): number => {
-    if (level === 25) {
-      // Cadences et fins de phrases : la résolution harmonique d'abord.
-      if (slot.isRowEnd) return 3;
-      if (slot.rowLength > 3 && slot.indexInRow === slot.rowLength - 2) return 2;
-      return 0;
-    }
-    if (level === 50) {
-      // Damier : une mesure sur deux, pour alterner lecture et rappel.
-      return slot.indexInRow % 2 === 1 ? 2 : 0;
-    }
-    // 80 % : ne subsistent que les repères cardinaux (*performance cues*) —
-    // début de système et jalons réguliers.
-    const isCue = slot.isRowStart || slot.ordinal % 8 === 0;
-    return isCue ? 0 : 2;
-  };
-
-  // On trie par priorité puis par un tirage déterministe, et on coupe au
-  // nombre voulu : le taux affiché est ainsi tenu exactement, tout en
-  // masquant en premier les mesures qui comptent pour ce palier.
   const ranked = slots
-    .map((slot) => ({ slot, rank: priority(slot), jitter: random() }))
+    .map((slot) => ({
+      ordinal: slot.ordinal,
+      rank: slot.isRowStart ? 0 : 1,
+      jitter: random(),
+    }))
     .sort((a, b) => b.rank - a.rank || a.jitter - b.jitter);
 
   const target = Math.round((slots.length * level) / 100);
-  return new Set(ranked.slice(0, target).map((entry) => entry.slot.ordinal));
+  return new Set(ranked.slice(0, target).map((entry) => entry.ordinal));
 }
 
 export interface ScoreOptions {
-  /** Couleur opaque des masques : celle du fond, pour un trou franc. */
-  maskColor: string;
   onHintUsed: () => void;
 }
 
@@ -135,8 +122,8 @@ export interface ScoreOptions {
 export class ScoreView {
   private slots: Slot[] = [];
   private masked = new Set<number>();
-  /** Rectangles SVG indexés par ordinal de mesure. */
-  private rects = new Map<number, SVGRectElement>();
+  /** Boîtes de masquage indexées par ordinal de mesure. */
+  private boxes = new Map<number, HTMLElement>();
   private hintTimers = new Map<number, number>();
   private hintCursor = 0;
   private level: MaskLevel = 50;
@@ -153,13 +140,22 @@ export class ScoreView {
     this.slots = buildSlots(instrument);
     this.seed = seed;
     this.level = level;
-    this.masked = selectMasked(this.slots, level, seed);
-    this.rects.clear();
+    this.masked = selectMasked(this.slots, this.rate, seed);
+    this.boxes.clear();
     this.container.replaceChildren();
+
+    // « Sans partition » : rien n'est rendu du tout. Ce n'est pas un masquage
+    // à 100 % — il ne reste aucune page à regarder, donc aucune tentation.
+    if (level === 'aucune') return;
 
     instrument.pages.forEach((page, pageIndex) => {
       this.container.appendChild(this.renderPage(page, pageIndex));
     });
+  }
+
+  /** Taux effectif ; « sans partition » vaut 100 % de mesures dérobées. */
+  private get rate(): number {
+    return this.level === 'aucune' ? 100 : this.level;
   }
 
   private renderPage(page: Page, pageIndex: number): HTMLElement {
@@ -175,10 +171,8 @@ export class ScoreView {
     img.draggable = false;
     wrapper.appendChild(img);
 
-    const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('viewBox', '0 0 1 1');
-    svg.setAttribute('preserveAspectRatio', 'none');
-    svg.classList.add('absolute', 'inset-0', 'h-full', 'w-full');
+    const layer = document.createElement('div');
+    layer.className = 'pointer-events-none absolute inset-0';
 
     page.measures.forEach((measure, measureIndex) => {
       const slot = this.slots.find(
@@ -187,83 +181,120 @@ export class ScoreView {
           candidate.measureIndex === measureIndex,
       );
       if (!slot) return;
-      svg.appendChild(this.renderMask(measure, slot));
+      // Un masque n'est créé que pour une mesure effectivement masquée : au
+      // palier « Aucun », le calque est vide et ne laisse aucun résidu.
+      if (!this.masked.has(slot.ordinal)) return;
+      layer.appendChild(this.renderMask(measure, slot));
     });
 
-    wrapper.appendChild(svg);
+    wrapper.appendChild(layer);
     return wrapper;
   }
 
-  private renderMask(measure: Measure, slot: Slot): SVGRectElement {
-    const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('x', String(measure.box.x));
-    rect.setAttribute('y', String(measure.box.y));
-    rect.setAttribute('width', String(measure.box.w));
-    rect.setAttribute('height', String(measure.box.h));
-    rect.setAttribute('fill', this.options.maskColor);
-    rect.dataset.ordinal = String(slot.ordinal);
+  private renderMask(measure: Measure, slot: Slot): HTMLElement {
+    const box = document.createElement('button');
+    box.type = 'button';
+    box.className = 'measure-mask';
+    box.style.left = `${measure.box.x * 100}%`;
+    box.style.top = `${measure.box.y * 100}%`;
+    box.style.width = `${measure.box.w * 100}%`;
+    box.style.height = `${measure.box.h * 100}%`;
+    box.dataset.ordinal = String(slot.ordinal);
+    box.setAttribute('aria-label', 'Révéler cette mesure quelques secondes');
+    box.addEventListener('click', () => this.revealTemporarily(slot.ordinal));
 
-    const isMasked = this.masked.has(slot.ordinal);
-    rect.style.opacity = isMasked ? '1' : '0';
-    rect.style.pointerEvents = isMasked ? 'auto' : 'none';
-    rect.style.cursor = isMasked ? 'pointer' : 'default';
-    rect.style.transition = 'opacity 120ms ease';
-    rect.addEventListener('click', () => this.revealTemporarily(slot.ordinal));
-
-    this.rects.set(slot.ordinal, rect);
-    return rect;
+    this.boxes.set(slot.ordinal, box);
+    return box;
   }
 
-  setLevel(level: MaskLevel): void {
+  /**
+   * Change de palier. Le DOM des pages n'est reconstruit que si l'on entre ou
+   * sort de « sans partition » ; sinon seuls les masques sont redessinés, ce
+   * qui garde la position de défilement et la transition douce.
+   */
+  setLevel(level: MaskLevel, instrument: Instrument): void {
+    const wasHidden = this.level === 'aucune';
     this.level = level;
-    this.masked = selectMasked(this.slots, level, this.seed);
-    this.clearHints();
-    for (const [ordinal, rect] of this.rects) {
-      const isMasked = this.masked.has(ordinal);
-      rect.style.opacity = isMasked ? '1' : '0';
-      rect.style.pointerEvents = isMasked ? 'auto' : 'none';
-      rect.style.cursor = isMasked ? 'pointer' : 'default';
+    if (wasHidden || level === 'aucune') {
+      this.render(instrument, this.seed, level);
+      return;
     }
+    this.masked = selectMasked(this.slots, this.rate, this.seed);
+    this.repaintMasks(instrument);
+  }
+
+  /** Nouveau tirage sur la même partition, sans rechargement. */
+  reshuffle(seed: string, instrument: Instrument): void {
+    this.seed = seed;
+    this.masked = selectMasked(this.slots, this.rate, seed);
+    if (this.level === 'aucune') return;
+    this.repaintMasks(instrument);
+  }
+
+  /**
+   * Redessine le calque de masquage seul. Les images restent en place : elles
+   * ne sont pas rechargées, et l'on ne voit qu'un fondu des masques.
+   */
+  private repaintMasks(instrument: Instrument): void {
+    this.clearHints();
+    this.boxes.clear();
+    const figures = [...this.container.children];
+    instrument.pages.forEach((page, pageIndex) => {
+      const figure = figures[pageIndex];
+      if (!(figure instanceof HTMLElement)) return;
+      const layer = figure.lastElementChild;
+      if (!(layer instanceof HTMLElement)) return;
+      const next: HTMLElement[] = [];
+      page.measures.forEach((measure, measureIndex) => {
+        const slot = this.slots.find(
+          (candidate) =>
+            candidate.pageIndex === pageIndex &&
+            candidate.measureIndex === measureIndex,
+        );
+        if (!slot || !this.masked.has(slot.ordinal)) return;
+        next.push(this.renderMask(measure, slot));
+      });
+      layer.replaceChildren(...next);
+    });
   }
 
   get maskLevel(): MaskLevel {
     return this.level;
   }
 
+  /**
+   * Nombre de mesures dérobées à la lecture. Sans partition, ce sont toutes
+   * les mesures : le questionnaire d'auto-évaluation en tient compte pour
+   * suggérer la note.
+   */
   get maskedCount(): number {
-    return this.masked.size;
+    return this.level === 'aucune' ? this.slots.length : this.masked.size;
   }
 
   /**
-   * Indice éphémère : la mesure s'éclaircit exactement deux secondes puis se
+   * Indice éphémère : la mesure s'éclaircit quelques secondes puis se
    * re-masque seule. Le retour automatique est le cœur du dispositif — il
    * empêche de transformer l'indice en lecture passive.
    */
   revealTemporarily(ordinal: number): void {
-    const rect = this.rects.get(ordinal);
-    if (!rect || !this.masked.has(ordinal)) return;
+    const box = this.boxes.get(ordinal);
+    if (!box || !this.masked.has(ordinal)) return;
 
     const existing = this.hintTimers.get(ordinal);
     if (existing !== undefined) window.clearTimeout(existing);
     else this.options.onHintUsed(); // on ne compte pas un indice re-déclenché
 
-    rect.style.opacity = HINT_OPACITY;
+    box.style.opacity = HINT_OPACITY;
     this.hintTimers.set(
       ordinal,
       window.setTimeout(() => {
-        rect.style.opacity = '1';
+        box.style.opacity = '';
         this.hintTimers.delete(ordinal);
       }, HINT_DURATION_MS),
     );
   }
 
-  /**
-   * Révèle la mesure masquée suivante (raccourci `H`).
-   *
-   * Un curseur avance d'un trou à chaque appel, en suivant le fil de lecture :
-   * l'instrumentiste qui joue la pièce d'un bout à l'autre retrouve l'indice
-   * là où il en est, plutôt que de rouvrir toujours le premier trou.
-   */
+  /** Révèle la mesure masquée suivante, en suivant le fil de lecture. */
   revealNext(): void {
     const maskedOrdinals = this.slots
       .map((slot) => slot.ordinal)

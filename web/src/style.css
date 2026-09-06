@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* Dark mode assumé : l'application se travaille en répétition, souvent en
-   lumière basse, et les masques opaques doivent se confondre avec le fond. */
+   lumière basse. */
 :root {
   color-scheme: dark;
 }
@@ -9,7 +9,7 @@
 html,
 body {
   min-height: 100%;
-  background-color: #09090b; /* zinc-950 — doit rester égal à MASK_COLOR */
+  background-color: #09090b; /* zinc-950 */
 }
 
 body {
@@ -17,9 +17,143 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Le lecteur YouTube injecte son iframe dans le conteneur monté. */
-#app iframe {
-  width: 100%;
-  height: 100%;
+/* Le lecteur ne sert plus que d'audio : son iframe est sortie du champ de
+   vision, mais reste rendue. `display: none` et `visibility: hidden` coupent
+   le son sur certains navigateurs — c'est pourquoi on la déporte. */
+.yt-audio-only,
+.yt-audio-only iframe {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
   border: 0;
+  pointer-events: none;
+}
+
+/* --- Masque de mesure ---------------------------------------------------- */
+
+/* Le masque est un calque clair posé sur la page, non un trou noir découpé
+   dedans : sur du papier blanc, un panneau anthracite lit comme un défaut
+   d'impression, alors qu'un verre dépoli à peine teinté lit comme une feuille
+   de calque — la mesure reste une mesure, simplement dérobée. Le blanc est
+   très légèrement chaud, ce qui suffit à le distinguer du papier sans jamais
+   trancher avec lui. */
+:root {
+  --mask-paper: 252 251 247;
+  --mask-ink: 24 24 27;
+  /* Opacité au repos : assez couvrante pour ne rien laisser lire. */
+  --mask-veil: 0.96;
+}
+
+.measure-mask {
+  position: absolute;
+  padding: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  background-color: rgb(var(--mask-paper) / var(--mask-veil));
+  -webkit-backdrop-filter: blur(8px) saturate(0.6);
+  backdrop-filter: blur(8px) saturate(0.6);
+  /* Filet d'encre très pâle : il pose le bord du calque sur la page, là où
+     une bordure blanche serait invisible. */
+  border: 1px solid rgb(var(--mask-ink) / 0.14);
+  border-radius: 4px;
+  /* Ombre portée courte : le calque se décolle du papier au lieu d'y être
+     imprimé, ce qui le rend lisible comme un objet et non comme une tache. */
+  box-shadow:
+    0 1px 2px rgb(var(--mask-ink) / 0.07),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+  transition: all 0.3s ease;
+}
+
+/* Peeking : ne laisse filtrer que la densité rythmique — assez pour se
+   repérer, jamais assez pour lire. Le flou reste appliqué sous le voile
+   éclairci, c'est lui qui garantit l'illisibilité. */
+@media (hover: hover) {
+  .measure-mask:hover {
+    background-color: rgb(var(--mask-paper) / 0.6);
+    -webkit-backdrop-filter: blur(4px) saturate(0.6);
+    backdrop-filter: blur(4px) saturate(0.6);
+  }
+}
+
+.measure-mask:active {
+  background-color: rgb(var(--mask-paper) / 0.6);
+  -webkit-backdrop-filter: blur(4px) saturate(0.6);
+  backdrop-filter: blur(4px) saturate(0.6);
+}
+
+.measure-mask:focus-visible {
+  outline: 2px solid #b45309; /* amber-700 — lisible sur fond clair */
+  outline-offset: 2px;
+}
+
+/* --- Partition ----------------------------------------------------------- */
+
+/* Le zoom à deux doigts reste natif ; on ne capte ni le double-tap ni le
+   glissement, pour ne pas se mettre en travers du défilement. */
+.score-surface {
+  touch-action: pan-x pan-y pinch-zoom;
+}
+
+/* --- Barre de transport --------------------------------------------------- */
+
+.transport-shell {
+  background-color: rgba(24, 24, 27, 0.9);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+/* Piste de défilement : fine au repos, épaissie dès qu'on la vise. */
+.seek-track {
+  height: 4px;
+  transition: height 0.15s ease;
+}
+
+.seek-bar:hover .seek-track,
+.seek-bar.is-dragging .seek-track {
+  height: 8px;
+}
+
+@media (pointer: coarse) {
+  .seek-track {
+    height: 8px;
+  }
+}
+
+/* --- Boucle A-B ----------------------------------------------------------- */
+
+/* Frise de tracé : le curseur annonce qu'on y dessine un intervalle, et non
+   qu'on y déplace la lecture — ce que fait la barre juste au-dessus. */
+.loop-lane {
+  cursor: crosshair;
+}
+
+.loop-lane [data-handle] {
+  cursor: ew-resize;
+}
+
+/* Retour en A : un éclair court sur le segment bouclé. Sans lui, le saut
+   s'entend mais ne se voit pas, et l'on doute d'avoir bien posé les bornes. */
+@keyframes loop-wrap-flash {
+  from {
+    background-color: rgb(253 230 138 / 0.85);
+    box-shadow: 0 0 0 2px rgb(252 211 77 / 0.7);
+  }
+  to {
+    background-color: rgb(253 230 138 / 0.25);
+    box-shadow: 0 0 0 0 rgb(252 211 77 / 0);
+  }
+}
+
+.loop-band--wrap {
+  animation: loop-wrap-flash 450ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-band--wrap {
+    animation: none;
+  }
 }

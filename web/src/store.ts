@@ -4,7 +4,8 @@
  * privée) ou corrompu redonne un état vide plutôt que de casser la page.
  */
 
-import type { InstrumentId, SrsCard } from './types';
+import type { InstrumentId, MaskLevel, SrsCard } from './types';
+import { isMaskLevel } from './types';
 
 const STORAGE_KEY = 'choro-srs-v1';
 
@@ -14,13 +15,19 @@ export interface Progress {
   /** Préférences d'interface, mémorisées d'une session à l'autre. */
   settings: {
     blockMinutes: number;
-    maskLevel: number;
+    maskLevel: MaskLevel;
+    /**
+     * Graine du tirage des mesures masquées. Elle est persistée pour que le
+     * motif soit identique d'un chargement à l'autre — on révise les mêmes
+     * trous — et n'avance que sur un appui volontaire sur « Mélanger ».
+     */
+    maskSeed: number;
   };
 }
 
 const DEFAULT_PROGRESS: Progress = {
   cards: {},
-  settings: { blockMinutes: 5, maskLevel: 50 },
+  settings: { blockMinutes: 5, maskLevel: 50, maskSeed: 1 },
 };
 
 export function cardKey(songId: string, instrumentId: InstrumentId): string {
@@ -55,10 +62,17 @@ export function loadProgress(): Progress {
         cards[key] = { ...value, history: Array.isArray(value.history) ? value.history : [] };
       }
     }
-    return {
-      cards,
-      settings: { ...DEFAULT_PROGRESS.settings, ...(parsed.settings ?? {}) },
-    };
+    const settings = { ...DEFAULT_PROGRESS.settings, ...(parsed.settings ?? {}) };
+    // Une progression enregistrée avant la refonte peut porter un palier
+    // disparu (80) : on la rabat sur la valeur par défaut plutôt que de
+    // laisser passer un niveau que l'interface ne sait plus afficher.
+    if (!isMaskLevel(settings.maskLevel)) {
+      settings.maskLevel = DEFAULT_PROGRESS.settings.maskLevel;
+    }
+    if (typeof settings.maskSeed !== 'number' || !Number.isFinite(settings.maskSeed)) {
+      settings.maskSeed = DEFAULT_PROGRESS.settings.maskSeed;
+    }
+    return { cards, settings };
   } catch {
     return structuredClone(DEFAULT_PROGRESS);
   }

@@ -26,23 +26,41 @@ export function clear(node: HTMLElement): void {
   node.replaceChildren();
 }
 
-/** Classes partagées, pour garder les vues cohérentes sans les répéter. */
+/** Classes partagées, pour garder les vues cohérentes sans les répéter.
+ *
+ * Tous les contrôles font au moins 44 × 44 px (`min-h-11 min-w-11`) : la
+ * cible tactile minimale pour qu'on les atteigne d'une main, l'instrument
+ * dans l'autre.
+ */
 export const ui = {
   button:
-    'rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium ' +
-    'text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-700 ' +
-    'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'inline-flex min-h-11 items-center justify-center rounded-lg border ' +
+    'border-zinc-700 bg-zinc-800 px-4 text-sm font-medium text-zinc-200 ' +
+    'transition hover:border-zinc-500 hover:bg-zinc-700 focus:outline-none ' +
+    'focus-visible:ring-2 focus-visible:ring-amber-400 ' +
     'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-zinc-800',
   buttonActive:
-    'rounded-md border border-amber-400/60 bg-amber-400/15 px-3 py-2 text-sm ' +
-    'font-medium text-amber-200 transition focus:outline-none ' +
-    'focus-visible:ring-2 focus-visible:ring-amber-400',
+    'inline-flex min-h-11 items-center justify-center rounded-lg border ' +
+    'border-amber-400/60 bg-amber-400/15 px-4 text-sm font-medium ' +
+    'text-amber-200 transition focus:outline-none focus-visible:ring-2 ' +
+    'focus-visible:ring-amber-400',
   primary:
-    'rounded-md bg-amber-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 ' +
-    'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
-    'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
-    'focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-40',
+    'inline-flex min-h-11 items-center justify-center rounded-lg bg-amber-400 ' +
+    'px-5 text-sm font-semibold text-zinc-950 transition hover:bg-amber-300 ' +
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ' +
+    'disabled:cursor-not-allowed disabled:opacity-40',
+  /** Contrôle carré et compact (icône seule) de la barre de transport. */
+  icon:
+    'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ' +
+    'border border-zinc-700 bg-zinc-800/80 text-base text-zinc-300 ' +
+    'transition hover:border-zinc-500 hover:bg-zinc-700 focus:outline-none ' +
+    'focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'disabled:cursor-not-allowed disabled:opacity-40',
+  iconActive:
+    'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ' +
+    'border border-amber-400/60 bg-amber-400/15 text-base text-amber-200 ' +
+    'transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
   card: 'rounded-xl border border-zinc-800 bg-zinc-900/60 p-4',
   label: 'text-xs font-semibold uppercase tracking-wider text-zinc-500',
-  kbd: 'rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-300',
 };

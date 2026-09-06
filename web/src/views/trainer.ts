@@ -1,25 +1,24 @@
-/** Écran d'entraînement : lecteur, sélecteurs, partition à trous.
+/** Écran d'entraînement : partition à trous, et barre de transport fixe.
  *
- * C'est ici que se combinent les leviers cognitifs : source audio, ghost mode,
- * saut à froid, niveau de masquage et indices éphémères — le tout pilotable au
- * clavier, sans lâcher l'instrument.
+ * La partition occupe tout l'espace et défile librement ; le pilotage vit dans
+ * une barre qui ne disparaît jamais. Tout est atteignable au doigt : il n'y a
+ * aucun raccourci clavier, et aucune action n'est cachée.
  */
 
 import { el, ui } from '../dom';
-import { setShortcuts } from '../keyboard';
 import { ScoreView } from '../score';
 import { BlockTimer, formatCountdown } from '../session';
 import type { SessionBlock } from '../session';
+import { createControlBar } from '../sheet';
 import { review, statusOf, STATUS_LABELS } from '../srs';
 import type { Progress } from '../store';
 import { getCard, putCard, saveProgress } from '../store';
-import type { AudioKind, InstrumentId, MaskLevel, Song } from '../types';
-import { PLAYBACK_RATES, Player } from '../youtube';
+import { createTransport } from '../transport';
+import type { Section } from '../transport';
+import type { InstrumentId, MaskLevel, Song } from '../types';
+import { MASK_LEVEL_LABELS, MASK_LEVELS } from '../types';
+import { Player } from '../youtube';
 import { askSrs } from './srsModal';
-
-const MASK_LEVELS: MaskLevel[] = [25, 50, 80];
-/** Couleur des masques : identique au fond, pour un trou franc. */
-const MASK_COLOR = '#09090b'; // zinc-950
 
 export interface TrainerContext {
   progress: Progress;
@@ -43,209 +42,128 @@ export function renderTrainer(
 
   // --- État local de l'écran ---------------------------------------------
   let instrumentId: InstrumentId = song.instruments[0]!.id;
-  let source: AudioKind = song.audio.reference ? 'reference' : 'playback';
-  let ghost = false;
   let hints = 0;
-  let maskLevel = (MASK_LEVELS.includes(progress.settings.maskLevel as MaskLevel)
-    ? progress.settings.maskLevel
-    : 50) as MaskLevel;
+  let maskLevel: MaskLevel = progress.settings.maskLevel;
 
-  const hasSource = (kind: AudioKind): boolean => song.audio[kind] !== null;
-  const anySource = hasSource('reference') || hasSource('playback');
-  if (!hasSource(source) && anySource) {
-    source = source === 'reference' ? 'playback' : 'reference';
-  }
+  const anySource = song.audio.reference !== null || song.audio.playback !== null;
 
-  // --- Squelette ----------------------------------------------------------
-  const scoreContainer = el('div', { class: 'flex flex-col gap-6' });
+  const currentInstrument = () =>
+    song.instruments.find((instrument) => instrument.id === instrumentId)!;
+
+  /** La graine n'avance que sur « Mélanger » : le motif est sinon stable. */
+  const maskSeed = () =>
+    `${song.id}::${instrumentId}::${progress.settings.maskSeed}`;
+
+  // --- Partition ----------------------------------------------------------
+
+  const scoreContainer = el('div', { class: 'score-surface flex flex-col gap-6' });
   const scoreView = new ScoreView(scoreContainer, {
-    maskColor: MASK_COLOR,
     onHintUsed: () => {
       hints += 1;
-      hintCounter.textContent = String(hints);
+      paintCounters();
     },
   });
 
-  const playerMount = el('div', { class: 'h-full w-full' });
-  const ghostVeil = el('div', {
-    class:
-      'pointer-events-none absolute inset-0 hidden items-center justify-center ' +
-      'bg-zinc-950 text-sm text-zinc-600',
-  });
-  ghostVeil.textContent = 'Ghost mode — audio seul';
-
-  const countdownVeil = el('div', {
-    class:
-      'pointer-events-none absolute inset-0 hidden items-center justify-center ' +
-      'bg-zinc-950/95 text-7xl font-bold text-amber-300',
-  });
-
-  const playerFrame = el(
-    'div',
-    {
-      class:
-        'relative aspect-video w-full overflow-hidden rounded-xl border ' +
-        'border-zinc-800 bg-black',
-    },
-    playerMount,
-    ghostVeil,
-    countdownVeil,
-  );
-
-  const hintCounter = el('span', { class: 'font-mono text-zinc-300' }, '0');
-  const rateLabel = el('span', { class: 'font-mono text-zinc-300' }, '1×');
-  const blockLabel = el('span', { class: 'font-mono text-amber-300' }, '');
-
-  // --- Sélecteurs ---------------------------------------------------------
-  const sourceButtons = new Map<AudioKind, HTMLButtonElement>();
-  const instrumentButtons = new Map<InstrumentId, HTMLButtonElement>();
-  const maskButtons = new Map<MaskLevel, HTMLButtonElement>();
-
-  function paintSelectors(): void {
-    for (const [kind, button] of sourceButtons) {
-      button.className = kind === source ? ui.buttonActive : ui.button;
-    }
-    for (const [id, button] of instrumentButtons) {
-      button.className = id === instrumentId ? ui.buttonActive : ui.button;
-    }
-    for (const [level, button] of maskButtons) {
-      button.className = level === maskLevel ? ui.buttonActive : ui.button;
-    }
-  }
-
-  function loadSource(): void {
-    const audio = song.audio[source];
-    if (audio) player.cue(audio.youtube_id);
-  }
-
-  function setSource(kind: AudioKind): void {
-    if (!hasSource(kind) || kind === source) return;
-    source = kind;
-    paintSelectors();
-    loadSource();
-  }
-
-  function toggleSource(): void {
-    setSource(source === 'reference' ? 'playback' : 'reference');
-  }
-
-  /** Change de partition sans toucher au lecteur : l'audio n'est pas coupé. */
-  function setInstrument(id: InstrumentId): void {
-    if (id === instrumentId) return;
-    instrumentId = id;
-    hints = 0;
-    hintCounter.textContent = '0';
-    paintSelectors();
-    drawScore();
-  }
-
-  function nextInstrument(): void {
-    const index = song.instruments.findIndex((i) => i.id === instrumentId);
-    const next = song.instruments[(index + 1) % song.instruments.length]!;
-    setInstrument(next.id);
-  }
-
-  function setMaskLevel(level: MaskLevel): void {
-    maskLevel = level;
-    progress.settings.maskLevel = level;
-    saveProgress(progress);
-    paintSelectors();
-    scoreView.setLevel(level);
-    maskedLabel.textContent = String(scoreView.maskedCount);
+  const countersLabel = el('p', { class: 'text-xs text-zinc-500' });
+  function paintCounters(): void {
+    const masked = scoreView.maskedCount;
+    countersLabel.textContent =
+      `${masked} mesure${masked > 1 ? 's' : ''} dérobée${masked > 1 ? 's' : ''} · ` +
+      `${hints} indice${hints > 1 ? 's' : ''}`;
   }
 
   function drawScore(): void {
-    const instrument = song.instruments.find((i) => i.id === instrumentId)!;
-    scoreView.render(instrument, `${song.id}::${instrument.id}`, maskLevel);
-    maskedLabel.textContent = String(scoreView.maskedCount);
+    scoreView.render(currentInstrument(), maskSeed(), maskLevel);
+    scoreView.resetHintCursor();
+    paintCounters();
   }
 
-  const maskedLabel = el('span', { class: 'font-mono text-zinc-300' }, '0');
+  // --- Masquage -----------------------------------------------------------
 
-  for (const kind of ['reference', 'playback'] as AudioKind[]) {
-    const available = hasSource(kind);
-    const label = kind === 'reference' ? 'Référence' : 'Playback';
+  const maskButtons = new Map<string, HTMLButtonElement>();
+  function paintMask(): void {
+    for (const [key, button] of maskButtons) {
+      button.className = key === String(maskLevel) ? ui.buttonActive : ui.button;
+    }
+  }
+  for (const level of MASK_LEVELS) {
     const button = el(
       'button',
-      {
-        type: 'button',
-        class: ui.button,
-        disabled: !available,
-        title: available ? undefined : 'Aucune URL fournie pour ce morceau',
-      },
-      available ? label : `${label} (Non disponible)`,
+      { type: 'button', class: ui.button },
+      MASK_LEVEL_LABELS[String(level)]!,
     );
-    button.addEventListener('click', () => setSource(kind));
-    sourceButtons.set(kind, button);
-  }
-
-  for (const instrument of song.instruments) {
-    const button = el('button', { type: 'button', class: ui.button }, instrument.name);
-    button.addEventListener('click', () => setInstrument(instrument.id));
-    instrumentButtons.set(instrument.id, button);
-  }
-
-  for (const level of MASK_LEVELS) {
-    const button = el('button', { type: 'button', class: ui.button }, `${level} %`);
-    button.addEventListener('click', () => setMaskLevel(level));
-    maskButtons.set(level, button);
-  }
-
-  // --- Contrôles cognitifs ------------------------------------------------
-  function setGhost(next: boolean): void {
-    ghost = next;
-    ghostVeil.classList.toggle('hidden', !ghost);
-    ghostVeil.classList.toggle('flex', ghost);
-    ghostButton.className = ghost ? ui.buttonActive : ui.button;
-  }
-
-  const ghostButton = el('button', { type: 'button', class: ui.button }, 'Ghost mode');
-  ghostButton.addEventListener('click', () => setGhost(!ghost));
-
-  function coldJump(): void {
-    if (!anySource) return;
-    countdownVeil.classList.remove('hidden');
-    countdownVeil.classList.add('flex');
-    player.coldJump((remaining) => {
-      countdownVeil.textContent = remaining > 0 ? String(remaining) : 'Jouez !';
-      if (remaining === 0) {
-        window.setTimeout(() => {
-          countdownVeil.classList.add('hidden');
-          countdownVeil.classList.remove('flex');
-        }, 400);
-      }
-    });
-  }
-
-  const jumpButton = el(
-    'button',
-    { type: 'button', class: ui.button, disabled: !anySource },
-    'Saut à froid',
-  );
-  jumpButton.addEventListener('click', coldJump);
-
-  const rateButtons = PLAYBACK_RATES.map((rate) => {
-    const button = el('button', { type: 'button', class: ui.button }, `${rate}×`);
     button.addEventListener('click', () => {
-      const effective = player.setRate(rate);
-      rateLabel.textContent = `${effective}×`;
-      rateButtons.forEach((other, index) => {
-        other.className = PLAYBACK_RATES[index] === effective ? ui.buttonActive : ui.button;
-      });
+      if (level === maskLevel) return;
+      maskLevel = level;
+      progress.settings.maskLevel = level;
+      saveProgress(progress);
+      paintMask();
+      scoreView.setLevel(level, currentInstrument());
+      paintCounters();
     });
-    return button;
+    maskButtons.set(String(level), button);
+  }
+  paintMask();
+
+  const shuffleButton = el(
+    'button',
+    { type: 'button', class: ui.button, title: 'Nouveau tirage des mesures masquées' },
+    '🎲 Mélanger',
+  );
+  shuffleButton.addEventListener('click', () => {
+    progress.settings.maskSeed += 1;
+    saveProgress(progress);
+    scoreView.reshuffle(maskSeed(), currentInstrument());
+    paintCounters();
+  });
+
+  const hintButton = el(
+    'button',
+    { type: 'button', class: ui.button, title: 'Révèle la mesure masquée suivante' },
+    '💡 Indice',
+  );
+  hintButton.addEventListener('click', () => scoreView.revealNext());
+
+  const maskSection: Section = {
+    title: 'Cacher des mesures',
+    hint: 'Des mesures sont recouvertes : à vous de les retrouver de mémoire. ' +
+      'Touchez-en une pour la revoir 5 secondes.',
+    body: el(
+      'div',
+      { class: 'flex flex-col gap-2' },
+      el('div', { class: 'flex flex-wrap gap-2' }, ...maskButtons.values()),
+      el('div', { class: 'flex flex-wrap gap-2' }, shuffleButton, hintButton),
+      countersLabel,
+    ),
+  };
+
+  // --- Lecteur et barre de transport --------------------------------------
+
+  // L'iframe reste dans le document mais hors du champ de vision : c'est ce
+  // qui permet de garder l'audio sans jamais montrer la vidéo.
+  const playerMount = el('div', { class: 'yt-audio-only' });
+
+  const transport = createTransport({
+    song,
+    player,
+    onInstrument: (id) => {
+      instrumentId = id;
+      hints = 0;
+      drawScore();
+    },
+  });
+
+  const controlBar = createControlBar({
+    primary: transport.primary,
+    sections: [...transport.sections, maskSection],
   });
 
   // --- Évaluation ---------------------------------------------------------
+
   async function finish(): Promise<void> {
     player.pause();
-    const instrument = song.instruments.find((i) => i.id === instrumentId)!;
-    const answer = await askSrs(
-      song.title,
-      instrument.name,
-      hints,
-      scoreView.maskedCount,
-    );
+    const instrument = currentInstrument();
+    const answer = await askSrs(song.title, instrument.name, hints, scoreView.maskedCount);
     if (answer) {
       const card = review(
         getCard(progress, song.id, instrumentId),
@@ -256,8 +174,7 @@ export function renderTrainer(
       putCard(progress, song.id, instrumentId, card);
     }
     hints = 0;
-    hintCounter.textContent = '0';
-    installShortcuts();
+    paintCounters();
     if (context.session) context.session.onBlockEnd();
     else context.navigateHome();
   }
@@ -269,7 +186,12 @@ export function renderTrainer(
   );
   finishButton.addEventListener('click', () => void finish());
 
+  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
+  backButton.addEventListener('click', () => context.navigateHome());
+
   // --- Minuteur de bloc (session entrelacée uniquement) -------------------
+
+  const blockLabel = el('span', { class: 'font-mono text-amber-300' }, '');
   let timer: BlockTimer | null = null;
   if (context.session) {
     timer = new BlockTimer(
@@ -282,28 +204,23 @@ export function renderTrainer(
   }
 
   // --- Assemblage ---------------------------------------------------------
-  const card = getCard(progress, song.id, instrumentId);
-  const status = statusOf(card);
+
+  const status = statusOf(getCard(progress, song.id, instrumentId));
 
   const sessionBanner = context.session
     ? el(
         'div',
         {
           class:
-            'flex items-center justify-between gap-4 rounded-xl border ' +
-            'border-amber-400/30 bg-amber-400/10 px-4 py-3',
+            'flex flex-wrap items-center justify-between gap-3 rounded-xl border ' +
+            'border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200',
         },
         el(
           'p',
-          { class: 'text-sm text-amber-200' },
+          {},
           `Session entrelacée — bloc ${context.session.blockIndex} sur ${context.session.blocks.length}`,
         ),
-        el(
-          'p',
-          { class: 'text-sm text-amber-200' },
-          'Temps restant : ',
-          blockLabel,
-        ),
+        el('p', {}, 'Temps restant : ', blockLabel),
       )
     : null;
 
@@ -312,96 +229,76 @@ export function renderTrainer(
     { class: 'flex flex-wrap items-start justify-between gap-4' },
     el(
       'div',
-      {},
+      { class: 'min-w-0' },
       el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, song.title),
       el(
         'p',
-        { class: 'text-sm text-zinc-500' },
+        { class: 'text-sm text-zinc-400' },
         song.composer || 'Compositeur inconnu',
-        ' · ',
-        STATUS_LABELS[status],
       ),
-    ),
-    el('div', { class: 'flex gap-2' }, backButton(context), finishButton),
-  );
-
-  const controls = el(
-    'div',
-    { class: 'grid gap-4 lg:grid-cols-2' },
-    el(
-      'div',
-      { class: ui.card },
-      el('p', { class: ui.label }, 'Source audio'),
       el(
-        'div',
-        { class: 'mt-2 flex flex-wrap gap-2' },
-        ...sourceButtons.values(),
-      ),
-      el('p', { class: `${ui.label} mt-4` }, 'Vitesse de lecture'),
-      el('div', { class: 'mt-2 flex flex-wrap gap-2' }, ...rateButtons),
-      el('p', { class: `${ui.label} mt-4` }, 'Contrôles cognitifs'),
-      el('div', { class: 'mt-2 flex flex-wrap gap-2' }, jumpButton, ghostButton),
-    ),
-    el(
-      'div',
-      { class: ui.card },
-      // Un seul instrument disponible : le sélecteur n'a rien à proposer.
-      song.instruments.length > 1
-        ? el('p', { class: ui.label }, 'Transposition')
-        : null,
-      song.instruments.length > 1
-        ? el('div', { class: 'mt-2 flex flex-wrap gap-2' }, ...instrumentButtons.values())
-        : el(
-            'p',
-            { class: 'text-sm text-zinc-500' },
-            `Partition unique : ${song.instruments[0]!.name}`,
-          ),
-      el('p', { class: `${ui.label} mt-4` }, 'Masquage de la partition'),
-      el('div', { class: 'mt-2 flex flex-wrap gap-2' }, ...maskButtons.values()),
-      el(
-        'dl',
-        { class: 'mt-4 flex gap-6 text-sm text-zinc-500' },
-        el('div', {}, el('dt', { class: 'text-xs' }, 'Mesures masquées'), el('dd', {}, maskedLabel)),
-        el('div', {}, el('dt', { class: 'text-xs' }, 'Indices utilisés'), el('dd', {}, hintCounter)),
-        el('div', {}, el('dt', { class: 'text-xs' }, 'Vitesse'), el('dd', {}, rateLabel)),
+        'p',
+        { class: 'text-xs text-zinc-600' },
+        `${currentInstrument().name} · ${STATUS_LABELS[status]}`,
       ),
     ),
+    el('div', { class: 'flex flex-wrap gap-2' }, backButton, finishButton),
   );
 
   const noAudio = !anySource
     ? el(
         'p',
-        {
-          class:
-            'rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm text-zinc-400',
-        },
-        'Aucune vidéo disponible pour ce morceau — l’entraînement sur partition reste utilisable.',
+        { class: `${ui.card} text-sm text-zinc-400` },
+        'Aucune vidéo disponible pour ce morceau — l’entraînement sur partition ' +
+          'reste utilisable.',
       )
     : null;
+
+  const noScore = el(
+    'p',
+    { class: `${ui.card} hidden text-sm text-zinc-400` },
+    'Sans partition : le morceau se travaille à l’oreille et de mémoire. ' +
+      'Choisissez un autre palier de masquage pour la faire réapparaître.',
+  );
+  function paintNoScore(): void {
+    noScore.classList.toggle('hidden', maskLevel !== 'aucune');
+  }
 
   root.replaceChildren(
     el(
       'div',
-      { class: 'mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6' },
+      {
+        // La réserve en bas laisse la dernière page atteignable au-dessus de
+        // la barre de transport, qui flotte par-dessus le flux.
+        class: 'mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 pb-32 lg:pb-36',
+      },
+      playerMount,
       sessionBanner,
       header,
-      anySource ? playerFrame : noAudio,
-      controls,
+      noAudio,
+      noScore,
       scoreContainer,
     ),
+    controlBar.root,
   );
+
+  drawScore();
+  paintNoScore();
+  for (const [, button] of maskButtons) {
+    button.addEventListener('click', paintNoScore);
+  }
 
   // Le lecteur ne peut être monté qu'une fois son conteneur dans le document.
   if (anySource) {
     void (async () => {
       try {
         await player.mount(playerMount);
-        loadSource();
+        transport.loadSource();
       } catch {
-        playerMount.replaceChildren(
+        noScore.before(
           el(
             'p',
-            { class: 'flex h-full items-center justify-center p-4 text-sm text-zinc-500' },
+            { class: `${ui.card} text-sm text-zinc-500` },
             'Lecteur YouTube indisponible (connexion ou blocage réseau).',
           ),
         );
@@ -409,33 +306,12 @@ export function renderTrainer(
     })();
   }
 
-  paintSelectors();
-  drawScore();
-
-  function installShortcuts(): void {
-    setShortcuts({
-      playPause: () => player.togglePlay(),
-      toggleSource: toggleSource,
-      hint: () => scoreView.revealNext(),
-      randomJump: coldJump,
-      ghostMode: () => setGhost(!ghost),
-      nextInstrument: nextInstrument,
-      escape: () => context.navigateHome(),
-    });
-  }
-  installShortcuts();
-
   // Fonction de démontage, appelée par le routeur au changement d'écran.
   return () => {
     timer?.stop();
     player.clearCountdown();
+    transport.destroy();
+    controlBar.destroy();
     scoreView.destroy();
-    setShortcuts({});
   };
-}
-
-function backButton(context: TrainerContext): HTMLButtonElement {
-  const button = el('button', { type: 'button', class: ui.button }, 'Retour');
-  button.addEventListener('click', () => context.navigateHome());
-  return button;
 }

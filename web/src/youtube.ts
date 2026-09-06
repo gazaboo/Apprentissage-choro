@@ -1,14 +1,24 @@
-/** Lecteur YouTube et contrôles cognitifs (saut à froid, ghost mode).
+/** Lecteur YouTube audio seul, transport et boucle A-B.
  *
  * L'API IFrame ne se charge qu'une fois pour toute la session ; changer de
  * source ou de morceau réutilise le même lecteur via `loadVideoById`, ce qui
  * évite le clignotement d'un remontage d'iframe.
+ *
+ * L'iframe est rendue invisible par le CSS (`.yt-audio-only`) : on ne garde
+ * que le son. Elle reste dans le flux de rendu — la masquer par `display:none`
+ * ou `visibility:hidden` coupe l'audio sur certains navigateurs.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type YTPlayer = any;
 
 const API_SRC = 'https://www.youtube.com/iframe_api';
+
+/** Période du sondage de position : assez fine pour caler une boucle. */
+const TICK_MS = 100;
+
+/** Durée minimale d'une boucle : en deçà, elle n'est plus jouable. */
+const MIN_LOOP = 0.5;
 
 let apiPromise: Promise<void> | null = null;
 
@@ -35,11 +45,35 @@ function loadApi(): Promise<void> {
   return apiPromise;
 }
 
+/** État transmis à chaque battement du ticker. */
+export interface PlayerTick {
+  currentTime: number;
+  duration: number;
+  playing: boolean;
+  loop: Loop;
+  /** Nombre de retours en A depuis la pose de la boucle. */
+  laps: number;
+  /** Vrai sur le seul battement où la lecture vient d'être ramenée en A. */
+  wrapped: boolean;
+}
+
+/** Bornes de la boucle A-B ; `null` tant que le point n'est pas posé. */
+export interface Loop {
+  a: number | null;
+  b: number | null;
+}
+
 export class Player {
   private player: YTPlayer | null = null;
   private ready = false;
   private pendingVideoId: string | null = null;
   private countdownTimers: number[] = [];
+
+  /** Un seul intervalle pour toute l'application (seek bar, temps, boucle). */
+  private tickId: number | null = null;
+  private listeners = new Set<(tick: PlayerTick) => void>();
+  private loop: Loop = { a: null, b: null };
+  private laps = 0;
 
   /**
    * Instancie le lecteur dans un conteneur. L'API remplace l'élément cible
@@ -49,7 +83,10 @@ export class Player {
    */
   async mount(container: HTMLElement): Promise<void> {
     await loadApi();
-    this.destroy();
+    // On ne défait que l'instance YouTube : les abonnés au ticker sont ceux
+    // de la barre de transport, construite avant le montage, et doivent lui
+    // survivre. Les effacer ici laisserait une barre définitivement figée.
+    this.teardownPlayer();
 
     const target = document.createElement('div');
     container.replaceChildren(target);
@@ -57,9 +94,11 @@ export class Player {
     const w = window as any;
     await new Promise<void>((resolve) => {
       this.player = new w.YT.Player(target, {
-        width: '100%',
-        height: '100%',
-        playerVars: { rel: 0, controls: 1, modestbranding: 1, playsinline: 1 },
+        width: '1',
+        height: '1',
+        // `controls: 0` : le transport natif n'est jamais vu, tout passe par
+        // la barre custom.
+        playerVars: { rel: 0, controls: 0, modestbranding: 1, playsinline: 1 },
         events: {
           onReady: () => {
             this.ready = true;
@@ -80,6 +119,7 @@ export class Player {
 
   /** Charge une vidéo sans la démarrer. */
   cue(videoId: string): void {
+    this.clearLoop();
     if (!this.ready || !this.player) {
       this.pendingVideoId = videoId;
       return;
@@ -95,15 +135,136 @@ export class Player {
     this.player?.pauseVideo?.();
   }
 
+  isPlaying(): boolean {
+    // 1 = YT.PlayerState.PLAYING.
+    return this.player?.getPlayerState?.() === 1;
+  }
+
   togglePlay(): void {
     if (!this.player?.getPlayerState) return;
-    // 1 = en lecture (constante YT.PlayerState.PLAYING).
-    if (this.player.getPlayerState() === 1) this.pause();
+    if (this.isPlaying()) this.pause();
     else this.play();
+  }
+
+  getCurrentTime(): number {
+    return this.player?.getCurrentTime?.() ?? 0;
   }
 
   getDuration(): number {
     return this.player?.getDuration?.() ?? 0;
+  }
+
+  seekTo(seconds: number): void {
+    const duration = this.getDuration();
+    const target = Math.max(0, duration ? Math.min(seconds, duration) : seconds);
+    this.player?.seekTo?.(target, true);
+  }
+
+  // --- Ticker partagé -----------------------------------------------------
+
+  /**
+   * S'abonne au sondage de position. Retourne la fonction de désabonnement.
+   * L'intervalle ne tourne que tant qu'il reste au moins un abonné.
+   */
+  onTick(listener: (tick: PlayerTick) => void): () => void {
+    this.listeners.add(listener);
+    this.startTicker();
+    return () => {
+      this.listeners.delete(listener);
+      if (this.listeners.size === 0) this.stopTicker();
+    };
+  }
+
+  private startTicker(): void {
+    if (this.tickId !== null) return;
+    this.tickId = window.setInterval(() => this.tick(), TICK_MS);
+  }
+
+  private stopTicker(): void {
+    if (this.tickId === null) return;
+    window.clearInterval(this.tickId);
+    this.tickId = null;
+  }
+
+  private tick(): void {
+    const currentTime = this.getCurrentTime();
+    const { a, b } = this.loop;
+    // La boucle est surveillée ici plutôt que dans un second intervalle :
+    // un seul sondage sert le transport et le bouclage.
+    let wrapped = false;
+    if (a !== null && b !== null && b > a && currentTime >= b) {
+      this.seekTo(a);
+      this.laps += 1;
+      wrapped = true;
+    }
+    const tick: PlayerTick = {
+      currentTime,
+      duration: this.getDuration(),
+      playing: this.isPlaying(),
+      loop: this.getLoop(),
+      laps: this.laps,
+      wrapped,
+    };
+    for (const listener of this.listeners) listener(tick);
+  }
+
+  // --- Boucle A-B ---------------------------------------------------------
+
+  getLoop(): Loop {
+    return { ...this.loop };
+  }
+
+  /**
+   * Pose les deux bornes d'un coup, en secondes. Sert au tracé à la souris,
+   * où l'utilisateur désigne un intervalle sans passer par la lecture.
+   */
+  setLoop(a: number, b: number): Loop {
+    const duration = this.getDuration();
+    const clamp = (v: number) =>
+      Math.max(0, duration ? Math.min(v, duration) : v);
+    const [lo, hi] = a <= b ? [a, b] : [b, a];
+    this.loop = { a: clamp(lo), b: clamp(Math.max(hi, lo + MIN_LOOP)) };
+    this.laps = 0;
+    this.seekTo(this.loop.a!);
+    return this.getLoop();
+  }
+
+  /** Pose une borne au temps courant. Poser B lance la boucle aussitôt. */
+  markLoopPoint(point: 'a' | 'b'): Loop {
+    this.loop = { ...this.loop, [point]: this.getCurrentTime() };
+    this.laps = 0;
+    // Poser B avant A n'a pas de sens : on remet les bornes dans l'ordre
+    // plutôt que d'ignorer le geste.
+    const { a, b } = this.loop;
+    if (a !== null && b !== null && b < a) this.loop = { a: b, b: a };
+    if (point === 'b' && this.loop.a !== null) {
+      this.seekTo(this.loop.a);
+      this.play();
+    }
+    return this.getLoop();
+  }
+
+  /** Déplace une borne de `delta` secondes (négatif pour reculer). */
+  nudgeLoopPoint(point: 'a' | 'b', delta: number): Loop {
+    const value = this.loop[point];
+    if (value === null) return this.getLoop();
+    const duration = this.getDuration();
+    let next = Math.max(0, value + delta);
+    if (duration) next = Math.min(next, duration);
+    this.loop = { ...this.loop, [point]: next };
+    const { a, b } = this.loop;
+    if (a !== null && b !== null && b - a < MIN_LOOP) {
+      // On garde au moins un intervalle jouable plutôt qu'une boucle vide.
+      if (point === 'a') this.loop.a = Math.max(0, b - MIN_LOOP);
+      else this.loop.b = a + MIN_LOOP;
+    }
+    return this.getLoop();
+  }
+
+  clearLoop(): Loop {
+    this.loop = { a: null, b: null };
+    this.laps = 0;
+    return this.getLoop();
   }
 
   /**
@@ -162,13 +323,29 @@ export class Player {
     this.countdownTimers = [];
   }
 
-  destroy(): void {
+  /** Défait l'instance YouTube, sans toucher aux abonnés du ticker. */
+  private teardownPlayer(): void {
     this.clearCountdown();
+    this.clearLoop();
     this.player?.destroy?.();
     this.player = null;
     this.ready = false;
   }
+
+  destroy(): void {
+    this.teardownPlayer();
+    this.stopTicker();
+    this.listeners.clear();
+  }
 }
 
 /** Paliers réellement supportés par le lecteur YouTube. */
-export const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25];
+export const PLAYBACK_RATES = [0.5, 0.75, 1];
+
+/** `123.4` → `2:03`. Les durées YouTube dépassent rarement l'heure. */
+export function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+  const total = Math.floor(seconds);
+  const minutes = Math.floor(total / 60);
+  return `${minutes}:${String(total % 60).padStart(2, '0')}`;
+}
