@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+/* Dark mode assumé : l'application se travaille en répétition, souvent en
+   lumière basse, et les masques opaques doivent se confondre avec le fond. */
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+  background-color: #09090b; /* zinc-950 — doit rester égal à MASK_COLOR */
+}
+
+body {
+  color: #e4e4e7; /* zinc-200 */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Le lecteur YouTube injecte son iframe dans le conteneur monté. */
+#app iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
