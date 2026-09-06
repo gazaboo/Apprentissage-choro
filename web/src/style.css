@@ -135,6 +135,15 @@ body {
   cursor: ew-resize;
 }
 
+/* La bande se saisit pour déplacer le passage sans en changer la durée. */
+.loop-selection {
+  cursor: grab;
+}
+
+.loop-lane:active .loop-selection {
+  cursor: grabbing;
+}
+
 /* Retour en A : un éclair court sur le segment bouclé. Sans lui, le saut
    s'entend mais ne se voit pas, et l'on doute d'avoir bien posé les bornes. */
 @keyframes loop-wrap-flash {

@@ -172,10 +172,14 @@ export function createTransport(options: TransportOptions): Transport {
     title: 'Le passage encadré tourne en boucle',
   });
 
+  /** Reçoit la frise de boucle sur grand écran, juste sous la piste. */
+  const laneSlotBar = el('div', { class: 'hidden' });
+
   const seekRow = el(
     'div',
-    { class: 'flex min-w-0 flex-1 flex-col gap-0.5' },
+    { class: 'order-1 flex min-w-0 flex-1 flex-col gap-0.5 lg:order-2' },
     seekBar,
+    laneSlotBar,
     el(
       'div',
       { class: 'flex items-center justify-between gap-2' },
@@ -209,52 +213,110 @@ export function createTransport(options: TransportOptions): Transport {
   );
   paintRates(1);
 
-  const primary = el(
-    'div',
-    { class: 'flex w-full items-center gap-3' },
-    playButton,
-    seekRow,
-    rateGroup,
-  );
+  // --- Avec ou sans la mélodie --------------------------------------------
+  //
+  // C'est un aller-retour constant, et non un réglage qu'on pose une fois :
+  // l'accompagnateur travaille sur l'enregistrement complet, le soliste sur
+  // l'accompagnement seul — mais il revient au thème pour se le remettre en
+  // tête. La bascule vit donc dans la barre, à portée immédiate, et non dans
+  // un panneau qu'il faut ouvrir.
 
-  // --- Source audio -------------------------------------------------------
+  const SOURCE_LABELS: Record<AudioKind, { long: string; short: string }> = {
+    reference: { long: 'Avec mélodie', short: 'Avec' },
+    playback: { long: 'Sans mélodie', short: 'Sans' },
+  };
 
   const sourceButtons = new Map<AudioKind, HTMLButtonElement>();
   function paintSource(): void {
     for (const [kind, button] of sourceButtons) {
       if (button.disabled) continue;
-      button.className =
-        `${kind === source ? ui.buttonActive : ui.button} flex-1 lg:flex-none`;
+      button.className = kind === source ? sourceActiveClass : sourceClass;
     }
   }
-  function loadSource(): void {
+  const sourceClass =
+    'inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg ' +
+    'border border-zinc-700 bg-zinc-800 px-2.5 text-xs font-medium text-zinc-300 ' +
+    'transition hover:border-zinc-500 hover:bg-zinc-700 focus:outline-none ' +
+    'focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'disabled:cursor-not-allowed disabled:opacity-40';
+  const sourceActiveClass =
+    'inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg ' +
+    'border border-amber-400/60 bg-amber-400/15 px-2.5 text-xs font-medium ' +
+    'text-amber-200 transition focus:outline-none focus-visible:ring-2 ' +
+    'focus-visible:ring-amber-400';
+
+  function loadSource(autoplay = false): void {
     const audio = song.audio[source];
-    if (audio) player.cue(audio.youtube_id);
+    if (audio) player.load(audio.youtube_id, autoplay);
     player.clearLoop();
     paintLoop();
   }
+
   for (const kind of ['reference', 'playback'] as AudioKind[]) {
     const available = hasSource(kind);
-    const label = kind === 'reference' ? '🎧 Original' : '🎸 Playback';
+    const { long, short } = SOURCE_LABELS[kind];
     const button = el(
       'button',
       {
         type: 'button',
-        class: `${ui.button} flex-1 lg:flex-none`,
+        class: sourceClass,
         disabled: !available,
-        title: available ? undefined : 'Aucune URL fournie pour ce morceau',
+        title: available
+          ? kind === 'reference'
+            ? 'L’enregistrement original, thème compris'
+            : 'L’accompagnement seul, sans le thème'
+          : 'Aucun enregistrement de ce type pour ce morceau',
+        'aria-label': long,
       },
-      available ? label : `${label} — non disponible`,
+      // Le libellé se raccourcit sous 640 px, où la barre est à l'étroit.
+      el('span', { class: 'hidden truncate sm:inline' }, long),
+      el('span', { class: 'truncate sm:hidden' }, short),
     );
     button.addEventListener('click', () => {
       if (kind === source) return;
       source = kind;
       paintSource();
-      loadSource();
+      // On enchaîne si l'on était en train de jouer : s'arrêter à chaque
+      // bascule casserait le fil du travail.
+      loadSource(player.isPlaying());
     });
     sourceButtons.set(kind, button);
   }
   paintSource();
+
+  const sourceGroup = el(
+    'div',
+    {
+      class: 'flex min-w-0 shrink items-center gap-1',
+      role: 'group',
+      'aria-label': 'Avec ou sans la mélodie',
+    },
+    ...sourceButtons.values(),
+  );
+
+  // Sous 1024 px, la piste prend toute la largeur sur une première ligne et
+  // les commandes se rangent dessous : les trois groupes ne tiennent pas côte
+  // à côte sur un téléphone sans réduire la piste à un trait.
+  const primary = el(
+    'div',
+    { class: 'flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-3' },
+    seekRow,
+    el(
+      'div',
+      // `lg:contents` efface cette enveloppe sur grand écran : ses enfants
+      // redeviennent alors des éléments de la rangée et suivent leur `order`.
+      { class: 'order-2 flex items-center gap-2 lg:contents' },
+      playButton,
+      sourceGroup,
+      rateGroup,
+    ),
+  );
+  playButton.classList.add('lg:order-1');
+  sourceGroup.classList.add('lg:order-3');
+  rateGroup.classList.add('lg:order-4');
+
+  // --- Source audio -------------------------------------------------------
+
 
   // --- Transposition ------------------------------------------------------
 
@@ -405,7 +467,12 @@ export function createTransport(options: TransportOptions): Transport {
     'Glissez ici pour choisir le passage à répéter',
   );
   const laneSelection = el('div', {
-    class: 'absolute inset-y-2 hidden rounded-lg bg-amber-400/25 ring-1 ring-amber-400/50',
+    // Saisissable : on déplace le passage sans en changer la durée, ce qui est
+    // le geste courant quand on s'est trompé de mesure d'une croche.
+    class:
+      'loop-selection absolute inset-y-2 hidden rounded-lg bg-amber-400/25 ' +
+      'ring-1 ring-amber-400/50',
+    'data-loop-band': '',
   });
   const lanePlayhead = el('div', {
     class: 'pointer-events-none absolute inset-y-1 w-0.5 rounded bg-zinc-100',
@@ -445,10 +512,15 @@ export function createTransport(options: TransportOptions): Transport {
   // `flex` est retiré par `hidden` : on le repose à l'affichage.
   for (const h of [handleA, handleB]) h.classList.add('flex');
 
+  /** Reçoit la frise dans le panneau, sur petit écran. */
+  const laneSlotPanel = el('div', {});
+
   const lane = el(
     'div',
     {
-      class: 'loop-lane relative h-11 w-full touch-none select-none',
+      // 44 px dans le panneau, où l'on vise au doigt ; 22 px collés sous la
+      // piste sur grand écran, où la souris n'a pas besoin d'autant.
+      class: 'loop-lane relative h-11 w-full touch-none select-none lg:h-[22px]',
       role: 'group',
       'aria-label': 'Frise du morceau : glissez pour choisir le passage à répéter',
     },
@@ -460,7 +532,10 @@ export function createTransport(options: TransportOptions): Transport {
     handleB,
   );
 
-  type DragMode = { kind: 'create'; anchor: number } | { kind: 'edge'; edge: 'a' | 'b' };
+  type DragMode =
+    | { kind: 'create'; anchor: number }
+    | { kind: 'edge'; edge: 'a' | 'b' }
+    | { kind: 'move'; offset: number; span: number };
   let laneDrag: DragMode | null = null;
 
   const laneTime = (event: PointerEvent): number => {
@@ -474,9 +549,17 @@ export function createTransport(options: TransportOptions): Transport {
     if (!duration) return;
     const target = event.target as HTMLElement;
     const edge = target.closest('[data-handle]')?.getAttribute('data-handle');
+    const onBand = target.closest('[data-loop-band]') !== null;
     const loop = player.getLoop();
     if ((edge === 'a' || edge === 'b') && loop.a !== null && loop.b !== null) {
       laneDrag = { kind: 'edge', edge };
+      draftLoop = { a: loop.a, b: loop.b };
+    } else if (onBand && loop.a !== null && loop.b !== null) {
+      laneDrag = {
+        kind: 'move',
+        offset: laneTime(event) - loop.a,
+        span: loop.b - loop.a,
+      };
       draftLoop = { a: loop.a, b: loop.b };
     } else {
       const at = laneTime(event);
@@ -492,6 +575,11 @@ export function createTransport(options: TransportOptions): Transport {
     const at = laneTime(event);
     if (laneDrag.kind === 'create') {
       draftLoop = { a: Math.min(laneDrag.anchor, at), b: Math.max(laneDrag.anchor, at) };
+    } else if (laneDrag.kind === 'move') {
+      // La durée est préservée ; seules les bornes du morceau bornent la course.
+      const span = laneDrag.span;
+      const a = Math.min(Math.max(0, at - laneDrag.offset), Math.max(0, duration - span));
+      draftLoop = { a, b: a + span };
     } else if (laneDrag.edge === 'a') {
       draftLoop = { a: Math.min(at, draftLoop.b), b: draftLoop.b };
     } else {
@@ -647,13 +735,6 @@ export function createTransport(options: TransportOptions): Transport {
 
   const sections: Section[] = [];
 
-  if (anySource) {
-    sections.push({
-      title: 'Ce que vous écoutez',
-      body: el('div', { class: 'flex gap-2' }, ...sourceButtons.values()),
-    });
-  }
-
   if (song.instruments.length > 1) {
     sections.push({
       title: 'Votre instrument',
@@ -668,7 +749,7 @@ export function createTransport(options: TransportOptions): Transport {
       body: el(
         'div',
         { class: 'flex min-w-[18rem] flex-col gap-2' },
-        lane,
+        laneSlotPanel,
         loopBounds,
         markButton,
         loopHint,
@@ -689,6 +770,26 @@ export function createTransport(options: TransportOptions): Transport {
       ),
     });
   }
+
+  // --- Où vit la frise ------------------------------------------------------
+  //
+  // Sur grand écran elle se colle sous la piste, où les poignées tombent juste
+  // à côté de ce qu'elles désignent. Sur petit écran elle resterait illisible
+  // à cette taille, et retourne dans le panneau, à pleine hauteur tactile.
+
+  const wide = window.matchMedia('(min-width: 1024px)');
+  function placeLane(): void {
+    if (wide.matches) {
+      laneSlotBar.classList.remove('hidden');
+      laneSlotBar.appendChild(lane);
+    } else {
+      laneSlotBar.classList.add('hidden');
+      laneSlotPanel.appendChild(lane);
+    }
+  }
+  placeLane();
+  wide.addEventListener('change', placeLane);
+  disposers.push(() => wide.removeEventListener('change', placeLane));
 
   // --- Synchronisation ----------------------------------------------------
 

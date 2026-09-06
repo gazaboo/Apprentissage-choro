@@ -117,14 +117,28 @@ export class Player {
     return this.ready;
   }
 
-  /** Charge une vidéo sans la démarrer. */
-  cue(videoId: string): void {
+  /**
+   * Charge une vidéo. `autoplay` enchaîne la lecture sans nouveau geste : on
+   * passe de l'enregistrement original à l'accompagnement en plein travail, et
+   * s'arrêter à chaque bascule casserait le fil.
+   *
+   * La position n'est pas reportée d'une source à l'autre : ce sont deux
+   * enregistrements différents, un même instant n'y désigne pas le même
+   * endroit du morceau.
+   */
+  load(videoId: string, autoplay = false): void {
     this.clearLoop();
     if (!this.ready || !this.player) {
       this.pendingVideoId = videoId;
       return;
     }
-    this.player.cueVideoById(videoId);
+    if (autoplay) this.player.loadVideoById(videoId);
+    else this.player.cueVideoById(videoId);
+  }
+
+  /** Charge une vidéo sans la démarrer. */
+  cue(videoId: string): void {
+    this.load(videoId, false);
   }
 
   play(): void {

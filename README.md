@@ -115,9 +115,21 @@ d'une main, l'instrument dans l'autre.
 coupent le son sur certains navigateurs) et pilotée par l'API IFrame. La vidéo
 n'apprend rien à qui travaille d'oreille ; seul l'audio compte.
 
-**Barre de transport** — lecture/pause, défilement, vitesse (0,5× / 0,75× / 1×),
-et derrière un bouton « Réglages » : comment travailler, ce que vous écoutez,
-votre instrument, répéter un passage, se mettre à l'épreuve.
+**Barre de transport** — lecture/pause, défilement, **avec ou sans la mélodie**,
+vitesse (0,5× / 0,75× / 1×), et derrière un bouton « Réglages » : comment
+travailler, votre instrument, répéter un passage, se mettre à l'épreuve.
+
+**Avec / Sans mélodie** est dans la barre, et non dans les réglages, parce que
+c'est un aller-retour constant et non un choix qu'on pose une fois :
+l'accompagnateur (guitare, cavaquinho) travaille sur l'enregistrement complet,
+le soliste sur l'accompagnement seul — mais il revient au thème pour se le
+remettre en tête. La bascule enchaîne la lecture sans nouveau geste ; la
+position, elle, n'est pas reportée, deux enregistrements différents ne plaçant
+pas le même instant au même endroit du morceau.
+
+Sous 1024 px, la piste occupe une première ligne à elle seule et les commandes
+se rangent dessous : les trois groupes ne tiennent pas côte à côte sur un
+téléphone sans réduire la piste à un trait.
 
 Sur grand écran, les réglages s'ouvrent dans un **popover étroit et
 déplaçable** : la partition reste visible à côté, si bien qu'on voit l'effet de
@@ -136,13 +148,20 @@ code ; il ne remonte jamais dans l'interface.
 public visé ne cherche pas un mécanisme, il cherche à faire tourner un endroit
 difficile. Deux gestes, au choix :
 
-- **tracer** le passage à la souris ou au doigt sur une frise du morceau, qui
-  porte son mode d'emploi en clair tant qu'elle est vide (« Glissez ici pour
-  choisir le passage à répéter »), puis se règle en tirant ses deux bords ;
+- **tracer** le passage sur une frise du morceau, qui porte son mode d'emploi en
+  clair tant qu'elle est vide (« Glissez ici pour choisir le passage à
+  répéter ») ; ses deux bords se tirent pour l'ajuster, et **la bande elle-même
+  se saisit** pour déplacer le passage sans en changer la durée — le geste
+  courant quand on s'est trompé d'une mesure ;
 - **marquer au vol** pendant que ça joue, avec un bouton unique dont le libellé
   annonce toujours l'appui suivant : *Le passage commence ici* → *Le passage
   finit ici* → *Arrêter de répéter*. C'est le fonctionnement d'une pédale de
   boucle, déjà familier aux musiciens.
+
+Sur grand écran, la frise se colle **sous la piste de lecture**, alignée sur
+elle : les poignées tombent juste à côté de ce qu'elles désignent. Sur
+téléphone elle serait illisible à cette taille et retourne dans le panneau, à
+pleine hauteur tactile.
 
 Les bornes s'affichent « Début » et « Fin », et s'ajustent de 0,5 s au tap, 2 s
 à l'appui long — indispensable pour caler le passage sur le temps fort, en
