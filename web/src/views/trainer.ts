@@ -6,6 +6,7 @@
  */
 
 import { el, ui } from '../dom';
+import { EclipseRunner } from '../eclipse';
 import { ScoreView } from '../score';
 import { BlockTimer, formatCountdown } from '../session';
 import type { SessionBlock } from '../session';
@@ -15,8 +16,15 @@ import type { Progress } from '../store';
 import { getCard, putCard, saveProgress } from '../store';
 import { createTransport } from '../transport';
 import type { Section } from '../transport';
-import type { InstrumentId, MaskLevel, Song } from '../types';
-import { MASK_LEVEL_LABELS, MASK_LEVELS } from '../types';
+import type { EclipseIntensity, InstrumentId, MaskLevel, Song, StudyMode } from '../types';
+import {
+  ECLIPSE_INTENSITIES,
+  ECLIPSE_LABELS,
+  MASK_LEVELS,
+  STUDY_MODE_HINTS,
+  STUDY_MODE_LABELS,
+  STUDY_MODES,
+} from '../types';
 import { Player } from '../youtube';
 import { askSrs } from './srsModal';
 
@@ -43,6 +51,7 @@ export function renderTrainer(
   // --- État local de l'écran ---------------------------------------------
   let instrumentId: InstrumentId = song.instruments[0]!.id;
   let hints = 0;
+  let mode: StudyMode = progress.settings.studyMode;
   let maskLevel: MaskLevel = progress.settings.maskLevel;
 
   const anySource = song.audio.reference !== null || song.audio.playback !== null;
@@ -64,50 +73,152 @@ export function renderTrainer(
     },
   });
 
-  const countersLabel = el('p', { class: 'text-xs text-zinc-500' });
+  const countersLabel = el('p', { class: 'text-[11px] text-zinc-500' });
   function paintCounters(): void {
-    const masked = scoreView.maskedCount;
-    countersLabel.textContent =
-      `${masked} mesure${masked > 1 ? 's' : ''} dérobée${masked > 1 ? 's' : ''} · ` +
-      `${hints} indice${hints > 1 ? 's' : ''}`;
+    if (mode === 'mesures') {
+      const masked = scoreView.maskedCount;
+      countersLabel.textContent =
+        `${masked} mesure${masked > 1 ? 's' : ''} cachée${masked > 1 ? 's' : ''} · ` +
+        `${hints} révélée${hints > 1 ? 's' : ''}`;
+    } else if (mode === 'eclipses') {
+      const n = eclipses.count;
+      countersLabel.textContent =
+        `${n} éclipse${n > 1 ? 's' : ''} · ${eclipses.escapeCount} interrompue` +
+        `${eclipses.escapeCount > 1 ? 's' : ''}`;
+    } else {
+      countersLabel.textContent = '';
+    }
   }
 
+  /** Taux de masquage effectif : seul le mode « Mesures cachées » en pose un. */
+  const effectiveLevel = () => (mode === 'mesures' ? maskLevel : 0);
+
   function drawScore(): void {
-    scoreView.render(currentInstrument(), maskSeed(), maskLevel);
-    scoreView.resetHintCursor();
+    // « Sans partition » ne masque pas à 100 % : il ne rend aucune page, donc
+    // il ne laisse aucune tentation ni aucun temps de chargement d'images.
+    if (mode === 'sans') {
+      scoreView.destroy();
+      paintCounters();
+      return;
+    }
+    scoreView.render(currentInstrument(), maskSeed(), effectiveLevel());
     paintCounters();
   }
 
-  // --- Masquage -----------------------------------------------------------
+  // --- Éclipses -----------------------------------------------------------
 
-  const maskButtons = new Map<string, HTMLButtonElement>();
-  function paintMask(): void {
-    for (const [key, button] of maskButtons) {
-      button.className = key === String(maskLevel) ? ui.buttonActive : ui.button;
+  const eclipseCount = el('div', {
+    class: 'text-8xl font-bold tabular-nums text-amber-300',
+  });
+  const revealButton = el('button', { type: 'button', class: ui.button }, '👁 Revoir la partition');
+
+  // Le voile passe sous le dock de transport (z-30) : on garde la main sur la
+  // lecture et sur les réglages pendant qu'on est privé de la partition.
+  const eclipseVeil = el(
+    'div',
+    {
+      class:
+        'fixed inset-0 z-20 hidden flex-col items-center justify-center gap-5 ' +
+        'bg-zinc-950/95 backdrop-blur-md',
+    },
+    eclipseCount,
+    el(
+      'p',
+      { class: 'max-w-xs text-center text-sm text-zinc-400' },
+      'Continuez à jouer — la partition revient toute seule.',
+    ),
+    revealButton,
+  );
+
+  const eclipses = new EclipseRunner({
+    intensity: progress.settings.eclipseIntensity,
+    // Sans cette garde, une éclipse tomberait pendant qu'on règle la vitesse,
+    // l'instrument posé. Un morceau sans bande-son n'a rien à attendre.
+    isActive: () => mode === 'eclipses' && (!anySource || player.isPlaying()),
+    onHide: () => {
+      eclipseVeil.classList.remove('hidden');
+      eclipseVeil.classList.add('flex');
+      paintCounters();
+    },
+    onCountdown: (remaining) => {
+      eclipseCount.textContent = String(remaining);
+    },
+    onShow: () => {
+      eclipseVeil.classList.add('hidden');
+      eclipseVeil.classList.remove('flex');
+      paintCounters();
+    },
+  });
+  revealButton.addEventListener('click', () => eclipses.revealNow());
+
+  // --- Comment travailler --------------------------------------------------
+
+  const modeButtons = new Map<StudyMode, HTMLButtonElement>();
+  const maskButtons = new Map<MaskLevel, HTMLButtonElement>();
+  const intensityButtons = new Map<EclipseIntensity, HTMLButtonElement>();
+
+  const maskRow = el('div', { class: 'flex flex-wrap items-center gap-2' });
+  const intensityRow = el('div', { class: 'flex flex-wrap gap-2' });
+  const modeHint = el('p', { class: 'text-[11px] leading-snug text-zinc-500' });
+
+  /**
+   * N'affiche que le réglage du mode retenu. C'est ce qui allège le plus le
+   * panneau : on ne voit jamais les commandes d'un mode qu'on n'utilise pas.
+   */
+  function paintMode(): void {
+    for (const [value, button] of modeButtons) {
+      button.className = value === mode ? ui.buttonActive : ui.button;
     }
+    for (const [level, button] of maskButtons) {
+      button.className = level === maskLevel ? ui.buttonActive : ui.button;
+    }
+    for (const [value, button] of intensityButtons) {
+      button.className =
+        value === progress.settings.eclipseIntensity ? ui.buttonActive : ui.button;
+    }
+    maskRow.classList.toggle('hidden', mode !== 'mesures');
+    intensityRow.classList.toggle('hidden', mode !== 'eclipses');
+    modeHint.textContent = STUDY_MODE_HINTS[mode];
+    paintCounters();
   }
+
+  function setMode(next: StudyMode): void {
+    if (next === mode) return;
+    mode = next;
+    progress.settings.studyMode = next;
+    saveProgress(progress);
+    hints = 0;
+    eclipses.reset();
+    if (mode === 'eclipses') eclipses.start();
+    else eclipses.stop();
+    drawScore();
+    paintMode();
+    paintNoScore();
+  }
+
+  for (const value of STUDY_MODES) {
+    const button = el('button', { type: 'button', class: ui.button }, STUDY_MODE_LABELS[value]);
+    button.addEventListener('click', () => setMode(value));
+    modeButtons.set(value, button);
+  }
+
   for (const level of MASK_LEVELS) {
-    const button = el(
-      'button',
-      { type: 'button', class: ui.button },
-      MASK_LEVEL_LABELS[String(level)]!,
-    );
+    const button = el('button', { type: 'button', class: ui.button }, `${level} %`);
     button.addEventListener('click', () => {
       if (level === maskLevel) return;
       maskLevel = level;
       progress.settings.maskLevel = level;
       saveProgress(progress);
-      paintMask();
+      paintMode();
       scoreView.setLevel(level, currentInstrument());
       paintCounters();
     });
-    maskButtons.set(String(level), button);
+    maskButtons.set(level, button);
   }
-  paintMask();
 
   const shuffleButton = el(
     'button',
-    { type: 'button', class: ui.button, title: 'Nouveau tirage des mesures masquées' },
+    { type: 'button', class: ui.button, title: 'Nouveau tirage des mesures cachées' },
     '🎲 Mélanger',
   );
   shuffleButton.addEventListener('click', () => {
@@ -116,23 +227,29 @@ export function renderTrainer(
     scoreView.reshuffle(maskSeed(), currentInstrument());
     paintCounters();
   });
+  maskRow.append(...maskButtons.values(), shuffleButton);
 
-  const hintButton = el(
-    'button',
-    { type: 'button', class: ui.button, title: 'Révèle la mesure masquée suivante' },
-    '💡 Indice',
-  );
-  hintButton.addEventListener('click', () => scoreView.revealNext());
+  for (const value of ECLIPSE_INTENSITIES) {
+    const button = el('button', { type: 'button', class: ui.button }, ECLIPSE_LABELS[value]);
+    button.addEventListener('click', () => {
+      progress.settings.eclipseIntensity = value;
+      saveProgress(progress);
+      eclipses.setIntensity(value);
+      paintMode();
+    });
+    intensityButtons.set(value, button);
+  }
+  intensityRow.append(...intensityButtons.values());
 
   const maskSection: Section = {
-    title: 'Cacher des mesures',
-    hint: 'Des mesures sont recouvertes : à vous de les retrouver de mémoire. ' +
-      'Touchez-en une pour la revoir 5 secondes.',
+    title: 'Comment travailler',
     body: el(
       'div',
       { class: 'flex flex-col gap-2' },
-      el('div', { class: 'flex flex-wrap gap-2' }, ...maskButtons.values()),
-      el('div', { class: 'flex flex-wrap gap-2' }, shuffleButton, hintButton),
+      el('div', { class: 'flex flex-wrap gap-2' }, ...modeButtons.values()),
+      modeHint,
+      maskRow,
+      intensityRow,
       countersLabel,
     ),
   };
@@ -155,7 +272,14 @@ export function renderTrainer(
 
   const controlBar = createControlBar({
     primary: transport.primary,
-    sections: [...transport.sections, maskSection],
+    // « Comment travailler » vient en tête : c'est le choix qui structure la
+    // séance, et le panneau défile — relégué en bas, il était hors d'atteinte.
+    sections: [maskSection, ...transport.sections],
+    panelPosition: progress.settings.panel,
+    onPanelMoved: (panel) => {
+      progress.settings.panel = panel;
+      saveProgress(progress);
+    },
   });
 
   // --- Évaluation ---------------------------------------------------------
@@ -163,7 +287,16 @@ export function renderTrainer(
   async function finish(): Promise<void> {
     player.pause();
     const instrument = currentInstrument();
-    const answer = await askSrs(song.title, instrument.name, hints, scoreView.maskedCount);
+    // Selon le mode, « indices » et « mesures dérobées » ne désignent pas la
+    // même chose ; le rapport des deux, lui, garde le même sens : la part des
+    // fois où l'on a eu besoin de la partition.
+    const [used, total] =
+      mode === 'eclipses'
+        ? [eclipses.escapeCount, eclipses.count]
+        : mode === 'sans'
+          ? [0, scoreView.measureCount]
+          : [hints, scoreView.maskedCount];
+    const answer = await askSrs(song.title, instrument.name, used, total);
     if (answer) {
       const card = review(
         getCard(progress, song.id, instrumentId),
@@ -174,6 +307,7 @@ export function renderTrainer(
       putCard(progress, song.id, instrumentId, card);
     }
     hints = 0;
+    eclipses.reset();
     paintCounters();
     if (context.session) context.session.onBlockEnd();
     else context.navigateHome();
@@ -258,10 +392,10 @@ export function renderTrainer(
     'p',
     { class: `${ui.card} hidden text-sm text-zinc-400` },
     'Sans partition : le morceau se travaille à l’oreille et de mémoire. ' +
-      'Choisissez un autre palier de masquage pour la faire réapparaître.',
+      'Choisissez un autre mode dans les réglages pour la faire réapparaître.',
   );
   function paintNoScore(): void {
-    noScore.classList.toggle('hidden', maskLevel !== 'aucune');
+    noScore.classList.toggle('hidden', mode !== 'sans');
   }
 
   root.replaceChildren(
@@ -280,13 +414,13 @@ export function renderTrainer(
       scoreContainer,
     ),
     controlBar.root,
+    eclipseVeil,
   );
 
   drawScore();
+  paintMode();
   paintNoScore();
-  for (const [, button] of maskButtons) {
-    button.addEventListener('click', paintNoScore);
-  }
+  if (mode === 'eclipses') eclipses.start();
 
   // Le lecteur ne peut être monté qu'une fois son conteneur dans le document.
   if (anySource) {
@@ -309,6 +443,7 @@ export function renderTrainer(
   // Fonction de démontage, appelée par le routeur au changement d'écran.
   return () => {
     timer?.stop();
+    eclipses.stop();
     player.clearCountdown();
     transport.destroy();
     controlBar.destroy();

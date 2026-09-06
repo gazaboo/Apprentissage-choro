@@ -117,7 +117,10 @@ export function daysOverdue(card: SrsCard | undefined): number {
 export type Status = 'jamais' | 'a-reviser' | 'a-jour';
 
 export function statusOf(card: SrsCard | undefined): Status {
-  if (!card || card.repetitions === 0) return 'jamais';
+  // On se fie à l'historique, non à `repetitions` : une note inférieure à 3
+  // remet le compteur de répétitions à zéro, et un morceau qu'on vient de
+  // rater s'afficherait alors comme jamais travaillé.
+  if (!card || card.history.length === 0) return 'jamais';
   return daysOverdue(card) >= 0 ? 'a-reviser' : 'a-jour';
 }
 

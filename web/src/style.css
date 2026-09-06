@@ -157,3 +157,16 @@ body {
     animation: none;
   }
 }
+
+/* --- Panneau de réglages -------------------------------------------------- */
+
+/* La barre de titre est la prise du panneau : le curseur doit l'annoncer,
+   et le glissement ne doit pas être confondu avec une sélection de texte. */
+.panel-header {
+  user-select: none;
+  touch-action: none;
+}
+
+.panel-header.is-dragging {
+  cursor: grabbing;
+}

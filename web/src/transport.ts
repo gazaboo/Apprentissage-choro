@@ -294,7 +294,7 @@ export function createTransport(options: TransportOptions): Transport {
 
   const aLabel = el('span', { class: 'font-mono text-xs text-zinc-300' }, '—');
   const bLabel = el('span', { class: 'font-mono text-xs text-zinc-300' }, '—');
-  const loopHint = el('p', { class: 'text-xs text-zinc-500' }, '');
+  const loopHint = el('p', { class: 'text-[11px] leading-snug text-zinc-500' }, '');
 
   /** Dernier état peint, pour ne pas réécrire le DOM à chaque battement. */
   let paintedLoop = '';
@@ -650,8 +650,6 @@ export function createTransport(options: TransportOptions): Transport {
   if (anySource) {
     sections.push({
       title: 'Ce que vous écoutez',
-      hint: 'L’original est l’enregistrement de référence ; le playback est ' +
-        'l’accompagnement seul, pour jouer par-dessus.',
       body: el('div', { class: 'flex gap-2' }, ...sourceButtons.values()),
     });
   }
@@ -659,7 +657,6 @@ export function createTransport(options: TransportOptions): Transport {
   if (song.instruments.length > 1) {
     sections.push({
       title: 'Votre instrument',
-      hint: 'Change la partition affichée, sans interrompre l’écoute.',
       body: el('div', { class: 'flex flex-wrap gap-2' }, ...instrumentButtons.values()),
     });
   }
@@ -667,8 +664,7 @@ export function createTransport(options: TransportOptions): Transport {
   if (anySource) {
     sections.push({
       title: 'Répéter un passage',
-      hint: 'Pour travailler un endroit difficile : il rejoue en boucle, ' +
-        'sans fin, jusqu’à ce que vous l’arrêtiez.',
+      hint: 'Un endroit difficile, rejoué sans fin jusqu’à ce que vous l’arrêtiez.',
       body: el(
         'div',
         { class: 'flex min-w-[18rem] flex-col gap-2' },
@@ -686,10 +682,9 @@ export function createTransport(options: TransportOptions): Transport {
         el('div', { class: 'flex flex-wrap gap-2' }, jumpButton, ghostButton),
         el(
           'p',
-          { class: 'text-xs text-zinc-500' },
-          'Reprendre au hasard vous lâche en plein morceau après un décompte ' +
-            'de 3 s. Écoute aveugle cache la position : impossible d’anticiper, ' +
-            'il faut suivre à l’oreille.',
+          { class: 'text-[11px] leading-snug text-zinc-500' },
+          'Au hasard : reprise en plein morceau, après un décompte. ' +
+            'Aveugle : la position est cachée, il faut suivre à l’oreille.',
         ),
       ),
     });

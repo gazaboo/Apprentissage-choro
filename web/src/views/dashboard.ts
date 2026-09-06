@@ -38,14 +38,19 @@ export interface DashboardContext {
 }
 
 /**
- * Un morceau est « à jour » seulement si aucune de ses partitions ne réclame
- * de révision — « jamais travaillé » compte donc comme du travail en attente.
+ * Un morceau est « à jour » dès qu'une de ses transpositions l'est, et qu'aucune
+ * n'est en retard.
+ *
+ * Exiger que toutes le soient reviendrait à ne jamais basculer le badge : les
+ * morceaux ont trois transpositions et l'on n'en travaille qu'une, si bien que
+ * les deux autres resteraient éternellement « jamais travaillées ».
  */
 function songBadge(song: Song, progress: Progress): Badge {
   const statuses = song.instruments.map((instrument) =>
     statusOf(getCard(progress, song.id, instrument.id)),
   );
-  return statuses.every((status) => status === 'a-jour') ? 'a-jour' : 'a-travailler';
+  if (statuses.includes('a-reviser')) return 'a-travailler';
+  return statuses.includes('a-jour') ? 'a-jour' : 'a-travailler';
 }
 
 /** Détail du retard, réservé à l'infobulle du badge. */

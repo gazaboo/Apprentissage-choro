@@ -53,26 +53,55 @@ export type AudioKind = 'reference' | 'playback';
 export type Tempo = 'sous-tempo' | 'crispe' | 'fluide';
 
 /**
- * Niveau de masquage de la partition à trous.
+ * Comment la partition est présentée pendant le travail.
  *
- * `'aucune'` n'est pas un taux : la partition disparaît entièrement, et le
- * morceau se travaille à l'oreille et de mémoire seules.
+ * Les quatre modes forment une échelle de difficulté, et non un empilement
+ * d'options : on choisit à quel point on s'appuie sur le papier.
  */
-export type MaskLevel = 0 | 25 | 50 | 75 | 'aucune';
+export type StudyMode = 'entiere' | 'mesures' | 'eclipses' | 'sans';
 
-/** Les paliers dans l'ordre d'affichage, du plus lisible au plus exigeant. */
-export const MASK_LEVELS: MaskLevel[] = [0, 25, 50, 75, 'aucune'];
+export const STUDY_MODES: StudyMode[] = ['entiere', 'mesures', 'eclipses', 'sans'];
 
-export const MASK_LEVEL_LABELS: Record<string, string> = {
-  '0': 'Aucun',
-  '25': '25 %',
-  '50': '50 %',
-  '75': '75 %',
-  aucune: 'Sans partition',
+export const STUDY_MODE_LABELS: Record<StudyMode, string> = {
+  entiere: 'Partition entière',
+  mesures: 'Mesures cachées',
+  eclipses: 'Éclipses',
+  sans: 'Sans partition',
 };
+
+export const STUDY_MODE_HINTS: Record<StudyMode, string> = {
+  entiere: 'Rien n’est caché : lecture et repérage.',
+  mesures: 'Des mesures sont recouvertes. Touchez-en une pour la revoir 5 s.',
+  eclipses: 'La partition disparaît par surprise. Continuez à jouer.',
+  sans: 'Aucune partition : à l’oreille et de mémoire.',
+};
+
+/** Proportion de mesures recouvertes, en mode « Mesures cachées ». */
+export type MaskLevel = 25 | 50 | 75;
+
+export const MASK_LEVELS: MaskLevel[] = [25, 50, 75];
+
+/** Fréquence et durée des éclipses, réglées d'un seul geste. */
+export type EclipseIntensity = 'douces' | 'moyennes' | 'intenses';
+
+export const ECLIPSE_INTENSITIES: EclipseIntensity[] = ['douces', 'moyennes', 'intenses'];
+
+export const ECLIPSE_LABELS: Record<EclipseIntensity, string> = {
+  douces: 'Douces',
+  moyennes: 'Moyennes',
+  intenses: 'Intenses',
+};
+
+export function isStudyMode(value: unknown): value is StudyMode {
+  return (STUDY_MODES as unknown[]).includes(value);
+}
 
 export function isMaskLevel(value: unknown): value is MaskLevel {
   return (MASK_LEVELS as unknown[]).includes(value);
+}
+
+export function isEclipseIntensity(value: unknown): value is EclipseIntensity {
+  return (ECLIPSE_INTENSITIES as unknown[]).includes(value);
 }
 
 export interface SrsReview {

@@ -116,18 +116,21 @@ coupent le son sur certains navigateurs) et pilotée par l'API IFrame. La vidéo
 n'apprend rien à qui travaille d'oreille ; seul l'audio compte.
 
 **Barre de transport** — lecture/pause, défilement, vitesse (0,5× / 0,75× / 1×),
-et derrière un bouton « Réglages » : ce que vous écoutez, votre instrument,
-répéter un passage, se mettre à l'épreuve, cacher des mesures.
+et derrière un bouton « Réglages » : comment travailler, ce que vous écoutez,
+votre instrument, répéter un passage, se mettre à l'épreuve.
 
-Chaque réglage porte un titre en langue courante et une phrase disant à quoi il
-sert. Le vocabulaire de conception — *ghost mode*, *cold start*, *A-B loop*,
-*performance cues* — reste dans ce README et dans le code ; il ne remonte
-jamais dans l'interface.
+Sur grand écran, les réglages s'ouvrent dans un **popover étroit et
+déplaçable** : la partition reste visible à côté, si bien qu'on voit l'effet de
+chaque réglage au moment où on le touche, et l'on pousse le panneau là où il ne
+gêne pas. Sa position est mémorisée, et bornée à la fenêtre — sans quoi un
+panneau laissé au bord d'un grand écran serait inatteignable sur un plus petit.
+Sur téléphone, les mêmes réglages s'ouvrent par le bas, à la hauteur de leur
+contenu.
 
-- **≥ 1024 px** : dock flottant arrondi en bas, centré. Replié, il tient sur une
-  rangée et laisse toute la hauteur à la partition, qui défile derrière.
-- **< 1024 px** : barre fixe en bas dans la zone du pouce ; les réglages
-  s'ouvrent en panneau par le bas, sur un bouton flottant.
+Chaque réglage porte un titre en langue courante et, s'il en a besoin, une
+phrase disant à quoi il sert. Le vocabulaire de conception — *ghost mode*,
+*cold start*, *A-B loop*, *performance cues* — reste dans ce README et dans le
+code ; il ne remonte jamais dans l'interface.
 
 **Répéter un passage** — nommé par l'intention, jamais « boucle A-B » : le
 public visé ne cherche pas un mécanisme, il cherche à faire tourner un endroit
@@ -160,30 +163,44 @@ sans repère visuel, on ne peut plus anticiper la structure.
 
 ## Masquage et répétition espacée
 
-**Cinq paliers** : aucun masquage, 25 %, 50 %, 75 %, et **sans partition** —
-qui retire les pages entièrement, pour ne travailler qu'à l'oreille et de
-mémoire.
+**Quatre modes**, présentés comme une échelle de difficulté, et non comme un
+empilement d'options :
 
-Le tirage des mesures masquées est **aléatoire**, à une réserve près : les
+- **Partition entière** — rien n'est caché : lecture et repérage.
+- **Mesures cachées** — des mesures sont recouvertes (25, 50 ou 75 %). Un tap en
+  révèle une pendant **5 secondes**, puis elle se re-masque seule. Le retour
+  automatique est le cœur du dispositif : il empêche de transformer l'indice en
+  lecture passive.
+- **Éclipses** — la partition disparaît **entièrement**, par surprise, pendant
+  quelques secondes, avec un décompte au centre de l'écran. Là où les mesures
+  cachées travaillent la mémoire locale (*que vient-il ici ?*), les éclipses
+  travaillent la continuité : privé de la page en plein milieu d'une phrase, il
+  faut continuer plutôt que s'arrêter, et le retour de la partition donne
+  aussitôt le verdict. Trois intensités règlent d'un seul geste la fréquence et
+  la durée (douces : une toutes les 25 à 40 s, 4 à 8 s ; intenses : toutes les 8
+  à 15 s, 14 à 22 s). Une éclipse ne survient que lorsqu'on joue réellement —
+  sans quoi elle tomberait pendant qu'on règle la vitesse, l'instrument posé.
+  Le bouton **Revoir la partition** l'interrompt avant la fin, et se compte comme
+  un indice.
+- **Sans partition** — aucune page n'est rendue : à l'oreille et de mémoire.
+
+En mode *Mesures cachées*, le tirage est **aléatoire** à une réserve près : les
 débuts de système sont épargnés tant que le taux le permet. Ce sont les
 *performance cues*, les points de reprise auxquels on se raccroche quand la
-mémoire lâche ; les préserver est ce qui distingue une partition à trous d'une
-page noire.
-
-Le motif est **stable d'un chargement à l'autre** (la graine est mémorisée avec
-les préférences) : on révise les mêmes trous plutôt que de redécouvrir une
-partition différente à chaque fois. Le bouton **Mélanger** fait avancer la
-graine, seule façon d'obtenir un nouveau tirage.
+mémoire lâche. Le motif est **stable d'un chargement à l'autre** (la graine est
+mémorisée), et le bouton **Mélanger** le renouvelle.
 
 Les masques sont en **verre dépoli clair** (blanc très légèrement chaud à 96 %
 + `backdrop-filter`) plutôt qu'en noir plein : sur du papier blanc, un panneau
 anthracite lit comme un défaut d'impression, alors qu'un calque à peine teinté
 lit comme une feuille posée sur la page. Un filet d'encre pâle et une ombre
-courte le décollent du papier. Au survol — ou au toucher maintenu — ils
-s'éclaircissent juste assez pour laisser filtrer la densité rythmique. Un tap
-déclenche l'**indice éphémère** : la mesure devient lisible **5 secondes**, puis
-se re-masque seule. Le retour automatique est le cœur du dispositif, il empêche
-de transformer l'indice en lecture passive.
+courte le décollent du papier.
+
+**Note suggérée** : quel que soit le mode, le questionnaire compare le nombre de
+fois où l'on a eu besoin de la partition au nombre de fois où elle était
+dérobée — mesures révélées sur mesures cachées, ou éclipses interrompues sur
+éclipses survenues. Le rapport garde le même sens, `suggestGrade()` est
+inchangée.
 
 **SRS** : variante de SM-2 modulée par l'aisance technique — un morceau récité
 de mémoire mais injouable au tempo revient plus tôt (× 0,7 en sous-tempo,
@@ -216,6 +233,7 @@ web/
     store.ts srs.ts session.ts
     youtube.ts                lecteur audio seul, ticker, répétition de passage
     transport.ts sheet.ts     barre de transport et panneau de réglages
+    eclipse.ts                horloge des éclipses
     score.ts dom.ts
     views/dashboard.ts views/trainer.ts views/srsModal.ts
 ```

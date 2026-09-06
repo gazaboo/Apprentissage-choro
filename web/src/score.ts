@@ -7,7 +7,7 @@
  * quelle taille, sans le moindre recalcul au redimensionnement.
  */
 
-import type { Instrument, MaskLevel, Measure, Page } from './types';
+import type { Instrument, Measure, Page } from './types';
 
 /** Durée exacte de l'indice éphémère, en millisecondes. */
 export const HINT_DURATION_MS = 5000;
@@ -125,8 +125,8 @@ export class ScoreView {
   /** Boîtes de masquage indexées par ordinal de mesure. */
   private boxes = new Map<number, HTMLElement>();
   private hintTimers = new Map<number, number>();
-  private hintCursor = 0;
-  private level: MaskLevel = 50;
+  /** Taux de masquage courant, de 0 à 100. */
+  private level = 0;
   private seed = '';
 
   constructor(
@@ -135,27 +135,18 @@ export class ScoreView {
   ) {}
 
   /** (Re)construit l'affichage pour une partition donnée. */
-  render(instrument: Instrument, seed: string, level: MaskLevel): void {
+  render(instrument: Instrument, seed: string, level: number): void {
     this.clearHints();
     this.slots = buildSlots(instrument);
     this.seed = seed;
     this.level = level;
-    this.masked = selectMasked(this.slots, this.rate, seed);
+    this.masked = selectMasked(this.slots, level, seed);
     this.boxes.clear();
     this.container.replaceChildren();
-
-    // « Sans partition » : rien n'est rendu du tout. Ce n'est pas un masquage
-    // à 100 % — il ne reste aucune page à regarder, donc aucune tentation.
-    if (level === 'aucune') return;
 
     instrument.pages.forEach((page, pageIndex) => {
       this.container.appendChild(this.renderPage(page, pageIndex));
     });
-  }
-
-  /** Taux effectif ; « sans partition » vaut 100 % de mesures dérobées. */
-  private get rate(): number {
-    return this.level === 'aucune' ? 100 : this.level;
   }
 
   private renderPage(page: Page, pageIndex: number): HTMLElement {
@@ -208,26 +199,19 @@ export class ScoreView {
   }
 
   /**
-   * Change de palier. Le DOM des pages n'est reconstruit que si l'on entre ou
-   * sort de « sans partition » ; sinon seuls les masques sont redessinés, ce
-   * qui garde la position de défilement et la transition douce.
+   * Change de taux. Seuls les masques sont redessinés : les images restent en
+   * place, la position de défilement est conservée et la transition est douce.
    */
-  setLevel(level: MaskLevel, instrument: Instrument): void {
-    const wasHidden = this.level === 'aucune';
+  setLevel(level: number, instrument: Instrument): void {
     this.level = level;
-    if (wasHidden || level === 'aucune') {
-      this.render(instrument, this.seed, level);
-      return;
-    }
-    this.masked = selectMasked(this.slots, this.rate, this.seed);
+    this.masked = selectMasked(this.slots, level, this.seed);
     this.repaintMasks(instrument);
   }
 
   /** Nouveau tirage sur la même partition, sans rechargement. */
   reshuffle(seed: string, instrument: Instrument): void {
     this.seed = seed;
-    this.masked = selectMasked(this.slots, this.rate, seed);
-    if (this.level === 'aucune') return;
+    this.masked = selectMasked(this.slots, this.level, seed);
     this.repaintMasks(instrument);
   }
 
@@ -258,17 +242,18 @@ export class ScoreView {
     });
   }
 
-  get maskLevel(): MaskLevel {
+  get maskLevel(): number {
     return this.level;
   }
 
-  /**
-   * Nombre de mesures dérobées à la lecture. Sans partition, ce sont toutes
-   * les mesures : le questionnaire d'auto-évaluation en tient compte pour
-   * suggérer la note.
-   */
+  /** Nombre total de mesures de la partition rendue. */
+  get measureCount(): number {
+    return this.slots.length;
+  }
+
+  /** Nombre de mesures dérobées à la lecture. */
   get maskedCount(): number {
-    return this.level === 'aucune' ? this.slots.length : this.masked.size;
+    return this.masked.size;
   }
 
   /**
@@ -292,24 +277,6 @@ export class ScoreView {
         this.hintTimers.delete(ordinal);
       }, HINT_DURATION_MS),
     );
-  }
-
-  /** Révèle la mesure masquée suivante, en suivant le fil de lecture. */
-  revealNext(): void {
-    const maskedOrdinals = this.slots
-      .map((slot) => slot.ordinal)
-      .filter((ordinal) => this.masked.has(ordinal));
-    if (maskedOrdinals.length === 0) return;
-
-    this.hintCursor %= maskedOrdinals.length;
-    const ordinal = maskedOrdinals[this.hintCursor]!;
-    this.hintCursor += 1;
-    this.revealTemporarily(ordinal);
-  }
-
-  /** Remet le curseur d'indice au début (nouveau passage sur le morceau). */
-  resetHintCursor(): void {
-    this.hintCursor = 0;
   }
 
   private clearHints(): void {
