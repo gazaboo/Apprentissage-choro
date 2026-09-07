@@ -55,15 +55,59 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const scoreView = new ScoreView(scoreContainer, { onHintUsed: () => {} });
   const scoreNote = el('p', { class: `${ui.card} hidden text-sm text-zinc-400` });
 
-  const positionLabel = el('p', { class: 'text-xs uppercase tracking-wider text-zinc-500' });
-  const titleLabel = el('h1', { class: 'text-2xl font-semibold text-zinc-100' });
-  const composerLabel = el('p', { class: 'text-sm text-zinc-400' });
+  // En-tête : contexte discret + sortie.
+  const positionLabel = el('p', {
+    class: 'text-xs font-semibold uppercase tracking-wider text-zinc-500',
+  });
 
-  const timeLabel = el('span', { class: 'font-mono text-xs text-zinc-500' }, '0:00 / 0:00');
-  const playButton = el('button', { type: 'button', class: ui.icon }, '▶');
+  // Scène (partition masquée) : le morceau en cours, en grand, et la suite.
+  const stagePosition = el('p', { class: 'text-sm uppercase tracking-wider text-zinc-500' });
+  const stageTitle = el('h1', {
+    class: 'text-4xl font-semibold leading-tight text-zinc-100 sm:text-6xl lg:text-7xl',
+  });
+  const stageComposer = el('p', { class: 'text-lg text-zinc-400 sm:text-xl' });
+  const upNextLabel = el('p', { class: `${ui.label}` }, 'À suivre');
+  const upNextList = el('ol', { class: 'flex flex-col gap-2' });
+  const stagePanel = el(
+    'div',
+    {
+      class:
+        'mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center ' +
+        'gap-4 px-4 py-10 text-center',
+    },
+    stagePosition,
+    stageTitle,
+    stageComposer,
+    el(
+      'div',
+      { class: 'mt-6 flex w-full max-w-sm flex-col gap-3 text-left' },
+      upNextLabel,
+      upNextList,
+    ),
+  );
+
+  // Barre de titre au-dessus de la partition (partition affichée).
+  const slimTitle = el('p', { class: 'text-lg font-medium text-zinc-200' });
+
+  const timeLabel = el('span', {
+    class: 'shrink-0 font-mono text-sm text-zinc-400 tabular-nums',
+  }, '0:00 / 0:00');
+  const playButton = el(
+    'button',
+    {
+      type: 'button',
+      class:
+        'flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber-400 ' +
+        'text-2xl text-zinc-950 shadow-lg shadow-amber-400/20 transition hover:bg-amber-300 ' +
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+        'focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
+      'aria-label': 'Lecture ou pause',
+    },
+    '▶',
+  );
   playButton.addEventListener('click', () => player.togglePlay());
 
-  const nextButton = el('button', { type: 'button', class: ui.button }, 'Passer au suivant');
+  const nextButton = el('button', { type: 'button', class: ui.button }, '⏭  Passer au suivant');
   nextButton.addEventListener('click', () => startCountdown());
 
   // --- Barre de lecture : on revient où l'on veut à tout moment ---------
@@ -73,13 +117,13 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   });
   const seekBarInner = el(
     'div',
-    { class: 'relative h-1.5 w-full rounded-full bg-zinc-700' },
+    { class: 'relative h-2.5 w-full rounded-full bg-zinc-700' },
     seekFill,
   );
   const seekBar = el(
     'div',
     {
-      class: 'flex h-11 w-full cursor-pointer items-center',
+      class: 'flex h-14 w-full flex-1 cursor-pointer items-center',
       role: 'slider',
       'aria-label': 'Position dans le morceau',
       'aria-valuemin': 0,
@@ -111,10 +155,15 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   // --- Vitesse : disponible et modifiable à tout moment ----------------
 
   let chosenRate = 1;
+  const rateClass = (on: boolean): string =>
+    `min-h-11 min-w-[3.25rem] rounded-lg border px-3 text-sm font-medium transition ` +
+    (on
+      ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
+      : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
   const rateButtons = PLAYBACK_RATES.map((rate) => {
     const button = el(
       'button',
-      { type: 'button', class: ui.button },
+      { type: 'button', class: rateClass(rate === 1) },
       `${rate}×`.replace('.', ','),
     );
     button.addEventListener('click', () => {
@@ -125,10 +174,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   });
   function paintRates(active: number): void {
     rateButtons.forEach((button, i) => {
-      button.className = PLAYBACK_RATES[i] === active ? ui.buttonActive : ui.button;
+      button.className = rateClass(PLAYBACK_RATES[i] === active);
     });
   }
-  paintRates(1);
 
   const scoreToggle = el('button', { type: 'button', class: ui.button }, 'Masquer la partition');
   scoreToggle.addEventListener('click', () => {
@@ -143,27 +191,58 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
   backButton.addEventListener('click', () => context.navigateHome());
 
-  const countBig = el('div', { class: 'text-8xl font-bold tabular-nums text-amber-300' });
-  const countNext = el('p', { class: 'max-w-sm text-center text-sm text-zinc-400' });
+  const countBig = el('div', {
+    class: 'text-[8rem] font-bold leading-none tabular-nums text-amber-300 sm:text-[12rem]',
+  });
+  const countNext = el('p', {
+    class: 'max-w-md text-center text-2xl font-medium text-zinc-100 sm:text-4xl',
+  });
   const countdownVeil = el(
     'div',
     {
       class:
-        'fixed inset-0 z-40 hidden flex-col items-center justify-center gap-4 ' +
-        'bg-zinc-950/95 backdrop-blur-md',
+        'fixed inset-0 z-40 hidden flex-col items-center justify-center gap-6 ' +
+        'bg-zinc-950/95 px-6 backdrop-blur-md',
     },
-    el('p', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Morceau suivant'),
+    el('p', { class: 'text-sm uppercase tracking-wider text-zinc-500' }, 'Morceau suivant'),
     countNext,
     countBig,
   );
 
   function paintScoreVisibility(): void {
     const hasScore = order[index]?.instruments.some((i) => i.id === instrumentId) ?? false;
-    scoreContainer.classList.toggle('hidden', !showScore || !hasScore);
+    const showingScore = showScore && hasScore;
+    scoreContainer.classList.toggle('hidden', !showingScore);
+    slimTitle.classList.toggle('hidden', !showingScore);
+    stagePanel.classList.toggle('hidden', showingScore);
     scoreNote.classList.toggle('hidden', !(showScore && !hasScore));
+    scoreToggle.textContent = showScore ? 'Masquer la partition' : 'Afficher la partition';
   }
 
   // --- Déroulé ---------------------------------------------------------
+
+  function paintStage(): void {
+    const composer = order[index]?.composer || 'Compositeur inconnu';
+    stagePosition.textContent = `Morceau ${index + 1} sur ${order.length}`;
+    stageTitle.textContent = order[index]?.title ?? '';
+    stageComposer.textContent = composer;
+    slimTitle.textContent = `${order[index]?.title ?? ''} · ${composer}`;
+
+    const upcoming = order.slice(index + 1, index + 4);
+    upNextLabel.classList.toggle('hidden', upcoming.length === 0);
+    upNextList.replaceChildren(
+      ...(upcoming.length === 0
+        ? [el('li', { class: 'text-sm text-zinc-600' }, 'Dernier morceau du filage.')]
+        : upcoming.map((song, k) =>
+            el(
+              'li',
+              { class: 'flex items-baseline gap-3' },
+              el('span', { class: 'w-5 shrink-0 font-mono text-sm text-zinc-600' }, String(index + 2 + k)),
+              el('span', { class: 'text-lg text-zinc-300' }, song.title),
+            ),
+          )),
+    );
+  }
 
   function loadSong(i: number, autoplay: boolean): void {
     index = i;
@@ -172,9 +251,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     hasPlayed = false;
     seekFill.style.width = '0%';
 
-    positionLabel.textContent = `Filage ${INSTRUMENT_SHORT_LABELS[instrumentId]} · ${context.setlistName} — ${i + 1} / ${order.length}`;
-    titleLabel.textContent = song.title;
-    composerLabel.textContent = song.composer || 'Compositeur inconnu';
+    positionLabel.textContent =
+      `Filage ${INSTRUMENT_SHORT_LABELS[instrumentId]} · ${context.setlistName} · ${i + 1} / ${order.length}`;
+    paintStage();
 
     const instrument = song.instruments.find((entry) => entry.id === instrumentId);
     if (instrument) {
@@ -227,36 +306,62 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   root.replaceChildren(
     el(
       'div',
-      { class: 'mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 pb-16' },
+      { class: 'flex min-h-dvh flex-col' },
       playerMount,
+
       el(
         'header',
-        { class: 'flex flex-wrap items-start justify-between gap-4' },
-        el('div', { class: 'min-w-0' }, positionLabel, titleLabel, composerLabel),
+        {
+          class:
+            'flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6',
+        },
+        positionLabel,
         el('div', { class: 'flex flex-wrap gap-2' }, backButton, finishButton),
       ),
+
+      // Zone principale : la scène, ou la partition.
       el(
-        'div',
-        { class: 'flex flex-col gap-3' },
+        'main',
+        { class: 'flex flex-1 flex-col overflow-y-auto px-4 pb-4 sm:px-6' },
+        stagePanel,
         el(
           'div',
-          { class: 'flex items-center gap-3' },
-          playButton,
-          seekBar,
-          timeLabel,
-        ),
-        el(
-          'div',
-          { class: 'flex flex-wrap items-center gap-2' },
-          el('span', { class: 'text-xs text-zinc-500' }, 'Vitesse'),
-          ...rateButtons,
-          el('span', { class: 'mx-1 h-5 w-px bg-zinc-700' }),
-          nextButton,
-          scoreToggle,
+          { class: 'mx-auto flex w-full max-w-5xl flex-col gap-4' },
+          slimTitle,
+          scoreNote,
+          scoreContainer,
         ),
       ),
-      scoreNote,
-      scoreContainer,
+
+      // Dock de contrôle, toujours visible en bas.
+      el(
+        'div',
+        {
+          class:
+            'sticky bottom-0 border-t border-zinc-800 bg-zinc-950/95 px-4 py-4 backdrop-blur ' +
+            'pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:px-6',
+        },
+        el(
+          'div',
+          { class: 'mx-auto flex w-full max-w-4xl flex-col gap-4' },
+          el(
+            'div',
+            { class: 'flex items-center gap-4' },
+            playButton,
+            seekBar,
+            timeLabel,
+          ),
+          el(
+            'div',
+            { class: 'flex flex-wrap items-center gap-2' },
+            el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Vitesse'),
+            ...rateButtons,
+            el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
+            nextButton,
+            scoreToggle,
+          ),
+        ),
+      ),
     ),
     countdownVeil,
   );
