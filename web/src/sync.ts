@@ -131,6 +131,9 @@ async function pull(code: string): Promise<Partial<Progress> | null> {
       method: 'GET',
       headers: { accept: 'application/json' },
     });
+    // 404 = identifiant connu localement mais pas (encore) de données distantes ;
+    // on continue pour pousser l'état local. Les vraies erreurs → on retentera.
+    if (res.status === 404) return {};
     if (!res.ok) return null;
     const data: unknown = await res.json();
     return typeof data === 'object' && data !== null
@@ -138,6 +141,26 @@ async function pull(code: string): Promise<Partial<Progress> | null> {
       : {};
   } catch {
     return null;
+  }
+}
+
+/**
+ * Interroge le serveur sur un identifiant :
+ * - `'known'`   : des données existent (on les rechargera) ;
+ * - `'unknown'` : identifiant jamais utilisé (proposer de le créer) ;
+ * - `'offline'` : impossible de joindre le serveur.
+ */
+export async function probeCode(code: string): Promise<'known' | 'unknown' | 'offline'> {
+  try {
+    const res = await fetch(`${ENDPOINT}?code=${encodeURIComponent(code)}`, {
+      method: 'GET',
+      headers: { accept: 'application/json' },
+    });
+    if (res.status === 404) return 'unknown';
+    if (res.ok) return 'known';
+    return 'offline';
+  } catch {
+    return 'offline';
   }
 }
 

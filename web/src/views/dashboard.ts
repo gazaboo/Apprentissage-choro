@@ -10,7 +10,7 @@ import { pickSessionItems } from '../session';
 import { daysOverdue, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { activeSetlist, getCard, lastSession, setActiveSetlist } from '../store';
-import { accountMode } from '../sync';
+import { accountMode, getSyncCode } from '../sync';
 import type { InstrumentId, SessionRun, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
 
@@ -473,10 +473,16 @@ export function renderDashboard(
   const setlistsLink = el('button', { type: 'button', class: ui.button }, 'Setlists');
   setlistsLink.addEventListener('click', context.openSetlists);
 
+  // Identité en haut à droite : l'identifiant connecté, ou « Anonyme ».
+  const identity = accountMode() === 'sync' ? getSyncCode() ?? 'Compte' : 'Anonyme';
   const accountLink = el(
     'button',
-    { type: 'button', class: ui.button },
-    accountMode() === 'sync' ? 'Compte · synchro' : 'Compte',
+    {
+      type: 'button',
+      class: `${ui.button} max-w-[11rem]`,
+      title: 'Compte et synchronisation',
+    },
+    el('span', { class: 'truncate' }, identity),
   );
   accountLink.addEventListener('click', context.openAccount);
 

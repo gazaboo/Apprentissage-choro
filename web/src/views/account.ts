@@ -3,8 +3,10 @@
  * À la première arrivée, tant qu'aucun choix n'a été fait, cet écran occupe
  * toute la place (mode passerelle) : rester sur l'appareil, ou saisir un
  * identifiant pour retrouver sa progression partout. Ensuite il redevient une
- * page ordinaire (`#/compte`) où l'on active/coupe la synchro et où l'on
- * exporte/importe sa progression.
+ * page ordinaire (`#/compte`) où l'on se connecte / déconnecte.
+ *
+ * La synchro est automatique : au chargement, au retour au premier plan, et en
+ * différé après chaque enregistrement. Aucun bouton « synchroniser ».
  */
 
 import { el, ui } from '../dom';
@@ -12,7 +14,9 @@ import {
   accountMode,
   chooseAnonymous,
   formatLastSync,
+  getSyncCode,
   isValidCode,
+  probeCode,
   setSyncCode,
   signOut,
   syncNow,
@@ -32,8 +36,12 @@ const inputClass =
   'text-zinc-100 placeholder:text-zinc-500 focus:outline-none ' +
   'focus-visible:ring-2 focus-visible:ring-amber-400';
 
-/** Champ « identifiant » + bouton, avec message d'erreur intégré. */
-function codeForm(submitLabel: string, onValid: (code: string) => void): HTMLElement {
+/**
+ * Champ « identifiant » : à la validation, interroge le serveur. Identifiant
+ * connu → on se connecte et l'état est rechargé. Inconnu → on demande s'il faut
+ * le créer.
+ */
+function codeForm(connect: (code: string) => void): HTMLElement {
   const input = el('input', {
     type: 'text',
     placeholder: 'Identifiant (6 caractères minimum)',
@@ -44,21 +52,68 @@ function codeForm(submitLabel: string, onValid: (code: string) => void): HTMLEle
     class: inputClass,
   }) as HTMLInputElement;
 
-  const error = el('p', { class: 'text-sm text-rose-300' });
+  const error = el('p', { class: 'hidden text-sm text-rose-300' });
+  const confirm = el('div', {
+    class:
+      'hidden flex-col gap-2 rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-3',
+  });
+  const button = el('button', { type: 'button', class: ui.primary }, 'Se connecter');
 
-  const button = el('button', { type: 'button', class: ui.primary }, submitLabel);
-  const submit = (): void => {
+  const say = (message: string): void => {
+    error.textContent = message;
+    error.classList.toggle('hidden', message === '');
+  };
+  const hideConfirm = (): void => {
+    confirm.classList.add('hidden');
+    confirm.classList.remove('flex');
+  };
+
+  async function submit(): Promise<void> {
     const value = input.value.trim();
+    say('');
+    hideConfirm();
     if (!isValidCode(value)) {
-      error.textContent =
-        'L’identifiant doit faire 6 à 64 caractères : lettres, chiffres, tiret ou souligné.';
+      say('L’identifiant doit faire 6 à 64 caractères : lettres, chiffres, tiret ou souligné.');
       return;
     }
-    onValid(value);
-  };
-  button.addEventListener('click', submit);
+    button.disabled = true;
+    button.textContent = 'Vérification…';
+    const state = await probeCode(value);
+    button.disabled = false;
+    button.textContent = 'Se connecter';
+
+    if (state === 'offline') {
+      say('Pas de connexion — réessayez.');
+      return;
+    }
+    if (state === 'known') {
+      connect(value);
+      return;
+    }
+
+    // Inconnu : proposer de créer l'espace.
+    const createButton = el('button', { type: 'button', class: ui.primary }, 'Créer');
+    createButton.addEventListener('click', () => connect(value));
+    const cancelButton = el('button', { type: 'button', class: ui.button }, 'Annuler');
+    cancelButton.addEventListener('click', () => {
+      hideConfirm();
+      input.focus();
+    });
+    confirm.replaceChildren(
+      el(
+        'p',
+        { class: 'text-sm text-zinc-200' },
+        `L’identifiant « ${value} » n’existe pas encore. Créer un nouvel espace ?`,
+      ),
+      el('div', { class: 'flex flex-wrap gap-2' }, createButton, cancelButton),
+    );
+    confirm.classList.remove('hidden');
+    confirm.classList.add('flex');
+  }
+
+  button.addEventListener('click', () => void submit());
   input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') submit();
+    if (event.key === 'Enter') void submit();
   });
 
   return el(
@@ -67,10 +122,11 @@ function codeForm(submitLabel: string, onValid: (code: string) => void): HTMLEle
     input,
     el('div', { class: 'flex' }, button),
     error,
+    confirm,
   );
 }
 
-function renderGate(context: AccountContext, activateSync: (code: string) => void): HTMLElement {
+function renderGate(context: AccountContext, connect: (code: string) => void): HTMLElement {
   const continueButton = el('button', { type: 'button', class: ui.button }, 'Continuer');
   continueButton.addEventListener('click', () => {
     chooseAnonymous();
@@ -79,9 +135,7 @@ function renderGate(context: AccountContext, activateSync: (code: string) => voi
 
   return el(
     'div',
-    {
-      class: 'flex min-h-dvh flex-col items-center justify-center px-4 py-10',
-    },
+    { class: 'flex min-h-dvh flex-col items-center justify-center px-4 py-10' },
     el(
       'div',
       { class: 'flex w-full max-w-md flex-col gap-5' },
@@ -90,9 +144,7 @@ function renderGate(context: AccountContext, activateSync: (code: string) => voi
         { class: 'flex flex-col gap-3' },
         el(
           'p',
-          {
-            class: 'text-xs font-semibold uppercase tracking-[0.2em] text-amber-400/90',
-          },
+          { class: 'text-xs font-semibold uppercase tracking-[0.2em] text-amber-400/90' },
           'Travail instrumental',
         ),
         el(
@@ -140,7 +192,7 @@ function renderGate(context: AccountContext, activateSync: (code: string) => voi
           'Choisissez un identifiant secret et saisissez le même sur votre ' +
             'téléphone, votre tablette… Votre progression vous suit partout.',
         ),
-        codeForm('Commencer', activateSync),
+        codeForm(connect),
       ),
     ),
   );
@@ -149,13 +201,14 @@ function renderGate(context: AccountContext, activateSync: (code: string) => voi
 export function renderAccount(root: HTMLElement, context: AccountContext): () => void {
   const mode = accountMode();
 
-  function activateSync(code: string): void {
+  /** Se connecter à un identifiant : l'état distant est fusionné puis rechargé. */
+  function connect(code: string): void {
     setSyncCode(code);
     void syncNow().finally(() => context.onChange());
   }
 
   if (context.gate) {
-    root.replaceChildren(renderGate(context, activateSync));
+    root.replaceChildren(renderGate(context, connect));
     return () => {};
   }
 
@@ -164,13 +217,6 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
   ];
 
   if (mode === 'sync') {
-    const syncButton = el('button', { type: 'button', class: ui.button }, 'Synchroniser maintenant');
-    syncButton.addEventListener('click', () => {
-      syncButton.disabled = true;
-      syncButton.textContent = 'Synchronisation…';
-      void syncNow().finally(() => context.onChange());
-    });
-
     const outButton = el('button', { type: 'button', class: ui.button }, 'Se déconnecter');
     outButton.addEventListener('click', () => {
       signOut();
@@ -181,14 +227,23 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
       el(
         'section',
         { class: `${ui.card} flex flex-col gap-2` },
-        el('p', { class: 'text-sm text-zinc-300' }, `Synchronisation active · ${formatLastSync()}`),
+        el('p', { class: ui.label }, 'Connecté'),
+        el(
+          'p',
+          { class: 'break-all text-base font-medium text-zinc-100' },
+          getSyncCode() ?? '',
+        ),
         el(
           'p',
           { class: 'text-sm text-zinc-500' },
-          'Saisissez le même identifiant sur vos autres appareils. Les ' +
-            'progressions sont fusionnées, rien n’est perdu.',
+          `Progression synchronisée automatiquement · ${formatLastSync()}.`,
         ),
-        el('div', { class: 'flex flex-wrap gap-2' }, syncButton, outButton),
+        el(
+          'p',
+          { class: 'text-sm text-zinc-500' },
+          'Saisissez le même identifiant sur vos autres appareils.',
+        ),
+        el('div', { class: 'flex' }, outButton),
       ),
     );
   } else {
@@ -196,13 +251,9 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
       el(
         'section',
         { class: `${ui.card} flex flex-col gap-2` },
-        el(
-          'p',
-          { class: 'text-sm text-zinc-300' },
-          'Vous travaillez sur cet appareil uniquement.',
-        ),
+        el('p', { class: 'text-sm text-zinc-300' }, 'Vous travaillez sur cet appareil uniquement.'),
         el('p', { class: ui.label }, 'Synchroniser mes appareils'),
-        codeForm('Activer', activateSync),
+        codeForm(connect),
       ),
     );
   }

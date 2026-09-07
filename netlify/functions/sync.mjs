@@ -1,11 +1,11 @@
 /**
  * Synchro de la progression entre appareils.
  *
- *   GET  /.netlify/functions/sync?code=<code>  → le JSON stocké, ou {}
- *   PUT  /.netlify/functions/sync?code=<code>  ← le JSON à stocker
+ *   GET  /.netlify/functions/sync?code=<code>  → le JSON stocké, ou 404 si l'identifiant est inconnu
+ *   PUT  /.netlify/functions/sync?code=<code>  ← le JSON à stocker (crée l'identifiant)
  *
- * Le « code » est un secret choisi par l'utilisateur : il sert à la fois
- * d'identifiant et de clé d'accès. Aucun compte, aucune autre authentification.
+ * Le « code » est un identifiant secret choisi par l'utilisateur : il sert à la
+ * fois d'identité et de clé d'accès. Aucun compte, aucune autre authentification.
  * Stockage : Netlify Blobs (identifiants injectés automatiquement par le
  * runtime Netlify).
  */
@@ -33,7 +33,8 @@ export default async (req) => {
 
   if (req.method === 'GET') {
     const data = await store.get(key, { type: 'json' });
-    return json(200, data ?? {});
+    if (data === null) return json(404, { error: 'identifiant inconnu' });
+    return json(200, data);
   }
 
   if (req.method === 'PUT') {
