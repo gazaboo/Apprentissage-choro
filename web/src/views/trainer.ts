@@ -9,7 +9,6 @@ import { el, ui } from '../dom';
 import { EclipseRunner } from '../eclipse';
 import { ScoreView } from '../score';
 import { BlockTimer, formatCountdown } from '../session';
-import type { SessionBlock } from '../session';
 import { createControlBar } from '../sheet';
 import { review, statusOf, STATUS_LABELS } from '../srs';
 import type { Progress } from '../store';
@@ -32,12 +31,17 @@ export interface TrainerContext {
   progress: Progress;
   player: Player;
   navigateHome: () => void;
-  /** Fourni uniquement pendant une session entrelacée. */
+  /** Fourni uniquement pendant une séance de travail. */
   session?: {
-    blocks: SessionBlock[];
-    blockIndex: number;
-    blockMinutes: number;
+    kind: 'deep' | 'urgent';
+    /** Texte du bandeau (« … — bloc 2 sur 6 » ou « … — morceau 3 sur 8 »). */
+    label: string;
+    /** Minutes par bloc, ou `null` pour le travail de fond (pas de minuteur). */
+    blockMinutes: number | null;
+    /** Évaluer le morceau courant puis passer au suivant. */
     onBlockEnd: () => void;
+    /** Terminer la séance maintenant (après évaluation du morceau courant). */
+    onStopSession: () => void;
   };
 }
 
@@ -284,7 +288,7 @@ export function renderTrainer(
 
   // --- Évaluation ---------------------------------------------------------
 
-  async function finish(): Promise<void> {
+  async function finish(endSession = false): Promise<void> {
     player.pause();
     const instrument = currentInstrument();
     // Selon le mode, « indices » et « mesures dérobées » ne désignent pas la
@@ -309,32 +313,43 @@ export function renderTrainer(
     hints = 0;
     eclipses.reset();
     paintCounters();
-    if (context.session) context.session.onBlockEnd();
-    else context.navigateHome();
+    if (context.session) {
+      if (endSession) context.session.onStopSession();
+      else context.session.onBlockEnd();
+    } else {
+      context.navigateHome();
+    }
   }
 
-  const finishButton = el(
-    'button',
-    { type: 'button', class: ui.primary },
-    context.session ? 'Terminer ce bloc' : 'Terminer et évaluer',
-  );
+  const nextLabel = context.session
+    ? context.session.kind === 'deep'
+      ? 'Passer au morceau suivant'
+      : 'Terminer ce bloc'
+    : 'Terminer et évaluer';
+  const finishButton = el('button', { type: 'button', class: ui.primary }, nextLabel);
   finishButton.addEventListener('click', () => void finish());
+
+  const stopSessionButton = context.session
+    ? el('button', { type: 'button', class: ui.button }, 'Terminer la séance')
+    : null;
+  stopSessionButton?.addEventListener('click', () => void finish(true));
 
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
   backButton.addEventListener('click', () => context.navigateHome());
 
-  // --- Minuteur de bloc (session entrelacée uniquement) -------------------
+  // --- Minuteur de bloc (mode « urgences » uniquement) -------------------
 
   const blockLabel = el('span', { class: 'font-mono text-amber-300' }, '');
   let timer: BlockTimer | null = null;
-  if (context.session) {
+  const blockMinutes = context.session?.blockMinutes ?? null;
+  if (blockMinutes !== null) {
     timer = new BlockTimer(
       (secondsLeft) => {
         blockLabel.textContent = formatCountdown(secondsLeft);
       },
       () => void finish(),
     );
-    timer.start(context.session.blockMinutes);
+    timer.start(blockMinutes);
   }
 
   // --- Assemblage ---------------------------------------------------------
@@ -349,12 +364,8 @@ export function renderTrainer(
             'flex flex-wrap items-center justify-between gap-3 rounded-xl border ' +
             'border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200',
         },
-        el(
-          'p',
-          {},
-          `Session entrelacée — bloc ${context.session.blockIndex} sur ${context.session.blocks.length}`,
-        ),
-        el('p', {}, 'Temps restant : ', blockLabel),
+        el('p', {}, context.session.label),
+        blockMinutes !== null ? el('p', {}, 'Temps restant : ', blockLabel) : null,
       )
     : null;
 
@@ -376,7 +387,13 @@ export function renderTrainer(
         `${currentInstrument().name} · ${STATUS_LABELS[status]}`,
       ),
     ),
-    el('div', { class: 'flex flex-wrap gap-2' }, backButton, finishButton),
+    el(
+      'div',
+      { class: 'flex flex-wrap gap-2' },
+      backButton,
+      stopSessionButton,
+      finishButton,
+    ),
   );
 
   const noAudio = !anySource

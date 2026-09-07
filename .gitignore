@@ -2,5 +2,7 @@
 __pycache__/
 node_modules/
 web/dist/
-web/public/data/
 .claude/settings.local.json
+
+# web/public/data/ (partitions générées, ~19 Mo) est désormais versionné :
+# le build Netlify n'exécute pas le pipeline Python.

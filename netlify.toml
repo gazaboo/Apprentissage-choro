@@ -1,0 +1,12 @@
+# Déploiement Netlify — site statique (web/dist) + fonction de synchro.
+
+[build]
+  command = "npm install && cd web && npm ci && npm run build"
+  publish = "web/dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA à routage par fragment : une seule page, pas de réécriture nécessaire.
+# Les fichiers de web/public/data/ sont copiés tels quels dans web/dist/data/.

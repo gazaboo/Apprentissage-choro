@@ -154,6 +154,14 @@ export class Player {
     return this.player?.getPlayerState?.() === 1;
   }
 
+  /**
+   * État brut du lecteur : -1 non démarré, 0 terminé, 1 lecture, 2 pause,
+   * 3 mise en mémoire tampon, 5 en file. `-1` si le lecteur n'est pas prêt.
+   */
+  getPlayerState(): number {
+    return this.player?.getPlayerState?.() ?? -1;
+  }
+
   togglePlay(): void {
     if (!this.player?.getPlayerState) return;
     if (this.isPlaying()) this.pause();

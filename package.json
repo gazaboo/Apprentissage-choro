@@ -1,0 +1,8 @@
+{
+  "name": "choro-trainer-deploy",
+  "private": true,
+  "description": "Racine de déploiement : fournit @netlify/blobs au bundle de la fonction Netlify. Le frontend vit dans web/.",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

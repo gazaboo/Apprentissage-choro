@@ -2,6 +2,17 @@
 
 export type InstrumentId = 'c' | 'bb' | 'eb';
 
+export function isInstrumentId(value: unknown): value is InstrumentId {
+  return value === 'c' || value === 'bb' || value === 'eb';
+}
+
+/** Libellés des transpositions pour les intitulés de filage. */
+export const INSTRUMENT_SHORT_LABELS: Record<InstrumentId, string> = {
+  c: 'accompagnateur',
+  bb: 'Si♭',
+  eb: 'Mi♭',
+};
+
 export interface Box {
   x: number;
   y: number;
@@ -102,6 +113,46 @@ export function isMaskLevel(value: unknown): value is MaskLevel {
 
 export function isEclipseIntensity(value: unknown): value is EclipseIntensity {
   return (ECLIPSE_INTENSITIES as unknown[]).includes(value);
+}
+
+/**
+ * Sélection de morceaux à travailler sur une période — typiquement la
+ * préparation d'un concert. Les dates sont purement indicatives : elles
+ * n'activent ni ne désactivent rien, c'est un choix qu'on pose à la main.
+ */
+export interface Setlist {
+  id: string;
+  name: string;
+  /** Références `Song.id` ; un id absent du manifeste est toléré et affiché grisé. */
+  songIds: string[];
+  /** Date ISO (AAAA-MM-JJ) ou `null`. */
+  from: string | null;
+  to: string | null;
+  /** Date ISO de création, pour trier la liste. */
+  createdAt: string;
+}
+
+/**
+ * Mode d'une séance :
+ * - `'deep'`   : toute la setlist dans l'ordre SRS, sans minuteur ;
+ * - `'urgent'` : les 3 plus en retard, entrelacé (blocs de 5 min) ;
+ * - `'filage'` : la setlist dans l'ordre, enchaînée avec l'audio, décompte de
+ *   5 s entre les morceaux — comme un filage de concert.
+ */
+export type SessionKind = 'deep' | 'urgent' | 'filage';
+
+/** Une séance de travail menée à son terme (ou interrompue). */
+export interface SessionRun {
+  /** Date ISO complète — sert aussi d'identifiant à la fusion entre appareils. */
+  date: string;
+  kind: SessionKind;
+  /** Transposition travaillée — renseigné pour un filage, `null` sinon. */
+  instrumentId: InstrumentId | null;
+  setlistId: string | null;
+  /** Nom de la setlist, ou « Tout le répertoire » quand `setlistId` est `null`. */
+  setlistName: string;
+  /** Nombre de morceaux distincts effectivement travaillés (ou enchaînés). */
+  songCount: number;
 }
 
 export interface SrsReview {

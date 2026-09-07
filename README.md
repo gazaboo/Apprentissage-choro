@@ -5,8 +5,9 @@ cognitives de l'apprentissage musical : **retrieval practice** (partition à
 trous), **performance cues**, **interleaving**, **démarrages à froid** et
 **répétition espacée**.
 
-Site 100 % statique : aucun serveur, toute la progression vit dans le
-`localStorage` du navigateur.
+Site statique : la progression vit dans le `localStorage` du navigateur, et
+peut être **synchronisée entre appareils** via une unique fonction Netlify
+(Netlify Blobs) — voir « Synchronisation ».
 
 ---
 
@@ -47,6 +48,23 @@ npx serve dist         # vérification du build
 
 `base: './'` : `dist/` est déployable tel quel, à la racine d'un domaine comme
 dans un sous-dossier (GitHub Pages, Cloudflare Pages, `npx serve`).
+
+### 3. Déploiement Netlify
+
+`netlify.toml` à la racine décrit tout : build de `web/`, publication de
+`web/dist/`, et la fonction `netlify/functions/sync.mjs`. Le `package.json`
+racine ne sert qu'à fournir `@netlify/blobs` au bundle de la fonction.
+
+Les partitions générées (`web/public/data/`, ~19 Mo) sont **versionnées** : le
+build Netlify n'exécute pas le pipeline Python. Après un
+`python scripts/preprocess_all.py` qui ajoute ou modifie des morceaux, penser à
+`git add web/public/data`.
+
+```bash
+npm install          # à la racine : dépendance de la fonction
+npx netlify dev      # app + fonction en local (store Blobs sandboxé)
+npx netlify deploy   # déploiement
+```
 
 ---
 
@@ -226,10 +244,59 @@ de mémoire mais injouable au tempo revient plus tôt (× 0,7 en sous-tempo,
 × 0,85 crispé, × 1,0 fluide). Stockage sous la clé `choro-srs-v1`, indexé par
 `morceau::instrument`.
 
-**Session entrelacée** : les 2 ou 3 morceaux les plus en retard sont travaillés
-en rotation alternée (A → B → A → B), par blocs de 5 minutes. On quitte chaque
-pièce avant qu'elle ne soit confortable : le retour force une vraie
-récupération en mémoire plutôt qu'un maintien en mémoire de travail.
+## Setlists et séances
+
+Pour préparer un concert, on cadre le travail sur un sous-ensemble du
+répertoire. `#/setlists` permet d'en créer, d'en supprimer et d'en **activer**
+une (dates facultatives, purement indicatives). Le tableau de bord porte un
+**menu déroulant** de setlist — « Tout le répertoire » y est une entrée comme
+une autre (elle correspond à `activeSetlistId = null`) — avec l'aperçu des
+5 premiers titres, dépliable. Le périmètre choisi restreint la liste des
+morceaux **et** les séances ; le SRS décide de l'ordre à l'intérieur.
+
+**Trois façons de travailler la setlist active**, depuis « Session du jour » :
+
+- **Travail de fond** — les morceaux s'enchaînent dans l'ordre SRS (du plus au
+  moins en retard), une évaluation par morceau, **jusqu'à arrêt**. Pas de
+  minuteur : on travaille chaque pièce à fond. Après le dernier morceau, l'ordre
+  est recalculé et la rotation reprend.
+- **Révision des urgences** — les 3 morceaux les plus en retard, en rotation
+  alternée (A → B → C → A → B → C) par blocs de 5 minutes. On quitte chaque
+  pièce avant qu'elle ne soit confortable : le retour force une vraie
+  récupération en mémoire.
+- **Filage** (`accompagnateur` / `Si♭` / `Mi♭`) — la setlist **dans son ordre**,
+  comme un filage de concert. Chaque morceau joue avec sa bande —
+  *accompagnateur* (partition en Ut) sur l'enregistrement original, *soliste*
+  Si♭/Mi♭ sur le playback — puis un **décompte de 5 secondes** annonce le
+  suivant avant que la lecture ne reprenne seule. Enchaînement automatique à la
+  fin de l'audio, ou bouton « Passer au suivant ». La partition de la
+  transposition s'affiche, masquable d'un bouton.
+
+Chaque séance menée est consignée (`progress.sessions`) : le tableau de bord
+montre la date de la dernière et, sur demande, les dix dernières. Les setlists
+et l'historique vivent dans la clé `choro-srs-v1`, à côté des cartes SRS.
+
+## Synchronisation
+
+À la première arrivée, une **passerelle d'accueil** propose deux voies :
+*continuer sans compte* (progression sur ce seul appareil) ou *saisir un code de
+synchro*. Le choix est mémorisé ; on y revient par `#/compte`, où l'on active ou
+coupe la synchro et où l'on exporte/importe sa progression.
+
+Un « code de synchro » (secret choisi par l'utilisateur, le même sur chaque
+appareil) active un aller-retour avec la fonction `netlify/functions/sync.mjs`,
+qui range un unique blob JSON par code dans Netlify Blobs. Un code encore
+inutilisé crée le compte à la première écriture.
+
+Au chargement et au retour au premier plan, l'app récupère l'état distant et le
+**fusionne sans rien perdre** : chaque carte SRS est réconciliée séparément (la
+plus récemment révisée gagne), l'historique des séances est unionné par date, et
+les blocs non fusionnables — réglages, setlists — suivent l'appareil au dernier
+enregistrement (`_rev`). Chaque enregistrement local programme un envoi différé
+de 3 s. Hors ligne, l'app reste pleinement utilisable et la synchro reprend au
+retour du réseau.
+
+Filet de sécurité : « Exporter » / « Importer » un fichier JSON, sans réseau.
 
 ---
 
@@ -246,15 +313,22 @@ scripts/
     render.py                 rendu WebP et calques de contrôle
     manifest.py               sérialisation JSON
 web/
-  public/data/                généré — images + manifest.json
+  public/data/                généré (versionné) — images + manifest.json
   src/
     main.ts                   routage et orchestration
     store.ts srs.ts session.ts
+    sync.ts                   synchro entre appareils + fusion (fonction pure)
     youtube.ts                lecteur audio seul, ticker, répétition de passage
     transport.ts sheet.ts     barre de transport et panneau de réglages
     eclipse.ts                horloge des éclipses
     score.ts dom.ts
     views/dashboard.ts views/trainer.ts views/srsModal.ts
+    views/setlists.ts         CRUD des setlists
+    views/filage.ts           filage de la setlist, audio enchaîné + décompte
+    views/account.ts          passerelle d'accueil + gestion de la synchro
+netlify/
+  functions/sync.mjs          GET/PUT d'un blob JSON par code de synchro
+netlify.toml package.json      config de déploiement + dépendance de la fonction
 ```
 
 ## Écarts assumés par rapport à la spécification initiale
