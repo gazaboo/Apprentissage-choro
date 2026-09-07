@@ -11,7 +11,7 @@ import { ScoreView } from '../score';
 import type { InstrumentId, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
 import type { Player } from '../youtube';
-import { formatTime } from '../youtube';
+import { formatTime, PLAYBACK_RATES } from '../youtube';
 
 export interface FilageContext {
   player: Player;
@@ -34,6 +34,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   let index = 0;
   let transitioning = false;
   let hasPlayed = false;
+  let scrubbing = false;
   let countdownTimer: number | null = null;
   let showScore = true;
   let unsubscribe: (() => void) | null = null;
@@ -64,6 +65,70 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
 
   const nextButton = el('button', { type: 'button', class: ui.button }, 'Passer au suivant');
   nextButton.addEventListener('click', () => startCountdown());
+
+  // --- Barre de lecture : on revient où l'on veut à tout moment ---------
+
+  const seekFill = el('div', {
+    class: 'absolute inset-y-0 left-0 rounded-full bg-amber-400',
+  });
+  const seekBarInner = el(
+    'div',
+    { class: 'relative h-1.5 w-full rounded-full bg-zinc-700' },
+    seekFill,
+  );
+  const seekBar = el(
+    'div',
+    {
+      class: 'flex h-11 w-full cursor-pointer items-center',
+      role: 'slider',
+      'aria-label': 'Position dans le morceau',
+      'aria-valuemin': 0,
+      'aria-valuenow': 0,
+    },
+    seekBarInner,
+  );
+  function seekFromEvent(event: PointerEvent): void {
+    const rect = seekBarInner.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    seekFill.style.width = `${ratio * 100}%`;
+    const duration = player.getDuration();
+    if (duration > 0) player.seekTo(ratio * duration);
+  }
+  seekBar.addEventListener('pointerdown', (event) => {
+    scrubbing = true;
+    seekBar.setPointerCapture(event.pointerId);
+    seekFromEvent(event);
+  });
+  seekBar.addEventListener('pointermove', (event) => {
+    if (scrubbing) seekFromEvent(event);
+  });
+  const endScrub = (): void => {
+    scrubbing = false;
+  };
+  seekBar.addEventListener('pointerup', endScrub);
+  seekBar.addEventListener('pointercancel', endScrub);
+
+  // --- Vitesse : disponible et modifiable à tout moment ----------------
+
+  let chosenRate = 1;
+  const rateButtons = PLAYBACK_RATES.map((rate) => {
+    const button = el(
+      'button',
+      { type: 'button', class: ui.button },
+      `${rate}×`.replace('.', ','),
+    );
+    button.addEventListener('click', () => {
+      chosenRate = player.setRate(rate);
+      paintRates(chosenRate);
+    });
+    return button;
+  });
+  function paintRates(active: number): void {
+    rateButtons.forEach((button, i) => {
+      button.className = PLAYBACK_RATES[i] === active ? ui.buttonActive : ui.button;
+    });
+  }
+  paintRates(1);
 
   const scoreToggle = el('button', { type: 'button', class: ui.button }, 'Masquer la partition');
   scoreToggle.addEventListener('click', () => {
@@ -105,6 +170,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     const song = order[i]!;
     context.markReached(song.id);
     hasPlayed = false;
+    seekFill.style.width = '0%';
 
     positionLabel.textContent = `Filage ${INSTRUMENT_SHORT_LABELS[instrumentId]} · ${context.setlistName} — ${i + 1} / ${order.length}`;
     titleLabel.textContent = song.title;
@@ -171,11 +237,23 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       ),
       el(
         'div',
-        { class: 'flex flex-wrap items-center gap-3' },
-        playButton,
-        timeLabel,
-        nextButton,
-        scoreToggle,
+        { class: 'flex flex-col gap-3' },
+        el(
+          'div',
+          { class: 'flex items-center gap-3' },
+          playButton,
+          seekBar,
+          timeLabel,
+        ),
+        el(
+          'div',
+          { class: 'flex flex-wrap items-center gap-2' },
+          el('span', { class: 'text-xs text-zinc-500' }, 'Vitesse'),
+          ...rateButtons,
+          el('span', { class: 'mx-1 h-5 w-px bg-zinc-700' }),
+          nextButton,
+          scoreToggle,
+        ),
       ),
       scoreNote,
       scoreContainer,
@@ -190,11 +268,23 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   unsubscribe = player.onTick((tick) => {
     playButton.textContent = tick.playing ? '❚❚' : '▶';
     timeLabel.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
-    if (tick.playing) hasPlayed = true;
+    if (tick.playing) {
+      hasPlayed = true;
+      // YouTube peut réinitialiser la vitesse au chargement d'un morceau.
+      if (chosenRate !== 1 && Math.abs(player.getRate() - chosenRate) > 0.01) {
+        player.setRate(chosenRate);
+      }
+    }
+    if (!scrubbing && tick.duration > 0) {
+      seekFill.style.width = `${(tick.currentTime / tick.duration) * 100}%`;
+      seekBar.setAttribute('aria-valuenow', String(Math.round(tick.currentTime)));
+      seekBar.setAttribute('aria-valuemax', String(Math.round(tick.duration)));
+    }
 
     const ended =
       hasPlayed &&
       !transitioning &&
+      !scrubbing &&
       !tick.playing &&
       (player.getPlayerState() === 0 ||
         (tick.duration > 0 && tick.currentTime >= tick.duration - 0.4));
