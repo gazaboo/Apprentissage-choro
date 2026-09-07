@@ -100,7 +100,6 @@ export function renderDashboard(
 
   const list = el('div', { class: 'grid gap-2' });
   const subtitle = el('p', { class: 'mt-1 text-sm text-zinc-400' });
-  const scopeSlot = el('section', { class: 'flex flex-col gap-2' });
   const sessionSlot = el('section', {
     class: 'rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-5',
   });
@@ -127,117 +126,230 @@ export function renderDashboard(
   // --- Sélecteur de setlist + aperçu ------------------------------------
 
   let previewExpanded = false;
+  /** Retire l'écouteur de fermeture au clic extérieur, s'il est posé. */
+  let closeDropdown: (() => void) | null = null;
 
-  function paintScope(): void {
-    const set = activeSetlist(progress);
+  /** Morceaux d'une setlist présents dans le manifeste courant. */
+  function knownSongs(set: ReturnType<typeof activeSetlist>): Song[] {
+    if (!set) return songs;
+    return set.songIds
+      .map((id) => songById.get(id))
+      .filter((song): song is Song => song !== undefined);
+  }
 
-    const selector = el(
-      'select',
-      {
-        class:
-          'min-h-11 min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 ' +
-          'text-sm text-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
-        'aria-label': 'Setlist active',
-      },
-      el('option', { value: '' }, 'Tout le répertoire'),
-      ...progress.setlists.map((entry) => el('option', { value: entry.id }, entry.name)),
-    ) as HTMLSelectElement;
-    selector.value = progress.activeSetlistId ?? '';
-    selector.addEventListener('change', () => {
-      setActiveSetlist(progress, selector.value || null);
-      previewExpanded = false;
-      paintScope();
-      paintHeader();
-      paintList();
-      paintSessionCard();
-    });
+  /** Ligne de détail d'une option : « 8 morceaux · Titre · Titre · Titre ». */
+  function optionDetail(id: string): string {
+    if (!id) return `${songs.length} morceaux`;
+    const set = progress.setlists.find((entry) => entry.id === id) ?? null;
+    const known = knownSongs(set);
+    const count = `${known.length} morceau${known.length > 1 ? 'x' : ''}`;
+    const titles = known.slice(0, 3).map((song) => song.title);
+    return titles.length ? `${count} · ${titles.join(' · ')}` : count;
+  }
 
-    const manageLink = el('button', { type: 'button', class: ui.button }, 'Gérer');
-    manageLink.addEventListener('click', context.openSetlists);
+  const dropTrigger = el(
+    'button',
+    {
+      type: 'button',
+      class:
+        'flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border ' +
+        'border-zinc-700 bg-zinc-800 px-3 text-left text-sm text-zinc-200 ' +
+        'hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
+      'aria-haspopup': 'listbox',
+      'aria-expanded': 'false',
+    },
+    el('span', { class: 'truncate' }),
+    el('span', { class: 'shrink-0 text-zinc-500' }, '▾'),
+  );
 
-    const rows: Array<HTMLElement | null> = [
-      el('p', { class: ui.label }, 'Setlist travaillée'),
-      el('div', { class: 'flex flex-wrap items-center gap-2' }, selector, manageLink),
-    ];
+  const dropList = el('div', {
+    class:
+      'absolute left-0 right-0 z-20 mt-1 hidden max-h-80 overflow-y-auto rounded-lg ' +
+      'border border-zinc-700 bg-zinc-900 py-1 shadow-xl shadow-black/50',
+    role: 'listbox',
+    'aria-label': 'Setlist travaillée',
+  });
 
-    if (set) {
-      const known = set.songIds
-        .map((id) => songById.get(id))
-        .filter((song): song is Song => song !== undefined);
-      const missing = set.songIds.length - known.length;
-
-      if (known.length === 0) {
-        rows.push(
-          el(
-            'p',
-            { class: 'text-sm text-zinc-500' },
-            'Cette setlist ne contient aucun morceau du répertoire actuel.',
-          ),
-        );
-      } else if (!previewExpanded) {
-        const line = el(
-          'p',
-          { class: 'text-sm text-zinc-400' },
-          known.slice(0, 5).map((song) => song.title).join(' · '),
-        );
-        const extra = known.length - 5;
-        if (extra > 0 || missing > 0) {
-          const more = el(
-            'button',
-            { type: 'button', class: 'text-sm text-amber-300/80 hover:text-amber-200' },
-            extra > 0 ? `+ ${extra} autre${extra > 1 ? 's' : ''}` : 'voir la liste',
-          );
-          more.addEventListener('click', () => {
-            previewExpanded = true;
-            paintScope();
-          });
-          rows.push(
-            el('div', { class: 'flex flex-wrap items-baseline gap-x-2 gap-y-1' }, line, more),
-          );
-        } else {
-          rows.push(line);
-        }
-      } else {
-        const chips = known.map((song) => {
-          const chip = el(
-            'button',
-            {
-              type: 'button',
-              class:
-                'rounded-full border border-zinc-700 bg-zinc-800/70 px-2.5 py-1 text-xs ' +
-                'text-zinc-300 hover:border-zinc-500 hover:text-zinc-100',
-            },
-            song.title,
-          );
-          chip.addEventListener('click', () => context.openSong(song.id));
-          return chip;
-        });
-        const collapse = el(
-          'button',
-          { type: 'button', class: 'self-start text-sm text-amber-300/80 hover:text-amber-200' },
-          'réduire',
-        );
-        collapse.addEventListener('click', () => {
-          previewExpanded = false;
-          paintScope();
-        });
-        rows.push(
-          el('div', { class: 'flex flex-wrap gap-1.5' }, ...chips),
-          missing > 0
-            ? el(
-                'p',
-                { class: 'text-xs text-zinc-600' },
-                `${missing} morceau${missing > 1 ? 'x' : ''} introuvable${missing > 1 ? 's' : ''}`,
-              )
-            : null,
-          collapse,
-        );
+  function setDropdownOpen(open: boolean): void {
+    dropList.classList.toggle('hidden', !open);
+    dropTrigger.setAttribute('aria-expanded', String(open));
+    closeDropdown?.();
+    closeDropdown = null;
+    if (!open) return;
+    const onDocClick = (event: MouseEvent): void => {
+      if (!dropList.contains(event.target as Node) && event.target !== dropTrigger) {
+        setDropdownOpen(false);
       }
+    };
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setDropdownOpen(false);
+    };
+    // Différé : le clic qui vient d'ouvrir ne doit pas refermer aussitôt.
+    setTimeout(() => document.addEventListener('click', onDocClick), 0);
+    document.addEventListener('keydown', onKey);
+    closeDropdown = () => {
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }
+
+  function chooseSetlist(id: string): void {
+    setActiveSetlist(progress, id || null);
+    previewExpanded = false;
+    setDropdownOpen(false);
+    refreshDropdown();
+    paintPreview();
+    paintHeader();
+    paintList();
+    paintSessionCard();
+  }
+
+  function refreshDropdown(): void {
+    const activeId = progress.activeSetlistId ?? '';
+    (dropTrigger.firstElementChild as HTMLElement).textContent =
+      activeId ? progress.setlists.find((e) => e.id === activeId)?.name ?? 'Setlist' : 'Tout le répertoire';
+
+    const entries: Array<{ id: string; name: string }> = [
+      { id: '', name: 'Tout le répertoire' },
+      ...progress.setlists.map((entry) => ({ id: entry.id, name: entry.name })),
+    ];
+    dropList.replaceChildren(
+      ...entries.map(({ id, name }) => {
+        const selected = id === activeId;
+        const option = el(
+          'button',
+          {
+            type: 'button',
+            role: 'option',
+            'aria-selected': String(selected),
+            class:
+              'flex w-full flex-col gap-0.5 px-3 py-2 text-left hover:bg-zinc-800 ' +
+              'focus:bg-zinc-800 focus:outline-none ' +
+              (selected ? 'bg-amber-400/10' : ''),
+          },
+          el(
+            'span',
+            { class: `text-sm ${selected ? 'font-medium text-amber-200' : 'text-zinc-200'}` },
+            name,
+          ),
+          el('span', { class: 'text-xs text-zinc-500' }, optionDetail(id)),
+        );
+        option.addEventListener('click', () => chooseSetlist(id));
+        return option;
+      }),
+    );
+  }
+
+  dropTrigger.addEventListener('click', () => {
+    setDropdownOpen(dropList.classList.contains('hidden'));
+  });
+
+  const manageLink = el('button', { type: 'button', class: ui.button }, 'Gérer');
+  manageLink.addEventListener('click', context.openSetlists);
+
+  const previewSlot = el('div', { class: 'flex flex-col gap-1' });
+
+  /** Aperçu des morceaux de la setlist active, sous le sélecteur. */
+  function paintPreview(): void {
+    const set = activeSetlist(progress);
+    if (!set) {
+      previewSlot.replaceChildren();
+      return;
+    }
+    const known = knownSongs(set);
+    const missing = set.songIds.length - known.length;
+
+    if (known.length === 0) {
+      previewSlot.replaceChildren(
+        el(
+          'p',
+          { class: 'text-sm text-zinc-500' },
+          'Cette setlist ne contient aucun morceau du répertoire actuel.',
+        ),
+      );
+      return;
     }
 
-    scopeSlot.replaceChildren(
-      ...rows.filter((entry): entry is HTMLElement => entry !== null),
+    if (!previewExpanded) {
+      const line = el(
+        'p',
+        { class: 'text-sm text-zinc-400' },
+        known.slice(0, 5).map((song) => song.title).join(' · '),
+      );
+      const extra = known.length - 5;
+      if (extra <= 0 && missing <= 0) {
+        previewSlot.replaceChildren(line);
+        return;
+      }
+      const more = el(
+        'button',
+        { type: 'button', class: 'text-sm text-amber-300/80 hover:text-amber-200' },
+        extra > 0 ? `+ ${extra} autre${extra > 1 ? 's' : ''}` : 'voir la liste',
+      );
+      more.addEventListener('click', () => {
+        previewExpanded = true;
+        paintPreview();
+      });
+      previewSlot.replaceChildren(
+        el('div', { class: 'flex flex-wrap items-baseline gap-x-2 gap-y-1' }, line, more),
+      );
+      return;
+    }
+
+    const chips = known.map((song) => {
+      const chip = el(
+        'button',
+        {
+          type: 'button',
+          class:
+            'rounded-full border border-zinc-700 bg-zinc-800/70 px-2.5 py-1 text-xs ' +
+            'text-zinc-300 hover:border-zinc-500 hover:text-zinc-100',
+        },
+        song.title,
+      );
+      chip.addEventListener('click', () => context.openSong(song.id));
+      return chip;
+    });
+    const collapse = el(
+      'button',
+      { type: 'button', class: 'self-start text-sm text-amber-300/80 hover:text-amber-200' },
+      'réduire',
     );
+    collapse.addEventListener('click', () => {
+      previewExpanded = false;
+      paintPreview();
+    });
+    previewSlot.replaceChildren(
+      el('div', { class: 'flex flex-wrap gap-1.5' }, ...chips),
+      ...(missing > 0
+        ? [
+            el(
+              'p',
+              { class: 'text-xs text-zinc-600' },
+              `${missing} morceau${missing > 1 ? 'x' : ''} introuvable${missing > 1 ? 's' : ''}`,
+            ),
+          ]
+        : []),
+      collapse,
+    );
+  }
+
+  const scopeRow = el(
+    'section',
+    { class: 'flex flex-col gap-2' },
+    el('p', { class: ui.label }, 'Setlist travaillée'),
+    el(
+      'div',
+      { class: 'flex items-start gap-2' },
+      el('div', { class: 'relative min-w-0 flex-1' }, dropTrigger, dropList),
+      manageLink,
+    ),
+    previewSlot,
+  );
+
+  function paintScope(): void {
+    refreshDropdown();
+    paintPreview();
   }
 
   // --- Session du jour -------------------------------------------------
@@ -385,7 +497,7 @@ export function renderDashboard(
         el('div', { class: 'flex flex-wrap gap-2' }, setlistsLink, accountLink),
       ),
 
-      scopeSlot,
+      scopeRow,
       sessionSlot,
 
       el('section', { class: 'flex flex-col gap-4' }, list),
@@ -396,7 +508,7 @@ export function renderDashboard(
   paintHeader();
   paintSessionCard();
   paintList();
-  return () => {};
+  return () => closeDropdown?.();
 }
 
 function songRow(song: Song, progress: Progress, context: DashboardContext): HTMLElement {
