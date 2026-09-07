@@ -281,22 +281,25 @@ et l'historique vivent dans la clé `choro-srs-v1`, à côté des cartes SRS.
 
 À la première arrivée, une **passerelle d'accueil** propose deux voies :
 travailler *sur cet appareil* (progression locale) ou *sur tous ses appareils*
-en choisissant un **identifiant**. Le choix est mémorisé ; on y revient par
-`#/compte`, où l'on active ou coupe la synchro.
+en choisissant un **identifiant**. Le choix est mémorisé ; l'en-tête affiche
+l'identifiant connecté (ou « Anonyme »), et `#/compte` permet de se
+connecter / déconnecter.
 
-L'identifiant (secret choisi par l'utilisateur, le même sur chaque appareil,
-« code de synchro » dans le code) active un aller-retour avec la fonction
-`netlify/functions/sync.mjs`, qui range un unique blob JSON par identifiant dans
-Netlify Blobs. Un identifiant encore inutilisé crée l'espace à la première
-écriture.
+À la saisie d'un identifiant, l'app interroge `netlify/functions/sync.mjs` :
+- **connu** (200) → connexion et rechargement automatiques de l'état ;
+- **inconnu** (404) → on demande s'il faut créer un nouvel espace ;
+- **hors ligne** → message d'erreur.
 
-Au chargement et au retour au premier plan, l'app récupère l'état distant et le
-**fusionne sans rien perdre** : chaque carte SRS est réconciliée séparément (la
-plus récemment révisée gagne), l'historique des séances est unionné par date, et
-les blocs non fusionnables — réglages, setlists — suivent l'appareil au dernier
-enregistrement (`_rev`). Chaque enregistrement local programme un envoi différé
-de 3 s. Hors ligne, l'app reste pleinement utilisable et la synchro reprend au
-retour du réseau.
+L'identifiant (secret choisi par l'utilisateur, le même sur chaque appareil ;
+« code de synchro » dans le code) sert de clé à un unique blob JSON dans Netlify
+Blobs. Au chargement et au retour au premier plan, l'app récupère l'état distant
+et le **fusionne sans rien perdre** : chaque carte SRS est réconciliée
+séparément (la plus récemment révisée gagne), l'historique des séances est
+unionné par date, et les blocs non fusionnables — réglages, setlists — suivent
+l'appareil au dernier enregistrement (`_rev`). Chaque enregistrement local
+programme un envoi différé de 3 s. **Aucun bouton de synchro** : tout est
+automatique. Hors ligne, l'app reste pleinement utilisable et la synchro reprend
+au retour du réseau.
 
 ---
 
@@ -327,7 +330,7 @@ web/
     views/filage.ts           filage de la setlist, audio enchaîné + décompte
     views/account.ts          passerelle d'accueil + gestion de la synchro
 netlify/
-  functions/sync.mjs          GET/PUT d'un blob JSON par code de synchro
+  functions/sync.mjs          GET (200 / 404) et PUT d'un blob JSON par identifiant
 netlify.toml package.json      config de déploiement + dépendance de la fonction
 ```
 
