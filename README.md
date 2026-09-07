@@ -269,8 +269,9 @@ morceaux **et** les séances ; le SRS décide de l'ordre à l'intérieur.
   *accompagnateur* (partition en Ut) sur l'enregistrement original, *soliste*
   Si♭/Mi♭ sur le playback — puis un **décompte de 5 secondes** annonce le
   suivant avant que la lecture ne reprenne seule. Enchaînement automatique à la
-  fin de l'audio, ou bouton « Passer au suivant ». La partition de la
-  transposition s'affiche, masquable d'un bouton.
+  fin de l'audio, ou bouton « Passer au suivant ». La barre de lecture et la
+  vitesse restent accessibles en continu ; la partition (masquable) laisse place,
+  sinon, à une **vue « scène »** : titre en grand et prochains morceaux.
 
 Chaque séance menée est consignée (`progress.sessions`) : le tableau de bord
 montre la date de la dernière et, sur demande, les dix dernières. Les setlists
@@ -279,14 +280,15 @@ et l'historique vivent dans la clé `choro-srs-v1`, à côté des cartes SRS.
 ## Synchronisation
 
 À la première arrivée, une **passerelle d'accueil** propose deux voies :
-*continuer sans compte* (progression sur ce seul appareil) ou *saisir un code de
-synchro*. Le choix est mémorisé ; on y revient par `#/compte`, où l'on active ou
-coupe la synchro et où l'on exporte/importe sa progression.
+travailler *sur cet appareil* (progression locale) ou *sur tous ses appareils*
+en choisissant un **identifiant**. Le choix est mémorisé ; on y revient par
+`#/compte`, où l'on active ou coupe la synchro.
 
-Un « code de synchro » (secret choisi par l'utilisateur, le même sur chaque
-appareil) active un aller-retour avec la fonction `netlify/functions/sync.mjs`,
-qui range un unique blob JSON par code dans Netlify Blobs. Un code encore
-inutilisé crée le compte à la première écriture.
+L'identifiant (secret choisi par l'utilisateur, le même sur chaque appareil,
+« code de synchro » dans le code) active un aller-retour avec la fonction
+`netlify/functions/sync.mjs`, qui range un unique blob JSON par identifiant dans
+Netlify Blobs. Un identifiant encore inutilisé crée l'espace à la première
+écriture.
 
 Au chargement et au retour au premier plan, l'app récupère l'état distant et le
 **fusionne sans rien perdre** : chaque carte SRS est réconciliée séparément (la
@@ -295,8 +297,6 @@ les blocs non fusionnables — réglages, setlists — suivent l'appareil au der
 enregistrement (`_rev`). Chaque enregistrement local programme un envoi différé
 de 3 s. Hors ligne, l'app reste pleinement utilisable et la synchro reprend au
 retour du réseau.
-
-Filet de sécurité : « Exporter » / « Importer » un fichier JSON, sans réseau.
 
 ---
 
