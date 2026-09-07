@@ -295,31 +295,6 @@ export function lastSession(progress: Progress): SessionRun | undefined {
   return progress.sessions[progress.sessions.length - 1];
 }
 
-/** Sérialise l'état courant, pour une sauvegarde manuelle hors ligne. */
-export function exportProgress(): string {
-  return JSON.stringify(loadProgress(), null, 2);
-}
-
-/**
- * Remplace l'état stocké par le contenu d'un fichier exporté. Renvoie `false`
- * si le texte n'est pas un objet JSON — l'état courant est alors intact.
- */
-export function importProgress(text: string): boolean {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    return false;
-  }
-  if (typeof parsed !== 'object' || parsed === null) return false;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function getCard(
   progress: Progress,
   songId: string,

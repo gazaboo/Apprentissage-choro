@@ -1,14 +1,13 @@
-/** Accès au « compte » : écran d'accueil et gestion de la synchro.
+/** Accueil et gestion de la synchronisation.
  *
- * À l'arrivée sur le site, tant qu'aucun choix n'a été fait, cet écran occupe
- * toute la place (mode passerelle) et propose deux voies : rester anonyme, ou
- * saisir un code de synchro. Ensuite il redevient une page ordinaire,
- * accessible par `#/compte`, où l'on active/désactive la synchro et où l'on
+ * À la première arrivée, tant qu'aucun choix n'a été fait, cet écran occupe
+ * toute la place (mode passerelle) : rester sur l'appareil, ou saisir un
+ * identifiant pour retrouver sa progression partout. Ensuite il redevient une
+ * page ordinaire (`#/compte`) où l'on active/coupe la synchro et où l'on
  * exporte/importe sa progression.
  */
 
 import { el, ui } from '../dom';
-import { exportProgress, importProgress } from '../store';
 import {
   accountMode,
   chooseAnonymous,
@@ -30,14 +29,18 @@ export interface AccountContext {
 
 const inputClass =
   'min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 text-sm ' +
-  'text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400';
+  'text-zinc-100 placeholder:text-zinc-500 focus:outline-none ' +
+  'focus-visible:ring-2 focus-visible:ring-amber-400';
 
-/** Champ « code de synchro » + bouton, avec message d'erreur intégré. */
+/** Champ « identifiant » + bouton, avec message d'erreur intégré. */
 function codeForm(submitLabel: string, onValid: (code: string) => void): HTMLElement {
   const input = el('input', {
     type: 'text',
-    placeholder: 'Code de synchro (6 caractères ou plus)',
-    'aria-label': 'Code de synchro',
+    placeholder: 'Identifiant (6 caractères minimum)',
+    'aria-label': 'Identifiant',
+    autocomplete: 'off',
+    autocapitalize: 'none',
+    spellcheck: 'false',
     class: inputClass,
   }) as HTMLInputElement;
 
@@ -48,7 +51,7 @@ function codeForm(submitLabel: string, onValid: (code: string) => void): HTMLEle
     const value = input.value.trim();
     if (!isValidCode(value)) {
       error.textContent =
-        'Le code doit faire 6 à 64 caractères : lettres, chiffres, tiret ou souligné.';
+        'L’identifiant doit faire 6 à 64 caractères : lettres, chiffres, tiret ou souligné.';
       return;
     }
     onValid(value);
@@ -67,49 +70,79 @@ function codeForm(submitLabel: string, onValid: (code: string) => void): HTMLEle
   );
 }
 
-/** Boutons Exporter / Importer un fichier JSON, filet de sécurité sans réseau. */
-function backupRow(onChange: () => void): HTMLElement {
-  const error = el('p', { class: 'text-sm text-rose-300' });
-
-  const exportButton = el('button', { type: 'button', class: ui.button }, 'Exporter');
-  exportButton.addEventListener('click', () => {
-    const blob = new Blob([exportProgress()], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = el('a', {
-      href: url,
-      download: `choro-progression-${new Date().toISOString().slice(0, 10)}.json`,
-    });
-    anchor.click();
-    URL.revokeObjectURL(url);
-  });
-
-  const field = el('input', {
-    type: 'file',
-    accept: 'application/json,.json',
-    class: 'hidden',
-  }) as HTMLInputElement;
-  const importButton = el('button', { type: 'button', class: ui.button }, 'Importer');
-  importButton.addEventListener('click', () => field.click());
-  field.addEventListener('change', () => {
-    const file = field.files?.[0];
-    if (!file) return;
-    void file.text().then((text) => {
-      if (importProgress(text)) onChange();
-      else error.textContent = 'Fichier illisible — la progression n’a pas été touchée.';
-    });
+function renderGate(context: AccountContext, activateSync: (code: string) => void): HTMLElement {
+  const continueButton = el('button', { type: 'button', class: ui.button }, 'Continuer');
+  continueButton.addEventListener('click', () => {
+    chooseAnonymous();
+    context.onChange();
   });
 
   return el(
-    'section',
-    { class: 'flex flex-col gap-2 border-t border-zinc-800 pt-4' },
-    el('p', { class: ui.label }, 'Sauvegarde manuelle'),
+    'div',
+    {
+      class: 'flex min-h-dvh flex-col items-center justify-center px-4 py-10',
+    },
     el(
-      'p',
-      { class: 'text-sm text-zinc-400' },
-      'Un fichier à transférer soi-même, utile sans réseau ou comme copie de secours.',
+      'div',
+      { class: 'flex w-full max-w-md flex-col gap-5' },
+      el(
+        'div',
+        { class: 'flex flex-col gap-3' },
+        el(
+          'p',
+          {
+            class: 'text-xs font-semibold uppercase tracking-[0.2em] text-amber-400/90',
+          },
+          'Travail instrumental',
+        ),
+        el(
+          'h1',
+          { class: 'text-4xl font-semibold leading-tight text-zinc-50 sm:text-5xl' },
+          'Répertoire de choros',
+        ),
+        el(
+          'p',
+          { class: 'text-sm leading-relaxed text-zinc-400' },
+          'Partition à trous, filage de concert et répétition espacée pour ' +
+            'mémoriser et tenir son répertoire.',
+        ),
+        el(
+          'p',
+          { class: 'pt-3 text-sm text-zinc-300' },
+          'Avant de commencer — où garder votre progression ?',
+        ),
+      ),
+
+      el(
+        'section',
+        { class: `${ui.card} flex flex-col gap-3` },
+        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Sur cet appareil'),
+        el(
+          'p',
+          { class: 'text-sm text-zinc-400' },
+          'Enregistrée dans ce navigateur. Rien à retenir, mais elle ne suivra ' +
+            'pas vers un autre appareil.',
+        ),
+        el('div', { class: 'flex' }, continueButton),
+      ),
+
+      el(
+        'section',
+        {
+          class:
+            'flex flex-col gap-3 rounded-xl border border-amber-400/30 ' +
+            'bg-amber-400/[0.05] p-4',
+        },
+        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Sur tous mes appareils'),
+        el(
+          'p',
+          { class: 'text-sm text-zinc-400' },
+          'Choisissez un identifiant secret et saisissez le même sur votre ' +
+            'téléphone, votre tablette… Votre progression vous suit partout.',
+        ),
+        codeForm('Commencer', activateSync),
+      ),
     ),
-    el('div', { class: 'flex flex-wrap gap-2' }, exportButton, importButton, field),
-    error,
   );
 }
 
@@ -121,25 +154,26 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
     void syncNow().finally(() => context.onChange());
   }
 
-  const blocks: HTMLElement[] = [];
-
   if (context.gate) {
-    blocks.push(
-      el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, 'Votre progression'),
-      el(
-        'p',
-        { class: 'text-sm text-zinc-400' },
-        'Comment souhaitez-vous conserver votre travail ?',
-      ),
-    );
+    root.replaceChildren(renderGate(context, activateSync));
+    return () => {};
+  }
 
-    const anonButton = el(
-      'button',
-      { type: 'button', class: ui.primary },
-      'Continuer sans compte',
-    );
-    anonButton.addEventListener('click', () => {
-      chooseAnonymous();
+  const blocks: HTMLElement[] = [
+    el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, 'Compte'),
+  ];
+
+  if (mode === 'sync') {
+    const syncButton = el('button', { type: 'button', class: ui.button }, 'Synchroniser maintenant');
+    syncButton.addEventListener('click', () => {
+      syncButton.disabled = true;
+      syncButton.textContent = 'Synchronisation…';
+      void syncNow().finally(() => context.onChange());
+    });
+
+    const outButton = el('button', { type: 'button', class: ui.button }, 'Se déconnecter');
+    outButton.addEventListener('click', () => {
+      signOut();
       context.onChange();
     });
 
@@ -147,92 +181,42 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
       el(
         'section',
         { class: `${ui.card} flex flex-col gap-2` },
-        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Sans compte'),
+        el('p', { class: 'text-sm text-zinc-300' }, `Synchronisation active · ${formatLastSync()}`),
         el(
           'p',
-          { class: 'text-sm text-zinc-400' },
-          'La progression est enregistrée sur cet appareil uniquement.',
+          { class: 'text-sm text-zinc-500' },
+          'Saisissez le même identifiant sur vos autres appareils. Les ' +
+            'progressions sont fusionnées, rien n’est perdu.',
         ),
-        el('div', { class: 'flex' }, anonButton),
-      ),
-      el(
-        'section',
-        { class: `${ui.card} flex flex-col gap-2` },
-        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Avec un code de synchro'),
-        el(
-          'p',
-          { class: 'text-sm text-zinc-400' },
-          'Retrouvez votre progression sur tous vos appareils. Saisissez le même ' +
-            'code partout ; un code encore inutilisé crée un nouveau compte.',
-        ),
-        codeForm('Valider', activateSync),
+        el('div', { class: 'flex flex-wrap gap-2' }, syncButton, outButton),
       ),
     );
   } else {
-    blocks.push(el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, 'Compte'));
-
-    if (mode === 'sync') {
-      const syncButton = el('button', { type: 'button', class: ui.button }, 'Synchroniser maintenant');
-      syncButton.addEventListener('click', () => {
-        syncButton.disabled = true;
-        syncButton.textContent = 'Synchronisation…';
-        void syncNow().finally(() => context.onChange());
-      });
-
-      const outButton = el('button', { type: 'button', class: ui.button }, 'Se déconnecter');
-      outButton.addEventListener('click', () => {
-        signOut();
-        context.onChange();
-      });
-
-      blocks.push(
+    blocks.push(
+      el(
+        'section',
+        { class: `${ui.card} flex flex-col gap-2` },
         el(
-          'section',
-          { class: `${ui.card} flex flex-col gap-2` },
-          el('p', { class: 'text-sm text-zinc-300' }, `Synchronisation active · ${formatLastSync()}`),
-          el(
-            'p',
-            { class: 'text-sm text-zinc-500' },
-            'Saisissez le même code sur vos autres appareils. Les progressions ' +
-              'sont fusionnées, rien n’est perdu.',
-          ),
-          el('div', { class: 'flex flex-wrap gap-2' }, syncButton, outButton),
+          'p',
+          { class: 'text-sm text-zinc-300' },
+          'Vous travaillez sur cet appareil uniquement.',
         ),
-      );
-    } else {
-      blocks.push(
-        el(
-          'section',
-          { class: `${ui.card} flex flex-col gap-2` },
-          el(
-            'p',
-            { class: 'text-sm text-zinc-300' },
-            'Vous travaillez sans compte : la progression reste sur cet appareil.',
-          ),
-          el('p', { class: ui.label }, 'Activer la synchro'),
-          codeForm('Activer', activateSync),
-        ),
-      );
-    }
-
-    blocks.push(backupRow(context.onChange));
+        el('p', { class: ui.label }, 'Synchroniser mes appareils'),
+        codeForm('Activer', activateSync),
+      ),
+    );
   }
 
-  const shell = el(
-    'div',
-    { class: 'mx-auto flex max-w-md flex-col gap-4 px-4 py-12' },
-    ...(context.navigateHome
-      ? [
-          (() => {
-            const back = el('button', { type: 'button', class: ui.button }, 'Retour au répertoire');
-            back.addEventListener('click', context.navigateHome);
-            return back;
-          })(),
-        ]
-      : []),
-    ...blocks,
-  );
+  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour au répertoire');
+  if (context.navigateHome) backButton.addEventListener('click', context.navigateHome);
 
-  root.replaceChildren(shell);
+  root.replaceChildren(
+    el(
+      'div',
+      { class: 'mx-auto flex max-w-md flex-col gap-4 px-4 py-12' },
+      ...(context.navigateHome ? [backButton] : []),
+      ...blocks,
+    ),
+  );
   return () => {};
 }
