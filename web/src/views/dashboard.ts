@@ -156,6 +156,7 @@ export function renderDashboard(
     manageLink.addEventListener('click', context.openSetlists);
 
     const rows: Array<HTMLElement | null> = [
+      el('p', { class: ui.label }, 'Setlist travaillée'),
       el('div', { class: 'flex flex-wrap items-center gap-2' }, selector, manageLink),
     ];
 
