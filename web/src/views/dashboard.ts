@@ -27,12 +27,6 @@ const BADGE_STYLES: Record<Badge, string> = {
   'a-jour': 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/25',
 };
 
-interface Filters {
-  composer: string;
-  instrument: string;
-  badge: string;
-}
-
 export interface DashboardContext {
   progress: Progress;
   openSong: (songId: string) => void;
@@ -103,16 +97,8 @@ export function renderDashboard(
   context: DashboardContext,
 ): () => void {
   const { progress } = context;
-  const filters: Filters = { composer: '', instrument: '', badge: '' };
-
-  const composers = [...new Set(songs.map((song) => song.composer).filter(Boolean))].sort();
-  const instruments = new Map<InstrumentId, string>();
-  for (const song of songs) {
-    for (const instrument of song.instruments) instruments.set(instrument.id, instrument.name);
-  }
 
   const list = el('div', { class: 'grid gap-2' });
-  const countLabel = el('p', { class: 'text-sm text-zinc-500' });
   const subtitle = el('p', { class: 'mt-1 text-sm text-zinc-400' });
   const scopeSlot = el('section', { class: 'flex flex-col gap-2' });
   const sessionSlot = el('section', {
@@ -357,57 +343,18 @@ export function renderDashboard(
   }
 
   function paintList(): void {
-    const base = scopedSongs();
-    const visible = base.filter((song) => {
-      if (filters.composer && song.composer !== filters.composer) return false;
-      if (
-        filters.instrument &&
-        !song.instruments.some((instrument) => instrument.id === filters.instrument)
-      ) {
-        return false;
-      }
-      if (filters.badge && songBadge(song, progress) !== filters.badge) return false;
-      return true;
-    });
-
-    countLabel.textContent = `${visible.length} morceau${visible.length > 1 ? 'x' : ''} sur ${base.length}`;
-
+    const visible = scopedSongs();
     list.replaceChildren(
       ...(visible.length === 0
         ? [
             el(
               'p',
               { class: 'text-sm text-zinc-500' },
-              base.length === 0
-                ? 'Cette setlist ne contient aucun morceau du répertoire actuel.'
-                : 'Aucun morceau ne correspond à ces filtres.',
+              'Cette setlist ne contient aucun morceau du répertoire actuel.',
             ),
           ]
         : visible.map((song) => songRow(song, progress, context))),
     );
-  }
-
-  function select(
-    label: string,
-    options: Array<[string, string]>,
-    onChange: (value: string) => void,
-  ): HTMLElement {
-    const node = el(
-      'select',
-      {
-        class:
-          'min-h-11 rounded-lg border border-zinc-700 bg-zinc-800 px-3 text-sm ' +
-          'text-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
-        'aria-label': label,
-      },
-      el('option', { value: '' }, label),
-      ...options.map(([value, text]) => el('option', { value }, text)),
-    );
-    node.addEventListener('change', () => {
-      onChange((node as HTMLSelectElement).value);
-      paintList();
-    });
-    return node;
   }
 
   const setlistsLink = el('button', { type: 'button', class: ui.button }, 'Setlists');
@@ -440,33 +387,7 @@ export function renderDashboard(
       scopeSlot,
       sessionSlot,
 
-      el(
-        'section',
-        { class: 'flex flex-col gap-4' },
-        el(
-          'div',
-          { class: 'flex flex-wrap items-center gap-2' },
-          select('Tous les compositeurs', composers.map((c) => [c, c]), (value) => {
-            filters.composer = value;
-          }),
-          select(
-            'Toutes les transpositions',
-            [...instruments].map(([id, name]) => [id, name]),
-            (value) => {
-              filters.instrument = value;
-            },
-          ),
-          select(
-            'Tous les statuts',
-            (Object.keys(BADGE_LABELS) as Badge[]).map((key) => [key, BADGE_LABELS[key]]),
-            (value) => {
-              filters.badge = value;
-            },
-          ),
-          countLabel,
-        ),
-        list,
-      ),
+      el('section', { class: 'flex flex-col gap-4' }, list),
     ),
   );
 
