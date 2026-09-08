@@ -99,16 +99,11 @@ function sanitizeSetlist(value: unknown): Setlist | null {
   const songIds = Array.isArray(raw.songIds)
     ? raw.songIds.filter((id): id is string => typeof id === 'string')
     : [];
-  const asDate = (v: unknown): string | null =>
-    typeof v === 'string' && v !== '' ? v : null;
-  return {
-    id: raw.id,
-    name: raw.name,
-    songIds,
-    from: asDate(raw.from),
-    to: asDate(raw.to),
-    createdAt: asDate(raw.createdAt) ?? new Date().toISOString(),
-  };
+  const createdAt =
+    typeof raw.createdAt === 'string' && raw.createdAt !== ''
+      ? raw.createdAt
+      : new Date().toISOString();
+  return { id: raw.id, name: raw.name, songIds, createdAt };
 }
 
 /** Normalise une séance lue du stockage, ou `null` si inexploitable. */

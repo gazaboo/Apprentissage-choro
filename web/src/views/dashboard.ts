@@ -6,13 +6,21 @@
  */
 
 import { el, ui } from '../dom';
+import { pencil, plus, trash } from '../icons';
 import { pickSessionItems } from '../session';
 import { daysOverdue, statusOf } from '../srs';
 import type { Progress } from '../store';
-import { activeSetlist, getCard, lastSession, setActiveSetlist } from '../store';
+import {
+  activeSetlist,
+  deleteSetlist,
+  getCard,
+  lastSession,
+  setActiveSetlist,
+} from '../store';
 import { accountMode, getSyncCode } from '../sync';
 import type { SessionRun, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
+import { openSetlistEditor } from './setlists';
 
 /** Les trois états SRS se ramènent à une seule décision pour l'utilisateur. */
 type Badge = 'a-travailler' | 'a-jour';
@@ -30,7 +38,6 @@ const BADGE_STYLES: Record<Badge, string> = {
 export interface DashboardContext {
   progress: Progress;
   openSong: (songId: string) => void;
-  openSetlists: () => void;
   openAccount: () => void;
   startSession: (kind: 'deep' | 'urgent') => void;
   startFilage: () => void;
@@ -126,8 +133,12 @@ export function renderDashboard(
   // --- Sélecteur de setlist + aperçu ------------------------------------
 
   let previewExpanded = false;
+  /** `true` quand la suppression de la setlist active attend confirmation. */
+  let confirmingDelete = false;
   /** Retire l'écouteur de fermeture au clic extérieur, s'il est posé. */
   let closeDropdown: (() => void) | null = null;
+  /** Ferme la modale d'édition si elle est ouverte (teardown). */
+  let closeModal: (() => void) | null = null;
 
   /** Morceaux d'une setlist présents dans le manifeste courant. */
   function knownSongs(set: ReturnType<typeof activeSetlist>): Song[] {
@@ -193,15 +204,22 @@ export function renderDashboard(
     };
   }
 
-  function chooseSetlist(id: string): void {
-    setActiveSetlist(progress, id || null);
-    previewExpanded = false;
-    setDropdownOpen(false);
+  /** Redessine tout ce qui dépend de la setlist active. */
+  function repaintScope(): void {
     refreshDropdown();
+    paintActions();
     paintPreview();
     paintHeader();
     paintList();
     paintSessionCard();
+  }
+
+  function chooseSetlist(id: string): void {
+    setActiveSetlist(progress, id || null);
+    previewExpanded = false;
+    confirmingDelete = false;
+    setDropdownOpen(false);
+    repaintScope();
   }
 
   function refreshDropdown(): void {
@@ -244,8 +262,89 @@ export function renderDashboard(
     setDropdownOpen(dropList.classList.contains('hidden'));
   });
 
-  const manageLink = el('button', { type: 'button', class: ui.button }, 'Gérer');
-  manageLink.addEventListener('click', context.openSetlists);
+  // --- Actions setlist : nouvelle / modifier / supprimer ---------------
+
+  function openEditor(target: Parameters<typeof openSetlistEditor>[0]['target']): void {
+    setDropdownOpen(false);
+    confirmingDelete = false;
+    closeModal = openSetlistEditor({
+      songs,
+      progress,
+      target,
+      onClose: () => {
+        closeModal = null;
+        repaintScope();
+      },
+    });
+  }
+
+  const newButton = el(
+    'button',
+    { type: 'button', class: ui.icon, 'aria-label': 'Nouvelle setlist' },
+    plus(),
+  );
+  newButton.addEventListener('click', () => openEditor({ mode: 'create' }));
+
+  const editButton = el(
+    'button',
+    { type: 'button', class: ui.icon, 'aria-label': 'Modifier la setlist' },
+    pencil(),
+  );
+  editButton.addEventListener('click', () => {
+    const set = activeSetlist(progress);
+    if (set) openEditor({ mode: 'edit', setlist: set });
+  });
+
+  const deleteButton = el(
+    'button',
+    { type: 'button', class: ui.icon, 'aria-label': 'Supprimer la setlist' },
+    trash(),
+  );
+  deleteButton.addEventListener('click', () => {
+    if (!activeSetlist(progress)) return;
+    confirmingDelete = true;
+    paintActions();
+  });
+
+  const actionSlot = el('div', { class: 'flex shrink-0 items-center gap-2' });
+
+  function paintActions(): void {
+    const set = activeSetlist(progress);
+    editButton.disabled = !set;
+    deleteButton.disabled = !set;
+
+    if (confirmingDelete && set) {
+      const yes = el(
+        'button',
+        {
+          type: 'button',
+          class:
+            'inline-flex min-h-11 items-center justify-center rounded-lg border ' +
+            'border-rose-500/60 bg-rose-500/15 px-4 text-sm font-medium text-rose-200 ' +
+            'transition hover:bg-rose-500/25 focus:outline-none focus-visible:ring-2 ' +
+            'focus-visible:ring-rose-400',
+        },
+        'Supprimer',
+      );
+      yes.addEventListener('click', () => {
+        deleteSetlist(progress, set.id);
+        confirmingDelete = false;
+        repaintScope();
+      });
+      const no = el('button', { type: 'button', class: ui.button }, 'Annuler');
+      no.addEventListener('click', () => {
+        confirmingDelete = false;
+        paintActions();
+      });
+      actionSlot.replaceChildren(
+        el('span', { class: 'text-xs text-zinc-400' }, `Supprimer « ${set.name} » ?`),
+        yes,
+        no,
+      );
+    } else {
+      actionSlot.replaceChildren(newButton, editButton, deleteButton);
+    }
+  }
 
   const previewSlot = el('div', { class: 'flex flex-col gap-1' });
 
@@ -340,17 +439,12 @@ export function renderDashboard(
     el('p', { class: ui.label }, 'Setlist travaillée'),
     el(
       'div',
-      { class: 'flex items-start gap-2' },
-      el('div', { class: 'relative min-w-0 flex-1' }, dropTrigger, dropList),
-      manageLink,
+      { class: 'flex flex-wrap items-start gap-2' },
+      el('div', { class: 'relative min-w-[12rem] flex-1' }, dropTrigger, dropList),
+      actionSlot,
     ),
     previewSlot,
   );
-
-  function paintScope(): void {
-    refreshDropdown();
-    paintPreview();
-  }
 
   // --- Session du jour -------------------------------------------------
 
@@ -467,9 +561,6 @@ export function renderDashboard(
     );
   }
 
-  const setlistsLink = el('button', { type: 'button', class: ui.button }, 'Setlists');
-  setlistsLink.addEventListener('click', context.openSetlists);
-
   // Identité en haut à droite : l'identifiant connecté, ou « Anonyme ».
   const identity = accountMode() === 'sync' ? getSyncCode() ?? 'Compte' : 'Anonyme';
   const accountLink = el(
@@ -497,7 +588,7 @@ export function renderDashboard(
           el('h1', { class: 'text-3xl font-semibold text-zinc-100' }, 'Répertoire de choros'),
           subtitle,
         ),
-        el('div', { class: 'flex flex-wrap gap-2' }, setlistsLink, accountLink),
+        accountLink,
       ),
 
       scopeRow,
@@ -507,11 +598,11 @@ export function renderDashboard(
     ),
   );
 
-  paintScope();
-  paintHeader();
-  paintSessionCard();
-  paintList();
-  return () => closeDropdown?.();
+  repaintScope();
+  return () => {
+    closeDropdown?.();
+    closeModal?.();
+  };
 }
 
 function songRow(song: Song, progress: Progress, context: DashboardContext): HTMLElement {

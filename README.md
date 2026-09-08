@@ -247,12 +247,14 @@ de mémoire mais injouable au tempo revient plus tôt (× 0,7 en sous-tempo,
 ## Setlists et séances
 
 Pour préparer un concert, on cadre le travail sur un sous-ensemble du
-répertoire. `#/setlists` permet d'en créer, d'en supprimer et d'en **activer**
-une (dates facultatives, purement indicatives). Le tableau de bord porte un
-**menu déroulant** de setlist — « Tout le répertoire » y est une entrée comme
-une autre (elle correspond à `activeSetlistId = null`) — avec l'aperçu des
-5 premiers titres, dépliable. Le périmètre choisi restreint la liste des
-morceaux **et** les séances ; le SRS décide de l'ordre à l'intérieur.
+répertoire. Tout se pilote depuis le tableau de bord : un **menu déroulant** de
+setlist — « Tout le répertoire » y est une entrée comme une autre (elle
+correspond à `activeSetlistId = null`) — avec l'aperçu des 5 premiers titres
+(dépliable), et trois boutons à côté : **＋** (nouvelle), **✎** (modifier la
+setlist choisie), **🗑** (la supprimer, confirmation en ligne). ＋ et ✎ ouvrent
+une **modale** (nom + cases à cocher des morceaux) ; créer une setlist l'active
+aussitôt. Le périmètre choisi restreint la liste des morceaux **et** les
+séances ; le SRS décide de l'ordre à l'intérieur.
 
 **Trois façons de travailler la setlist active**, depuis « Session du jour » :
 
@@ -327,9 +329,9 @@ web/
     youtube.ts                lecteur audio seul, ticker, répétition de passage
     transport.ts sheet.ts     barre de transport et panneau de réglages
     eclipse.ts                horloge des éclipses
-    score.ts dom.ts
+    score.ts dom.ts icons.ts
     views/dashboard.ts views/trainer.ts views/srsModal.ts
-    views/setlists.ts         CRUD des setlists
+    views/setlists.ts         modale d'édition d'une setlist
     views/filage-config.ts    préparation du filage : partition + bande
     views/filage.ts           filage de la setlist, audio enchaîné + décompte
     views/account.ts          passerelle d'accueil + gestion de la synchro

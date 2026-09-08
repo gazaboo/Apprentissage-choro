@@ -132,9 +132,6 @@ export interface Setlist {
   name: string;
   /** Références `Song.id` ; un id absent du manifeste est toléré et affiché grisé. */
   songIds: string[];
-  /** Date ISO (AAAA-MM-JJ) ou `null`. */
-  from: string | null;
-  to: string | null;
   /** Date ISO de création, pour trier la liste. */
   createdAt: string;
 }

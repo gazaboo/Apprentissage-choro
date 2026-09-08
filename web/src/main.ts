@@ -6,7 +6,6 @@
  *   #/session     séance de travail (fond ou urgences), calée sur la setlist active
  *   #/filage      préparation du filage (choix partition + bande)
  *   #/filage/run  filage de la setlist, audio enchaîné
- *   #/setlists    gestion des setlists
  *   #/compte      accès au compte et à la synchro
  *
  * Tant qu'aucun choix de compte n'a été fait, l'écran d'accueil (`#/compte` en
@@ -27,7 +26,8 @@ import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';
 import { renderFilage } from './views/filage';
 import { renderFilageConfig } from './views/filage-config';
-import { renderSetlists } from './views/setlists';
+// L'édition des setlists est une modale ouverte depuis le tableau de bord,
+// plus une route dédiée.
 import { renderTrainer } from './views/trainer';
 
 const MANIFEST_URL = 'data/manifest.json';
@@ -338,18 +338,9 @@ function render(): void {
     }
   }
 
-  if (hash === '#/setlists') {
-    teardown = renderSetlists(root!, songs, {
-      progress,
-      navigateHome: goHome,
-    });
-    return;
-  }
-
   teardown = renderDashboard(root!, songs, {
     progress,
     openSong: (songId) => navigate(`#/song/${songId}`),
-    openSetlists: () => navigate('#/setlists'),
     openAccount: () => navigate('#/compte'),
     startSession,
     startFilage,
