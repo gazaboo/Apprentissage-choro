@@ -1,0 +1,831 @@
+<title>Grilles de choro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper: #faf8f4;
+    --panel: #f2eee6;
+    --ink: #201d1b;
+    --ink-soft: #746c65;
+    --rule: #e7e0d4;
+    --rule-strong: #d8cfbf;
+    --accent: #7a2e43;
+    --accent-soft: #efe1e4;
+    --hold: #b8ac9c;
+    --conf-high: #4a7c59;
+    --conf-med: #a97b2b;
+    --conf-low: #9c5442;
+    --shadow: 0 1px 2px rgba(32,29,27,.05), 0 8px 24px -12px rgba(32,29,27,.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16141a;
+      --panel: #1f1c24;
+      --ink: #ece7e2;
+      --ink-soft: #9a928b;
+      --rule: #302b34;
+      --rule-strong: #423b48;
+      --accent: #d68aa0;
+      --accent-soft: #2b1f27;
+      --hold: #5c554f;
+      --conf-high: #83b993;
+      --conf-med: #d7a552;
+      --conf-low: #cc8069;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #16141a;
+    --panel: #1f1c24;
+    --ink: #ece7e2;
+    --ink-soft: #9a928b;
+    --rule: #302b34;
+    --rule-strong: #423b48;
+    --accent: #d68aa0;
+    --accent-soft: #2b1f27;
+    --hold: #5c554f;
+    --conf-high: #83b993;
+    --conf-med: #d7a552;
+    --conf-low: #cc8069;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.5);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: clamp(1.25rem, 4vw, 3.5rem) clamp(1rem, 4vw, 2rem) 6rem; }
+
+  h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Newsreader', sans-serif; font-weight: 700; text-wrap: balance; line-height: 1.1; margin: 0; }
+
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+  .masthead h1 { font-size: clamp(2rem, 6vw, 3.1rem); letter-spacing: -0.02em; }
+  .masthead .sub { font-size: 1.05rem; color: var(--ink-soft); margin: 0.6rem 0 0; max-width: 60ch; }
+  .kicker { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+
+  .caveat {
+    background: var(--accent-soft);
+    border: 1px solid var(--rule-strong);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 1.75rem 0 2.5rem;
+    font-size: 0.95rem;
+  }
+  .caveat strong { font-family: 'Bricolage Grotesque', sans-serif; }
+  .caveat p { margin: 0.4rem 0 0; }
+  .caveat p:first-child { margin-top: 0; }
+
+  .toc { columns: 2; column-gap: 2rem; margin: 0 0 3.5rem; padding: 1.25rem 0 0; border-top: 1px solid var(--rule); }
+  @media (max-width: 560px) { .toc { columns: 1; } }
+  .toc a {
+    display: flex; gap: 0.7rem; align-items: baseline;
+    text-decoration: none; color: var(--ink);
+    padding: 0.28rem 0; break-inside: avoid;
+    font-size: 0.95rem;
+  }
+  .toc a span { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); }
+  .toc a:hover { color: var(--accent); }
+
+  .song { padding-top: 2.5rem; margin-top: 2.5rem; border-top: 1px solid var(--rule); }
+  .song:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+  .song-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 0.75rem 1.5rem; }
+  .song-title { display: flex; gap: 1rem; align-items: baseline; }
+  .song-idx { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: var(--accent); padding-top: 0.15rem; }
+  .song-head h2 { font-size: clamp(1.5rem, 3.5vw, 2rem); letter-spacing: -0.015em; }
+  .composer { margin: 0.2rem 0 0; color: var(--ink-soft); font-style: italic; font-size: 0.98rem; }
+  .song-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 0.28rem 0.55rem; border-radius: 999px;
+    border: 1px solid var(--rule-strong); color: var(--ink-soft); white-space: nowrap;
+  }
+  .tag.conf { border-color: transparent; }
+  .conf-high { background: color-mix(in srgb, var(--conf-high) 16%, transparent); color: var(--conf-high); }
+  .conf-medium { background: color-mix(in srgb, var(--conf-med) 16%, transparent); color: var(--conf-med); }
+  .conf-low { background: color-mix(in srgb, var(--conf-low) 18%, transparent); color: var(--conf-low); }
+
+  .form { margin: 1rem 0 0; font-size: 0.95rem; color: var(--ink-soft); }
+  .form-lbl { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-right: 0.5rem; }
+
+  .parts { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1.75rem; }
+  .part-head { display: flex; align-items: baseline; gap: 0.9rem; margin-bottom: 0.7rem; }
+  .part-head h3 { font-size: 1.05rem; letter-spacing: 0.01em; }
+  .part-meta { margin: 0; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--ink-soft); }
+  .part-meta .dot { margin: 0 0.4rem; opacity: 0.5; }
+
+  .grid { display: flex; flex-direction: column; gap: 0.4rem; overflow-x: auto; }
+  .row { display: flex; align-items: stretch; gap: 0.6rem; min-width: max-content; }
+  .barno {
+    flex: 0 0 1.6rem; text-align: right; align-self: center;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .cells { display: flex; gap: 0.4rem; }
+  .ending .cells, .row .cells { flex-wrap: nowrap; }
+  .cell {
+    flex: 0 0 6.2rem; min-height: 2.9rem;
+    display: flex; align-items: center; justify-content: center; gap: 0;
+    border: 1px solid var(--rule-strong); border-radius: 3px;
+    background: var(--panel);
+    font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 500;
+    padding: 0.3rem 0.4rem; text-align: center;
+  }
+  @media (max-width: 560px) { .cell { flex-basis: 5rem; font-size: 0.85rem; } }
+  .cell .ch { white-space: nowrap; }
+  .cell.multi { font-size: 0.8rem; gap: 0.35rem; }
+  .cell.multi .sep { width: 1px; align-self: stretch; background: var(--rule-strong); margin: 0.35rem 0; }
+  .cell.hold { color: var(--hold); background: transparent; border-style: dashed; font-size: 1.1rem; }
+  .cell.pad { border: none; background: transparent; }
+
+  .ending { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.4rem; padding-left: 2.2rem; max-width: 100%; overflow-x: auto; }
+  .subcoda { margin-top: 0.6rem; padding-left: 2.2rem; }
+  .subcoda .etag { display: block; margin-bottom: 0.35rem; }
+  .etag {
+    flex: 0 0 auto; font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.05em; color: var(--accent); text-transform: uppercase;
+    min-width: 3.4rem;
+  }
+  .etag.coda { color: var(--ink-soft); }
+  .etag sup { font-size: 0.8em; }
+  .translbl { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--ink-soft); align-self: center; margin-right: 0.2rem; }
+
+  .coda-note { margin: 0.9rem 0 0; padding-left: 2.2rem; font-size: 0.9rem; color: var(--ink-soft); font-style: italic; }
+
+  .notes {
+    margin-top: 1.5rem; padding: 0.9rem 1.1rem;
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 3px;
+  }
+  .notes-lbl { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--conf-low); }
+  .notes ul { margin: 0.5rem 0 0; padding-left: 1.1rem; }
+  .notes li { font-size: 0.9rem; margin: 0.3rem 0; color: var(--ink-soft); }
+
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); font-size: 0.85rem; color: var(--ink-soft); }
+  footer code { font-family: 'DM Mono', monospace; font-size: 0.85em; background: var(--panel); padding: 0.1rem 0.35rem; border-radius: 3px; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="kicker">Répertoire &middot; transposition Ut / C</p>
+    <h1>Grilles de choro</h1>
+    <p class="sub">Les grilles d'accords des 19 morceaux du répertoire, transcrites à la vue depuis les partitions <code style="font-family:'DM Mono',monospace;font-size:.85em">data/&lt;morceau&gt;/c/</code>. Un document de relecture — à comparer aux partitions dans l'appli.</p>
+  </header>
+
+  <div class="caveat">
+    <strong>Ce document est une première passe, à vérifier.</strong>
+    <p>La <em>suite</em> et la <em>nature</em> des accords sont fiables. En revanche, l'<em>alignement mesure&nbsp;par&nbsp;mesure</em> et le <em>découpage des barres à deux accords</em> sont approximatifs — surtout dans les passages arpégés où peu de chiffrages sont écrits.</p>
+    <p>Une case <span style="font-family:'DM Mono',monospace;color:var(--hold)">&middot;</span> pointillée&nbsp;= on tient l'accord précédent. Le badge <em>transcription</em> de chaque morceau indique le niveau de confiance.</p>
+  </div>
+
+  <nav class="toc"><a href="#benzinho-jacob-do-bandolim"><span>01</span>Benzinho</a><a href="#carioquinha-waldyr-azevedo"><span>02</span>Carioquinha</a><a href="#cheguei-pixinguinha"><span>03</span>Cheguei</a><a href="#cochichando-pixinguinha"><span>04</span>Cochichando</a><a href="#diabinho-maluco-jacob-do-bandolim"><span>05</span>Diabinho maluco</a><a href="#doce-de-coco-jacob-do-bandolim"><span>06</span>Doce de coco</a><a href="#e-do-que-ha-luiz-americano"><span>07</span>É do que há</a><a href="#machucando-adalberto-de-souza"><span>08</span>Machucando</a><a href="#migalhas-de-amor-jacob-do-bandolim"><span>09</span>Migalhas de amor</a><a href="#naquele-tempo-pixinguinha"><span>10</span>Naquele tempo</a><a href="#noites-cariocas-jacob-do-bandolim"><span>11</span>Noites cariocas</a><a href="#o-bom-filho-a-casa-torna-bonfiglio-de-oliveira"><span>12</span>O bom filho à casa torna</a><a href="#o-corta-jaca-gaucho-chiquinha-gonzaga"><span>13</span>Gaúcho (O corta-jaca)</a><a href="#os-cinco-companheiros-pixinguinha"><span>14</span>Os cinco companheiros</a><a href="#receita-de-samba-jacob-do-bandolim"><span>15</span>Receita de samba</a><a href="#santa-morena-jacob-do-bandolim"><span>16</span>Santa morena</a><a href="#sonoroso-k-ximbinho"><span>17</span>Sonoroso</a><a href="#tico-tico-no-fuba-zequinha-de-abreu"><span>18</span>Tico Tico no fubá</a><a href="#vibracoes-jacob-do-bandolim"><span>19</span>Vibrações</a></nav>
+
+  <article class="song" id="benzinho-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">01</span>
+        <div>
+          <h2>Benzinho</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (reprise) — B (reprise) — D.S. al Coda (Dm)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–32<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7/C#</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">Bb/Ab</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">F7</span><span class="sep"></span><span class="ch">E7</span><span class="sep"></span><span class="ch">Eb7</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Gm/Bb</span><span class="sep"></span><span class="ch">Gm</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7/C#</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">Bb/Ab</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">F7</span><span class="sep"></span><span class="ch">E7</span><span class="sep"></span><span class="ch">Eb7</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">D/C</span></div><div class="cell multi"><span class="ch">Gm/Bb</span><span class="sep"></span><span class="ch">Em7b5</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">Eb</span></div><div class="cell"><span class="ch">A7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">C7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;35–66<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">35</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F#dim</span></div><div class="cell"><span class="ch">C7/G</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">39</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">G#dim</span></div><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">F7</span></div><div class="cell"><span class="ch">Eb7</span></div><div class="cell multi"><span class="ch">D7</span><span class="sep"></span><span class="ch">D/C</span></div><div class="cell multi"><span class="ch">G7/B</span><span class="sep"></span><span class="ch">G7</span></div></div></div><div class="row"><span class="barno">47</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">C/Bb</span></div><div class="cell"><span class="ch">F/A</span></div></div></div><div class="row"><span class="barno">51</span><div class="cells"><div class="cell multi"><span class="ch">F/C</span><span class="sep"></span><span class="ch">F</span></div><div class="cell"><span class="ch">F#dim</span></div><div class="cell"><span class="ch">C7/G</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">55</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">59</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">G#dim</span></div><div class="cell multi"><span class="ch">F7</span><span class="sep"></span><span class="ch">E7</span><span class="sep"></span><span class="ch">Eb7</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">63</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">C7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>mm. 8 et 24 : marche chromatique F7–E7–Eb7–D7 en croches, calée sur la fin de la mesure.</li><li>m. 28 : Gm/Bb puis Em7b5 (le Gm central est de passage) — découpage à confirmer.</li><li>Partie B, mm. 45-48 : D7 / D/C puis G7/B / G7 resserrés sur deux mesures.</li><li>Reprise structurelle A-B-A par le Segno (m. 1) et la Coda (Dm).</li></ul></div>
+  </article>
+<article class="song" id="carioquinha-waldyr-azevedo">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">02</span>
+        <div>
+          <h2>Carioquinha</h2>
+          <p class="composer">Waldir Azevedo</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> Intro — A (Rém, reprise) — B (Ré, reprise) — Coda</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>Intro</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–5</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">Bb7</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    
+  </section><section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;6–35 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">6</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">10</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm(maj7)</span></div><div class="cell multi"><span class="ch">Gm7</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm(maj7)</span></div></div></div><div class="row"><span class="barno">14</span><div class="cells"><div class="cell multi"><span class="ch">Gm7</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A/G</span></div></div></div><div class="row"><span class="barno">18</span><div class="cells"><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">E7/B</span></div><div class="cell"><span class="ch">E7/B</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">26</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm(maj7)</span></div><div class="cell multi"><span class="ch">Gm7</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm(maj7)</span></div></div></div><div class="row"><span class="barno">30</span><div class="cells"><div class="cell multi"><span class="ch">Gm7</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">34</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Eb</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: D<span class="dot">&middot;</span>mes.&nbsp;41–72<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">41</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">E7/G#</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">45</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">D/F#</span></div><div class="cell"><span class="ch">D</span></div></div></div><div class="row"><span class="barno">49</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">53</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">D</span></div></div></div><div class="row"><span class="barno">57</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">E7/G#</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">61</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D/F#</span></div><div class="cell"><span class="ch">D/F#</span></div></div></div><div class="row"><span class="barno">65</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">Gm6</span></div></div></div><div class="row"><span class="barno">69</span><div class="cells"><div class="cell"><span class="ch">Eb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7</span></div></div></div></div>
+    
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Bb7</span></div></div></div><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Bm</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Beaucoup de mesures à deux accords (Gm / Gm(maj7) / Gm7 / Gm6 en descente) : découpage régulier supposé, à vérifier.</li><li>« Gm7M » du manuscrit = Gm(maj7).</li><li>Partie B en Ré majeur (2 dièses) ; retour vers Rém aux mm. 69-72.</li><li>Coda (⊕ m. 73) : la dernière mesure lue est « Bm » avec point d'orgue — chiffrage inhabituel, à confirmer (peut-être Bb ou fin sur reprise).</li><li>Page 2 quasi vide : seulement la fin de la partie A (⊕ + 1re/2e fins).</li></ul></div>
+  </article>
+<article class="song" id="cheguei-pixinguinha">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">03</span>
+        <div>
+          <h2>Cheguei</h2>
+          <p class="composer">Pixinguinha / Benedito Lacerda</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Fa, reprise) — B (Rém, reprise) — Coda C (Sib, reprise)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;1–16<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">C7/G</span></div><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">C7/G</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">C7/G</span></div><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">C7/G</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">F7</span></div><div class="cell"><span class="ch">Bb</span></div><div class="cell multi"><span class="ch">Bdim</span><span class="sep"></span><span class="ch">F/C</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">C7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;18–33<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">18</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7/C#</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">D7/F#</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">D7/A</span></div><div class="cell multi"><span class="ch">Gm/Bb</span><span class="sep"></span><span class="ch">D7/A</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">26</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">D7/A</span></div><div class="cell multi"><span class="ch">Gm/Bb</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">30</span><div class="cells"><div class="cell"><span class="ch">Eb</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: Bb<span class="dot">&middot;</span>mes.&nbsp;36–54<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">36</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">Gb</span></div><div class="cell"><span class="ch">F7</span></div></div></div><div class="row"><span class="barno">40</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">Em7b5</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">44</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">F7</span></div><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">Bb7</span></div></div></div><div class="row"><span class="barno">48</span><div class="cells"><div class="cell"><span class="ch">Eb</span></div><div class="cell"><span class="ch">Ebm6</span></div><div class="cell multi"><span class="ch">Bb/D</span><span class="sep"></span><span class="ch">G7</span></div><div class="cell multi"><span class="ch">C7</span><span class="sep"></span><span class="ch">F7</span></div></div></div><div class="row"><span class="barno">52</span><div class="cells"><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">F7</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">C7</span></div></div></div>
+  </section>
+      
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Coda (⊕) : après le D.S., on saute à la partie C (m. 35).</li><li>Partie B : mesures à deux accords très fréquentes (Dm / A7/C#, Gm / D7/A) — alignement approximatif.</li><li>m. 15 : Bdim puis F/C dans la même mesure.</li><li>Partie C tonicisée en Sib (armure à 1 bémol conservée).</li></ul></div>
+  </article>
+<article class="song" id="cochichando-pixinguinha">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">04</span>
+        <div>
+          <h2>Cochichando</h2>
+          <p class="composer">Pixinguinha (versão Jacob do Bandolim)</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém, reprise) — B (Fa, reprise) — Coda C (Ré, reprise) → Dm</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–15 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Em7b5</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Bm7b5</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Em7b5</span></div><div class="cell multi"><span class="ch">A7</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Em7b5</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;18–32<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">18</span><div class="cells"><div class="cell multi"><span class="ch">F</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">26</span><div class="cells"><div class="cell multi"><span class="ch">Am7b5</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Bm7b5</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell"><span class="ch">Am</span></div></div></div><div class="row"><span class="barno">30</span><div class="cells"><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">Bbm6</span></div><div class="cell multi"><span class="ch">F</span><span class="sep"></span><span class="ch">Dm7</span></div><div class="cell multi"><span class="ch">Gm7</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: D<span class="dot">&middot;</span>mes.&nbsp;36–52 (⊕)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="row"><span class="barno"></span><div class="cells"><span class="translbl">transition&nbsp;:</span><div class="cell"><span class="ch">Dm</span></div></div></div><div class="grid"><div class="row"><span class="barno">36</span><div class="cells"><div class="cell"><span class="ch">D6</span></div><div class="cell"><span class="ch">D6</span></div><div class="cell"><span class="ch">D6</span></div><div class="cell"><span class="ch">D6</span></div></div></div><div class="row"><span class="barno">40</span><div class="cells"><div class="cell"><span class="ch">D#dim</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">B7</span></div></div></div><div class="row"><span class="barno">44</span><div class="cells"><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D6</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">48</span><div class="cells"><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">Gm6</span></div><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">Fdim</span></div><div class="cell multi"><span class="ch">Em7</span><span class="sep"></span><span class="ch">A7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">D</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Coda (⊕ m. 35) : mesure de transition Dm, changement d'armure vers Ré majeur (2 dièses) pour la partie C ; l'ultime mesure revient sur Dm.</li><li>« Em7(b5) », « Bm7(b5) », « Am7(b5) » = accords m7b5 ; « D#dim », « Fdim » = diminués.</li><li>mm. 5, 11, 13, 26, 28, 30-32 : deux accords par mesure.</li></ul></div>
+  </article>
+<article class="song" id="diabinho-maluco-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">05</span>
+        <div>
+          <h2>Diabinho maluco</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Sol, reprise) — B (Mim, reprise) — C (Do→Sol, reprise) — Coda ad libitum</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;1–15 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">G6</span></div><div class="cell multi"><span class="ch">D7/A</span><span class="sep"></span><span class="ch">G6/B</span></div><div class="cell multi"><span class="ch">G6</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell"><span class="ch">Am7</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell multi"><span class="ch">B7/D#</span><span class="sep"></span><span class="ch">B7</span></div><div class="cell"><span class="ch">Em</span></div><div class="cell multi"><span class="ch">A7/C#</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell multi"><span class="ch">G6</span><span class="sep"></span><span class="ch">D7/A</span></div><div class="cell"><span class="ch">G6/B</span></div><div class="cell"><span class="ch">G/F</span></div><div class="cell"><span class="ch">C/E</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell multi"><span class="ch">C</span><span class="sep"></span><span class="ch">A7/C#</span></div><div class="cell multi"><span class="ch">G6/D</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell multi"><span class="ch">Am7</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">G6</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">G6</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: Em<span class="dot">&middot;</span>mes.&nbsp;18–34<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">18</span><div class="cells"><div class="cell multi"><span class="ch">B7/D#</span><span class="sep"></span><span class="ch">B7</span></div><div class="cell"><span class="ch">Em</span></div><div class="cell multi"><span class="ch">E7/G#</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell"><span class="ch">Am</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell multi"><span class="ch">Am/C</span><span class="sep"></span><span class="ch">Am6</span></div><div class="cell"><span class="ch">Em/B</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">B7</span></div></div></div><div class="row"><span class="barno">26</span><div class="cells"><div class="cell multi"><span class="ch">B7/D#</span><span class="sep"></span><span class="ch">B7</span></div><div class="cell"><span class="ch">Em</span></div><div class="cell multi"><span class="ch">E7/G#</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell"><span class="ch">Am</span></div></div></div><div class="row"><span class="barno">30</span><div class="cells"><div class="cell multi"><span class="ch">Am/C</span><span class="sep"></span><span class="ch">Am6</span></div><div class="cell"><span class="ch">Em/B</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">B7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Em</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Em</span></div><div class="cell"><span class="ch">D7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: C → G<span class="dot">&middot;</span>mes.&nbsp;35–52<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">35</span><div class="cells"><div class="cell"><span class="ch">G6</span></div><div class="cell multi"><span class="ch">C</span><span class="sep"></span><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">C7/G</span></div><div class="cell multi"><span class="ch">F6</span><span class="sep"></span><span class="ch">A7/E</span></div></div></div><div class="row"><span class="barno">39</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">G7</span></div><div class="cell"><span class="ch">C</span></div><div class="cell multi"><span class="ch">D7/F#</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell multi"><span class="ch">C</span><span class="sep"></span><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">C7/G</span></div><div class="cell multi"><span class="ch">F6</span><span class="sep"></span><span class="ch">A7/E</span></div></div></div><div class="row"><span class="barno">47</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell multi"><span class="ch">F6</span><span class="sep"></span><span class="ch">D7/F#</span></div><div class="cell multi"><span class="ch">C/E</span><span class="sep"></span><span class="ch">Am7</span></div><div class="cell multi"><span class="ch">D7</span><span class="sep"></span><span class="ch">G7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">C</span></div><div class="cell"><span class="ch">G7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">C</span></div><div class="cell"><span class="ch">D7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell multi"><span class="ch">G</span><span class="sep"></span><span class="ch">G/F</span></div><div class="cell multi"><span class="ch">C/E</span><span class="sep"></span><span class="ch">A7/C#</span></div><div class="cell multi"><span class="ch">G6/D</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell multi"><span class="ch">Am7</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno"></span><div class="cells"><div class="cell multi"><span class="ch">G</span><span class="sep"></span><span class="ch">G/F</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    <p class="coda-note">vamp final répété « ad libitum » : C/E – A7/C# – G6/D – E7 – Am7 – D7 – G – G/F</p>
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Beaucoup de mesures à deux accords (basse chromatique) : découpage approximatif.</li><li>Deux signes ⊕ : Coda menant à la partie C (m. 35), puis Coda finale (m. 53).</li><li>Armure à 1 dièse (Sol) tout du long ; parties A/C en Sol, B en Mi mineur, C tonicisée en Do.</li></ul></div>
+  </article>
+<article class="song" id="doce-de-coco-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">06</span>
+        <div>
+          <h2>Doce de coco</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> Intro — A (Sol, reprise) — B (Sol, reprise) — Coda</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>Intro</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;1–4</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell multi"><span class="ch">G6</span><span class="sep"></span><span class="ch">Bm/F#</span></div><div class="cell multi"><span class="ch">Am/E</span><span class="sep"></span><span class="ch">Bm/F#</span></div><div class="cell multi"><span class="ch">G6</span><span class="sep"></span><span class="ch">Bm/F#</span></div><div class="cell multi"><span class="ch">Am/E</span><span class="sep"></span><span class="ch">Bm/F#</span></div></div></div></div>
+    
+  </section><section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;5–34 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">5</span><div class="cells"><div class="cell multi"><span class="ch">G6</span><span class="sep"></span><span class="ch">Bm/F#</span></div><div class="cell"><span class="ch">Am/E</span></div><div class="cell multi"><span class="ch">Bm/F#</span><span class="sep"></span><span class="ch">G6</span></div><div class="cell multi"><span class="ch">Bm/F#</span><span class="sep"></span><span class="ch">F7</span><span class="sep"></span><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">E7/G#</span></div><div class="cell multi"><span class="ch">Am/G</span><span class="sep"></span><span class="ch">E7/G#</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">E7/G#</span></div><div class="cell multi"><span class="ch">Am/G</span><span class="sep"></span><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">F6</span></div><div class="cell"><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">Am/C</span><span class="sep"></span><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">Cm6/Eb</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm(maj7)</span></div><div class="cell multi"><span class="ch">Gm7</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm(maj7)</span></div><div class="cell multi"><span class="ch">Gm7</span><span class="sep"></span><span class="ch">Gm6</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">G/F</span></div><div class="cell"><span class="ch">Cm/Eb</span></div><div class="cell"><span class="ch">Cm</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">Bbdim</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">F6</span></div></div></div><div class="row"><span class="barno">33</span><div class="cells"><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">Am</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell multi"><span class="ch">G</span><span class="sep"></span><span class="ch">Bm/F#</span></div><div class="cell multi"><span class="ch">Am/E</span><span class="sep"></span><span class="ch">Bm/F#</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell multi"><span class="ch">G/D</span><span class="sep"></span><span class="ch">C#dim</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;39–68<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">39</span><div class="cells"><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">G6/B</span></div><div class="cell"><span class="ch">Bbdim</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">Am7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">Bm7</span></div><div class="cell"><span class="ch">Bbdim</span></div></div></div><div class="row"><span class="barno">47</span><div class="cells"><div class="cell"><span class="ch">Am7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">Em</span></div></div></div><div class="row"><span class="barno">51</span><div class="cells"><div class="cell multi"><span class="ch">B/F#</span><span class="sep"></span><span class="ch">G#m7</span></div><div class="cell multi"><span class="ch">C#m7</span><span class="sep"></span><span class="ch">F#7</span></div><div class="cell multi"><span class="ch">B7</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell multi"><span class="ch">Am7</span><span class="sep"></span><span class="ch">A7/C#</span></div></div></div><div class="row"><span class="barno">55</span><div class="cells"><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">G6/B</span></div><div class="cell"><span class="ch">Bbdim</span></div></div></div><div class="row"><span class="barno">59</span><div class="cells"><div class="cell"><span class="ch">Am7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">F7</span></div><div class="cell"><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">63</span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">B7</span></div><div class="cell"><span class="ch">Em</span></div><div class="cell"><span class="ch">Cm6</span></div></div></div><div class="row"><span class="barno">67</span><div class="cells"><div class="cell multi"><span class="ch">G/B</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell multi"><span class="ch">A7</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">G6</span></div><div class="cell multi"><span class="ch">G/D</span><span class="sep"></span><span class="ch">C#dim</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell multi"><span class="ch">G6</span><span class="sep"></span><span class="ch">Bm/F#</span></div><div class="cell multi"><span class="ch">Am/E</span><span class="sep"></span><span class="ch">Bm/F#</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">G6</span></div><div class="cell multi"><span class="ch">Eb7/G</span><span class="sep"></span><span class="ch">G6</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>mm. 21-24 : ligne-cliché caractéristique en Gm — le manuscrit alterne « Gm » et « Gm(#5) » ; interprété ici Gm → Gm(maj7) → Gm7 → Gm6. À vérifier.</li><li>Nombreuses mesures à deux ou trois accords (marches G–F#–E, montées diatoniques) : alignement approximatif.</li><li>Deux ⊕ : le second (m. ~73) ouvre la coda G6 – Eb7/G – G6.</li><li>Armure à 1 dièse conservée ; passages en si mineur / do# mineur dans la partie B.</li></ul></div>
+  </article>
+<article class="song" id="e-do-que-ha-luiz-americano">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">07</span>
+        <div>
+          <h2>É do que há</h2>
+          <p class="composer">Luiz Americano</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Lam) — B (Lam) — D.S. — Coda 1 = C (La) — D.S. — Coda 2 (Lam)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Am<span class="dot">&middot;</span>mes.&nbsp;1–31 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">E7/G#</span></div><div class="cell multi"><span class="ch">Am/G</span><span class="sep"></span><span class="ch">A7/C#</span></div><div class="cell multi"><span class="ch">Dm/F</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/C</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">E7/D</span><span class="sep"></span><span class="ch">E7/B</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell multi"><span class="ch">Am/G</span><span class="sep"></span><span class="ch">B7/F#</span></div><div class="cell multi"><span class="ch">B7</span><span class="sep"></span><span class="ch">Dm6/F</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell multi"><span class="ch">Bm7b5</span><span class="sep"></span><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">E7/G#</span></div><div class="cell multi"><span class="ch">Am/G</span><span class="sep"></span><span class="ch">A7/C#</span></div><div class="cell multi"><span class="ch">Dm/F</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/C</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell"><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">E7/D</span><span class="sep"></span><span class="ch">E7/B</span></div><div class="cell"><span class="ch">Gm6/Bb</span></div><div class="cell multi"><span class="ch">A7</span><span class="sep"></span><span class="ch">A7/G</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Bm7b5</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">Am/G</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell multi"><span class="ch">B7/F#</span><span class="sep"></span><span class="ch">Dm6/F</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">E7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Am</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: Am<span class="dot">&middot;</span>mes.&nbsp;34–48<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">34</span><div class="cells"><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell multi"><span class="ch">E7/B</span><span class="sep"></span><span class="ch">Am/C</span></div></div></div><div class="row"><span class="barno">38</span><div class="cells"><div class="cell"><span class="ch">Gm6/Bb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell"><span class="ch">Dm/F</span></div></div></div><div class="row"><span class="barno">42</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Bm7b5</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">Am/G</span></div></div></div><div class="row"><span class="barno">46</span><div class="cells"><div class="cell multi"><span class="ch">B7</span><span class="sep"></span><span class="ch">Dm6/F</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Am</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">E7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: A<span class="dot">&middot;</span>mes.&nbsp;51–66<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">51</span><div class="cells"><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A/C#</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">B7</span></div></div></div><div class="row"><span class="barno">55</span><div class="cells"><div class="cell multi"><span class="ch">B7</span><span class="sep"></span><span class="ch">B/A</span></div><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A</span></div></div></div><div class="row"><span class="barno">59</span><div class="cells"><div class="cell"><span class="ch">A/C#</span></div><div class="cell multi"><span class="ch">A</span><span class="sep"></span><span class="ch">Em6/G</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">Bm</span></div></div></div><div class="row"><span class="barno">63</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell multi"><span class="ch">A</span><span class="sep"></span><span class="ch">F#m</span></div><div class="cell multi"><span class="ch">B7</span><span class="sep"></span><span class="ch">E7</span></div><div class="cell"><span class="ch">A</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">E7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">A</span></div><div class="cell"><span class="ch">E7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">Am(maj7)</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Structure à double Segno/Coda : « Ao Segno e Coda 1 » puis « Ao Segno e Coda 2 ».</li><li>Coda 1 = partie C en La majeur (3 dièses) ; Coda 2 = deux mesures Am – Am(maj7).</li><li>« Bm7(b5) » = Bm7b5 ; « Am7M » = Am(maj7).</li><li>Presque toutes les mesures portent deux accords (basse chromatique très mobile) : alignement approximatif.</li></ul></div>
+  </article>
+<article class="song" id="machucando-adalberto-de-souza">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">08</span>
+        <div>
+          <h2>Machucando</h2>
+          <p class="composer">Adalberto de Souza</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém, reprise) — B (Fa, reprise) — C (Rém, reprise) — Coda (Dm)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–15 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell multi"><span class="ch">Em7b5</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;18–24<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">18</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Bb6</span></div><div class="cell multi"><span class="ch">F/C</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;27–43 (⊕)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">27</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">Bb</span></div></div></div><div class="row"><span class="barno">31</span><div class="cells"><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">Gm6</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">35</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">Bb</span></div></div></div><div class="row"><span class="barno">39</span><div class="cells"><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">Gm6</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Deux ⊕ : le premier (m. 15) au retour de Segno, le second (m. 27) ouvre la partie C ; Coda finale Dm.</li><li>Partie C : longue descente Dm – Am/C – Bb – F/A – Gm6 – Dm/F répétée.</li><li>m. 23 : Dm puis Bb6 ; m. 24 : F/C puis C7.</li></ul></div>
+  </article>
+<article class="song" id="migalhas-de-amor-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">09</span>
+        <div>
+          <h2>Migalhas de amor</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Solm, reprise) — B (Sib/Dom, reprise) — Coda (Solm)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Gm<span class="dot">&middot;</span>mes.&nbsp;1–31 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">G/F</span></div><div class="cell multi"><span class="ch">Cm/Eb</span><span class="sep"></span><span class="ch">Cm/G</span></div><div class="cell multi"><span class="ch">D7/A</span><span class="sep"></span><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">G/F</span></div><div class="cell multi"><span class="ch">Cm/Eb</span><span class="sep"></span><span class="ch">Cm/G</span></div><div class="cell"><span class="ch">F7/A</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Bb/D</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">A7/E</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">Bm</span></div><div class="cell multi"><span class="ch">Em</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell multi"><span class="ch">Cm6/Eb</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">G/F</span></div><div class="cell multi"><span class="ch">Cm/Eb</span><span class="sep"></span><span class="ch">Cm/G</span></div><div class="cell multi"><span class="ch">D7/A</span><span class="sep"></span><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">G/F</span></div><div class="cell multi"><span class="ch">Cm/Eb</span><span class="sep"></span><span class="ch">Cm/G</span></div><div class="cell"><span class="ch">F7/A</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">Bb/D</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Ab</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">F7#5</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: Bb / Cm<span class="dot">&middot;</span>mes.&nbsp;35–48<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">35</span><div class="cells"><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">Fm6/Ab</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell multi"><span class="ch">Cm</span><span class="sep"></span><span class="ch">G7</span></div><div class="cell multi"><span class="ch">Cm</span><span class="sep"></span><span class="ch">Cm/Bb</span></div></div></div><div class="row"><span class="barno">39</span><div class="cells"><div class="cell"><span class="ch">F7/A</span></div><div class="cell"><span class="ch">F/Eb</span></div><div class="cell"><span class="ch">Bb/D</span></div><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">F7</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">Fm6/Ab</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">Cm</span></div><div class="cell"><span class="ch">Ebm6/Gb</span></div></div></div><div class="row"><span class="barno">47</span><div class="cells"><div class="cell multi"><span class="ch">Bb/F</span><span class="sep"></span><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Cm</span><span class="sep"></span><span class="ch">F7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">F7#5</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">D7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Cm6</span></div><div class="cell"><span class="ch">Gm6</span></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>« F7#5 » = F7(#5) ; « Fm6/Ab », « Ebm6/Gb » notés tels quels.</li><li>Beaucoup de mesures à deux accords et de triolets ornementaux : découpage approximatif.</li><li>Coda (⊕ m. 54) : Gm – Cm6 – Gm6 avec point d'orgue final.</li></ul></div>
+  </article>
+<article class="song" id="naquele-tempo-pixinguinha">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">10</span>
+        <div>
+          <h2>Naquele tempo</h2>
+          <p class="composer">Pixinguinha / Benedito Lacerda</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém, reprise) — B (Fa, reprise) — Coda C (Ré, reprise)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–16 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A/G</span></div><div class="cell"><span class="ch">Dm/F</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Em7b5</span><span class="sep"></span><span class="ch">Dm/A</span></div><div class="cell"><span class="ch">A7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;18–33<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">18</span><div class="cells"><div class="cell multi"><span class="ch">F</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">D/C</span></div><div class="cell multi"><span class="ch">Gm/Bb</span><span class="sep"></span><span class="ch">G7</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">G7/B</span></div><div class="cell multi"><span class="ch">Bbm6/Db</span><span class="sep"></span><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">26</span><div class="cells"><div class="cell multi"><span class="ch">F</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">D/C</span></div><div class="cell multi"><span class="ch">Gm/Bb</span><span class="sep"></span><span class="ch">A7/C#</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">30</span><div class="cells"><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">Bbm6</span></div><div class="cell multi"><span class="ch">F/A</span><span class="sep"></span><span class="ch">D7/F#</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: D<span class="dot">&middot;</span>mes.&nbsp;36–50 (⊕)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="row"><span class="barno"></span><div class="cells"><span class="translbl">transition&nbsp;:</span><div class="cell"><span class="ch">Dm</span></div></div></div><div class="grid"><div class="row"><span class="barno">36</span><div class="cells"><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell"><span class="ch">D/F#</span></div><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">B7</span></div><div class="cell"><span class="ch">E7add9</span></div></div></div><div class="row"><span class="barno">40</span><div class="cells"><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">A7</span><span class="sep"></span><span class="ch">A/G</span></div><div class="cell multi"><span class="ch">D/F#</span><span class="sep"></span><span class="ch">A7/E</span></div></div></div><div class="row"><span class="barno">44</span><div class="cells"><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell multi"><span class="ch">D/F#</span><span class="sep"></span><span class="ch">D7/A</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">G</span></div></div></div><div class="row"><span class="barno">48</span><div class="cells"><div class="cell"><span class="ch">Gm6/Bb</span></div><div class="cell multi"><span class="ch">D/A</span><span class="sep"></span><span class="ch">B7</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">Bm</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">A7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">D</span></div></div></div>
+  </section>
+      
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Coda (⊕ m. 35) : mesure de transition Dm, puis changement d'armure vers Ré majeur (2 dièses) pour la partie C.</li><li>« E7add9 » noté tel quel au manuscrit (m. 39).</li><li>Nombreux triolets/sextolets ornementaux et mesures à deux accords : alignement approximatif.</li><li>Partie B, mm. 20 et 28 : trois accords resserrés en fin de mesure.</li></ul></div>
+  </article>
+<article class="song" id="noites-cariocas-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">11</span>
+        <div>
+          <h2>Noites cariocas</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Sol, reprise) — B (Do/modulante, reprise) — Coda C (Sol, reprise)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;1–31 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">G6</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">C#dim</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell multi"><span class="ch">E7/G#</span><span class="sep"></span><span class="ch">Am</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell multi"><span class="ch">E7/B</span><span class="sep"></span><span class="ch">Am/C</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">Am(maj7)</span></div><div class="cell"><span class="ch">Am7</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">D7#5</span></div><div class="cell"><span class="ch">D7#5</span></div><div class="cell multi"><span class="ch">G</span><span class="sep"></span><span class="ch">Em7</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell multi"><span class="ch">Am7</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">C#dim</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">E7/B</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">C</span></div><div class="cell"><span class="ch">Bbdim</span></div><div class="cell"><span class="ch">G6</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">G6</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">G6</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: C (modulante)<span class="dot">&middot;</span>mes.&nbsp;36–65<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">36</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C</span></div><div class="cell"><span class="ch">C</span></div></div></div><div class="row"><span class="barno">40</span><div class="cells"><div class="cell"><span class="ch">A7/C#</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">44</span><div class="cells"><div class="cell"><span class="ch">F6</span></div><div class="cell"><span class="ch">F#dim</span></div><div class="cell"><span class="ch">C/G</span></div><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">B7</span></div></div></div><div class="row"><span class="barno">48</span><div class="cells"><div class="cell multi"><span class="ch">E</span><span class="sep"></span><span class="ch">C#m7</span></div><div class="cell multi"><span class="ch">F#m7</span><span class="sep"></span><span class="ch">B7</span></div><div class="cell"><span class="ch">E</span></div><div class="cell"><span class="ch">G7</span></div></div></div><div class="row"><span class="barno">52</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">56</span><div class="cells"><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">60</span><div class="cells"><div class="cell"><span class="ch">F6</span></div><div class="cell"><span class="ch">Ebdim</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">E/D</span></div><div class="cell multi"><span class="ch">A7/C#</span><span class="sep"></span><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">64</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">C</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">C</span></div><div class="cell"><span class="ch">C#7</span></div><div class="cell"><span class="ch">D7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;70–80 (⊕)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">70</span><div class="cells"><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">Gdim</span></div><div class="cell"><span class="ch">Gdim</span></div></div></div><div class="row"><span class="barno">74</span><div class="cells"><div class="cell multi"><span class="ch">G</span><span class="sep"></span><span class="ch">F#7</span></div><div class="cell"><span class="ch">F7</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">78</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">G</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell multi"><span class="ch">Gdim</span><span class="sep"></span><span class="ch">G</span></div></div></div>
+  </section>
+      
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Partie C : ligne diminuée montante caractéristique (G – Gdim – … – G).</li><li>Partie B très modulante (E majeur, do# mineur) : chiffrages et alignement peu sûrs.</li><li>Beaucoup de mesures à deux accords, triolets et sextolets ornementaux.</li><li>Découpage des mesures approximatif sur toute la pièce (peu de repères de barres fiables).</li></ul></div>
+  </article>
+<article class="song" id="o-bom-filho-a-casa-torna-bonfiglio-de-oliveira">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">12</span>
+        <div>
+          <h2>O bom filho à casa torna</h2>
+          <p class="composer">Bonfíglio de Oliveira</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém, reprise) — B (Fa, reprise) — Coda C (Ré, reprise) → Dm</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–15<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell multi"><span class="ch">Am7b5</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;18–33<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">18</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell multi"><span class="ch">Em7b5</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">26</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">30</span><div class="cells"><div class="cell multi"><span class="ch">Em7b5</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">F</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: D<span class="dot">&middot;</span>mes.&nbsp;36–71 (⊕)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="row"><span class="barno"></span><div class="cells"><span class="translbl">transition&nbsp;:</span><div class="cell"><span class="ch">Dm</span></div></div></div><div class="grid"><div class="row"><span class="barno">36</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">40</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">44</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">48</span><div class="cells"><div class="cell"><span class="ch">G</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">52</span><div class="cells"><div class="cell"><span class="ch">G</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">56</span><div class="cells"><div class="cell"><span class="ch">Em</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">60</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">Ddim</span></div><div class="cell"><span class="ch">D</span></div></div></div><div class="row"><span class="barno">64</span><div class="cells"><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">Gm6</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">B7</span></div></div></div><div class="row"><span class="barno">68</span><div class="cells"><div class="cell"><span class="ch">Em</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div></div></div></div>
+    <div class="subcoda"><span class="etag coda">coda</span><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></div>
+  </section>
+      
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Coda (⊕ m. 35) : mesure de transition Dm, changement d'armure vers Ré majeur (2 dièses) pour la partie C ; l'ultime mesure (après reprise) revient sur Dm.</li><li>Partie C très diatonique D–A7 sur de longues valeurs ; alignement plus fiable qu'ailleurs.</li><li>m. 20, 28, 31, 32 : deux accords par mesure.</li></ul></div>
+  </article>
+<article class="song" id="o-corta-jaca-gaucho-chiquinha-gonzaga">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">13</span>
+        <div>
+          <h2>Gaúcho (O corta-jaca)</h2>
+          <p class="composer">Chiquinha Gonzaga</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém) — Trio B (Fa, reprise) — D.C. al Coda (⊕ Dm)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–24</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm/Bb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm/Bb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div></div></div></div>
+    
+  </section><section class="part">
+    <div class="part-head"><h3>B (Trio)</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;25–42<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">C7/E</span></div><div class="cell multi"><span class="ch">C7/E</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">C7/E</span></div><div class="cell"><span class="ch">C7/E</span></div><div class="cell multi"><span class="ch">F/C</span><span class="sep"></span><span class="ch">F</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">33</span><div class="cells"><div class="cell multi"><span class="ch">C7/E</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell multi"><span class="ch">Gm/D</span><span class="sep"></span><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">C7</span><span class="sep"></span><span class="ch">C7/E</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>pont</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;43–44</p></div>
+    <div class="grid"><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Dm/F</span></div><div class="cell multi"><span class="ch">A7/E</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>« % » dans la partition = mesure identique à la précédente (répétées ici explicitement).</li><li>Partie A : balancement quasi constant Dm/Dm-F puis A7/E–A7, deux accords par mesure.</li><li>« D.C. e Coda » : après le Trio, retour au début (partie A) puis saut à la Coda (⊕) — Dm Dm/F | A7/E A7.</li><li>Chiffrages très réguliers, alignement plutôt fiable pour ce morceau.</li></ul></div>
+  </article>
+<article class="song" id="os-cinco-companheiros-pixinguinha">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">14</span>
+        <div>
+          <h2>Os cinco companheiros</h2>
+          <p class="composer">Pixinguinha</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém, reprise) — B (Fa, reprise) — Coda C (Sib, reprise)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–16<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">D/C</span></div><div class="cell"><span class="ch">G7/B</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">C/Bb</span></div><div class="cell multi"><span class="ch">F/A</span><span class="sep"></span><span class="ch">Bm7b5</span></div><div class="cell multi"><span class="ch">A/C#</span><span class="sep"></span><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">A</span><span class="sep"></span><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Cm6</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell"><span class="ch">Gm</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell multi"><span class="ch">G#dim</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">F7</span></div><div class="cell multi"><span class="ch">Bb</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div></div></div></div>
+    
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;17–33<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">17</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">G#dim</span></div><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">Dm7</span></div><div class="cell"><span class="ch">Gm</span></div></div></div><div class="row"><span class="barno">33</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7/C#</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: Bb<span class="dot">&middot;</span>mes.&nbsp;34–48 (⊕)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">34</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">Bb/Ab</span></div><div class="cell"><span class="ch">Eb/G</span></div></div></div><div class="row"><span class="barno">38</span><div class="cells"><div class="cell"><span class="ch">Ebm/Gb</span></div><div class="cell"><span class="ch">Bb/F</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">42</span><div class="cells"><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">F7</span></div><div class="cell"><span class="ch">Bb</span></div><div class="cell multi"><span class="ch">Bb7</span><span class="sep"></span><span class="ch">Bb7/D</span></div></div></div><div class="row"><span class="barno">46</span><div class="cells"><div class="cell"><span class="ch">Eb</span></div><div class="cell"><span class="ch">Ebm6/Gb</span></div><div class="cell"><span class="ch">Bb/F</span></div><div class="cell multi"><span class="ch">C7</span><span class="sep"></span><span class="ch">F7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">F7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section>
+      
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Deux ⊕ (m. 16 et m. 34) : structure à Coda menant à la partie C (Sib majeur).</li><li>Nombreuses mesures à deux accords (basses chromatiques Bb/Ab, Eb/G, Ebm/Gb).</li><li>Partie C : incursion en Ré majeur (mm. 40-42) avant retour Sib.</li><li>Découpage des mesures approximatif.</li></ul></div>
+  </article>
+<article class="song" id="receita-de-samba-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">15</span>
+        <div>
+          <h2>Receita de samba</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> Intro — A (Sol, reprise) — B (Mim, reprise) — Coda</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>Intro</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;1–7</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">C</span></div><div class="cell"><span class="ch">C#dim</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">F7</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell pad"></div></div></div></div>
+    
+  </section><section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: G<span class="dot">&middot;</span>mes.&nbsp;8–40 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">8</span><div class="cells"><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">Cm6/Eb</span></div></div></div><div class="row"><span class="barno">12</span><div class="cells"><div class="cell"><span class="ch">Cm6</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">Cm6</span></div></div></div><div class="row"><span class="barno">16</span><div class="cells"><div class="cell"><span class="ch">G/F</span></div><div class="cell"><span class="ch">G/F</span></div><div class="cell"><span class="ch">G7/B</span></div><div class="cell"><span class="ch">C</span></div></div></div><div class="row"><span class="barno">20</span><div class="cells"><div class="cell"><span class="ch">C</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">A/G</span></div><div class="cell"><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">24</span><div class="cells"><div class="cell"><span class="ch">D7#5</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">G</span></div><div class="cell"><span class="ch">Cm6</span></div></div></div><div class="row"><span class="barno">28</span><div class="cells"><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">G</span></div><div class="cell multi"><span class="ch">G</span><span class="sep"></span><span class="ch">G(#5)</span></div><div class="cell"><span class="ch">C</span></div></div></div><div class="row"><span class="barno">32</span><div class="cells"><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">Bbdim</span></div><div class="cell"><span class="ch">G/B</span></div></div></div><div class="row"><span class="barno">36</span><div class="cells"><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">E/D</span></div><div class="cell multi"><span class="ch">Am/C</span><span class="sep"></span><span class="ch">Am</span></div><div class="cell multi"><span class="ch">D7/F#</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell"><span class="ch">G</span></div></div></div><div class="row"><span class="barno">40</span><div class="cells"><div class="cell"><span class="ch">D7</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">G</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">G</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: Em<span class="dot">&middot;</span>mes.&nbsp;42–72<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">42</span><div class="cells"><div class="cell"><span class="ch">B7/D#</span></div><div class="cell"><span class="ch">B7/F#</span></div><div class="cell"><span class="ch">Em/G</span></div><div class="cell"><span class="ch">Em/B</span></div></div></div><div class="row"><span class="barno">46</span><div class="cells"><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7/B</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">Am/E</span></div></div></div><div class="row"><span class="barno">50</span><div class="cells"><div class="cell"><span class="ch">Am6/C</span></div><div class="cell multi"><span class="ch">Am6</span><span class="sep"></span><span class="ch">F#m7b5</span></div><div class="cell"><span class="ch">Em/G</span></div><div class="cell"><span class="ch">Em/G</span></div></div></div><div class="row"><span class="barno">54</span><div class="cells"><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">B7/D#</span></div><div class="cell"><span class="ch">B7</span></div></div></div><div class="row"><span class="barno">58</span><div class="cells"><div class="cell"><span class="ch">B7/D#</span></div><div class="cell"><span class="ch">B7/F#</span></div><div class="cell"><span class="ch">Em/G</span></div><div class="cell"><span class="ch">Em/B</span></div></div></div><div class="row"><span class="barno">62</span><div class="cells"><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7/B</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">Am/E</span></div></div></div><div class="row"><span class="barno">66</span><div class="cells"><div class="cell"><span class="ch">Am6/C</span></div><div class="cell multi"><span class="ch">Am6</span><span class="sep"></span><span class="ch">F#m7b5</span></div><div class="cell"><span class="ch">Em/G</span></div><div class="cell multi"><span class="ch">Em</span><span class="sep"></span><span class="ch">Em/D</span></div></div></div><div class="row"><span class="barno">70</span><div class="cells"><div class="cell"><span class="ch">F#7/C#</span></div><div class="cell multi"><span class="ch">Am6/C</span><span class="sep"></span><span class="ch">B7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Em</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Em</span></div><div class="cell"><span class="ch">D7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">Dm6/F</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">E/D</span></div></div></div><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">C#dim</span></div><div class="cell"><span class="ch">G/D</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">E7/G#</span></div></div></div><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell multi"><span class="ch">D7/F#</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell"><span class="ch">G</span></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Intro : 7 mesures d'accords tenus (blanches), enchaînement C – C#dim – G – F7 – E7 – A7 – D7.</li><li>Partie B : basse chromatique très mobile, presque toutes les mesures à deux accords (Am/C, Am/E, Am6/C…). Alignement très approximatif.</li><li>Coda (⊕ m. 77) après le D.S.</li><li>« G(#5) » = G augmenté ; « F#m7(b5) » = F#m7b5.</li><li>Pièce longue (89 mesures) et dense : confiance faible sur le découpage.</li></ul></div>
+  </article>
+<article class="song" id="santa-morena-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">16</span>
+        <div>
+          <h2>Santa morena</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">3/4 &middot; valsa</span>
+        <span class="tag conf conf-low">transcription à revoir</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> Intro — A (Rém, reprise) — B (Rém, reprise) — Coda</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>Intro</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–22</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">Bb</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">Bb</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Gm6/Bb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Gm6/Bb</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7/E</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    
+  </section><section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;23–52 (Segno)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">23</span><div class="cells"><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">A7/E</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm/F</span></div></div></div><div class="row"><span class="barno">27</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">C7/E</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">31</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Gm/Bb</span></div><div class="cell"><span class="ch">Dm/A</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">35</span><div class="cells"><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">E/D</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">Gm/Bb</span></div></div></div><div class="row"><span class="barno">39</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A/G</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">C7/E</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F6</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">47</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Gm/Bb</span></div><div class="cell"><span class="ch">Dm/A</span></div><div class="cell"><span class="ch">Dm/F</span></div></div></div><div class="row"><span class="barno">51</span><div class="cells"><div class="cell"><span class="ch">Gm/Bb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell hold"><span>&middot;</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;57–87<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">57</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">61</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">65</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Dm/F</span></div></div></div><div class="row"><span class="barno">69</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">73</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F</span></div></div></div><div class="row"><span class="barno">77</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">81</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Bb7</span></div></div></div><div class="row"><span class="barno">85</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno"></span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>VALSE à 3/4 (et non 2/4 comme les autres pièces du répertoire).</li><li>Intro (mm. 1-22) : accords rares, longues pédales — les cases vides tiennent l'accord précédent.</li><li>Coda (⊕ m. 90) : cadence Dm – C7 – Bb7 – A7 répétée puis résolution.</li><li>Pièce longue (100 mesures) ; découpage approximatif, surtout dans la partie B très ornementée.</li></ul></div>
+  </article>
+<article class="song" id="sonoroso-k-ximbinho">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">17</span>
+        <div>
+          <h2>Sonoroso</h2>
+          <p class="composer">K-Ximbinho / Del Loro</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém) — B (Fa) — D.C. al Coda 1 = C (Ré) — D.C. al Coda 2 (Dm)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–15<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Eb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">Bm7b5</span></div><div class="cell"><span class="ch">A</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Eb</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Cm6</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;18–32<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">18</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell multi"><span class="ch">Em7b5</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Cm6/G</span><span class="sep"></span><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">22</span><div class="cells"><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">G#dim</span></div><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">26</span><div class="cells"><div class="cell"><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell multi"><span class="ch">Em7b5</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell multi"><span class="ch">Cm6/G</span><span class="sep"></span><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">30</span><div class="cells"><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">G#dim</span></div><div class="cell multi"><span class="ch">F/A</span><span class="sep"></span><span class="ch">D7</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: D<span class="dot">&middot;</span>mes.&nbsp;35–52 (Coda 1)<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">35</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">D</span></div><div class="cell multi"><span class="ch">D/F#</span><span class="sep"></span><span class="ch">Fdim</span></div></div></div><div class="row"><span class="barno">39</span><div class="cells"><div class="cell"><span class="ch">Em</span></div><div class="cell multi"><span class="ch">C#m7b5</span><span class="sep"></span><span class="ch">F#7</span></div><div class="cell multi"><span class="ch">Bm</span><span class="sep"></span><span class="ch">Bm/A</span></div><div class="cell"><span class="ch">E7/G#</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">D</span></div><div class="cell"><span class="ch">D</span></div><div class="cell multi"><span class="ch">Am7</span><span class="sep"></span><span class="ch">D7</span></div></div></div><div class="row"><span class="barno">47</span><div class="cells"><div class="cell"><span class="ch">G</span></div><div class="cell multi"><span class="ch">G</span><span class="sep"></span><span class="ch">Gm6</span></div><div class="cell multi"><span class="ch">D/A</span><span class="sep"></span><span class="ch">Bm7</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">A7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">A7</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell multi"><span class="ch">D</span><span class="sep"></span><span class="ch">A7</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell pad"></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Double structure D.C. : « D.C. e Coda 1 » puis « D.C. e Coda 2 ».</li><li>Coda 1 = partie C en Ré majeur (2 dièses) ; Coda 2 = brève cadence sur Dm.</li><li>« Bm7(b5) », « C#m7(b5) », « Em7(b5) » = accords m7b5 ; « G#° », « F° » = diminués.</li><li>mm. 20-21 et 29-30 : suites d'accords resserrées Em7b5–A7–Cm6/G–D7/F#.</li></ul></div>
+  </article>
+<article class="song" id="tico-tico-no-fuba-zequinha-de-abreu">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">18</span>
+        <div>
+          <h2>Tico Tico no fubá</h2>
+          <p class="composer">Zequinha de Abreu</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Lam) — B (La) — Coda C (Do)  [rondó A-B-A-C-A]</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Am<span class="dot">&middot;</span>mes.&nbsp;1–20<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">E/D</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Am/E</span></div><div class="cell multi"><span class="ch">B7</span><span class="sep"></span><span class="ch">E7</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">Am</span></div><div class="cell"><span class="ch">Am/C</span></div><div class="cell"><span class="ch">E7/B</span></div><div class="cell multi"><span class="ch">E7</span><span class="sep"></span><span class="ch">E/D</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Am/E</span></div><div class="cell"><span class="ch">E7/B</span></div><div class="cell"><span class="ch">E7/G#</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Am</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">Am</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: A<span class="dot">&middot;</span>mes.&nbsp;21–38<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">21</span><div class="cells"><div class="cell"><span class="ch">A</span></div><div class="cell hold"><span>&middot;</span></div><div class="cell multi"><span class="ch">A</span><span class="sep"></span><span class="ch">A#dim</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">E7/B</span></div><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">C dim</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">A/C#</span></div><div class="cell"><span class="ch">A</span></div><div class="cell"><span class="ch">F#7</span></div><div class="cell"><span class="ch">F#7/A#</span></div></div></div><div class="row"><span class="barno">33</span><div class="cells"><div class="cell"><span class="ch">Bm7</span></div><div class="cell"><span class="ch">Bm/D</span></div><div class="cell multi"><span class="ch">Bm/D</span><span class="sep"></span><span class="ch">D#dim</span></div><div class="cell multi"><span class="ch">A/E</span><span class="sep"></span><span class="ch">F#m7</span></div></div></div><div class="row"><span class="barno">37</span><div class="cells"><div class="cell"><span class="ch">Bm</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">A</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">A</span></div></div></div>
+  </section><section class="part">
+    <div class="part-head"><h3>C</h3><p class="part-meta">centre&nbsp;: C<span class="dot">&middot;</span>mes.&nbsp;39–58<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">39</span><div class="cells"><div class="cell multi"><span class="ch">Am</span><span class="sep"></span><span class="ch">E7</span><span class="sep"></span><span class="ch">Am</span></div><div class="cell"><span class="ch">C</span></div><div class="cell multi"><span class="ch">C</span><span class="sep"></span><span class="ch">C#dim</span></div><div class="cell"><span class="ch">G7/D</span></div></div></div><div class="row"><span class="barno">43</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">G7/B</span></div><div class="cell"><span class="ch">C</span></div><div class="cell multi"><span class="ch">C</span><span class="sep"></span><span class="ch">C#dim</span></div></div></div><div class="row"><span class="barno">47</span><div class="cells"><div class="cell"><span class="ch">G7/D</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">G/F</span></div><div class="cell"><span class="ch">C/E</span></div></div></div><div class="row"><span class="barno">51</span><div class="cells"><div class="cell"><span class="ch">C</span></div><div class="cell multi"><span class="ch">C</span><span class="sep"></span><span class="ch">C#dim</span></div><div class="cell"><span class="ch">G7/D</span></div><div class="cell multi"><span class="ch">G7</span><span class="sep"></span><span class="ch">G7/B</span></div></div></div><div class="row"><span class="barno">55</span><div class="cells"><div class="cell multi"><span class="ch">C</span><span class="sep"></span><span class="ch">C/E</span></div><div class="cell multi"><span class="ch">Dm/F</span><span class="sep"></span><span class="ch">F#dim</span></div><div class="cell"><span class="ch">C/G</span></div><div class="cell multi"><span class="ch">G7/D</span><span class="sep"></span><span class="ch">G7</span></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">C</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">C</span></div></div></div>
+  </section>
+      
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Forme rondó : A-B-A-C-A par le Segno et la Coda (« Ao Segno e Coda », « Ao Segno e FIM »).</li><li>Partie A : changement d'armure à la partie B (La majeur, 3 dièses), puis Coda en Do majeur.</li><li>mm. 17-20 : passage arpégé, peu de chiffrages — Dm/F, Am/E, E7/B, E7/G# supposés d'après la ligne de basse.</li><li>Plusieurs mesures à deux accords (marches chromatiques E7→E/D, G7→G7/B) : alignement approximatif.</li><li>Accords diminués notés « X dim » (le manuscrit utilise le petit rond °).</li></ul></div>
+  </article>
+<article class="song" id="vibracoes-jacob-do-bandolim">
+    <header class="song-head">
+      <div class="song-title">
+        <span class="song-idx">19</span>
+        <div>
+          <h2>Vibrações</h2>
+          <p class="composer">Jacob do Bandolim</p>
+        </div>
+      </div>
+      <div class="song-tags">
+        <span class="tag">2/4</span>
+        <span class="tag conf conf-medium">transcription moyenne</span>
+      </div>
+    </header>
+    <p class="form"><span class="form-lbl">Forme</span> A (Rém) — B (Fa, reprise) — D.S. al Coda (⊕ Bb7 – Gm6 – D6)</p>
+    <div class="parts">
+      <section class="part">
+    <div class="part-head"><h3>A</h3><p class="part-meta">centre&nbsp;: Dm<span class="dot">&middot;</span>mes.&nbsp;1–30 (Segno)</p></div>
+    <div class="grid"><div class="row"><span class="barno">1</span><div class="cells"><div class="cell multi"><span class="ch">Dm</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell multi"><span class="ch">Dm/F</span><span class="sep"></span><span class="ch">D7/F#</span></div><div class="cell multi"><span class="ch">Gm</span><span class="sep"></span><span class="ch">D7/A</span></div><div class="cell"><span class="ch">Gm/Bb</span></div></div></div><div class="row"><span class="barno">5</span><div class="cells"><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">9</span><div class="cells"><div class="cell"><span class="ch">Cm6/Eb</span></div><div class="cell"><span class="ch">D7/F#</span></div><div class="cell"><span class="ch">A dim</span></div><div class="cell"><span class="ch">Gm</span></div></div></div><div class="row"><span class="barno">13</span><div class="cells"><div class="cell"><span class="ch">E7/G#</span></div><div class="cell"><span class="ch">E7</span></div><div class="cell"><span class="ch">Gm6</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">17</span><div class="cells"><div class="cell"><span class="ch">Cm6/Eb</span></div><div class="cell"><span class="ch">D7</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell hold"><span>&middot;</span></div></div></div><div class="row"><span class="barno">21</span><div class="cells"><div class="cell"><span class="ch">Bbm6/Db</span></div><div class="cell multi"><span class="ch">C7</span><span class="sep"></span><span class="ch">C7/E</span></div><div class="cell"><span class="ch">F</span></div><div class="cell multi"><span class="ch">F</span><span class="sep"></span><span class="ch">D7/F#</span></div></div></div><div class="row"><span class="barno">25</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell multi"><span class="ch">Gm6/Bb</span><span class="sep"></span><span class="ch">A7/E</span></div><div class="cell"><span class="ch">Dm/F</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">29</span><div class="cells"><div class="cell"><span class="ch">Gm</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell pad"></div><div class="cell pad"></div></div></div></div>
+    
+  </section><section class="part">
+    <div class="part-head"><h3>B</h3><p class="part-meta">centre&nbsp;: F<span class="dot">&middot;</span>mes.&nbsp;33–63<span class="dot">&middot;</span>reprise</p></div>
+    <div class="grid"><div class="row"><span class="barno">33</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">A7</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">37</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Cm7</span></div><div class="cell"><span class="ch">F7</span></div></div></div><div class="row"><span class="barno">41</span><div class="cells"><div class="cell"><span class="ch">Bb/D</span></div><div class="cell"><span class="ch">Bbm6/D</span></div><div class="cell"><span class="ch">F/C</span></div><div class="cell"><span class="ch">Dm</span></div></div></div><div class="row"><span class="barno">45</span><div class="cells"><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">G7</span></div><div class="cell"><span class="ch">C/Bb</span></div><div class="cell multi"><span class="ch">Bbm/Db</span><span class="sep"></span><span class="ch">C7</span></div></div></div><div class="row"><span class="barno">49</span><div class="cells"><div class="cell"><span class="ch">F</span></div><div class="cell"><span class="ch">F/A</span></div><div class="cell"><span class="ch">A7/C#</span></div><div class="cell"><span class="ch">A7</span></div></div></div><div class="row"><span class="barno">53</span><div class="cells"><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Dm</span></div><div class="cell"><span class="ch">Cm7</span></div><div class="cell"><span class="ch">F7</span></div></div></div><div class="row"><span class="barno">57</span><div class="cells"><div class="cell"><span class="ch">F7</span></div><div class="cell"><span class="ch">Bb/D</span></div><div class="cell"><span class="ch">Bbm6/D</span></div><div class="cell"><span class="ch">F/C</span></div></div></div><div class="row"><span class="barno">61</span><div class="cells"><div class="cell multi"><span class="ch">A7</span><span class="sep"></span><span class="ch">D7/F#</span><span class="sep"></span><span class="ch">G7</span></div><div class="cell multi"><span class="ch">Bbm6/Db</span><span class="sep"></span><span class="ch">C7</span></div><div class="cell"><span class="ch">F</span></div><div class="cell pad"></div></div></div></div>
+    <div class="ending"><span class="etag ">1<sup>re</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div><div class="ending"><span class="etag ">2<sup>e</sup> fin</span><div class="cells"><div class="cell"><span class="ch">F</span></div></div></div>
+  </section>
+      <section class="part"><div class="part-head"><h3>Coda</h3></div><div class="grid"><div class="row"><span class="barno"></span><div class="cells"><div class="cell"><span class="ch">Bb7</span></div><div class="cell"><span class="ch">Gm6</span></div><div class="cell"><span class="ch">D6</span></div><div class="cell pad"></div></div></div></div></section>
+    </div>
+    
+    <div class="notes"><span class="notes-lbl">À vérifier</span><ul><li>Source : Projeto Mão na Roda (mise en page différente des autres).</li><li>Partie A : ⊕ vers la m. 25 ; « A° » = La diminué.</li><li>Coda (⊕ m. 66) : Bb7 – Gm6 – D6, « ad libitum » puis « Fim » (accord final surprenant en Ré majeur 6).</li><li>m. 61 : trois accords resserrés A7 – D7/F# – G7.</li><li>Mesures à deux accords fréquentes (basses chromatiques) ; alignement approximatif.</li></ul></div>
+  </article>
+
+  <footer>
+    Généré le 8&nbsp;septembre&nbsp;2026 &middot; source JSON&nbsp;: <code>web/public/data/grilles/&lt;morceau&gt;.json</code> &middot; 19&nbsp;morceaux.
+  </footer>
+</div>
