@@ -6,6 +6,12 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
+    <!-- L'app gère elle-même son thème sombre : ce signal, disponible avant le
+         CSS, empêche l'assombrissement automatique des navigateurs mobiles
+         (Chrome « Auto dark theme », Samsung Internet) qui vire l'ambre en brun
+         et rend les masques opaques. -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#09090b" />
     <meta
       name="description"
       content="Entraînement et mémorisation active du répertoire de choros : partition à trous, session entrelacée et répétition espacée."
