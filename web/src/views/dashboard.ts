@@ -10,13 +10,7 @@ import { pencil, plus, trash } from '../icons';
 import { pickSessionItems } from '../session';
 import { daysOverdue, statusOf } from '../srs';
 import type { Progress } from '../store';
-import {
-  activeSetlist,
-  deleteSetlist,
-  getCard,
-  lastSession,
-  setActiveSetlist,
-} from '../store';
+import { activeSetlist, deleteSetlist, getCard, setActiveSetlist } from '../store';
 import { accountMode, getSyncCode } from '../sync';
 import type { SessionRun, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
@@ -48,18 +42,6 @@ const RUN_KIND_LABELS: Record<SessionRun['kind'], string> = {
   urgent: 'révision des urgences',
   filage: 'filage',
 };
-
-/** « il y a 2 j », « hier », « aujourd'hui » à partir d'une date ISO. */
-function relativeDay(iso: string): string {
-  const then = new Date(iso);
-  if (Number.isNaN(then.getTime())) return '';
-  const days = Math.floor((Date.now() - then.getTime()) / 86_400_000);
-  if (days <= 0) return "aujourd'hui";
-  if (days === 1) return 'hier';
-  if (days < 7) return `il y a ${days} j`;
-  if (days < 30) return `il y a ${Math.round(days / 7)} sem.`;
-  return `il y a ${Math.round(days / 30)} mois`;
-}
 
 function runSummary(run: SessionRun): string {
   const kind =
@@ -455,7 +437,6 @@ export function renderDashboard(
     const poolSize = scopedSongs().length;
     const empty = poolSize === 0;
     const urgentN = Math.min(3, poolSize);
-    const last = lastSession(progress);
 
     const deepButton = el(
       'button',
@@ -480,13 +461,6 @@ export function renderDashboard(
 
     const rows: HTMLElement[] = [
       el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Session du jour'),
-      el(
-        'p',
-        { class: 'text-sm text-zinc-400' },
-        last
-          ? `Dernière séance ${relativeDay(last.date)} · ${runSummary(last)}`
-          : 'Aucune séance pour l’instant.',
-      ),
       el(
         'div',
         { class: 'flex flex-col gap-2 sm:flex-row sm:items-baseline' },
