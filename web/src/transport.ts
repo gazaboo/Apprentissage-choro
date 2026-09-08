@@ -212,7 +212,7 @@ export function createTransport(options: TransportOptions): Transport {
   );
   paintRates(1);
 
-  // --- Avec ou sans la mélodie --------------------------------------------
+  // --- Original ou playback ----------------------------------------------
   //
   // C'est un aller-retour constant, et non un réglage qu'on pose une fois :
   // l'accompagnateur travaille sur l'enregistrement complet, le soliste sur
@@ -221,8 +221,8 @@ export function createTransport(options: TransportOptions): Transport {
   // un panneau qu'il faut ouvrir.
 
   const SOURCE_LABELS: Record<AudioKind, { long: string; short: string }> = {
-    reference: { long: 'Avec mélodie', short: 'Avec' },
-    playback: { long: 'Sans mélodie', short: 'Sans' },
+    reference: { long: 'Original', short: 'Orig.' },
+    playback: { long: 'Playback', short: 'Play.' },
   };
 
   const sourceButtons = new Map<AudioKind, HTMLButtonElement>();
@@ -288,7 +288,7 @@ export function createTransport(options: TransportOptions): Transport {
     {
       class: 'flex min-w-0 shrink items-center gap-1',
       role: 'group',
-      'aria-label': 'Avec ou sans la mélodie',
+      'aria-label': 'Original ou playback',
     },
     ...sourceButtons.values(),
   );
