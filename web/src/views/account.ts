@@ -44,7 +44,7 @@ const inputClass =
 function codeForm(connect: (code: string) => void): HTMLElement {
   const input = el('input', {
     type: 'text',
-    placeholder: '6 caractères minimum',
+    placeholder: 'Votre identifiant',
     'aria-label': 'Identifiant',
     autocomplete: 'off',
     autocapitalize: 'none',
@@ -72,8 +72,12 @@ function codeForm(connect: (code: string) => void): HTMLElement {
     const value = input.value.trim();
     say('');
     hideConfirm();
+    if (value.length < 3) {
+      say('L’identifiant doit faire au moins 3 caractères.');
+      return;
+    }
     if (!isValidCode(value)) {
-      say('L’identifiant doit faire 6 à 64 caractères : lettres, chiffres, tiret ou souligné.');
+      say('Lettres, chiffres, tiret ou souligné uniquement.');
       return;
     }
     button.disabled = true;

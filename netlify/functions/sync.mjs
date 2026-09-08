@@ -12,7 +12,7 @@
 
 import { getStore } from '@netlify/blobs';
 
-const CODE_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
+const CODE_PATTERN = /^[A-Za-z0-9_-]{3,64}$/;
 const MAX_BYTES = 1_000_000;
 
 const json = (status, body) =>

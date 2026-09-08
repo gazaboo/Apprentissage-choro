@@ -19,7 +19,7 @@ const LAST_SYNC_KEY = 'choro-sync-at';
 const ACCOUNT_KEY = 'choro-account';
 const ENDPOINT = '/.netlify/functions/sync';
 const DEBOUNCE_MS = 3000;
-const CODE_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
+const CODE_PATTERN = /^[A-Za-z0-9_-]{3,64}$/;
 
 let debounceTimer: number | null = null;
 let inFlight = false;
