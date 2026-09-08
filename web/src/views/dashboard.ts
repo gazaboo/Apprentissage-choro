@@ -11,7 +11,7 @@ import { daysOverdue, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { activeSetlist, getCard, lastSession, setActiveSetlist } from '../store';
 import { accountMode, getSyncCode } from '../sync';
-import type { InstrumentId, SessionRun, Song } from '../types';
+import type { SessionRun, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
 
 /** Les trois états SRS se ramènent à une seule décision pour l'utilisateur. */
@@ -33,7 +33,7 @@ export interface DashboardContext {
   openSetlists: () => void;
   openAccount: () => void;
   startSession: (kind: 'deep' | 'urgent') => void;
-  startFilage: (instrumentId: InstrumentId) => void;
+  startFilage: () => void;
 }
 
 const RUN_KIND_LABELS: Record<SessionRun['kind'], string> = {
@@ -377,15 +377,12 @@ export function renderDashboard(
     );
     urgentButton.addEventListener('click', () => context.startSession('urgent'));
 
-    const filageButtons = (['c', 'bb', 'eb'] as InstrumentId[]).map((id) => {
-      const button = el(
-        'button',
-        { type: 'button', class: ui.button, disabled: empty },
-        INSTRUMENT_SHORT_LABELS[id],
-      );
-      button.addEventListener('click', () => context.startFilage(id));
-      return button;
-    });
+    const filageButton = el(
+      'button',
+      { type: 'button', class: ui.button, disabled: empty },
+      'Préparer un filage',
+    );
+    filageButton.addEventListener('click', () => context.startFilage());
 
     const rows: HTMLElement[] = [
       el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Session du jour'),
@@ -409,7 +406,7 @@ export function renderDashboard(
         el(
           'div',
           { class: 'flex flex-col gap-1' },
-          el('div', { class: 'flex flex-wrap gap-2' }, ...filageButtons),
+          el('div', { class: 'flex flex-wrap gap-2' }, filageButton),
           el(
             'span',
             { class: 'text-[11px] text-zinc-500' },

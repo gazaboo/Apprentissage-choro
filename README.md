@@ -264,14 +264,15 @@ morceaux **et** les séances ; le SRS décide de l'ordre à l'intérieur.
   alternée (A → B → C → A → B → C) par blocs de 5 minutes. On quitte chaque
   pièce avant qu'elle ne soit confortable : le retour force une vraie
   récupération en mémoire.
-- **Filage** (`accompagnateur` / `Si♭` / `Mi♭`) — la setlist **dans son ordre**,
-  comme un filage de concert. Chaque morceau joue avec sa bande —
-  *accompagnateur* (partition en Ut) sur l'enregistrement original, *soliste*
-  Si♭/Mi♭ sur le playback — puis un **décompte de 5 secondes** annonce le
-  suivant avant que la lecture ne reprenne seule. Enchaînement automatique à la
-  fin de l'audio, ou bouton « Passer au suivant ». La barre de lecture et la
-  vitesse restent accessibles en continu ; la partition (masquable) laisse place,
-  sinon, à une **vue « scène »** : titre en grand et prochains morceaux.
+- **Filage** — la setlist **dans son ordre**, comme un filage de concert. Un
+  seul bouton mène à un écran de préparation : **partition affichée** (Ut / C,
+  Si♭ / B♭ ou Mi♭ / E♭) et **bande** (enregistrement original ou playback).
+  Chaque morceau joue avec la bande choisie, puis un **décompte de 5 secondes**
+  annonce le suivant avant que la lecture ne reprenne seule. Enchaînement
+  automatique à la fin de l'audio, ou bouton « Passer au suivant ». Barre de
+  lecture, vitesse **et choix de bande** restent accessibles en continu ; la
+  partition (masquable) laisse place, sinon, à une **vue « scène »** : titre en
+  grand et prochains morceaux.
 
 Chaque séance menée est consignée (`progress.sessions`) : le tableau de bord
 montre la date de la dernière et, sur demande, les dix dernières. Les setlists
@@ -327,6 +328,7 @@ web/
     score.ts dom.ts
     views/dashboard.ts views/trainer.ts views/srsModal.ts
     views/setlists.ts         CRUD des setlists
+    views/filage-config.ts    préparation du filage : partition + bande
     views/filage.ts           filage de la setlist, audio enchaîné + décompte
     views/account.ts          passerelle d'accueil + gestion de la synchro
 netlify/

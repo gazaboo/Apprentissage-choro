@@ -8,7 +8,7 @@
 
 import { el, ui } from '../dom';
 import { ScoreView } from '../score';
-import type { InstrumentId, Song } from '../types';
+import type { AudioKind, InstrumentId, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
 import type { Player } from '../youtube';
 import { formatTime, PLAYBACK_RATES } from '../youtube';
@@ -18,6 +18,8 @@ export interface FilageContext {
   /** Morceaux dans l'ordre de la setlist (ordre de concert). */
   order: Song[];
   instrumentId: InstrumentId;
+  /** Bande choisie à la préparation ; reste modifiable pendant le filage. */
+  audioKind: AudioKind;
   setlistName: string;
   /** Marque un morceau comme atteint (pour le décompte de la séance). */
   markReached: (songId: string) => void;
@@ -31,6 +33,7 @@ const COUNTDOWN_S = 5;
 export function renderFilage(root: HTMLElement, context: FilageContext): () => void {
   const { player, order, instrumentId } = context;
 
+  let audioKind: AudioKind = context.audioKind;
   let index = 0;
   let transitioning = false;
   let hasPlayed = false;
@@ -39,9 +42,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   let showScore = true;
   let unsubscribe: (() => void) | null = null;
 
-  /** Source audio du morceau : original pour l'accompagnateur, playback pour un soliste. */
+  /** Source audio du morceau selon la bande choisie, avec repli sur l'autre. */
   function audioId(song: Song): string | null {
-    const wantReference = instrumentId === 'c';
+    const wantReference = audioKind === 'reference';
     const primary = wantReference ? song.audio.reference : song.audio.playback;
     const fallback = wantReference ? song.audio.playback : song.audio.reference;
     return (primary ?? fallback)?.youtube_id ?? null;
@@ -177,6 +180,31 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       button.className = rateClass(PLAYBACK_RATES[i] === active);
     });
   }
+
+  // --- Bande : original ↔ playback, à tout moment ----------------------
+
+  const audioClass = (on: boolean): string =>
+    'min-h-11 rounded-lg border px-3 text-sm font-medium transition ' +
+    (on
+      ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
+      : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
+  const audioOptions: { kind: AudioKind; label: string }[] = [
+    { kind: 'reference', label: 'Original' },
+    { kind: 'playback', label: 'Playback' },
+  ];
+  const audioButtons = audioOptions.map(({ kind, label }) => {
+    const button = el('button', { type: 'button', class: audioClass(kind === audioKind) }, label);
+    button.addEventListener('click', () => {
+      if (kind === audioKind || transitioning) return;
+      audioKind = kind;
+      audioButtons.forEach((other, i) => {
+        other.className = audioClass(audioOptions[i]!.kind === audioKind);
+      });
+      const id = audioId(order[index]!);
+      if (id) player.load(id, player.getPlayerState() === 1);
+    });
+    return button;
+  });
 
   const scoreToggle = el('button', { type: 'button', class: ui.button }, 'Masquer la partition');
   scoreToggle.addEventListener('click', () => {
@@ -356,6 +384,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
             { class: 'flex flex-wrap items-center gap-2' },
             el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Vitesse'),
             ...rateButtons,
+            el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
+            el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Bande'),
+            ...audioButtons,
             el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
             nextButton,
             scoreToggle,

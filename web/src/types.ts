@@ -13,6 +13,13 @@ export const INSTRUMENT_SHORT_LABELS: Record<InstrumentId, string> = {
   eb: 'Mi♭',
 };
 
+/** Libellés « tonalité » pour le choix de partition (écran de préparation du filage). */
+export const INSTRUMENT_KEY_LABELS: Record<InstrumentId, string> = {
+  c: 'Ut / C',
+  bb: 'Si♭ / B♭',
+  eb: 'Mi♭ / E♭',
+};
+
 export interface Box {
   x: number;
   y: number;

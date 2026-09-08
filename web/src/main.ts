@@ -4,7 +4,8 @@
  *   #/            tableau de bord
  *   #/song/:id    entraînement libre sur un morceau
  *   #/session     séance de travail (fond ou urgences), calée sur la setlist active
- *   #/filage      filage de la setlist, audio enchaîné
+ *   #/filage      préparation du filage (choix partition + bande)
+ *   #/filage/run  filage de la setlist, audio enchaîné
  *   #/setlists    gestion des setlists
  *   #/compte      accès au compte et à la synchro
  *
@@ -20,11 +21,12 @@ import type { SessionBlock, SessionItem } from './session';
 import { activeSetlist, lastSession, loadProgress, recordSession } from './store';
 import type { Progress } from './store';
 import { accountMode, initSync, syncNow } from './sync';
-import type { InstrumentId, Song } from './types';
+import type { AudioKind, InstrumentId, Song } from './types';
 import { Player } from './youtube';
 import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';
 import { renderFilage } from './views/filage';
+import { renderFilageConfig } from './views/filage-config';
 import { renderSetlists } from './views/setlists';
 import { renderTrainer } from './views/trainer';
 
@@ -62,6 +64,7 @@ type SessionState = SessionScope &
 type FilageState = SessionScope & {
   order: Song[];
   instrumentId: InstrumentId;
+  audioKind: AudioKind;
   reached: Set<string>;
 };
 
@@ -137,18 +140,19 @@ function startSession(kind: 'deep' | 'urgent'): void {
   navigate('#/session');
 }
 
-function startFilage(instrumentId: InstrumentId): void {
-  const scope = scopeFromActiveSetlist();
+/** Morceaux du filage : l'ordre de la setlist (ordre de concert), pas l'ordre SRS. */
+function filageOrder(): Song[] {
   const set = activeSetlist(progress);
-  // Le filage suit l'ordre de la setlist (ordre de concert), pas l'ordre SRS.
-  const order = set
+  return set
     ? set.songIds
         .map((id) => songs.find((song) => song.id === id))
         .filter((song): song is Song => song !== undefined)
     : [...songs];
-  if (order.length === 0) return;
-  session = null;
-  filage = { ...scope, order, instrumentId, reached: new Set() };
+}
+
+/** Ouvre l'écran de préparation du filage (choix partition + bande). */
+function startFilage(): void {
+  if (filageOrder().length === 0) return;
   navigate('#/filage');
 }
 
@@ -284,11 +288,32 @@ function render(): void {
     return;
   }
 
-  if (hash === '#/filage' && filage) {
+  if (hash === '#/filage') {
+    const order = filageOrder();
+    if (order.length === 0) {
+      goHome();
+      return;
+    }
+    const scope = scopeFromActiveSetlist();
+    teardown = renderFilageConfig(root!, {
+      setlistName: scope.setlistName,
+      songCount: order.length,
+      navigateHome: goHome,
+      onStart: (instrumentId, audioKind) => {
+        session = null;
+        filage = { ...scope, order: filageOrder(), instrumentId, audioKind, reached: new Set() };
+        navigate('#/filage/run');
+      },
+    });
+    return;
+  }
+
+  if (hash === '#/filage/run' && filage) {
     teardown = renderFilage(root!, {
       player,
       order: filage.order,
       instrumentId: filage.instrumentId,
+      audioKind: filage.audioKind,
       setlistName: filage.setlistName,
       markReached: (id) => filage?.reached.add(id),
       navigateHome: goHome,
