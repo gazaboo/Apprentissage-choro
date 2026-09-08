@@ -251,7 +251,10 @@ function render(): void {
       gate: account === 'none',
       onChange: () => {
         progress = loadProgress();
-        render();
+        // Un identifiant vient d'être saisi/créé depuis la page compte : on
+        // ramène l'utilisateur au répertoire plutôt que de rester sur « Compte ».
+        if (hash === '#/compte' && accountMode() !== 'none') navigate('#/');
+        else render();
       },
       navigateHome: account === 'none' ? null : goHome,
     });
