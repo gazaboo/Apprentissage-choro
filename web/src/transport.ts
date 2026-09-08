@@ -3,8 +3,8 @@
  * L'application s'adresse à des musiciens, pas à des utilisateurs de clavier :
  * il n'y a aucun raccourci, et toute action doit se voir et s'atteindre au
  * doigt. La barre expose donc explicitement ce qui était autrefois caché
- * derrière des touches — source, vitesse, transposition, saut à froid, ghost
- * mode — auxquels s'ajoute la boucle A-B.
+ * derrière des touches — source, vitesse, transposition, saut à froid —
+ * auxquels s'ajoute la boucle A-B.
  *
  * Elle produit deux groupes de nœuds : `primary` (lecture, défilement,
  * vitesse), toujours visible, et `sections` (le reste), que la vue place dans
@@ -50,7 +50,6 @@ export function createTransport(options: TransportOptions): Transport {
 
   let source: AudioKind = song.audio.reference ? 'reference' : 'playback';
   let instrumentId: InstrumentId = song.instruments[0]!.id;
-  let ghost = false;
   let scrubbing = false;
   let duration = 0;
 
@@ -691,7 +690,7 @@ export function createTransport(options: TransportOptions): Transport {
     paintLoop();
   });
 
-  // --- Saut à froid et ghost mode -----------------------------------------
+  // --- Saut à froid -----------------------------------------------------
 
   const countdown = el('div', {
     class:
@@ -717,18 +716,6 @@ export function createTransport(options: TransportOptions): Transport {
         }, 600);
       }
     });
-  });
-
-  const ghostButton = el('button', { type: 'button', class: ui.button }, '👻 Écoute aveugle');
-  ghostButton.addEventListener('click', () => {
-    ghost = !ghost;
-    // Ghost mode : plus de position ni de durée. Sans repère visuel, on ne
-    // peut plus anticiper la structure — il faut écouter.
-    seekBar.classList.toggle('invisible', ghost);
-    currentLabel.classList.toggle('invisible', ghost);
-    durationLabel.classList.toggle('invisible', ghost);
-    ghostButton.className = ghost ? ui.buttonActive : ui.button;
-    ghostButton.textContent = ghost ? '👻 Écoute aveugle (active)' : '👻 Écoute aveugle';
   });
 
   // --- Sections secondaires -----------------------------------------------
@@ -760,12 +747,11 @@ export function createTransport(options: TransportOptions): Transport {
       body: el(
         'div',
         { class: 'flex flex-col gap-2' },
-        el('div', { class: 'flex flex-wrap gap-2' }, jumpButton, ghostButton),
+        el('div', { class: 'flex flex-wrap gap-2' }, jumpButton),
         el(
           'p',
           { class: 'text-[11px] leading-snug text-zinc-500' },
-          'Au hasard : reprise en plein morceau, après un décompte. ' +
-            'Aveugle : la position est cachée, il faut suivre à l’oreille.',
+          'Au hasard : reprise en plein morceau, après un décompte.',
         ),
       ),
     });
