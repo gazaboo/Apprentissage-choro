@@ -24,7 +24,7 @@ import {
   STUDY_MODE_LABELS,
   STUDY_MODES,
 } from '../types';
-import { Player } from '../youtube';
+import { formatTime, Player } from '../youtube';
 import { askSrs } from './srsModal';
 
 export interface TrainerContext {
@@ -157,12 +157,25 @@ export function renderTrainer(
 
   // --- Plein écran de la partition --------------------------------------
   //
-  // Un mode lecture : la partition prend tout l'écran, sans en-tête ni
-  // marges. La barre de transport continue de flotter par-dessus, et le
-  // voile des éclipses (z-20) reste au-dessus de tout. On y entre et on en
-  // sort d'un seul bouton — ou avec Échap.
+  // Un mode lecture : la partition prend tout l'écran. On règle son
+  // agrandissement, on la met en une ou deux colonnes (écran large), et l'on
+  // peut réduire la barre de transport à un lecteur minimal. On y entre et
+  // on en sort d'un bouton — ou avec Échap. Le voile des éclipses (z-20)
+  // reste au-dessus de tout.
+
+  const fpPrefs = progress.settings.fullpage;
+  const FP_ZOOM_MIN = 0.4;
+  const FP_ZOOM_MAX = 3;
+  const FP_ZOOM_STEP = 0.2;
+  const fpWide = window.matchMedia('(min-width: 1024px)');
 
   let fullpage = false;
+  let fpZoom = fpPrefs.zoom;
+  let fpTwoCol = fpPrefs.twoColumns;
+  let fpPlayerHidden = anySource && fpPrefs.playerHidden;
+
+  const fpIconButton = (glyph: string, aria: string): HTMLButtonElement =>
+    el('button', { type: 'button', class: ui.icon, 'aria-label': aria }, glyph);
 
   const fullpageEnter = el(
     'button',
@@ -171,31 +184,89 @@ export function renderTrainer(
   );
   const fullpageEnterRow = el('div', { class: 'flex justify-end' }, fullpageEnter);
 
-  const fullpageExit = el(
+  const fullpageExit = el('button', { type: 'button', class: ui.button }, '✕ Fermer');
+
+  const fpZoomOut = fpIconButton('−', 'Réduire la partition');
+  const fpZoomIn = fpIconButton('+', 'Agrandir la partition');
+  const fpZoomLabel = el(
     'button',
-    { type: 'button', class: ui.button },
-    '✕ Fermer',
+    {
+      type: 'button',
+      class: ui.chip,
+      'aria-label': 'Taille de la partition — toucher pour revenir à 100 %',
+    },
+    '100 %',
   );
-  const fullpageSlot = el('div', { class: 'flex flex-col gap-4 p-2 pb-52 sm:p-4' });
-  const fullpageOverlay = el(
+
+  const fpColumns = fpIconButton('▥', 'Une ou deux colonnes');
+  const fpColumnsSlot = el('div', { class: 'hidden' }, fpColumns);
+
+  const fpPlayerToggle = fpIconButton('▾', 'Réduire le lecteur');
+  if (!anySource) fpPlayerToggle.classList.add('hidden');
+
+  const fullpageBar = el(
     'div',
     {
       class:
-        'fixed inset-0 z-10 hidden overflow-y-auto overscroll-contain bg-zinc-950',
+        'flex shrink-0 flex-wrap items-center gap-2 border-b border-zinc-800 ' +
+        'bg-zinc-950 px-3 py-2 [padding-top:calc(env(safe-area-inset-top)+0.5rem)]',
     },
-    el(
-      'div',
-      {
-        class:
-          'sticky top-0 z-10 flex items-center justify-between gap-3 border-b ' +
-          'border-zinc-800 bg-zinc-950/90 px-4 py-2 backdrop-blur ' +
-          '[padding-top:calc(env(safe-area-inset-top)+0.5rem)]',
-      },
-      el('p', { class: 'min-w-0 truncate text-sm font-medium text-zinc-300' }, song.title),
-      fullpageExit,
-    ),
+    fullpageExit,
+    el('span', { class: 'min-w-0 flex-1 truncate text-sm text-zinc-500' }, song.title),
+    fpZoomOut,
+    fpZoomLabel,
+    fpZoomIn,
+    fpColumnsSlot,
+    fpPlayerToggle,
+  );
+
+  const fullpageSlot = el('div', { class: 'fp-slot p-2 pb-40 sm:p-4' });
+  const fullpageScroll = el(
+    'div',
+    { class: 'flex-1 overflow-auto overscroll-contain' },
     fullpageSlot,
   );
+  const fullpageOverlay = el(
+    'div',
+    { class: 'fixed inset-0 z-10 hidden flex-col bg-zinc-950' },
+    fullpageBar,
+    fullpageScroll,
+  );
+
+  // Lecteur minimal, visible seulement quand la barre complète est réduite.
+  const fpMiniIcon = el('span', { class: 'text-lg leading-none' }, '▶');
+  const fpMiniPlay = el(
+    'button',
+    {
+      type: 'button',
+      class:
+        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400 ' +
+        'pl-0.5 text-zinc-950',
+      'aria-label': 'Lecture ou pause',
+    },
+    fpMiniIcon,
+  );
+  fpMiniPlay.addEventListener('click', () => player.togglePlay());
+  const fpMiniTime = el('span', { class: 'font-mono text-xs text-zinc-300' }, '0:00');
+  const fpMiniExpand = fpIconButton('▴', 'Rouvrir le lecteur complet');
+  const fpMiniBar = el(
+    'div',
+    {
+      class:
+        'pointer-events-auto fixed right-0 bottom-0 z-30 m-3 hidden items-center gap-2 ' +
+        'rounded-full border border-zinc-700 bg-zinc-900/95 py-1.5 pr-2 pl-1.5 shadow-lg ' +
+        'shadow-black/40 backdrop-blur ' +
+        '[margin-bottom:calc(env(safe-area-inset-bottom)+0.75rem)]',
+    },
+    fpMiniPlay,
+    fpMiniTime,
+    fpMiniExpand,
+  );
+
+  const fpTickUnsub = player.onTick((tick) => {
+    fpMiniIcon.textContent = tick.playing ? '❚❚' : '▶';
+    fpMiniTime.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
+  });
 
   /** Là où la partition vit hors du plein écran, avec son bouton d'entrée. */
   const scoreHome = el(
@@ -205,6 +276,66 @@ export function renderTrainer(
     scoreContainer,
   );
 
+  function applyFpLayout(): void {
+    const cs = getComputedStyle(fullpageSlot);
+    const pad = parseFloat(cs.paddingLeft || '0') + parseFloat(cs.paddingRight || '0');
+    const cols = fpTwoCol && fpWide.matches ? 2 : 1;
+    const gap = 16;
+    // -1 px de marge : au facteur 1, deux pages plus la gouttière doivent tenir
+    // dans la largeur sans forcer un retour à la ligne (arrondis, sous-pixels).
+    const avail = Math.max(200, fullpageScroll.clientWidth - pad - 1);
+    const colWidth = (avail - (cols - 1) * gap) / cols;
+    const pageWidth = Math.max(140, Math.floor(colWidth * fpZoom));
+    fullpageSlot.style.setProperty('--fp-page', `${pageWidth}px`);
+    fpZoomLabel.textContent = `${Math.round(fpZoom * 100)} %`;
+    fpZoomOut.disabled = fpZoom <= FP_ZOOM_MIN + 1e-6;
+    fpZoomIn.disabled = fpZoom >= FP_ZOOM_MAX - 1e-6;
+    fpColumns.className = cols === 2 ? ui.iconActive : ui.icon;
+  }
+
+  function saveFp(): void {
+    fpPrefs.zoom = fpZoom;
+    fpPrefs.twoColumns = fpTwoCol;
+    fpPrefs.playerHidden = fpPlayerHidden;
+    saveProgress(progress);
+  }
+
+  function setFpZoom(next: number): void {
+    fpZoom = Math.min(FP_ZOOM_MAX, Math.max(FP_ZOOM_MIN, Math.round(next * 100) / 100));
+    applyFpLayout();
+    saveFp();
+  }
+  fpZoomOut.addEventListener('click', () => setFpZoom(fpZoom - FP_ZOOM_STEP));
+  fpZoomIn.addEventListener('click', () => setFpZoom(fpZoom + FP_ZOOM_STEP));
+  fpZoomLabel.addEventListener('click', () => setFpZoom(1));
+  fpColumns.addEventListener('click', () => {
+    fpTwoCol = !fpTwoCol;
+    applyFpLayout();
+    saveFp();
+  });
+
+  function applyFpPlayer(): void {
+    const mini = fullpage && fpPlayerHidden;
+    controlBar.root.classList.toggle('hidden', mini);
+    fpMiniBar.classList.toggle('hidden', !mini);
+    fpMiniBar.classList.toggle('flex', mini);
+    fpPlayerToggle.textContent = fpPlayerHidden ? '▴' : '▾';
+    fpPlayerToggle.className = `${fpPlayerHidden ? ui.iconActive : ui.icon}${
+      anySource ? '' : ' hidden'
+    }`;
+    fpPlayerToggle.setAttribute(
+      'aria-label',
+      fpPlayerHidden ? 'Rouvrir le lecteur complet' : 'Réduire le lecteur',
+    );
+  }
+  function setFpPlayer(shown: boolean): void {
+    fpPlayerHidden = anySource && !shown;
+    applyFpPlayer();
+    saveFp();
+  }
+  fpPlayerToggle.addEventListener('click', () => setFpPlayer(fpPlayerHidden));
+  fpMiniExpand.addEventListener('click', () => setFpPlayer(true));
+
   function setFullpage(on: boolean): void {
     if (on === fullpage) return;
     if (on && mode === 'sans') return;
@@ -212,13 +343,19 @@ export function renderTrainer(
     fullpageEnter.setAttribute('aria-pressed', String(on));
     document.body.style.overflow = on ? 'hidden' : '';
     fullpageOverlay.classList.toggle('hidden', !on);
+    fullpageOverlay.classList.toggle('flex', on);
     if (on) {
       fullpageSlot.appendChild(scoreContainer);
-      fullpageOverlay.scrollTop = 0;
+      applyFpLayout();
+      // Le conteneur vient d'apparaître : sa largeur n'est fiable qu'une fois
+      // la mise en page passée. On recalcule à la frame suivante.
+      requestAnimationFrame(applyFpLayout);
+      fullpageScroll.scrollTo(0, 0);
       fullpageExit.focus();
     } else {
       scoreHome.appendChild(scoreContainer);
     }
+    applyFpPlayer();
   }
   fullpageEnter.addEventListener('click', () => setFullpage(true));
   fullpageExit.addEventListener('click', () => setFullpage(false));
@@ -228,10 +365,19 @@ export function renderTrainer(
   };
   window.addEventListener('keydown', onFullpageKey);
 
+  const onFpViewport = (): void => {
+    fpColumnsSlot.classList.toggle('hidden', !fpWide.matches);
+    if (fullpage) applyFpLayout();
+  };
+  fpWide.addEventListener('change', onFpViewport);
+  window.addEventListener('resize', onFpViewport);
+
   /** Rien à agrandir en « Sans partition » : le bouton disparaît. */
   function paintFullpage(): void {
     fullpageEnterRow.classList.toggle('hidden', mode === 'sans');
     if (mode === 'sans') setFullpage(false);
+    onFpViewport();
+    applyFpPlayer();
   }
 
   // --- Comment travailler --------------------------------------------------
@@ -528,6 +674,7 @@ export function renderTrainer(
     ),
     controlBar.root,
     fullpageOverlay,
+    fpMiniBar,
     eclipseVeil,
   );
 
@@ -561,6 +708,9 @@ export function renderTrainer(
     eclipses.stop();
     player.clearCountdown();
     window.removeEventListener('keydown', onFullpageKey);
+    window.removeEventListener('resize', onFpViewport);
+    fpWide.removeEventListener('change', onFpViewport);
+    fpTickUnsub();
     document.body.style.overflow = '';
     transport.destroy();
     controlBar.destroy();

@@ -49,8 +49,23 @@ export interface Progress {
     eclipseIntensity: EclipseIntensity;
     /** Position du panneau de réglages, déplacé à la main. */
     panel: { x: number; y: number } | null;
+    /** Préférences du mode plein écran de la partition. */
+    fullpage: {
+      /** Facteur d'agrandissement des pages, de 0,4 à 3. */
+      zoom: number;
+      /** Deux pages côte à côte (sur écran large uniquement). */
+      twoColumns: boolean;
+      /** Barre de transport masquée au profit d'un lecteur minimal. */
+      playerHidden: boolean;
+    };
   };
 }
+
+export const DEFAULT_FULLPAGE = {
+  zoom: 1,
+  twoColumns: true,
+  playerHidden: false,
+};
 
 const DEFAULT_PROGRESS: Progress = {
   cards: {},
@@ -65,6 +80,7 @@ const DEFAULT_PROGRESS: Progress = {
     maskSeed: 1,
     eclipseIntensity: 'moyennes',
     panel: null,
+    fullpage: { ...DEFAULT_FULLPAGE },
   },
 };
 
@@ -220,6 +236,16 @@ function migrateSettings(
   ) {
     settings.panel = null;
   }
+
+  const fp = settings.fullpage as Partial<Progress['settings']['fullpage']> | undefined;
+  const zoom = Number(fp?.zoom);
+  settings.fullpage = {
+    zoom: Number.isFinite(zoom) && zoom >= 0.4 && zoom <= 3 ? zoom : DEFAULT_FULLPAGE.zoom,
+    twoColumns:
+      typeof fp?.twoColumns === 'boolean' ? fp.twoColumns : DEFAULT_FULLPAGE.twoColumns,
+    playerHidden:
+      typeof fp?.playerHidden === 'boolean' ? fp.playerHidden : DEFAULT_FULLPAGE.playerHidden,
+  };
 }
 
 export function saveProgress(progress: Progress): void {
