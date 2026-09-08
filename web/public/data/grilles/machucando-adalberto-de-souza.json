@@ -1,0 +1,58 @@
+{
+  "song_id": "machucando-adalberto-de-souza",
+  "title": "Machucando",
+  "composer": "Adalberto de Souza",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Fa, reprise) — C (Rém, reprise) — Coda (Dm)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["Dm"], ["A7"], ["A7/C#"], ["Dm"],
+        ["Dm"], ["Am"], ["E7"], ["A7"], ["Dm"],
+        ["A7/C#"], ["A7"], ["Dm", "D7/F#"], ["Gm"], ["Dm"],
+        ["Em7b5", "A7"]
+      ],
+      "endings": { "1": [["Dm"]], "2": [["Dm"]] }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "18–24",
+      "repeat": true,
+      "sequence": [
+        ["C7"], ["F"], ["C7"], ["F"],
+        ["A7"], ["Dm", "Bb6"], ["F/C", "C7"]
+      ],
+      "endings": { "1": [["F"]], "2": [["F"], ["A7"]] }
+    },
+    {
+      "name": "C",
+      "tonic": "Dm",
+      "bars": "27–43 (⊕)",
+      "repeat": true,
+      "sequence": [
+        ["Dm", "A7"], ["Dm"], ["Am/C"],
+        ["Bb"], ["F/A"], ["Gm6"], ["Dm/F"], ["E7"], ["A7"],
+        ["Dm"], ["Am/C"], ["Bb"], ["F/A"], ["Gm6"], ["Dm/F"],
+        ["E7"], ["A7"]
+      ],
+      "endings": { "1": [["Dm"], ["A7"]], "2": [["Dm"], ["A7"]] }
+    }
+  ],
+  "coda": [["Dm"]],
+  "notes": [
+    "Deux ⊕ : le premier (m. 15) au retour de Segno, le second (m. 27) ouvre la partie C ; Coda finale Dm.",
+    "Partie C : longue descente Dm – Am/C – Bb – F/A – Gm6 – Dm/F répétée.",
+    "m. 23 : Dm puis Bb6 ; m. 24 : F/C puis C7."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/machucando-adalberto-de-souza/c/page_1.webp",
+    "data/machucando-adalberto-de-souza/c/page_2.webp"
+  ]
+}

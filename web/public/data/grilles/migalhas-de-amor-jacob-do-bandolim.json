@@ -1,0 +1,57 @@
+{
+  "song_id": "migalhas-de-amor-jacob-do-bandolim",
+  "title": "Migalhas de amor",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Solm, reprise) — B (Sib/Dom, reprise) — Coda (Solm)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Gm",
+      "bars": "1–31 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["Gm"], ["Gm", "G/F"], ["Cm/Eb", "Cm/G"], ["D7/A", "D7/F#"],
+        ["Gm"], ["Gm", "G/F"], ["Cm/Eb", "Cm/G"], ["F7/A"],
+        ["Bb/D"], ["D7/F#"], ["Gm"], ["A7/E"],
+        ["D", "Bm"], ["Em", "A7"], ["D7"], ["Cm6/Eb", "D7"],
+        ["Gm"], ["Gm", "G/F"], ["Cm/Eb", "Cm/G"], ["D7/A", "D7/F#"],
+        ["Gm"], ["Gm", "G/F"], ["Cm/Eb", "Cm/G"], ["F7/A"],
+        ["Bb/D"], ["D7/F#"], ["Gm"], ["Ab"],
+        ["Gm"], ["A7/C#"], ["D7"]
+      ],
+      "endings": {
+        "1": [["Gm"], ["D7"]],
+        "2": [["Gm"], ["F7#5"]]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Bb / Cm",
+      "bars": "35–48",
+      "repeat": true,
+      "sequence": [
+        ["Bb", "Fm6/Ab"], ["G7"],
+        ["Cm", "G7"], ["Cm", "Cm/Bb"], ["F7/A"], ["F/Eb"],
+        ["Bb/D"], ["Bb", "F7"], ["Bb", "Fm6/Ab"], ["G7"],
+        ["Cm"], ["Ebm6/Gb"], ["Bb/F", "Gm"], ["Cm", "F7"]
+      ],
+      "endings": {
+        "1": [["Bb"], ["F7#5"]],
+        "2": [["Bb"], ["D7"]]
+      }
+    }
+  ],
+  "coda": [["Gm"], ["Cm6"], ["Gm6"]],
+  "notes": [
+    "« F7#5 » = F7(#5) ; « Fm6/Ab », « Ebm6/Gb » notés tels quels.",
+    "Beaucoup de mesures à deux accords et de triolets ornementaux : découpage approximatif.",
+    "Coda (⊕ m. 54) : Gm – Cm6 – Gm6 avec point d'orgue final."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/migalhas-de-amor-jacob-do-bandolim/c/page_1.webp",
+    "data/migalhas-de-amor-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

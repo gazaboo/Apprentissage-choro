@@ -1,0 +1,232 @@
+{
+  "description": "Grilles d'accords (transposition Ut/C) transcrites à la vue depuis data/<song>/c/page_*.webp. À vérifier — voir README.md.",
+  "generated": "2026-09-08",
+  "count": 19,
+  "songs": [
+    {
+      "song_id": "benzinho-jacob-do-bandolim",
+      "title": "Benzinho",
+      "composer": "Jacob do Bandolim",
+      "file": "benzinho-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "carioquinha-waldyr-azevedo",
+      "title": "Carioquinha",
+      "composer": "Waldir Azevedo",
+      "file": "carioquinha-waldyr-azevedo.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "cheguei-pixinguinha",
+      "title": "Cheguei",
+      "composer": "Pixinguinha / Benedito Lacerda",
+      "file": "cheguei-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "cochichando-pixinguinha",
+      "title": "Cochichando",
+      "composer": "Pixinguinha (versão Jacob do Bandolim)",
+      "file": "cochichando-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "diabinho-maluco-jacob-do-bandolim",
+      "title": "Diabinho maluco",
+      "composer": "Jacob do Bandolim",
+      "file": "diabinho-maluco-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "doce-de-coco-jacob-do-bandolim",
+      "title": "Doce de coco",
+      "composer": "Jacob do Bandolim",
+      "file": "doce-de-coco-jacob-do-bandolim.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "e-do-que-ha-luiz-americano",
+      "title": "É do que há",
+      "composer": "Luiz Americano",
+      "file": "e-do-que-ha-luiz-americano.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "machucando-adalberto-de-souza",
+      "title": "Machucando",
+      "composer": "Adalberto de Souza",
+      "file": "machucando-adalberto-de-souza.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "migalhas-de-amor-jacob-do-bandolim",
+      "title": "Migalhas de amor",
+      "composer": "Jacob do Bandolim",
+      "file": "migalhas-de-amor-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "naquele-tempo-pixinguinha",
+      "title": "Naquele tempo",
+      "composer": "Pixinguinha / Benedito Lacerda",
+      "file": "naquele-tempo-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "noites-cariocas-jacob-do-bandolim",
+      "title": "Noites cariocas",
+      "composer": "Jacob do Bandolim",
+      "file": "noites-cariocas-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "o-bom-filho-a-casa-torna-bonfiglio-de-oliveira",
+      "title": "O bom filho à casa torna",
+      "composer": "Bonfíglio de Oliveira",
+      "file": "o-bom-filho-a-casa-torna-bonfiglio-de-oliveira.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "o-corta-jaca-gaucho-chiquinha-gonzaga",
+      "title": "Gaúcho (O corta-jaca)",
+      "composer": "Chiquinha Gonzaga",
+      "file": "o-corta-jaca-gaucho-chiquinha-gonzaga.json",
+      "parts": [
+        "A",
+        "B (Trio)",
+        "pont"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "os-cinco-companheiros-pixinguinha",
+      "title": "Os cinco companheiros",
+      "composer": "Pixinguinha",
+      "file": "os-cinco-companheiros-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "receita-de-samba-jacob-do-bandolim",
+      "title": "Receita de samba",
+      "composer": "Jacob do Bandolim",
+      "file": "receita-de-samba-jacob-do-bandolim.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "santa-morena-jacob-do-bandolim",
+      "title": "Santa morena",
+      "composer": "Jacob do Bandolim",
+      "file": "santa-morena-jacob-do-bandolim.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "low"
+    },
+    {
+      "song_id": "sonoroso-k-ximbinho",
+      "title": "Sonoroso",
+      "composer": "K-Ximbinho / Del Loro",
+      "file": "sonoroso-k-ximbinho.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "tico-tico-no-fuba-zequinha-de-abreu",
+      "title": "Tico Tico no fubá",
+      "composer": "Zequinha de Abreu",
+      "file": "tico-tico-no-fuba-zequinha-de-abreu.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "vibracoes-jacob-do-bandolim",
+      "title": "Vibrações",
+      "composer": "Jacob do Bandolim",
+      "file": "vibracoes-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "medium"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "song_id": "o-corta-jaca-gaucho-chiquinha-gonzaga",
+  "title": "Gaúcho (O corta-jaca)",
+  "composer": "Chiquinha Gonzaga",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém) — Trio B (Fa, reprise) — D.C. al Coda (⊕ Dm)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–24",
+      "sequence": [
+        ["Dm", "Dm/F"], ["A7/E", "A7"], ["Dm", "Dm/F"], ["A7/E", "A7"],
+        ["Dm", "Dm/F"], ["A7/E", "A7"], ["Dm", "Dm/F"], ["A7/E", "A7"],
+        ["Dm", "Dm/F"], ["A7/E", "A7"], ["Dm", "Dm/F"], ["A7/E", "A7"],
+        ["D7"], ["Gm", "Gm/Bb"], ["A7"], ["Dm"],
+        ["D7"], ["Gm", "Gm/Bb"], ["A7"], ["Dm", "Dm/F"],
+        ["A7/E", "A7"], ["Dm", "Dm/F"], ["A7/E", "A7"], ["Dm"]
+      ]
+    },
+    {
+      "name": "B (Trio)",
+      "tonic": "F",
+      "bars": "25–42",
+      "repeat": true,
+      "sequence": [
+        ["C7/E"], ["C7/E", "C7"], ["F"], ["F"], ["C7/E"], ["C7/E"],
+        ["F/C", "F"], ["F"], ["C7/E", "C7"], ["C7"], ["F"], ["F"]
+      ],
+      "endings": {
+        "1": [["Dm", "Dm/F"], ["Dm"], ["A7"], ["A7"]],
+        "2": [["Gm/D", "Gm"], ["C7", "C7/E"]]
+      }
+    },
+    {
+      "name": "pont",
+      "tonic": "F",
+      "bars": "43–44",
+      "sequence": [["F"], ["A7"]]
+    }
+  ],
+  "coda": [["Dm", "Dm/F"], ["A7/E", "A7"]],
+  "notes": [
+    "« % » dans la partition = mesure identique à la précédente (répétées ici explicitement).",
+    "Partie A : balancement quasi constant Dm/Dm-F puis A7/E–A7, deux accords par mesure.",
+    "« D.C. e Coda » : après le Trio, retour au début (partie A) puis saut à la Coda (⊕) — Dm Dm/F | A7/E A7.",
+    "Chiffrages très réguliers, alignement plutôt fiable pour ce morceau."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/o-corta-jaca-gaucho-chiquinha-gonzaga/c/page_1.webp"
+  ]
+}

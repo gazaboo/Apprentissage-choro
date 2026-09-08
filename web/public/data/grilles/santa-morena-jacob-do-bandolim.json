@@ -1,0 +1,68 @@
+{
+  "song_id": "santa-morena-jacob-do-bandolim",
+  "title": "Santa morena",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "3/4",
+  "genre": "valsa",
+  "form": "Intro — A (Rém, reprise) — B (Rém, reprise) — Coda",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "Dm",
+      "bars": "1–22",
+      "sequence": [
+        ["A7"], [], [], [], ["Bb"], [],
+        ["A7"], [], [], ["Bb"], [],
+        [], ["A7"], ["Gm6/Bb"], ["A7"], ["Gm6/Bb"],
+        ["A7"], [], [], [], ["A7"], ["A7/E"]
+      ]
+    },
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "23–52 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["A7/C#"], ["A7/E"], ["Dm"], ["Dm/F"],
+        ["C7"], ["C7/E"], ["F"], ["D7/F#"], ["Gm"],
+        ["Gm/Bb"], ["Dm/A"], [], ["E7"], ["E/D"],
+        ["A7/C#"], ["Gm/Bb"], ["A7"], ["A/G"], ["Dm/F"],
+        ["Dm"], ["C7/E"], ["C7"], ["F6"], ["D7"],
+        ["Gm"], ["Gm/Bb"], ["Dm/A"], ["Dm/F"], ["Gm/Bb"], ["A7"]
+      ],
+      "endings": { "1": [["Dm"], []], "2": [["Dm"], []] }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "57–87",
+      "repeat": true,
+      "sequence": [
+        ["C7"], ["C7"], ["F"], ["F"], ["A7"],
+        [], ["Dm"], ["D7"], ["Gm"], ["Gm"],
+        ["Dm/F"], ["Dm/F"], ["C7"], ["Bb7"], ["A7"],
+        ["C7"], ["C7"], ["F"], ["F"], ["F"],
+        ["A7"], ["A7"], ["Dm/F"], ["D7"], ["Gm"],
+        ["Dm/F"], ["Dm/F"], ["Bb7"], ["A7"], ["A7"],
+        ["Dm"]
+      ],
+      "endings": { "1": [["Dm"]], "2": [["Dm"]] }
+    }
+  ],
+  "coda": [
+    ["Dm"], ["C7"], ["Bb7"], ["A7"], ["Dm"],
+    ["C7"], ["Bb7"], ["A7"], ["Dm", "A7"], ["Dm"]
+  ],
+  "notes": [
+    "VALSE à 3/4 (et non 2/4 comme les autres pièces du répertoire).",
+    "Intro (mm. 1-22) : accords rares, longues pédales — les cases vides tiennent l'accord précédent.",
+    "Coda (⊕ m. 90) : cadence Dm – C7 – Bb7 – A7 répétée puis résolution.",
+    "Pièce longue (100 mesures) ; découpage approximatif, surtout dans la partie B très ornementée."
+  ],
+  "confidence": "low",
+  "source": [
+    "data/santa-morena-jacob-do-bandolim/c/page_1.webp",
+    "data/santa-morena-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

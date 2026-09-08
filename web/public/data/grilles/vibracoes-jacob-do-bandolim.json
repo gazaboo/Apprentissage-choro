@@ -1,0 +1,53 @@
+{
+  "song_id": "vibracoes-jacob-do-bandolim",
+  "title": "Vibrações",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém) — B (Fa, reprise) — D.S. al Coda (⊕ Bb7 – Gm6 – D6)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–30 (Segno)",
+      "sequence": [
+        ["Dm", "A7/E"], ["Dm/F", "D7/F#"], ["Gm", "D7/A"],
+        ["Gm/Bb"], ["A7/C#"], ["A7"], ["Dm/F"],
+        ["Dm"], ["Cm6/Eb"], ["D7/F#"], ["A dim"],
+        ["Gm"], ["E7/G#"], ["E7"], ["Gm6"],
+        ["A7"], ["Cm6/Eb"], ["D7"], ["G7"], [],
+        ["Bbm6/Db"], ["C7", "C7/E"], ["F"], ["F", "D7/F#"], ["Gm"],
+        ["Gm6/Bb", "A7/E"], ["Dm/F"], ["Dm"], ["Gm"], ["A7"]
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "33–63",
+      "repeat": true,
+      "sequence": [
+        ["F"], ["F"], ["A7"],
+        ["A7"], ["Dm"], ["Dm"], ["Cm7"], ["F7"],
+        ["Bb/D"], ["Bbm6/D"], ["F/C"], ["Dm"], ["G7"],
+        ["G7"], ["C/Bb"], ["Bbm/Db", "C7"], ["F"], ["F/A"],
+        ["A7/C#"], ["A7"], ["Dm"], ["Dm"], ["Cm7"],
+        ["F7"], ["F7"], ["Bb/D"], ["Bbm6/D"], ["F/C"], ["A7", "D7/F#", "G7"],
+        ["Bbm6/Db", "C7"], ["F"]
+      ],
+      "endings": { "1": [["F"]], "2": [["F"]] }
+    }
+  ],
+  "coda": [["Bb7"], ["Gm6"], ["D6"]],
+  "notes": [
+    "Source : Projeto Mão na Roda (mise en page différente des autres).",
+    "Partie A : ⊕ vers la m. 25 ; « A° » = La diminué.",
+    "Coda (⊕ m. 66) : Bb7 – Gm6 – D6, « ad libitum » puis « Fim » (accord final surprenant en Ré majeur 6).",
+    "m. 61 : trois accords resserrés A7 – D7/F# – G7.",
+    "Mesures à deux accords fréquentes (basses chromatiques) ; alignement approximatif."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/vibracoes-jacob-do-bandolim/c/page_1.webp",
+    "data/vibracoes-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

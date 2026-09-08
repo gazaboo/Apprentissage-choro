@@ -1,0 +1,65 @@
+{
+  "song_id": "e-do-que-ha-luiz-americano",
+  "title": "É do que há",
+  "composer": "Luiz Americano",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Lam) — B (Lam) — D.S. — Coda 1 = C (La) — D.S. — Coda 2 (Lam)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Am",
+      "bars": "1–31 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["Am", "E7/G#"], ["Am/G", "A7/C#"], ["Dm/F", "A7/E"], ["Dm", "Dm/C"],
+        ["E7/B"], ["E7/D", "E7/B"], ["Am"], ["E7"],
+        ["Am"], ["Am"], ["Am/G", "B7/F#"], ["B7", "Dm6/F"],
+        ["E7"], ["E7/G#"], ["Am"], ["Bm7b5", "E7"],
+        ["Am", "E7/G#"], ["Am/G", "A7/C#"], ["Dm/F", "A7/E"], ["Dm", "Dm/C"], ["E7/B"],
+        ["E7/D", "E7/B"], ["Gm6/Bb"], ["A7", "A7/G"], ["Dm/F"],
+        ["Dm", "Bm7b5"], ["Am/C"], ["Am", "Am/G"], ["B7/F#", "Dm6/F"],
+        ["E7"], ["Am"]
+      ],
+      "endings": { "1": [["E7"]], "2": [["Am"]] }
+    },
+    {
+      "name": "B",
+      "tonic": "Am",
+      "bars": "34–48",
+      "repeat": true,
+      "sequence": [
+        ["E7/G#"], ["E7"], ["Am"], ["E7/B", "Am/C"],
+        ["Gm6/Bb"], ["A7"], ["Dm", "A7/E"], ["Dm/F"], ["Dm"],
+        ["Bm7b5"], ["Am/C"], ["Am", "Am/G"], ["B7", "Dm6/F"],
+        ["E7"], ["Am"]
+      ],
+      "endings": { "1": [["Am"]], "2": [["Am"], ["E7"]] }
+    },
+    {
+      "name": "C",
+      "tonic": "A",
+      "bars": "51–66",
+      "repeat": true,
+      "sequence": [
+        ["E7"], ["A/C#"], [], ["B7"],
+        ["B7", "B/A"], ["E7/G#"], ["E7"], ["A"],
+        ["A/C#"], ["A", "Em6/G"], ["F#7"], ["Bm"],
+        ["G7"], ["A", "F#m"], ["B7", "E7"], ["A"]
+      ],
+      "endings": { "1": [["E7"]], "2": [["A"], ["E7"]] }
+    }
+  ],
+  "coda": [["Am"], ["Am(maj7)"]],
+  "notes": [
+    "Structure à double Segno/Coda : « Ao Segno e Coda 1 » puis « Ao Segno e Coda 2 ».",
+    "Coda 1 = partie C en La majeur (3 dièses) ; Coda 2 = deux mesures Am – Am(maj7).",
+    "« Bm7(b5) » = Bm7b5 ; « Am7M » = Am(maj7).",
+    "Presque toutes les mesures portent deux accords (basse chromatique très mobile) : alignement approximatif."
+  ],
+  "confidence": "low",
+  "source": [
+    "data/e-do-que-ha-luiz-americano/c/page_1.webp",
+    "data/e-do-que-ha-luiz-americano/c/page_2.webp"
+  ]
+}

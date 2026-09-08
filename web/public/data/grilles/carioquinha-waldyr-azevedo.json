@@ -1,0 +1,64 @@
+{
+  "song_id": "carioquinha-waldyr-azevedo",
+  "title": "Carioquinha",
+  "composer": "Waldir Azevedo",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro — A (Rém, reprise) — B (Ré, reprise) — Coda",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "Dm",
+      "bars": "1–5",
+      "sequence": [["Dm"], ["Dm"], ["Bb7"], ["Bb7"], ["A7"]]
+    },
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "6–35 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["Dm"], ["Dm"], ["Dm"], ["Dm"],
+        ["Dm", "D7"], ["Gm", "Gm(maj7)"], ["Gm7", "Gm6"], ["Gm", "Gm(maj7)"],
+        ["Gm7", "Gm6"], ["A7"], ["A7"], ["A/G"], ["Dm/F"],
+        ["E7/B"], ["E7/B"], ["A7"], ["A7"],
+        ["Dm"], ["Dm"], ["Dm"], ["D7"],
+        ["Gm", "Gm(maj7)"], ["Gm7", "Gm6"], ["Gm", "Gm(maj7)"], ["Gm7", "Gm6"],
+        ["A7"], ["A7"], ["Dm"], ["Dm"], ["Eb"]
+      ],
+      "endings": {
+        "1": [["A7"], ["Dm"], ["A7"]],
+        "2": [["A7"], ["Dm"], ["A7"]]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "D",
+      "bars": "41–72",
+      "repeat": true,
+      "sequence": [
+        ["D"], ["D"], ["E7/G#"], [], ["A7"],
+        [], ["D/F#"], ["D"], ["D"],
+        [], ["E7"], ["E7"], ["A7"], ["A7"],
+        ["D"], ["D"], ["D"], ["D"], ["E7/G#"],
+        [], ["A7"], ["A7"], ["D/F#"], ["D/F#"],
+        ["D7"], ["D7"], ["G"], ["Gm6"],
+        ["Eb"], ["A7"], ["Dm", "Gm6"], ["Dm", "A7"]
+      ]
+    }
+  ],
+  "coda": [["Dm"], ["Dm"], ["Dm"], ["Bb7"], ["A7"], ["Bm"]],
+  "notes": [
+    "Beaucoup de mesures à deux accords (Gm / Gm(maj7) / Gm7 / Gm6 en descente) : découpage régulier supposé, à vérifier.",
+    "« Gm7M » du manuscrit = Gm(maj7).",
+    "Partie B en Ré majeur (2 dièses) ; retour vers Rém aux mm. 69-72.",
+    "Coda (⊕ m. 73) : la dernière mesure lue est « Bm » avec point d'orgue — chiffrage inhabituel, à confirmer (peut-être Bb ou fin sur reprise).",
+    "Page 2 quasi vide : seulement la fin de la partie A (⊕ + 1re/2e fins)."
+  ],
+  "confidence": "low",
+  "source": [
+    "data/carioquinha-waldyr-azevedo/c/page_1.webp",
+    "data/carioquinha-waldyr-azevedo/c/page_2.webp",
+    "data/carioquinha-waldyr-azevedo/c/page_3.webp"
+  ]
+}

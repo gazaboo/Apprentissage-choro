@@ -1,0 +1,73 @@
+{
+  "song_id": "tico-tico-no-fuba-zequinha-de-abreu",
+  "title": "Tico Tico no fubá",
+  "composer": "Zequinha de Abreu",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Lam) — B (La) — Coda C (Do)  [rondó A-B-A-C-A]",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Am",
+      "bars": "1–20",
+      "repeat": true,
+      "sequence": [
+        ["Am"], [], ["E7/G#"], ["E7"],
+        ["Am"], ["Am/C"], ["E7/B"], ["E7", "E/D"],
+        ["Dm"], ["Dm/F"], ["Am/E"], ["B7", "E7"],
+        ["Am"], ["Am/C"], ["E7/B"], ["E7", "E/D"],
+        ["Dm/F"], ["Am/E"], ["E7/B"], ["E7/G#"]
+      ],
+      "endings": {
+        "1": [["Am"]],
+        "2": [["Am"]]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "A",
+      "bars": "21–38",
+      "repeat": true,
+      "sequence": [
+        ["A"], [], ["A", "A#dim"], [],
+        ["E7/B"], ["E7/G#"], ["E7"], ["C dim"],
+        ["A/C#"], ["A"], ["F#7"], ["F#7/A#"],
+        ["Bm7"], ["Bm/D"], ["Bm/D", "D#dim"], ["A/E", "F#m7"],
+        ["Bm"], ["E7"]
+      ],
+      "endings": {
+        "1": [["A"]],
+        "2": [["A"]]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "C",
+      "bars": "39–58",
+      "repeat": true,
+      "sequence": [
+        ["Am", "E7", "Am"], ["C"], ["C", "C#dim"], ["G7/D"],
+        ["G7"], ["G7/B"], ["C"], ["C", "C#dim"],
+        ["G7/D"], ["G7"], ["G/F"], ["C/E"],
+        ["C"], ["C", "C#dim"], ["G7/D"], ["G7", "G7/B"],
+        ["C", "C/E"], ["Dm/F", "F#dim"], ["C/G"], ["G7/D", "G7"]
+      ],
+      "endings": {
+        "1": [["C"]],
+        "2": [["C"]]
+      }
+    }
+  ],
+  "notes": [
+    "Forme rondó : A-B-A-C-A par le Segno et la Coda (« Ao Segno e Coda », « Ao Segno e FIM »).",
+    "Partie A : changement d'armure à la partie B (La majeur, 3 dièses), puis Coda en Do majeur.",
+    "mm. 17-20 : passage arpégé, peu de chiffrages — Dm/F, Am/E, E7/B, E7/G# supposés d'après la ligne de basse.",
+    "Plusieurs mesures à deux accords (marches chromatiques E7→E/D, G7→G7/B) : alignement approximatif.",
+    "Accords diminués notés « X dim » (le manuscrit utilise le petit rond °)."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/tico-tico-no-fuba-zequinha-de-abreu/c/page_1.webp",
+    "data/tico-tico-no-fuba-zequinha-de-abreu/c/page_2.webp"
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "song_id": "sonoroso-k-ximbinho",
+  "title": "Sonoroso",
+  "composer": "K-Ximbinho / Del Loro",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém) — B (Fa) — D.C. al Coda 1 = C (Ré) — D.C. al Coda 2 (Dm)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–15",
+      "repeat": true,
+      "sequence": [
+        ["Dm"], ["Eb"], ["A7"], ["Dm", "A7"],
+        ["Dm", "Bm7b5"], ["A"], ["E7"], ["A7"],
+        ["Dm"], ["Eb"], ["A7"], ["Cm6", "D7"],
+        ["Gm", "Gm6"], ["Dm"], ["E7", "A7"]
+      ],
+      "endings": { "1": [["Dm"]], "2": [["Dm"]] }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        ["C7"], ["F"], ["Em7b5", "A7"], ["Cm6/G", "D7/F#"], ["Gm", "G#dim"],
+        ["F/A"], ["G7"], ["C7"], ["C7"],
+        ["F"], ["Em7b5", "A7"], ["Cm6/G", "D7/F#"], ["Gm", "G#dim"],
+        ["F/A", "D7"], ["Gm", "C7"]
+      ],
+      "endings": { "1": [["F"]], "2": [["F"], ["A7"]] }
+    },
+    {
+      "name": "C",
+      "tonic": "D",
+      "bars": "35–52 (Coda 1)",
+      "repeat": true,
+      "sequence": [
+        ["Dm", "A7"], ["D"], ["D"], ["D/F#", "Fdim"],
+        ["Em"], ["C#m7b5", "F#7"], ["Bm", "Bm/A"], ["E7/G#"],
+        ["A7"], ["D"], ["D"], ["Am7", "D7"],
+        ["G"], ["G", "Gm6"], ["D/A", "Bm7"], ["E7", "A7"]
+      ],
+      "endings": { "1": [["D", "A7"]], "2": [["D", "A7"]] }
+    }
+  ],
+  "coda": [["Dm"]],
+  "notes": [
+    "Double structure D.C. : « D.C. e Coda 1 » puis « D.C. e Coda 2 ».",
+    "Coda 1 = partie C en Ré majeur (2 dièses) ; Coda 2 = brève cadence sur Dm.",
+    "« Bm7(b5) », « C#m7(b5) », « Em7(b5) » = accords m7b5 ; « G#° », « F° » = diminués.",
+    "mm. 20-21 et 29-30 : suites d'accords resserrées Em7b5–A7–Cm6/G–D7/F#."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/sonoroso-k-ximbinho/c/page_1.webp",
+    "data/sonoroso-k-ximbinho/c/page_2.webp"
+  ]
+}

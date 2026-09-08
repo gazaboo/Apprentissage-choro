@@ -1,0 +1,64 @@
+{
+  "song_id": "noites-cariocas-jacob-do-bandolim",
+  "title": "Noites cariocas",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Sol, reprise) — B (Do/modulante, reprise) — Coda C (Sol, reprise)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "G",
+      "bars": "1–31 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["G6"], [], ["C#dim"], [], [],
+        ["G6"], ["G6"], ["E7/G#", "Am"], ["E7/B", "Am/C"], ["Am", "Am(maj7)"],
+        ["Am7"], ["D7"], ["D7"], ["D7#5"], ["D7#5"],
+        ["G", "Em7"], ["Am7", "D7"], ["G6"], ["G6"], ["C#dim"],
+        [], ["G6"], ["E7"], ["Am", "E7/B"], ["Am/C"],
+        ["C"], ["Bbdim"], ["G6"], ["E7"], ["A7"],
+        ["D7"]
+      ],
+      "endings": { "1": [["G6"], ["D7"]], "2": [["G6"]] }
+    },
+    {
+      "name": "B",
+      "tonic": "C (modulante)",
+      "bars": "36–65",
+      "repeat": true,
+      "sequence": [
+        ["G7"], ["G7"], ["C"], ["C"], ["A7/C#"],
+        [], ["Dm"], ["Dm"], ["F6"], ["F#dim"],
+        ["C/G"], ["Am", "B7"], ["E", "C#m7"], ["F#m7", "B7"],
+        ["E"], ["G7"], ["G7"], ["G7"], ["C"],
+        [], ["A7/C#"], ["A7/C#"], ["Dm"], ["Dm"],
+        ["F6"], ["Ebdim"], ["E7", "E/D"], ["A7/C#", "A7"], ["Dm"], ["G7"]
+      ],
+      "endings": { "1": [["C"]], "2": [["C"], ["C#7"], ["D7"]] }
+    },
+    {
+      "name": "C",
+      "tonic": "G",
+      "bars": "70–80 (⊕)",
+      "repeat": true,
+      "sequence": [
+        ["G"], ["G"], ["Gdim"], ["Gdim"],
+        ["G", "F#7"], ["F7"], ["E7"], ["A7"],
+        ["D7"], ["G"]
+      ],
+      "endings": { "1": [], "2": [["Gdim", "G"]] }
+    }
+  ],
+  "notes": [
+    "Partie C : ligne diminuée montante caractéristique (G – Gdim – … – G).",
+    "Partie B très modulante (E majeur, do# mineur) : chiffrages et alignement peu sûrs.",
+    "Beaucoup de mesures à deux accords, triolets et sextolets ornementaux.",
+    "Découpage des mesures approximatif sur toute la pièce (peu de repères de barres fiables)."
+  ],
+  "confidence": "low",
+  "source": [
+    "data/noites-cariocas-jacob-do-bandolim/c/page_1.webp",
+    "data/noites-cariocas-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

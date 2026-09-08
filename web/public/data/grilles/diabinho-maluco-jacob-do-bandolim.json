@@ -1,0 +1,65 @@
+{
+  "song_id": "diabinho-maluco-jacob-do-bandolim",
+  "title": "Diabinho maluco",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Sol, reprise) — B (Mim, reprise) — C (Do→Sol, reprise) — Coda ad libitum",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "G",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["G6"], ["D7/A", "G6/B"], ["G6", "E7"],
+        ["Am7"], ["B7/D#", "B7"], ["Em"], ["A7/C#", "A7"],
+        ["D7"], ["G6", "D7/A"], ["G6/B"], ["G/F"],
+        ["C/E"], ["C", "A7/C#"], ["G6/D", "E7"], ["Am7", "D7"]
+      ],
+      "endings": { "1": [["G6"]], "2": [["G6"]] }
+    },
+    {
+      "name": "B",
+      "tonic": "Em",
+      "bars": "18–34",
+      "repeat": true,
+      "sequence": [
+        ["B7/D#", "B7"], ["Em"], ["E7/G#", "E7"], ["Am"],
+        ["Am/C", "Am6"], ["Em/B"], ["F#7"], ["B7"],
+        ["B7/D#", "B7"], ["Em"], ["E7/G#", "E7"], ["Am"],
+        ["Am/C", "Am6"], ["Em/B"], ["F#7"], ["B7"]
+      ],
+      "endings": { "1": [["Em"]], "2": [["Em"], ["D7"]] }
+    },
+    {
+      "name": "C",
+      "tonic": "C → G",
+      "bars": "35–52",
+      "repeat": true,
+      "sequence": [
+        ["G6"],
+        ["C", "E7/B"], ["Am", "C7/G"], ["F6", "A7/E"],
+        ["Dm"], ["Dm", "G7"], ["C"], ["D7/F#", "D7"],
+        ["G7"], ["C", "E7/B"], ["Am", "C7/G"], ["F6", "A7/E"],
+        ["Dm"], ["F6", "D7/F#"], ["C/E", "Am7"], ["D7", "G7"]
+      ],
+      "endings": { "1": [["C"], ["G7"]], "2": [["C"], ["D7"]] }
+    }
+  ],
+  "coda": [
+    ["G", "G/F"],
+    ["C/E", "A7/C#"], ["G6/D", "E7"], ["Am7", "D7"], ["G", "G/F"]
+  ],
+  "coda_note": "vamp final répété « ad libitum » : C/E – A7/C# – G6/D – E7 – Am7 – D7 – G – G/F",
+  "notes": [
+    "Beaucoup de mesures à deux accords (basse chromatique) : découpage approximatif.",
+    "Deux signes ⊕ : Coda menant à la partie C (m. 35), puis Coda finale (m. 53).",
+    "Armure à 1 dièse (Sol) tout du long ; parties A/C en Sol, B en Mi mineur, C tonicisée en Do."
+  ],
+  "confidence": "low",
+  "source": [
+    "data/diabinho-maluco-jacob-do-bandolim/c/page_1.webp",
+    "data/diabinho-maluco-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

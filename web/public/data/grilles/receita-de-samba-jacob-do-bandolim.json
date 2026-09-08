@@ -1,0 +1,64 @@
+{
+  "song_id": "receita-de-samba-jacob-do-bandolim",
+  "title": "Receita de samba",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro — A (Sol, reprise) — B (Mim, reprise) — Coda",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "G",
+      "bars": "1–7",
+      "sequence": [["C"], ["C#dim"], ["G"], ["F7"], ["E7"], ["A7"], ["D7"]]
+    },
+    {
+      "name": "A",
+      "tonic": "G",
+      "bars": "8–40 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["G"], ["G"], ["G"], ["Cm6/Eb"], ["Cm6"],
+        ["G"], ["G"], ["Cm6"], ["G/F"], ["G/F"],
+        ["G7/B"], ["C"], ["C"], ["A7/C#"], ["A/G"],
+        ["D7/F#"], ["D7#5"], ["G"], ["G"], ["Cm6"],
+        [], ["G"], ["G", "G(#5)"], ["C"], ["E7/G#"],
+        ["Am"], ["Bbdim"], ["G/B"], ["E7", "E/D"],
+        ["Am/C", "Am"], ["D7/F#", "D7"], ["G"], ["D7"]
+      ],
+      "endings": { "1": [["G"]], "2": [["G"]] }
+    },
+    {
+      "name": "B",
+      "tonic": "Em",
+      "bars": "42–72",
+      "repeat": true,
+      "sequence": [
+        ["B7/D#"], ["B7/F#"], ["Em/G"], ["Em/B"],
+        ["E7/G#"], ["E7/B"], ["Am/C"], ["Am/E"], ["Am6/C"],
+        ["Am6", "F#m7b5"], ["Em/G"], ["Em/G"], ["F#7"], ["F#7"],
+        ["B7/D#"], ["B7"], ["B7/D#"], ["B7/F#"],
+        ["Em/G"], ["Em/B"], ["E7/G#"], ["E7/B"],
+        ["Am/C"], ["Am/E"], ["Am6/C"], ["Am6", "F#m7b5"], ["Em/G"],
+        ["Em", "Em/D"], ["F#7/C#"], ["Am6/C", "B7"]
+      ],
+      "endings": { "1": [["Em"]], "2": [["Em"], ["D7"]] }
+    }
+  ],
+  "coda": [
+    ["Am/C"], ["D7/F#"], ["Dm6/F"], ["E7", "E/D"], ["Am/C"], ["C#dim"], ["G/D"],
+    ["E7", "E7/G#"], ["Am"], ["D7/F#", "D7"], ["G"]
+  ],
+  "notes": [
+    "Intro : 7 mesures d'accords tenus (blanches), enchaînement C – C#dim – G – F7 – E7 – A7 – D7.",
+    "Partie B : basse chromatique très mobile, presque toutes les mesures à deux accords (Am/C, Am/E, Am6/C…). Alignement très approximatif.",
+    "Coda (⊕ m. 77) après le D.S.",
+    "« G(#5) » = G augmenté ; « F#m7(b5) » = F#m7b5.",
+    "Pièce longue (89 mesures) et dense : confiance faible sur le découpage."
+  ],
+  "confidence": "low",
+  "source": [
+    "data/receita-de-samba-jacob-do-bandolim/c/page_1.webp",
+    "data/receita-de-samba-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

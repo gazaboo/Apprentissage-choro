@@ -1,0 +1,62 @@
+{
+  "song_id": "cochichando-pixinguinha",
+  "title": "Cochichando",
+  "composer": "Pixinguinha (versão Jacob do Bandolim)",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Fa, reprise) — Coda C (Ré, reprise) → Dm",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        ["Dm"], ["Em7b5"], ["A7"], ["Dm"],
+        ["Dm", "Bm7b5"], ["Am"], ["E7"], ["A7"],
+        ["Dm"], ["Em7b5"], ["A7", "D7"], [],
+        ["Gm", "Em7b5"], ["Dm"], ["E7", "A7"]
+      ],
+      "endings": { "1": [["Dm"]], "2": [["Dm"]] }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        ["F", "D7"], ["Gm"], ["C7"],
+        ["F"], ["A7"], ["Dm"], ["G7"], ["C7"],
+        ["Am7b5", "D7"], ["Gm"], ["Bm7b5", "E7"], ["Am"], ["Bb", "Bbm6"],
+        ["F", "Dm7"], ["Gm7", "C7"]
+      ],
+      "endings": { "1": [["F"]], "2": [["F"], ["A7"]] }
+    },
+    {
+      "name": "C",
+      "tonic": "D",
+      "bars": "36–52 (⊕)",
+      "repeat": true,
+      "transition_in": [["Dm"]],
+      "sequence": [
+        ["D6"], ["D6"], ["D6"], ["D6"], ["D#dim"], ["A7"],
+        ["F#7"], ["B7"], ["E7"], ["A7"], ["D6"],
+        ["D7"], ["G"], ["Gm6"], ["D", "Fdim"],
+        ["Em7", "A7"]
+      ],
+      "endings": { "1": [["D"]], "2": [["D"], ["A7"]] }
+    }
+  ],
+  "coda": [["Dm"]],
+  "notes": [
+    "Coda (⊕ m. 35) : mesure de transition Dm, changement d'armure vers Ré majeur (2 dièses) pour la partie C ; l'ultime mesure revient sur Dm.",
+    "« Em7(b5) », « Bm7(b5) », « Am7(b5) » = accords m7b5 ; « D#dim », « Fdim » = diminués.",
+    "mm. 5, 11, 13, 26, 28, 30-32 : deux accords par mesure."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/cochichando-pixinguinha/c/page_1.webp",
+    "data/cochichando-pixinguinha/c/page_2.webp",
+    "data/cochichando-pixinguinha/c/page_3.webp"
+  ]
+}

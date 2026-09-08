@@ -1,0 +1,62 @@
+{
+  "song_id": "benzinho-jacob-do-bandolim",
+  "title": "Benzinho",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (reprise) — B (reprise) — D.S. al Coda (Dm)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–32",
+      "repeat": true,
+      "sequence": [
+        ["Dm"], ["Dm/F"], ["Dm"], ["A7/E", "A7/C#"],
+        ["Bb7"], ["Bb/Ab"], ["A7"], ["F7", "E7", "Eb7", "D7"],
+        ["D7"], ["D7/F#"], ["Gm"], ["Gm/Bb", "Gm"],
+        ["E7/G#"], ["E7"], ["A7"], [],
+        ["Dm"], [], ["A7"], ["A7/C#"],
+        ["Bb7"], ["Bb/Ab"], ["A7"], ["F7", "E7", "Eb7", "D7"],
+        ["D7"], ["D7"], ["D/C"], ["Gm/Bb", "Em7b5"],
+        ["Dm/F"], ["Bb7"], ["Eb"], ["A7"]
+      ],
+      "endings": {
+        "1": [["Dm"], ["A7"]],
+        "2": [["Dm"], ["C7"]]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "35–66",
+      "repeat": true,
+      "sequence": [
+        ["F"], ["F#dim"], ["C7/G"], [],
+        ["Gm"], ["G#dim"], ["F/A"], ["F"],
+        ["F7"], ["Eb7"], ["D7", "D/C"], ["G7/B", "G7"],
+        ["C7"], ["C7"], ["C/Bb"], ["F/A"],
+        ["F/C", "F"], ["F#dim"], ["C7/G"], [],
+        ["Gm"], ["A7"], ["Dm"], ["D7"],
+        ["Gm"], ["G#dim"], ["F7", "E7", "Eb7"], ["D7"],
+        ["G7"], ["C7"]
+      ],
+      "endings": {
+        "1": [["F"], ["C7"]],
+        "2": [["F"], ["A7"]]
+      }
+    }
+  ],
+  "coda": [["Dm"]],
+  "notes": [
+    "mm. 8 et 24 : marche chromatique F7–E7–Eb7–D7 en croches, calée sur la fin de la mesure.",
+    "m. 28 : Gm/Bb puis Em7b5 (le Gm central est de passage) — découpage à confirmer.",
+    "Partie B, mm. 45-48 : D7 / D/C puis G7/B / G7 resserrés sur deux mesures.",
+    "Reprise structurelle A-B-A par le Segno (m. 1) et la Coda (Dm)."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/benzinho-jacob-do-bandolim/c/page_1.webp",
+    "data/benzinho-jacob-do-bandolim/c/page_2.webp"
+  ]
+}
