@@ -29,6 +29,7 @@ export interface FilageContext {
 }
 
 const COUNTDOWN_S = 5;
+const INTRO_COUNTDOWN_S = 10;
 
 export function renderFilage(root: HTMLElement, context: FilageContext): () => void {
   const { player, order, instrumentId } = context;
@@ -41,6 +42,10 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   let countdownTimer: number | null = null;
   let showScore = true;
   let unsubscribe: (() => void) | null = null;
+
+  // Décompte d'entrée : le temps de prendre son instrument avant le 1er morceau.
+  let introActive = true;
+  let introTimer: number | null = null;
 
   /** Source audio du morceau selon la bande choisie, avec repli sur l'autre. */
   function audioId(song: Song): string | null {
@@ -237,6 +242,82 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     countBig,
   );
 
+  // --- Décompte d'entrée : l'ordre de passage, puis le 1er morceau démarre ---
+
+  const introCount = el('div', {
+    class: 'text-6xl font-bold leading-none tabular-nums text-amber-300 sm:text-7xl',
+  });
+  const introList = el('ol', {
+    class:
+      'flex max-h-[45vh] w-full max-w-md flex-col gap-1.5 overflow-y-auto ' +
+      'rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-left',
+  });
+  const introVeil = el(
+    'div',
+    {
+      class:
+        'fixed inset-0 z-40 hidden cursor-pointer flex-col items-center justify-center ' +
+        'gap-5 bg-zinc-950/95 px-6 py-10 backdrop-blur-md',
+      role: 'button',
+      tabindex: '0',
+      'aria-label': 'Démarrer le filage maintenant',
+    },
+    el('p', { class: 'text-sm uppercase tracking-wider text-zinc-500' }, `Filage · ${context.setlistName}`),
+    introCount,
+    introList,
+    el('p', { class: 'text-sm text-zinc-500' }, 'Appuyez pour démarrer maintenant'),
+  );
+
+  function fillIntroList(): void {
+    introList.replaceChildren(
+      ...order.map((song, i) =>
+        el(
+          'li',
+          { class: 'flex items-baseline gap-3' },
+          el('span', { class: 'w-6 shrink-0 font-mono text-sm text-zinc-600' }, String(i + 1)),
+          el('span', { class: 'text-base text-zinc-200' }, song.title),
+          el('span', { class: 'text-sm text-zinc-500' }, song.composer),
+        ),
+      ),
+    );
+  }
+
+  function beginFilage(): void {
+    if (!introActive) return;
+    introActive = false;
+    if (introTimer !== null) window.clearInterval(introTimer);
+    introTimer = null;
+    window.removeEventListener('keydown', onIntroKey);
+    introVeil.classList.add('hidden');
+    introVeil.classList.remove('flex');
+    const id = audioId(order[index]!);
+    if (id) player.load(id, true);
+  }
+
+  function onIntroKey(event: KeyboardEvent): void {
+    if (event.key === 'Tab') return;
+    if (event.key === ' ') event.preventDefault();
+    beginFilage();
+  }
+
+  function startIntro(): void {
+    fillIntroList();
+    introVeil.classList.remove('hidden');
+    introVeil.classList.add('flex');
+    let remaining = INTRO_COUNTDOWN_S;
+    introCount.textContent = String(remaining);
+    introTimer = window.setInterval(() => {
+      remaining -= 1;
+      if (remaining > 0) {
+        introCount.textContent = String(remaining);
+        return;
+      }
+      beginFilage();
+    }, 1000);
+    introVeil.addEventListener('pointerdown', beginFilage);
+    window.addEventListener('keydown', onIntroKey);
+  }
+
   function paintScoreVisibility(): void {
     const hasScore = order[index]?.instruments.some((i) => i.id === instrumentId) ?? false;
     const showingScore = showScore && hasScore;
@@ -395,11 +476,13 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       ),
     ),
     countdownVeil,
+    introVeil,
   );
 
-  // Les libellés et la partition du 1er morceau s'affichent tout de suite ;
-  // seul l'audio attend le montage du lecteur.
-  loadSong(0, true);
+  // La partition du 1er morceau est prête sous le voile ; l'audio ne démarre
+  // qu'à la fin du décompte d'entrée (ou dès que l'utilisateur l'écourte).
+  loadSong(0, false);
+  startIntro();
 
   unsubscribe = player.onTick((tick) => {
     playButton.textContent = tick.playing ? '❚❚' : '▶';
@@ -431,8 +514,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     try {
       await player.mount(playerMount);
       // Relance la source du morceau courant maintenant que le lecteur est prêt.
+      // Pendant le décompte d'entrée, on se contente de la mettre en file.
       const id = audioId(order[index]!);
-      if (id) player.load(id, true);
+      if (id) player.load(id, !introActive);
     } catch {
       scoreNote.textContent = 'Lecteur indisponible (connexion ou blocage réseau) — enchaînez à la main.';
       scoreNote.classList.remove('hidden');
@@ -441,10 +525,13 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
 
   return () => {
     if (countdownTimer !== null) window.clearInterval(countdownTimer);
+    if (introTimer !== null) window.clearInterval(introTimer);
+    window.removeEventListener('keydown', onIntroKey);
     unsubscribe?.();
     player.pause();
     player.clearCountdown();
     scoreView.destroy();
     countdownVeil.remove();
+    introVeil.remove();
   };
 }

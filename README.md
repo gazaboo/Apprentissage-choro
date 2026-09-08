@@ -267,6 +267,8 @@ morceaux **et** les séances ; le SRS décide de l'ordre à l'intérieur.
 - **Filage** — la setlist **dans son ordre**, comme un filage de concert. Un
   seul bouton mène à un écran de préparation : **partition affichée** (Ut / C,
   Si♭ / B♭ ou Mi♭ / E♭) et **bande** (enregistrement original ou playback).
+  Au lancement, un **décompte de 10 secondes** affiche tout l'ordre de passage,
+  le temps de prendre son instrument (écourtable d'une touche ou d'un clic).
   Chaque morceau joue avec la bande choisie, puis un **décompte de 5 secondes**
   annonce le suivant avant que la lecture ne reprenne seule. Enchaînement
   automatique à la fin de l'audio, ou bouton « Passer au suivant ». Barre de
