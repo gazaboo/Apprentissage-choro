@@ -155,6 +155,85 @@ export function renderTrainer(
   });
   revealButton.addEventListener('click', () => eclipses.revealNow());
 
+  // --- Plein écran de la partition --------------------------------------
+  //
+  // Un mode lecture : la partition prend tout l'écran, sans en-tête ni
+  // marges. La barre de transport continue de flotter par-dessus, et le
+  // voile des éclipses (z-20) reste au-dessus de tout. On y entre et on en
+  // sort d'un seul bouton — ou avec Échap.
+
+  let fullpage = false;
+
+  const fullpageEnter = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-pressed': 'false' },
+    '⛶ Plein écran',
+  );
+  const fullpageEnterRow = el('div', { class: 'flex justify-end' }, fullpageEnter);
+
+  const fullpageExit = el(
+    'button',
+    { type: 'button', class: ui.button },
+    '✕ Fermer',
+  );
+  const fullpageSlot = el('div', { class: 'flex flex-col gap-4 p-2 pb-52 sm:p-4' });
+  const fullpageOverlay = el(
+    'div',
+    {
+      class:
+        'fixed inset-0 z-10 hidden overflow-y-auto overscroll-contain bg-zinc-950',
+    },
+    el(
+      'div',
+      {
+        class:
+          'sticky top-0 z-10 flex items-center justify-between gap-3 border-b ' +
+          'border-zinc-800 bg-zinc-950/90 px-4 py-2 backdrop-blur ' +
+          '[padding-top:calc(env(safe-area-inset-top)+0.5rem)]',
+      },
+      el('p', { class: 'min-w-0 truncate text-sm font-medium text-zinc-300' }, song.title),
+      fullpageExit,
+    ),
+    fullpageSlot,
+  );
+
+  /** Là où la partition vit hors du plein écran, avec son bouton d'entrée. */
+  const scoreHome = el(
+    'div',
+    { class: 'flex flex-col gap-3' },
+    fullpageEnterRow,
+    scoreContainer,
+  );
+
+  function setFullpage(on: boolean): void {
+    if (on === fullpage) return;
+    if (on && mode === 'sans') return;
+    fullpage = on;
+    fullpageEnter.setAttribute('aria-pressed', String(on));
+    document.body.style.overflow = on ? 'hidden' : '';
+    fullpageOverlay.classList.toggle('hidden', !on);
+    if (on) {
+      fullpageSlot.appendChild(scoreContainer);
+      fullpageOverlay.scrollTop = 0;
+      fullpageExit.focus();
+    } else {
+      scoreHome.appendChild(scoreContainer);
+    }
+  }
+  fullpageEnter.addEventListener('click', () => setFullpage(true));
+  fullpageExit.addEventListener('click', () => setFullpage(false));
+
+  const onFullpageKey = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape' && fullpage) setFullpage(false);
+  };
+  window.addEventListener('keydown', onFullpageKey);
+
+  /** Rien à agrandir en « Sans partition » : le bouton disparaît. */
+  function paintFullpage(): void {
+    fullpageEnterRow.classList.toggle('hidden', mode === 'sans');
+    if (mode === 'sans') setFullpage(false);
+  }
+
   // --- Comment travailler --------------------------------------------------
 
   const modeButtons = new Map<StudyMode, HTMLButtonElement>();
@@ -209,6 +288,7 @@ export function renderTrainer(
     drawScore();
     paintMode();
     paintNoScore();
+    paintFullpage();
   }
 
   for (const value of STUDY_MODES) {
@@ -444,15 +524,17 @@ export function renderTrainer(
       header,
       noAudio,
       noScore,
-      scoreContainer,
+      scoreHome,
     ),
     controlBar.root,
+    fullpageOverlay,
     eclipseVeil,
   );
 
   drawScore();
   paintMode();
   paintNoScore();
+  paintFullpage();
   if (mode === 'eclipses') eclipses.start();
 
   // Le lecteur ne peut être monté qu'une fois son conteneur dans le document.
@@ -478,6 +560,8 @@ export function renderTrainer(
     timer?.stop();
     eclipses.stop();
     player.clearCountdown();
+    window.removeEventListener('keydown', onFullpageKey);
+    document.body.style.overflow = '';
     transport.destroy();
     controlBar.destroy();
     scoreView.destroy();
