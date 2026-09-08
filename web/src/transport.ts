@@ -189,28 +189,46 @@ export function createTransport(options: TransportOptions): Transport {
   );
 
   // --- Vitesse ------------------------------------------------------------
+  //
+  // Un seul bouton, pas trois : la vitesse ralentie sert à déchiffrer un
+  // passage, puis on revient au tempo réel. Chaque appui descend d'un cran
+  // (1× → 0.75× → 0.5×) puis reboucle au plein tempo — le fonctionnement
+  // d'une pédale, déjà familier. Hors 1×, le bouton s'allume pour qu'on
+  // n'oublie pas qu'on joue au ralenti.
 
-  const rateButtons = new Map<number, HTMLButtonElement>();
-  function paintRates(effective: number): void {
-    for (const [rate, button] of rateButtons) {
-      button.className = rate === effective ? ui.iconActive : ui.icon;
-    }
-  }
-  for (const rate of PLAYBACK_RATES) {
-    const button = el(
-      'button',
-      { type: 'button', class: ui.icon, 'aria-label': `Vitesse ${rate} fois` },
+  // Du plus lent au plus rapide dans le manifeste ; on veut l'ordre inverse
+  // pour le cycle (partir du plein tempo et ralentir).
+  const RATE_CYCLE = [...PLAYBACK_RATES].sort((a, b) => b - a);
+
+  // Comme `ui.icon`, mais en largeur libre : « 0.75× » ne tient pas dans un
+  // carré de 44 px.
+  const rateIdle = ui.icon.replace('w-11', 'min-w-11 px-2');
+  const rateOn = ui.iconActive.replace('w-11', 'min-w-11 px-2');
+
+  let rateIndex = 0;
+  const rateButton = el('button', { type: 'button', class: rateIdle }, '');
+  function paintRate(): void {
+    const rate = RATE_CYCLE[rateIndex]!;
+    rateButton.className = rate === 1 ? rateIdle : rateOn;
+    rateButton.replaceChildren(
       el('span', { class: 'text-xs font-semibold' }, `${rate}×`),
     );
-    button.addEventListener('click', () => paintRates(player.setRate(rate)));
-    rateButtons.set(rate, button);
+    rateButton.setAttribute(
+      'aria-label',
+      `Vitesse ${rate} fois, toucher pour ${rate === 1 ? 'ralentir' : 'changer'}`,
+    );
   }
+  rateButton.addEventListener('click', () => {
+    rateIndex = (rateIndex + 1) % RATE_CYCLE.length;
+    player.setRate(RATE_CYCLE[rateIndex]!);
+    paintRate();
+  });
   const rateGroup = el(
     'div',
     { class: 'flex shrink-0 gap-1', role: 'group', 'aria-label': 'Vitesse de lecture' },
-    ...rateButtons.values(),
+    rateButton,
   );
-  paintRates(1);
+  paintRate();
 
   // --- Original ou playback ----------------------------------------------
   //
