@@ -313,33 +313,6 @@ export class Player {
     return this.player?.getPlaybackRate?.() ?? 1;
   }
 
-  /**
-   * Démarrage à froid : saute à un instant aléatoire, laisse trois secondes
-   * de préparation, puis lance la lecture. `onTick` reçoit 3, 2, 1 puis 0.
-   */
-  coldJump(onTick: (remaining: number) => void): void {
-    this.clearCountdown();
-    const duration = this.getDuration();
-    if (!duration) {
-      onTick(0);
-      return;
-    }
-    // On évite le tout début et la coda : on veut tomber en plein morceau.
-    const target = duration * (0.1 + Math.random() * 0.75);
-    this.pause();
-    this.player?.seekTo?.(target, true);
-
-    for (let remaining = 3; remaining >= 0; remaining -= 1) {
-      const delay = (3 - remaining) * 1000;
-      this.countdownTimers.push(
-        window.setTimeout(() => {
-          onTick(remaining);
-          if (remaining === 0) this.play();
-        }, delay),
-      );
-    }
-  }
-
   clearCountdown(): void {
     this.countdownTimers.forEach((id) => window.clearTimeout(id));
     this.countdownTimers = [];

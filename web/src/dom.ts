@@ -50,6 +50,22 @@ export const ui = {
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
     'focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ' +
     'disabled:cursor-not-allowed disabled:opacity-40',
+  /**
+   * Bascule compacte de la barre de transport : un seul bouton qui montre
+   * l'état courant (source, vitesse, transposition), un appui pour changer.
+   * Largeur libre, hauteur tactile.
+   */
+  chip:
+    'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg ' +
+    'border border-zinc-700 bg-zinc-800 px-3 text-xs font-semibold text-zinc-200 ' +
+    'transition hover:border-zinc-500 hover:bg-zinc-700 focus:outline-none ' +
+    'focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-zinc-800',
+  chipActive:
+    'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg ' +
+    'border border-amber-400/60 bg-amber-400/15 px-3 text-xs font-semibold ' +
+    'text-amber-200 transition focus:outline-none focus-visible:ring-2 ' +
+    'focus-visible:ring-amber-400',
   /** Contrôle carré et compact (icône seule) de la barre de transport. */
   icon:
     'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ' +

@@ -40,10 +40,10 @@ export interface ControlBar {
 function sectionBlock(section: Section): HTMLElement {
   return el(
     'section',
-    { class: 'flex min-w-0 flex-col gap-2' },
-    el('h3', { class: ui.label }, section.title),
+    { class: 'flex min-w-0 flex-col gap-3 py-5 first:pt-0 last:pb-0' },
+    el('h3', { class: 'text-sm font-semibold text-zinc-100' }, section.title),
     section.hint
-      ? el('p', { class: '-mt-1 text-[11px] leading-snug text-zinc-500' }, section.hint)
+      ? el('p', { class: '-mt-2 text-xs leading-snug text-zinc-500' }, section.hint)
       : null,
     section.body,
   );
@@ -54,7 +54,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
 
   // --- Dock / barre basse --------------------------------------------------
 
-  const body = el('div', { class: 'flex flex-col gap-5' });
+  const body = el('div', { class: 'flex flex-col divide-y divide-zinc-800' });
 
   const closeButton = el(
     'button',
@@ -106,14 +106,28 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   let isOpen = false;
   document.body.appendChild(overlay);
 
+  // Un seul bouton d'ouverture, deux tailles : libellé complet sur grand
+  // écran, icône seule dans le coin de la barre sur petit écran. Les deux
+  // vivent dans la barre — plus de bouton flottant qui se cogne au reste.
   const toggle = el(
     'button',
-    { type: 'button', class: ui.button, 'aria-expanded': 'false' },
+    { type: 'button', class: `${ui.button} shrink-0`, 'aria-expanded': 'false' },
     '\u2699\uFE0E Réglages',
   );
   // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
   // l'emporterait sur un `hidden` posé sur le bouton lui-même.
   const toggleSlot = el('div', { class: 'hidden shrink-0 lg:block' }, toggle);
+
+  const miniToggle = el(
+    'button',
+    {
+      type: 'button',
+      class: `${ui.icon} shrink-0 lg:hidden`,
+      'aria-label': 'Ouvrir les réglages',
+      'aria-expanded': 'false',
+    },
+    '⚙︎',
+  );
 
   const dock = el(
     'div',
@@ -122,7 +136,15 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
         'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
         'flex-col gap-3 p-2 lg:p-3',
     },
-    el('div', { class: 'flex w-full items-center gap-3' }, options.primary, toggleSlot),
+    el(
+      'div',
+      // Sur petit écran, l'engrenage s'aligne en bas, au niveau de la rangée
+      // de bascules ; sur grand écran, tout est sur une ligne.
+      { class: 'flex w-full items-end gap-2 lg:items-center lg:gap-3' },
+      el('div', { class: 'min-w-0 flex-1' }, options.primary),
+      miniToggle,
+      toggleSlot,
+    ),
   );
 
   const root = el(
@@ -136,21 +158,6 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     dock,
   );
 
-  const fab = el(
-    'button',
-    {
-      type: 'button',
-      class:
-        'transport-shell pointer-events-auto fixed right-4 z-30 flex h-14 w-14 ' +
-        'items-center justify-center text-xl text-zinc-200 shadow-lg ' +
-        'shadow-black/40 focus:outline-none focus-visible:ring-2 ' +
-        'focus-visible:ring-amber-400 ' +
-        '[bottom:calc(env(safe-area-inset-bottom)+6.5rem)]',
-      'aria-label': 'Ouvrir les réglages',
-    },
-    '\u2699\uFE0E',
-  );
-  document.body.appendChild(fab);
 
   const query = window.matchMedia(DESKTOP);
 
@@ -224,12 +231,16 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     isOpen = open;
     overlay.style.display = open ? (query.matches ? 'block' : 'flex') : 'none';
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.className = open ? ui.buttonActive : ui.button;
+    toggle.className = `${open ? ui.buttonActive : ui.button} shrink-0`;
+    miniToggle.setAttribute('aria-expanded', String(open));
+    miniToggle.className =
+      `${open ? ui.iconActive : ui.icon} shrink-0 lg:hidden` +
+      (blocks.length === 0 ? ' hidden' : '');
     if (open) placePanel();
   }
 
   toggle.addEventListener('click', () => setOpen(!isOpen));
-  fab.addEventListener('click', () => setOpen(true));
+  miniToggle.addEventListener('click', () => setOpen(!isOpen));
   closeButton.addEventListener('click', () => setOpen(false));
   // Un tap hors du panneau referme, mais seulement sur petit écran : sur
   // grand écran l'enveloppe ne couvre rien, et cliquer la partition pour
@@ -243,13 +254,12 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   function layout(): void {
     const empty = blocks.length === 0;
     body.append(...blocks);
+    toggleSlot.classList.toggle('lg:hidden', empty);
     if (query.matches) {
       overlay.className = 'fixed inset-0 z-40 pointer-events-none';
       panel.classList.add('rounded-2xl', 'fixed', 'max-h-[70vh]');
       panel.classList.remove('rounded-b-none', 'max-h-[75vh]');
       header.classList.add('cursor-grab');
-      fab.classList.add('hidden');
-      toggleSlot.classList.toggle('lg:hidden', empty);
     } else {
       overlay.className =
         'fixed inset-0 z-40 items-end justify-center bg-zinc-950/70 backdrop-blur-sm';
@@ -257,7 +267,6 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
       panel.classList.add('rounded-b-none', 'max-h-[75vh]');
       header.classList.remove('cursor-grab');
       panel.style.left = panel.style.top = panel.style.width = '';
-      fab.classList.toggle('hidden', empty);
     }
     // `className` vient d'être réécrit : on repose l'affichage, et on referme,
     // un panneau ouvert n'ayant pas la même forme de part et d'autre du point
@@ -281,7 +290,6 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
       query.removeEventListener('change', layout);
       window.removeEventListener('resize', onResize);
       overlay.remove();
-      fab.remove();
     },
   };
 }

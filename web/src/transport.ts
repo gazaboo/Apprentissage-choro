@@ -3,12 +3,13 @@
  * L'application s'adresse à des musiciens, pas à des utilisateurs de clavier :
  * il n'y a aucun raccourci, et toute action doit se voir et s'atteindre au
  * doigt. La barre expose donc explicitement ce qui était autrefois caché
- * derrière des touches — source, vitesse, transposition, saut à froid —
- * auxquels s'ajoute la boucle A-B.
+ * derrière des touches — enregistrement, vitesse, transposition — chacun
+ * ramené à une seule bascule qui affiche l'état courant. Sous la piste, une
+ * frise permet de tracer le passage à répéter.
  *
  * Elle produit deux groupes de nœuds : `primary` (lecture, défilement,
- * vitesse), toujours visible, et `sections` (le reste), que la vue place dans
- * le dock sur grand écran ou dans un panneau escamotable sur petit écran.
+ * bascules, frise), toujours visible, et `sections` (explications et réglages
+ * fins), que la vue place dans le panneau de réglages.
  */
 
 import { el, ui } from './dom';
@@ -38,12 +39,6 @@ export interface Transport {
   loadSource: () => void;
   destroy: () => void;
 }
-
-/** Pas d'ajustement d'une borne de boucle : au tap, puis à l'appui long. */
-const NUDGE_TAP = 0.5;
-const NUDGE_HOLD = 2;
-const HOLD_DELAY_MS = 500;
-const HOLD_REPEAT_MS = 250;
 
 export function createTransport(options: TransportOptions): Transport {
   const { song, player } = options;
@@ -163,16 +158,27 @@ export function createTransport(options: TransportOptions): Transport {
   seekBar.addEventListener('pointerup', endScrub);
   seekBar.addEventListener('pointercancel', endScrub);
 
-  /** Résumé de la boucle en cours, affiché entre position et durée. */
-  const loopBadge = el('span', {
+  /**
+   * Résumé de la boucle en cours, entre position et durée. C'est aussi le
+   * bouton qui l'arrête : « 🔁 0:12 – 0:20 · 3 fois  ✕ ».
+   */
+  const loopBadge = el('button', {
+    type: 'button',
     class:
       'hidden min-w-0 shrink truncate rounded px-1.5 text-[11px] font-medium ' +
-      'text-amber-300',
-    title: 'Le passage encadré tourne en boucle',
+      'text-amber-300 transition hover:text-amber-200 focus:outline-none ' +
+      'focus-visible:ring-2 focus-visible:ring-amber-400',
+    'aria-label': 'Arrêter de répéter le passage',
+    title: 'Toucher pour arrêter la boucle',
+  });
+  loopBadge.addEventListener('click', () => {
+    draftLoop = null;
+    player.clearLoop();
+    paintLoop();
   });
 
-  /** Reçoit la frise de boucle sur grand écran, juste sous la piste. */
-  const laneSlotBar = el('div', { class: 'hidden' });
+  /** Reçoit la frise de tracé, juste sous la piste. */
+  const laneSlotBar = el('div', { class: 'mt-0.5' });
 
   const seekRow = el(
     'div',
@@ -188,31 +194,24 @@ export function createTransport(options: TransportOptions): Transport {
     ),
   );
 
-  // --- Vitesse ------------------------------------------------------------
+  // --- Vitesse ----------------------------------------------------------
   //
   // Un seul bouton, pas trois : la vitesse ralentie sert à déchiffrer un
   // passage, puis on revient au tempo réel. Chaque appui descend d'un cran
   // (1× → 0.75× → 0.5×) puis reboucle au plein tempo — le fonctionnement
-  // d'une pédale, déjà familier. Hors 1×, le bouton s'allume pour qu'on
-  // n'oublie pas qu'on joue au ralenti.
+  // d'une pédale. Hors 1×, le bouton s'allume pour qu'on n'oublie pas.
 
   // Du plus lent au plus rapide dans le manifeste ; on veut l'ordre inverse
   // pour le cycle (partir du plein tempo et ralentir).
   const RATE_CYCLE = [...PLAYBACK_RATES].sort((a, b) => b - a);
 
-  // Comme `ui.icon`, mais en largeur libre : « 0.75× » ne tient pas dans un
-  // carré de 44 px.
-  const rateIdle = ui.icon.replace('w-11', 'min-w-11 px-2');
-  const rateOn = ui.iconActive.replace('w-11', 'min-w-11 px-2');
-
   let rateIndex = 0;
-  const rateButton = el('button', { type: 'button', class: rateIdle }, '');
+  const rateButton = el('button', { type: 'button', class: ui.chip }, '');
   function paintRate(): void {
     const rate = RATE_CYCLE[rateIndex]!;
-    rateButton.className = rate === 1 ? rateIdle : rateOn;
-    rateButton.replaceChildren(
-      el('span', { class: 'text-xs font-semibold' }, `${rate}×`),
-    );
+    // `className` complet à chaque fois : le rang `lg:order-4` doit survivre.
+    rateButton.className = `${rate === 1 ? ui.chip : ui.chipActive} lg:order-4`;
+    rateButton.textContent = `${rate}×`;
     rateButton.setAttribute(
       'aria-label',
       `Vitesse ${rate} fois, toucher pour ${rate === 1 ? 'ralentir' : 'changer'}`,
@@ -223,44 +222,24 @@ export function createTransport(options: TransportOptions): Transport {
     player.setRate(RATE_CYCLE[rateIndex]!);
     paintRate();
   });
-  const rateGroup = el(
-    'div',
-    { class: 'flex shrink-0 gap-1', role: 'group', 'aria-label': 'Vitesse de lecture' },
-    rateButton,
-  );
   paintRate();
 
-  // --- Original ou playback ----------------------------------------------
+  // --- Enregistrement ---------------------------------------------------
   //
-  // C'est un aller-retour constant, et non un réglage qu'on pose une fois :
+  // Aller-retour constant, et non un réglage qu'on pose une fois :
   // l'accompagnateur travaille sur l'enregistrement complet, le soliste sur
-  // l'accompagnement seul — mais il revient au thème pour se le remettre en
-  // tête. La bascule vit donc dans la barre, à portée immédiate, et non dans
-  // un panneau qu'il faut ouvrir.
+  // l'accompagnement seul, mais revient au thème pour se le remettre en tête.
+  // Une seule bascule, à portée immédiate.
 
-  const SOURCE_LABELS: Record<AudioKind, { long: string; short: string }> = {
-    reference: { long: 'Original', short: 'Orig.' },
-    playback: { long: 'Playback', short: 'Play.' },
+  const SOURCE_LABELS: Record<AudioKind, string> = {
+    reference: 'Original',
+    playback: 'Playback',
   };
-
-  const sourceButtons = new Map<AudioKind, HTMLButtonElement>();
-  function paintSource(): void {
-    for (const [kind, button] of sourceButtons) {
-      if (button.disabled) continue;
-      button.className = kind === source ? sourceActiveClass : sourceClass;
-    }
-  }
-  const sourceClass =
-    'inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg ' +
-    'border border-zinc-700 bg-zinc-800 px-2.5 text-xs font-medium text-zinc-300 ' +
-    'transition hover:border-zinc-500 hover:bg-zinc-700 focus:outline-none ' +
-    'focus-visible:ring-2 focus-visible:ring-amber-400 ' +
-    'disabled:cursor-not-allowed disabled:opacity-40';
-  const sourceActiveClass =
-    'inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-lg ' +
-    'border border-amber-400/60 bg-amber-400/15 px-2.5 text-xs font-medium ' +
-    'text-amber-200 transition focus:outline-none focus-visible:ring-2 ' +
-    'focus-visible:ring-amber-400';
+  const SOURCE_HINTS: Record<AudioKind, string> = {
+    reference: 'Enregistrement original, thème compris',
+    playback: 'Accompagnement seul, sans le thème',
+  };
+  const sourceCycle = (['reference', 'playback'] as AudioKind[]).filter(hasSource);
 
   function loadSource(autoplay = false): void {
     const audio = song.audio[source];
@@ -269,51 +248,70 @@ export function createTransport(options: TransportOptions): Transport {
     paintLoop();
   }
 
-  for (const kind of ['reference', 'playback'] as AudioKind[]) {
-    const available = hasSource(kind);
-    const { long, short } = SOURCE_LABELS[kind];
-    const button = el(
-      'button',
-      {
-        type: 'button',
-        class: sourceClass,
-        disabled: !available,
-        title: available
-          ? kind === 'reference'
-            ? 'L’enregistrement original, thème compris'
-            : 'L’accompagnement seul, sans le thème'
-          : 'Aucun enregistrement de ce type pour ce morceau',
-        'aria-label': long,
-      },
-      // Le libellé se raccourcit sous 640 px, où la barre est à l'étroit.
-      el('span', { class: 'hidden truncate sm:inline' }, long),
-      el('span', { class: 'truncate sm:hidden' }, short),
+  const sourceButton = el('button', { type: 'button', class: ui.chip }, '');
+  function paintSourceButton(): void {
+    sourceButton.textContent = SOURCE_LABELS[source];
+    sourceButton.title = SOURCE_HINTS[source];
+    sourceButton.setAttribute(
+      'aria-label',
+      sourceCycle.length > 1
+        ? `${SOURCE_HINTS[source]} — toucher pour changer`
+        : SOURCE_HINTS[source],
     );
-    button.addEventListener('click', () => {
-      if (kind === source) return;
-      source = kind;
-      paintSource();
-      // On enchaîne si l'on était en train de jouer : s'arrêter à chaque
-      // bascule casserait le fil du travail.
-      loadSource(player.isPlaying());
-    });
-    sourceButtons.set(kind, button);
   }
-  paintSource();
+  sourceButton.addEventListener('click', () => {
+    if (sourceCycle.length < 2) return;
+    source = sourceCycle[(sourceCycle.indexOf(source) + 1) % sourceCycle.length]!;
+    paintSourceButton();
+    // On enchaîne si l'on jouait : s'arrêter à chaque bascule casserait le fil.
+    loadSource(player.isPlaying());
+  });
+  sourceButton.classList.add('lg:order-3');
+  paintSourceButton();
 
-  const sourceGroup = el(
-    'div',
-    {
-      class: 'flex min-w-0 shrink items-center gap-1',
-      role: 'group',
-      'aria-label': 'Original ou playback',
-    },
-    ...sourceButtons.values(),
-  );
+  // --- Transposition --------------------------------------------------------
+  //
+  // Une bascule de plus, du même moule : on passe d'une tonalité à l'autre au
+  // tap, sans quitter la partition des yeux.
 
+  const INSTRUMENT_CHIP: Record<InstrumentId, string> = {
+    c: 'Ut',
+    bb: 'Si♭',
+    eb: 'Mi♭',
+  };
+  const instrumentIds = song.instruments.map((instrument) => instrument.id);
+  const instrumentName = (id: InstrumentId): string =>
+    song.instruments.find((instrument) => instrument.id === id)?.name ?? id;
+
+  const instrumentButton = el('button', { type: 'button', class: ui.chip }, '');
+  function paintInstrumentButton(): void {
+    instrumentButton.textContent = INSTRUMENT_CHIP[instrumentId] ?? instrumentId;
+    instrumentButton.title = instrumentName(instrumentId);
+    instrumentButton.setAttribute(
+      'aria-label',
+      `Transposition ${instrumentName(instrumentId)} — toucher pour changer`,
+    );
+  }
+  instrumentButton.addEventListener('click', () => {
+    const i = instrumentIds.indexOf(instrumentId);
+    instrumentId = instrumentIds[(i + 1) % instrumentIds.length]!;
+    paintInstrumentButton();
+    options.onInstrument(instrumentId);
+  });
+  instrumentButton.classList.add('lg:order-5');
+  paintInstrumentButton();
+
+  // --- Assemblage de la barre principale ---------------------------------
+  //
   // Sous 1024 px, la piste prend toute la largeur sur une première ligne et
-  // les commandes se rangent dessous : les trois groupes ne tiennent pas côte
-  // à côte sur un téléphone sans réduire la piste à un trait.
+  // les bascules se rangent dessous ; `flex-wrap` évite tout débordement si
+  // l'écran est vraiment étroit.
+
+  const secondary: HTMLElement[] = [];
+  if (sourceCycle.length > 1) secondary.push(sourceButton);
+  secondary.push(rateButton);
+  if (song.instruments.length > 1) secondary.push(instrumentButton);
+
   const primary = el(
     'div',
     { class: 'flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-3' },
@@ -322,58 +320,18 @@ export function createTransport(options: TransportOptions): Transport {
       'div',
       // `lg:contents` efface cette enveloppe sur grand écran : ses enfants
       // redeviennent alors des éléments de la rangée et suivent leur `order`.
-      { class: 'order-2 flex items-center gap-2 lg:contents' },
+      { class: 'order-2 flex flex-wrap items-center gap-2 lg:contents' },
       playButton,
-      sourceGroup,
-      rateGroup,
+      ...secondary,
     ),
   );
   playButton.classList.add('lg:order-1');
-  sourceGroup.classList.add('lg:order-3');
-  rateGroup.classList.add('lg:order-4');
 
-  // --- Source audio -------------------------------------------------------
-
-
-  // --- Transposition ------------------------------------------------------
-
-  /** Libellés courts : le nom complet du manifeste passe à la ligne. */
-  const INSTRUMENT_SHORT: Record<InstrumentId, string> = {
-    c: 'Ut (C)',
-    bb: 'Si♭ (B♭)',
-    eb: 'Mi♭ (E♭)',
-  };
-
-  const instrumentButtons = new Map<InstrumentId, HTMLButtonElement>();
-  for (const instrument of song.instruments) {
-    const button = el(
-      'button',
-      { type: 'button', class: `${ui.button} flex-1 lg:flex-none`, title: instrument.name },
-      INSTRUMENT_SHORT[instrument.id] ?? instrument.name,
-    );
-    button.addEventListener('click', () => {
-      if (instrument.id === instrumentId) return;
-      instrumentId = instrument.id;
-      for (const [id, other] of instrumentButtons) {
-        other.className =
-          `${id === instrumentId ? ui.buttonActive : ui.button} flex-1 lg:flex-none`;
-      }
-      options.onInstrument(instrument.id);
-    });
-    instrumentButtons.set(instrument.id, button);
-  }
-  instrumentButtons.get(instrumentId)!.className = `${ui.buttonActive} flex-1 lg:flex-none`;
-
-  // --- Répétition d'un passage --------------------------------------------
+  // --- Répéter un passage : tracé sur la frise ---------------------------
   //
   // « A » et « B » nomment le mécanisme, pas l'intention : personne ne cherche
-  // une boucle A-B, on cherche à faire tourner un passage. Tout est donc
-  // libellé « début » et « fin », et le geste principal — tracer le passage
-  // sur la frise — s'annonce lui-même dans la frise vide.
-
-  const aLabel = el('span', { class: 'font-mono text-xs text-zinc-300' }, '—');
-  const bLabel = el('span', { class: 'font-mono text-xs text-zinc-300' }, '—');
-  const loopHint = el('p', { class: 'text-[11px] leading-snug text-zinc-500' }, '');
+  // une boucle A-B, on cherche à faire tourner un passage. Le geste principal
+  // — tracer le passage sur la frise — s'annonce lui-même dans la frise vide.
 
   /** Dernier état peint, pour ne pas réécrire le DOM à chaque battement. */
   let paintedLoop = '';
@@ -393,29 +351,8 @@ export function createTransport(options: TransportOptions): Transport {
     if (signature === paintedLoop) return;
     paintedLoop = signature;
 
-    aLabel.textContent = loop.a === null ? '—' : formatTime(loop.a);
-    bLabel.textContent = loop.b === null ? '—' : formatTime(loop.b);
-
-    const marking = loop.a !== null && loop.b === null;
     lanePrompt.classList.toggle('hidden', active || !!draftLoop);
     laneRail.classList.toggle('border-dashed', !active);
-    loopBounds.classList.toggle('hidden', !active);
-
-    markButton.className = active ? ui.button : ui.buttonActive;
-    markButton.textContent = active
-      ? '\u2715 Arrêter de répéter'
-      : marking
-        ? '\u23F9 Le passage finit ici'
-        : '\u23FA Le passage commence ici';
-
-    loopHint.textContent = active
-      ? 'Ce passage tourne en boucle. Glissez ses bords sur la frise, ou ' +
-        'réglez-les finement avec \u25C0\uFE0E \u25B6\uFE0E (appui long : 2 s).'
-      : marking
-        ? `Début posé à ${formatTime(loop.a!)}. Laissez jouer jusqu’au bout du ` +
-          'passage, puis appuyez de nouveau.'
-        : 'Deux façons de faire : glisser sur la frise, ou marquer les bornes ' +
-          'au vol pendant que le morceau joue.';
 
     if (active && duration) {
       const left = (loop.a! / duration) * 100;
@@ -424,8 +361,7 @@ export function createTransport(options: TransportOptions): Transport {
       loopBand.classList.remove('hidden');
       loopBand.style.left = `${left}%`;
       // Sur un morceau long, un passage de quelques secondes ne ferait qu'un
-      // cheveu : on lui garantit une largeur minimale, sans quoi la mise en
-      // lumière ne montrerait rien.
+      // cheveu : on lui garantit une largeur minimale.
       loopBand.style.width = `max(3px, ${width}%)`;
       tickA.classList.remove('hidden');
       tickA.style.left = `${left}%`;
@@ -448,7 +384,7 @@ export function createTransport(options: TransportOptions): Transport {
       const range = `${formatTime(loop.a!)} – ${formatTime(loop.b!)}`;
       loopBadge.textContent = draftLoop
         ? `🔁 ${range}`
-        : `🔁 ${range}${laps > 0 ? ` · ${laps}\u00A0fois` : ''}`;
+        : `🔁 ${range}${laps > 0 ? ` · ${laps} fois` : ''}  ✕`;
     } else {
       const hidden = [loopBand, tickA, tickB, scrimBefore, scrimAfter,
         laneSelection, handleA, handleB, loopBadge];
@@ -479,7 +415,7 @@ export function createTransport(options: TransportOptions): Transport {
     {
       class:
         'pointer-events-none absolute inset-0 flex items-center justify-center ' +
-        'px-3 text-center text-xs text-zinc-400',
+        'px-3 text-center text-[11px] text-zinc-500',
     },
     'Glissez ici pour choisir le passage à répéter',
   );
@@ -497,8 +433,7 @@ export function createTransport(options: TransportOptions): Transport {
 
   /**
    * Poignée de bord. Elle porte une prise — deux traits verticaux, la forme
-   * universelle du « ça se tire » — plutôt qu'une lettre à décoder. Les temps
-   * correspondants sont écrits en toutes lettres sous la frise.
+   * universelle du « ça se tire » — plutôt qu'une lettre à décoder.
    */
   function laneHandle(edge: 'a' | 'b', name: string): HTMLElement {
     return el(
@@ -529,13 +464,10 @@ export function createTransport(options: TransportOptions): Transport {
   // `flex` est retiré par `hidden` : on le repose à l'affichage.
   for (const h of [handleA, handleB]) h.classList.add('flex');
 
-  /** Reçoit la frise dans le panneau, sur petit écran. */
-  const laneSlotPanel = el('div', {});
-
   const lane = el(
     'div',
     {
-      // 44 px dans le panneau, où l'on vise au doigt ; 22 px collés sous la
+      // 44 px sur petit écran, où l'on vise au doigt ; 22 px collés sous la
       // piste sur grand écran, où la souris n'a pas besoin d'autant.
       class: 'loop-lane relative h-11 w-full touch-none select-none lg:h-[22px]',
       role: 'group',
@@ -548,6 +480,7 @@ export function createTransport(options: TransportOptions): Transport {
     handleA,
     handleB,
   );
+  laneSlotBar.appendChild(lane);
 
   type DragMode =
     | { kind: 'create'; anchor: number }
@@ -622,178 +555,22 @@ export function createTransport(options: TransportOptions): Transport {
   lane.addEventListener('pointercancel', () => endLaneDrag(false));
   disposers.push(() => endLaneDrag(false));
 
-  /**
-   * Ajustement fin d'une borne. Sans repère structurel dans le manifeste, la
-   * boucle ne se cale sur le temps fort qu'à la main : le tap donne le demi-
-   * seconde, l'appui long balaie par pas de deux secondes.
-   */
-  function nudgeButton(point: 'a' | 'b', direction: -1 | 1): HTMLButtonElement {
-    const button = el(
-      'button',
-      {
-        type: 'button',
-        class: ui.icon,
-        'aria-label': `${direction < 0 ? 'Reculer' : 'Avancer'} le point ${point.toUpperCase()}`,
-      },
-      // Sélecteur de variante : sans lui, la flèche part en emoji couleur.
-      direction < 0 ? '\u25C0\uFE0E' : '\u25B6\uFE0E',
-    );
-
-    let holdTimer: number | null = null;
-    let repeatTimer: number | null = null;
-    let held = false;
-
-    const stop = (): void => {
-      if (holdTimer !== null) window.clearTimeout(holdTimer);
-      if (repeatTimer !== null) window.clearInterval(repeatTimer);
-      holdTimer = repeatTimer = null;
-    };
-
-    button.addEventListener('pointerdown', (event) => {
-      held = false;
-      button.setPointerCapture(event.pointerId);
-      holdTimer = window.setTimeout(() => {
-        held = true;
-        player.nudgeLoopPoint(point, direction * NUDGE_HOLD);
-        paintLoop();
-        repeatTimer = window.setInterval(() => {
-          player.nudgeLoopPoint(point, direction * NUDGE_HOLD);
-          paintLoop();
-        }, HOLD_REPEAT_MS);
-      }, HOLD_DELAY_MS);
-    });
-    const release = (): void => {
-      stop();
-      // Un appui long a déjà agi : on ne rajoute pas le pas du tap par-dessus.
-      if (!held) player.nudgeLoopPoint(point, direction * NUDGE_TAP);
-      paintLoop();
-      held = false;
-    };
-    button.addEventListener('pointerup', release);
-    button.addEventListener('pointercancel', stop);
-    disposers.push(stop);
-    return button;
-  }
-
-  /** Une borne nommée, avec son temps et son réglage fin. */
-  function loopBound(point: 'a' | 'b', name: string, label: HTMLElement): HTMLElement {
-    return el(
-      'div',
-      { class: 'flex items-center gap-1.5' },
-      el('span', { class: 'text-xs text-zinc-400' }, name),
-      label,
-      nudgeButton(point, -1),
-      nudgeButton(point, 1),
-    );
-  }
-
-  const loopBounds = el(
-    'div',
-    { class: 'hidden flex-wrap items-center gap-x-4 gap-y-2' },
-    loopBound('a', 'Début', aLabel),
-    loopBound('b', 'Fin', bLabel),
-  );
-
-  /**
-   * Un seul bouton pour marquer les bornes à l'oreille, dont le libellé dit
-   * toujours ce que fera le prochain appui : commencer, terminer, ou arrêter.
-   * C'est le fonctionnement d'une pédale de boucle, déjà familier.
-   */
-  const markButton = el('button', { type: 'button', class: ui.buttonActive }, '');
-  markButton.addEventListener('click', () => {
-    const loop = player.getLoop();
-    if (loop.a !== null && loop.b !== null) player.clearLoop();
-    else if (loop.a !== null) player.markLoopPoint('b');
-    else player.markLoopPoint('a');
-    paintLoop();
-  });
-
-  // --- Saut à froid -----------------------------------------------------
-
-  const countdown = el('div', {
-    class:
-      'pointer-events-none fixed inset-0 z-40 hidden items-center justify-center ' +
-      'bg-zinc-950/90 text-8xl font-bold text-amber-300 backdrop-blur-sm',
-  });
-  document.body.appendChild(countdown);
-
-  const jumpButton = el(
-    'button',
-    { type: 'button', class: ui.button, disabled: !anySource },
-    '🎲 Reprendre au hasard',
-  );
-  jumpButton.addEventListener('click', () => {
-    countdown.classList.remove('hidden');
-    countdown.classList.add('flex');
-    player.coldJump((remaining) => {
-      countdown.textContent = remaining > 0 ? String(remaining) : 'Jouez !';
-      if (remaining === 0) {
-        window.setTimeout(() => {
-          countdown.classList.add('hidden');
-          countdown.classList.remove('flex');
-        }, 600);
-      }
-    });
-  });
-
   // --- Sections secondaires -----------------------------------------------
 
   const sections: Section[] = [];
 
-  if (song.instruments.length > 1) {
-    sections.push({
-      title: 'Votre instrument',
-      body: el('div', { class: 'flex flex-wrap gap-2' }, ...instrumentButtons.values()),
-    });
-  }
-
   if (anySource) {
     sections.push({
       title: 'Répéter un passage',
-      hint: 'Un endroit difficile, rejoué sans fin jusqu’à ce que vous l’arrêtiez.',
       body: el(
-        'div',
-        { class: 'flex min-w-[18rem] flex-col gap-2' },
-        laneSlotPanel,
-        loopBounds,
-        markButton,
-        loopHint,
-      ),
-    });
-    sections.push({
-      title: 'Se mettre à l’épreuve',
-      body: el(
-        'div',
-        { class: 'flex flex-col gap-2' },
-        el('div', { class: 'flex flex-wrap gap-2' }, jumpButton),
-        el(
-          'p',
-          { class: 'text-[11px] leading-snug text-zinc-500' },
-          'Au hasard : reprise en plein morceau, après un décompte.',
-        ),
+        'p',
+        { class: 'text-xs leading-relaxed text-zinc-400' },
+        'Tracez le passage sur la frise, juste sous la barre de lecture : un ' +
+          'glissement en pose les deux bords. Tirez-les ensuite pour ajuster, ' +
+          'ou touchez le résumé « 🔁 » pour arrêter.',
       ),
     });
   }
-
-  // --- Où vit la frise ------------------------------------------------------
-  //
-  // Sur grand écran elle se colle sous la piste, où les poignées tombent juste
-  // à côté de ce qu'elles désignent. Sur petit écran elle resterait illisible
-  // à cette taille, et retourne dans le panneau, à pleine hauteur tactile.
-
-  const wide = window.matchMedia('(min-width: 1024px)');
-  function placeLane(): void {
-    if (wide.matches) {
-      laneSlotBar.classList.remove('hidden');
-      laneSlotBar.appendChild(lane);
-    } else {
-      laneSlotBar.classList.add('hidden');
-      laneSlotPanel.appendChild(lane);
-    }
-  }
-  placeLane();
-  wide.addEventListener('change', placeLane);
-  disposers.push(() => wide.removeEventListener('change', placeLane));
 
   // --- Synchronisation ----------------------------------------------------
 
@@ -828,7 +605,6 @@ export function createTransport(options: TransportOptions): Transport {
     destroy: () => {
       unsubscribe();
       disposers.forEach((dispose) => dispose());
-      countdown.remove();
     },
   };
 }

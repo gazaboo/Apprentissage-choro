@@ -163,7 +163,18 @@ export function renderTrainer(
 
   const maskRow = el('div', { class: 'flex flex-wrap items-center gap-2' });
   const intensityRow = el('div', { class: 'flex flex-wrap gap-2' });
-  const modeHint = el('p', { class: 'text-[11px] leading-snug text-zinc-500' });
+  const modeHint = el('p', { class: 'text-xs leading-snug text-zinc-500' });
+
+  /** Réglage fin d'un mode : caché tant que ce mode n'est pas retenu. */
+  const subPanel = (label: string, row: HTMLElement): HTMLElement =>
+    el(
+      'div',
+      { class: 'flex hidden flex-col gap-2 rounded-lg bg-zinc-800/40 p-3' },
+      el('p', { class: 'text-[11px] font-medium uppercase tracking-wide text-zinc-500' }, label),
+      row,
+    );
+  const maskPanel = subPanel('Proportion de mesures cachées', maskRow);
+  const intensityPanel = subPanel('Fréquence des éclipses', intensityRow);
 
   /**
    * N'affiche que le réglage du mode retenu. C'est ce qui allège le plus le
@@ -171,7 +182,7 @@ export function renderTrainer(
    */
   function paintMode(): void {
     for (const [value, button] of modeButtons) {
-      button.className = value === mode ? ui.buttonActive : ui.button;
+      button.className = `${value === mode ? ui.buttonActive : ui.button} w-full`;
     }
     for (const [level, button] of maskButtons) {
       button.className = level === maskLevel ? ui.buttonActive : ui.button;
@@ -180,8 +191,8 @@ export function renderTrainer(
       button.className =
         value === progress.settings.eclipseIntensity ? ui.buttonActive : ui.button;
     }
-    maskRow.classList.toggle('hidden', mode !== 'mesures');
-    intensityRow.classList.toggle('hidden', mode !== 'eclipses');
+    maskPanel.classList.toggle('hidden', mode !== 'mesures');
+    intensityPanel.classList.toggle('hidden', mode !== 'eclipses');
     modeHint.textContent = STUDY_MODE_HINTS[mode];
     paintCounters();
   }
@@ -201,7 +212,11 @@ export function renderTrainer(
   }
 
   for (const value of STUDY_MODES) {
-    const button = el('button', { type: 'button', class: ui.button }, STUDY_MODE_LABELS[value]);
+    const button = el(
+      'button',
+      { type: 'button', class: `${ui.button} w-full` },
+      STUDY_MODE_LABELS[value],
+    );
     button.addEventListener('click', () => setMode(value));
     modeButtons.set(value, button);
   }
@@ -247,13 +262,14 @@ export function renderTrainer(
 
   const maskSection: Section = {
     title: 'Comment travailler',
+    hint: 'Quatre paliers, du plus soutenu au plus exigeant.',
     body: el(
       'div',
-      { class: 'flex flex-col gap-2' },
-      el('div', { class: 'flex flex-wrap gap-2' }, ...modeButtons.values()),
+      { class: 'flex flex-col gap-3' },
+      el('div', { class: 'grid grid-cols-2 gap-2' }, ...modeButtons.values()),
       modeHint,
-      maskRow,
-      intensityRow,
+      maskPanel,
+      intensityPanel,
       countersLabel,
     ),
   };
