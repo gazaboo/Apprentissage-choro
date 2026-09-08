@@ -44,7 +44,7 @@ const inputClass =
 function codeForm(connect: (code: string) => void): HTMLElement {
   const input = el('input', {
     type: 'text',
-    placeholder: 'Identifiant (6 caractères minimum)',
+    placeholder: '6 caractères minimum',
     'aria-label': 'Identifiant',
     autocomplete: 'off',
     autocapitalize: 'none',
@@ -168,12 +168,11 @@ function renderGate(context: AccountContext, connect: (code: string) => void): H
       el(
         'section',
         { class: `${ui.card} flex flex-col gap-3` },
-        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Sur cet appareil'),
+        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Anonyme'),
         el(
           'p',
           { class: 'text-sm text-zinc-400' },
-          'Enregistrée dans ce navigateur. Rien à retenir, mais elle ne suivra ' +
-            'pas vers un autre appareil.',
+          'Données sur cet appareil uniquement — peut disparaître.',
         ),
         el('div', { class: 'flex' }, continueButton),
       ),
@@ -185,12 +184,11 @@ function renderGate(context: AccountContext, connect: (code: string) => void): H
             'flex flex-col gap-3 rounded-xl border border-amber-400/30 ' +
             'bg-amber-400/[0.05] p-4',
         },
-        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Sur tous mes appareils'),
+        el('h2', { class: 'text-base font-medium text-zinc-100' }, 'Identifiant'),
         el(
           'p',
           { class: 'text-sm text-zinc-400' },
-          'Choisissez un identifiant secret et saisissez le même sur votre ' +
-            'téléphone, votre tablette… Votre progression vous suit partout.',
+          'Données sauvegardées en ligne.',
         ),
         codeForm(connect),
       ),
