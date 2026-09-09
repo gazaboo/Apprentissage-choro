@@ -499,9 +499,7 @@ export function renderDashboard(
       const techniqueButton = el(
         'button',
         { type: 'button', class: ui.button },
-        context.techniqueCount > 0
-          ? `Travailler — ${context.techniqueCount} exercice${context.techniqueCount > 1 ? 's' : ''}`
-          : 'Voir les exercices',
+        context.techniqueCount > 0 ? 'Commencer' : 'Voir les exercices',
       );
       techniqueButton.addEventListener('click', context.openTechnique);
       rows.push(
