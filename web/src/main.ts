@@ -6,6 +6,8 @@
  *   #/session     séance de travail (fond ou urgences), calée sur la setlist active
  *   #/filage      préparation du filage (choix partition + bande)
  *   #/filage/run  filage de la setlist, audio enchaîné
+ *   #/technique      arpèges et gammes : vue d'ensemble
+ *   #/technique/run  séance d'arpèges et gammes, au métronome
  *   #/compte      accès au compte et à la synchro
  *
  * Tant qu'aucun choix de compte n'a été fait, l'écran d'accueil (`#/compte` en
@@ -20,6 +22,8 @@ import type { SessionBlock, SessionItem } from './session';
 import { activeSetlist, lastSession, loadProgress, recordSession } from './store';
 import type { Progress } from './store';
 import { accountMode, initSync, syncNow } from './sync';
+import type { ExerciceCarte } from './technique/catalogue';
+import { chargerCatalogue, pickExercices } from './technique/catalogue';
 import type { AudioKind, InstrumentId, Song } from './types';
 import { Player } from './youtube';
 import { renderAccount } from './views/account';
@@ -28,6 +32,8 @@ import { renderFilage } from './views/filage';
 import { renderFilageConfig } from './views/filage-config';
 // L'édition des setlists est une modale ouverte depuis le tableau de bord,
 // plus une route dédiée.
+import { renderTechnique } from './views/technique';
+import { renderTechniqueListe } from './views/technique-liste';
 import { renderTrainer } from './views/trainer';
 
 const MANIFEST_URL = 'data/manifest.json';
@@ -38,6 +44,8 @@ if (!root) throw new Error('Élément #app introuvable.');
 const player = new Player();
 let progress: Progress = loadProgress();
 let songs: Song[] = [];
+/** Catalogue d'arpèges et de gammes ; vide si le fichier est absent. */
+let exercices: ExerciceCarte[] = [];
 /** Démontage de l'écran courant, à appeler avant d'en afficher un autre. */
 let teardown: (() => void) | null = null;
 
@@ -68,8 +76,15 @@ type FilageState = SessionScope & {
   reached: Set<string>;
 };
 
+/** Séance d'arpèges et gammes en cours. */
+interface TechniqueState {
+  ordre: ExerciceCarte[];
+  worked: Set<string>;
+}
+
 let session: SessionState | null = null;
 let filage: FilageState | null = null;
+let technique: TechniqueState | null = null;
 
 function navigate(hash: string): void {
   if (window.location.hash === hash) render();
@@ -105,12 +120,25 @@ function recordCurrentRun(): void {
       songCount: filage.reached.size,
     });
   }
+  if (technique && technique.worked.size > 0) {
+    // Les arpèges ne relèvent d'aucune setlist : le champ porte ici le nom de
+    // la section, pour que l'historique reste lisible d'une ligne à l'autre.
+    recordSession(progress, {
+      date: new Date().toISOString(),
+      kind: 'technique',
+      instrumentId: null,
+      setlistId: null,
+      setlistName: 'Arpèges et gammes',
+      songCount: technique.worked.size,
+    });
+  }
 }
 
 function goHome(): void {
   recordCurrentRun();
   session = null;
   filage = null;
+  technique = null;
   navigate('#/');
 }
 
@@ -156,6 +184,22 @@ function startFilage(): void {
   navigate('#/filage');
 }
 
+/** Ouvre la vue d'ensemble des arpèges et gammes. */
+function openTechnique(): void {
+  if (exercices.length === 0) return;
+  navigate('#/technique');
+}
+
+/** Lance la séance d'arpèges et gammes, dans l'ordre du sélecteur SRS. */
+function startTechnique(): void {
+  const ordre = pickExercices(exercices, progress);
+  if (ordre.length === 0) return;
+  session = null;
+  filage = null;
+  technique = { ordre, worked: new Set() };
+  navigate('#/technique/run');
+}
+
 /** Passe au bloc suivant, ou termine la session. */
 function advanceSession(): void {
   if (!session) {
@@ -183,6 +227,7 @@ function finishRun(): void {
   recordCurrentRun();
   session = null;
   filage = null;
+  technique = null;
   showSessionSummary();
 }
 
@@ -190,7 +235,15 @@ const RUN_KIND_LABELS: Record<string, string> = {
   deep: 'Travail de fond',
   urgent: 'Révision des urgences',
   filage: 'Filage',
+  technique: 'Arpèges et gammes',
 };
+
+/** « 3 morceaux » ou « 3 exercices », selon ce que la séance a compté. */
+function countLabel(kind: string, count: number): string {
+  const plural = count > 1;
+  if (kind === 'technique') return `${count} exercice${plural ? 's' : ''}`;
+  return `${count} morceau${plural ? 'x' : ''}`;
+}
 
 function showSessionSummary(): void {
   teardown?.();
@@ -206,9 +259,9 @@ function showSessionSummary(): void {
         { class: 'text-zinc-400' },
         run
           ? `${RUN_KIND_LABELS[run.kind] ?? 'Séance'} · ${run.setlistName} · ` +
-              `${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}. ` +
+              `${countLabel(run.kind, run.songCount)}. ` +
               'Les évaluations éventuelles sont enregistrées, la synchro est à jour.'
-          : 'Aucun morceau travaillé — rien n’a été enregistré.',
+          : 'Rien n’a été travaillé — rien n’a été enregistré.',
       ),
       backHome(),
     ),
@@ -325,6 +378,27 @@ function render(): void {
     return;
   }
 
+  if (hash === '#/technique' && exercices.length > 0) {
+    teardown = renderTechniqueListe(root!, {
+      progress,
+      cartes: exercices,
+      navigateHome: goHome,
+      onStart: startTechnique,
+    });
+    return;
+  }
+
+  if (hash === '#/technique/run' && technique) {
+    teardown = renderTechnique(root!, {
+      progress,
+      ordre: technique.ordre,
+      markWorked: (id) => technique?.worked.add(id),
+      navigateHome: goHome,
+      onFinish: finishRun,
+    });
+    return;
+  }
+
   const songMatch = /^#\/song\/(.+)$/.exec(hash);
   if (songMatch) {
     const song = songs.find((candidate) => candidate.id === songMatch[1]);
@@ -344,6 +418,8 @@ function render(): void {
     openAccount: () => navigate('#/compte'),
     startSession,
     startFilage,
+    openTechnique: exercices.length > 0 ? openTechnique : null,
+    techniqueCount: exercices.length > 0 ? pickExercices(exercices, progress).length : 0,
   });
 }
 
@@ -362,6 +438,14 @@ async function boot(): Promise<void> {
   }
 
   progress = loadProgress();
+
+  // Le catalogue d'arpèges est facultatif : son absence ou une erreur de
+  // lecture masque simplement la section, elle n'empêche pas de démarrer.
+  try {
+    exercices = await chargerCatalogue(new AbortController().signal);
+  } catch {
+    exercices = [];
+  }
 
   // Synchro entre appareils (silencieuse si aucun code n'est renseigné).
   initSync(() => {

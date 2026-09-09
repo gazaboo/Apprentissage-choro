@@ -217,8 +217,15 @@ export interface Setlist {
  * - `'urgent'` : les 3 plus en retard, entrelacé (blocs de 5 min) ;
  * - `'filage'` : la setlist dans l'ordre, enchaînée avec l'audio, décompte de
  *   5 s entre les morceaux — comme un filage de concert.
+ * - `'technique'` : arpèges et gammes au métronome, hors répertoire.
  */
-export type SessionKind = 'deep' | 'urgent' | 'filage';
+export type SessionKind = 'deep' | 'urgent' | 'filage' | 'technique';
+
+export const SESSION_KINDS: SessionKind[] = ['deep', 'urgent', 'filage', 'technique'];
+
+export function isSessionKind(value: unknown): value is SessionKind {
+  return (SESSION_KINDS as unknown[]).includes(value);
+}
 
 /** Une séance de travail menée à son terme (ou interrompue). */
 export interface SessionRun {
@@ -230,7 +237,10 @@ export interface SessionRun {
   setlistId: string | null;
   /** Nom de la setlist, ou « Tout le répertoire » quand `setlistId` est `null`. */
   setlistName: string;
-  /** Nombre de morceaux distincts effectivement travaillés (ou enchaînés). */
+  /**
+   * Nombre de morceaux distincts effectivement travaillés (ou enchaînés) —
+   * ou d'exercices, pour une séance `'technique'`.
+   */
   songCount: number;
 }
 
@@ -239,6 +249,16 @@ export interface SrsReview {
   grade: number;
   tempo: Tempo;
   hints: number;
+  /**
+   * Arpèges et gammes : BPM auquel la carte a été travaillée. Logé ici, et non
+   * dans les réglages, pour suivre la fusion carte par carte de la synchro —
+   * le bloc des réglages est arbitré en masse et se ferait écraser.
+   */
+  bpm?: number;
+  /** Arpèges et gammes : part de notes justes (0–1), mesurée au micro. */
+  justesse?: number;
+  /** Arpèges et gammes : part de notes tombées dans la fenêtre du clic (0–1). */
+  placement?: number;
 }
 
 export interface SrsCard {

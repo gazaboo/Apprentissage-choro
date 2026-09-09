@@ -66,12 +66,18 @@ export function newCard(): SrsCard {
  * Applique une évaluation et retourne la carte mise à jour.
  * `hints` (indices éphémères déclenchés) n'entre pas dans le calcul : il n'est
  * conservé que comme trace, et sert à suggérer une note dans le questionnaire.
+ *
+ * `mesures` porte ce que les arpèges et gammes savent chiffrer — BPM tenu,
+ * justesse et placement relevés au micro. Comme `hints`, c'est une trace :
+ * l'intervalle reste décidé par la note et l'aisance déclarées, la machine ne
+ * juge pas à la place du musicien.
  */
 export function review(
   card: SrsCard | undefined,
   grade: number,
   tempo: Tempo,
   hints: number,
+  mesures?: { bpm?: number; justesse?: number; placement?: number },
 ): SrsCard {
   const base = card ?? newCard();
   const clamped = Math.max(0, Math.min(5, Math.round(grade)));
@@ -102,7 +108,7 @@ export function review(
     due: isoDate(addDays(today(), interval)),
     history: [
       ...base.history,
-      { date: isoDate(today()), grade: clamped, tempo, hints },
+      { date: isoDate(today()), grade: clamped, tempo, hints, ...(mesures ?? {}) },
     ].slice(-50),
   };
 }

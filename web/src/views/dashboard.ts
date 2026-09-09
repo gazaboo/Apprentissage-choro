@@ -35,12 +35,17 @@ export interface DashboardContext {
   openAccount: () => void;
   startSession: (kind: 'deep' | 'urgent') => void;
   startFilage: () => void;
+  /** `null` quand le catalogue d'arpèges est absent : la section disparaît. */
+  openTechnique: (() => void) | null;
+  /** Nombre d'exercices que proposerait une séance lancée maintenant. */
+  techniqueCount: number;
 }
 
 const RUN_KIND_LABELS: Record<SessionRun['kind'], string> = {
   deep: 'travail de fond',
   urgent: 'révision des urgences',
   filage: 'filage',
+  technique: 'arpèges et gammes',
 };
 
 function runSummary(run: SessionRun): string {
@@ -48,7 +53,11 @@ function runSummary(run: SessionRun): string {
     run.kind === 'filage' && run.instrumentId
       ? `filage ${INSTRUMENT_SHORT_LABELS[run.instrumentId]}`
       : RUN_KIND_LABELS[run.kind];
-  return `${run.setlistName} · ${kind} · ${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
+  const count =
+    run.kind === 'technique'
+      ? `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`
+      : `${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
+  return `${run.setlistName} · ${kind} · ${count}`;
 }
 
 /**
@@ -483,6 +492,36 @@ export function renderDashboard(
         ),
       ),
     ];
+
+    // Les arpèges et gammes ne dépendent d'aucune setlist : la rangée vient
+    // après le répertoire, et disparaît si le catalogue est absent.
+    if (context.openTechnique) {
+      const techniqueButton = el(
+        'button',
+        { type: 'button', class: ui.button },
+        context.techniqueCount > 0
+          ? `Travailler — ${context.techniqueCount} exercice${context.techniqueCount > 1 ? 's' : ''}`
+          : 'Voir les exercices',
+      );
+      techniqueButton.addEventListener('click', context.openTechnique);
+      rows.push(
+        el(
+          'div',
+          { class: 'flex flex-col gap-2 sm:flex-row sm:items-baseline' },
+          el('span', { class: `${ui.label} sm:w-16 sm:shrink-0` }, 'Technique'),
+          el(
+            'div',
+            { class: 'flex flex-col gap-1' },
+            el('div', { class: 'flex flex-wrap gap-2' }, techniqueButton),
+            el(
+              'span',
+              { class: 'text-[11px] text-zinc-500' },
+              'Arpèges et gammes au métronome, note à note, hors répertoire.',
+            ),
+          ),
+        ),
+      );
+    }
 
     if (progress.sessions.length > 0) {
       const toggle = el(

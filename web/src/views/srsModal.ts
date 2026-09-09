@@ -20,12 +20,17 @@ const TEMPOS: Tempo[] = ['sous-tempo', 'crispe', 'fluide'];
 /**
  * Affiche la modale et résout avec la réponse, ou `null` si l'utilisateur
  * passe son tour (échapper) — mieux vaut aucune donnée qu'une note bâclée.
+ *
+ * `contexte` remplace le rappel des indices déclenchés par un autre relevé —
+ * pour les arpèges et gammes, le tempo tenu et ce que le micro a entendu. Il
+ * informe la note ; il ne la décide pas.
  */
 export function askSrs(
   title: string,
   instrumentName: string,
   hints: number,
   maskedCount: number,
+  contexte?: string,
 ): Promise<SrsAnswer | null> {
   return new Promise((resolve) => {
     const suggested = suggestGrade(hints, maskedCount);
@@ -106,9 +111,10 @@ export function askSrs(
         el(
           'p',
           { class: 'mt-4 rounded-lg bg-zinc-800/60 px-3 py-2 text-sm text-zinc-400' },
-          hints === 0
-            ? 'Aucun indice déclenché pendant ce passage.'
-            : `${hints} indice${hints > 1 ? 's' : ''} déclenché${hints > 1 ? 's' : ''} sur ${maskedCount} mesure${maskedCount > 1 ? 's' : ''} masquée${maskedCount > 1 ? 's' : ''}.`,
+          contexte ??
+            (hints === 0
+              ? 'Aucun indice déclenché pendant ce passage.'
+              : `${hints} indice${hints > 1 ? 's' : ''} déclenché${hints > 1 ? 's' : ''} sur ${maskedCount} mesure${maskedCount > 1 ? 's' : ''} masquée${maskedCount > 1 ? 's' : ''}.`),
         ),
 
         el('p', { class: `${ui.label} mt-5` }, 'Mémoire (0 – 5)'),

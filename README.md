@@ -282,6 +282,66 @@ Chaque séance menée est consignée (`progress.sessions`) : le tableau de bord
 montre la date de la dernière et, sur demande, les dix dernières. Les setlists
 et l'historique vivent dans la clé `choro-srs-v1`, à côté des cartes SRS.
 
+## Arpèges et gammes
+
+Le répertoire se mémorise ; la technique se travaille. Les arpèges et gammes qui
+nourrissent l'improvisation ne se révisent pas comme un morceau : au métronome,
+note à note, sans bande ni accompagnement, et sans plaquer d'accord. Ils ont donc
+leur section, hors setlist et hors compteurs du répertoire.
+
+**Le catalogue est écrit à la main** (`web/public/data/technique/exercices.json`,
+format documenté à côté). Un motif y figure une seule fois, dans la tonalité où
+il a été pensé ; l'application le transpose et en fait **une carte par tonalité
+et par sens** — « Dm7 montant » et « Dm7 descendant » sont deux cartes, parce que
+monter et descendre ne s'acquièrent pas ensemble. La liste `roots` de chaque
+motif est le seul levier de volume : il n'y a aucune machinerie de
+déverrouillage, c'est le fichier qui décide de ce qu'on travaille.
+
+La transposition conserve l'**orthographe** : un arpège écrit en ré donne `Bb` en
+sol mineur, jamais `A#`. Chaque note garde ses deux intervalles à la fondamentale
+— générique (distance de lettres) et chromatique (demi-tons) — et les reporte sur
+la nouvelle, ce qui évite toute table d'exceptions.
+
+**L'écran est nu, délibérément** : le chiffrage seul, en grand. Ni portée, ni
+manche, ni tablature — retrouver les notes est précisément ce qu'on cherche à
+acquérir. Les noms de notes existent, mais comme **indice** sur demande, et
+chaque appui est compté, exactement comme l'indice éphémère de la partition à
+trous. Sous le chiffrage, une rangée de pastilles tient lieu de portée minimale :
+masquée, elle montre où l'on en est dans le motif ; révélée, elle donne les noms.
+
+Le **métronome** est du Web Audio écrit pour l'occasion : un réveil de 25 ms
+programme à l'avance les clics de la centaine de millisecondes suivante, à des
+instants `AudioContext.currentTime` exacts. C'est le matériel audio qui tient le
+tempo, pas le fil JavaScript — un `setInterval`, seule horloge du reste de
+l'application, dériverait audiblement. Le clic accentué marque la première note
+du motif. Le **BPM est mémorisé par carte**, dans l'historique de la carte et non
+dans les réglages : il suit ainsi la fusion carte par carte de la synchro, là où
+le bloc des réglages est arbitré en masse et se ferait écraser par l'autre
+appareil.
+
+La **détection au micro** est facultative et se coupe à tout moment ; sans elle
+l'écran reste entier et l'évaluation entièrement manuelle. Elle repère la montée
+d'énergie sur une fenêtre courte — qui la situe précisément dans le temps — puis
+estime la hauteur quelques dizaines de millisecondes plus tard sur une fenêtre
+longue, par autocorrélation normalisée. Deux fenêtres et non une : le mi grave de
+la guitare (82 Hz) n'entre pas deux fois dans une fenêtre courte, et dater chaque
+attaque avec la fenêtre longue ruinerait le jugement du placement.
+
+Il en sort **deux chiffres séparés** — justesse et placement — plutôt qu'une note
+unique, parce que jouer les bonnes notes sans être encore en place est le cas le
+plus courant du travail instrumental, et qu'une moyenne le masquerait. Ces
+chiffres sont **complémentaires de l'auto-évaluation** : ils s'affichent dans le
+questionnaire et sont consignés dans la carte, mais l'intervalle de révision
+reste décidé par la note et l'aisance déclarées. Le détecteur se trompe parfois ;
+il ne décide pas à la place du musicien.
+
+Deux réserves, mesurées plutôt que supposées. Quand deux notes sonnent
+véritablement ensemble, le détecteur **s'abstient** (seuil de périodicité) au
+lieu de renvoyer une fausse note : le jeu très *laissez vibrer* sous-estime la
+justesse, il ne la fausse pas. Et le motif peut être entamé sur un autre temps
+que l'accent : la notation cherche donc la rotation qui explique le mieux ce qui
+a été joué — elle pardonne le point de départ, jamais l'ordre des notes.
+
 ## Synchronisation
 
 À la première arrivée, une **passerelle d'accueil** propose deux voies :
@@ -329,11 +389,18 @@ web/
     youtube.ts                lecteur audio seul, ticker, répétition de passage
     transport.ts sheet.ts     barre de transport et panneau de réglages
     eclipse.ts                horloge des éclipses
-    score.ts dom.ts icons.ts
+    metronome.ts              clic Web Audio, programmé à l'avance sur l'horloge audio
+    pitch.ts                  micro + autocorrélation normalisée (détection de hauteur)
+    score.ts grille.ts dom.ts icons.ts random.ts types.ts
+    technique/theorie.ts      notes, transposition orthographiée, hauteurs MIDI
+    technique/catalogue.ts    chargement du catalogue, dépliage en cartes
+    technique/grader.ts       confronte ce qui est joué à ce qui est attendu
     views/dashboard.ts views/trainer.ts views/srsModal.ts
     views/setlists.ts         modale d'édition d'une setlist
     views/filage-config.ts    préparation du filage : partition + bande
     views/filage.ts           filage de la setlist, audio enchaîné + décompte
+    views/technique-liste.ts  arpèges et gammes : vue d'ensemble
+    views/technique.ts        arpèges et gammes : séance au métronome
     views/account.ts          passerelle d'accueil + gestion de la synchro
 netlify/
   functions/sync.mjs          GET (200 / 404) et PUT d'un blob JSON par identifiant

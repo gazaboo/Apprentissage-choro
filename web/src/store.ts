@@ -19,6 +19,7 @@ import {
   isEclipseIntensity,
   isInstrumentId,
   isMaskLevel,
+  isSessionKind,
   isStudyMode,
 } from './types';
 
@@ -137,10 +138,9 @@ function sanitizeSessionRun(value: unknown): SessionRun | null {
   if (typeof value !== 'object' || value === null) return null;
   const raw = value as Record<string, unknown>;
   if (typeof raw.date !== 'string' || raw.date === '') return null;
-  const kind =
-    raw.kind === 'deep' || raw.kind === 'urgent' || raw.kind === 'filage'
-      ? raw.kind
-      : 'urgent';
+  // Le repli doit rester le dernier recours : tout genre connu passe par le
+  // garde, faute de quoi une séance serait relue sous une autre étiquette.
+  const kind = isSessionKind(raw.kind) ? raw.kind : 'urgent';
   return {
     date: raw.date,
     kind,
@@ -344,5 +344,34 @@ export function putCard(
   card: SrsCard,
 ): void {
   progress.cards[cardKey(songId, instrumentId)] = card;
+  saveProgress(progress);
+}
+
+/**
+ * Clé des cartes d'arpèges et de gammes.
+ *
+ * Elles vivent dans le **même** `progress.cards` que les morceaux : la fusion
+ * de la synchro itère sur les clés sans regarder ce qu'elles désignent, si
+ * bien qu'elles sont synchronisées sans code supplémentaire. Le préfixe les
+ * tient à l'écart des clés `${songId}::${instrumentId}`, dont la forme reste
+ * inchangée — la modifier invaliderait les cartes déjà enregistrées.
+ */
+export function techniqueCardKey(exerciceId: string): string {
+  return `tech::${exerciceId}`;
+}
+
+export function getTechniqueCard(
+  progress: Progress,
+  exerciceId: string,
+): SrsCard | undefined {
+  return progress.cards[techniqueCardKey(exerciceId)];
+}
+
+export function putTechniqueCard(
+  progress: Progress,
+  exerciceId: string,
+  card: SrsCard,
+): void {
+  progress.cards[techniqueCardKey(exerciceId)] = card;
   saveProgress(progress);
 }

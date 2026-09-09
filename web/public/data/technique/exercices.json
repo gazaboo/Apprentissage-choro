@@ -1,0 +1,35 @@
+{
+  "description": "Arpèges et gammes de travail. Chaque motif est écrit une fois dans sa tonalité de référence, puis transposé à la lecture. Voir README.md pour le format.",
+  "exercices": [
+    {
+      "id": "arp-m7",
+      "famille": "Arpèges",
+      "nom": "Arpège mineur 7",
+      "reference": "Dm7",
+      "notes": ["D", "F", "A", "C"],
+      "roots": ["D", "G", "A", "C", "F", "Bb", "E", "B"],
+      "sens": ["montant", "descendant"],
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+    },
+    {
+      "id": "arp-dom7",
+      "famille": "Arpèges",
+      "nom": "Arpège de dominante",
+      "reference": "A7",
+      "notes": ["A", "C#", "E", "G"],
+      "roots": ["A", "D", "E", "G", "C", "F", "Bb", "B"],
+      "sens": ["montant", "descendant"],
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+    },
+    {
+      "id": "gamme-majeure",
+      "famille": "Gammes",
+      "nom": "Gamme majeure",
+      "reference": "C",
+      "notes": ["C", "D", "E", "F", "G", "A", "B"],
+      "roots": ["C", "G", "D", "F", "Bb", "A", "Eb", "E"],
+      "sens": ["montant", "descendant"],
+      "note_de_travail": "Sur une seule position, sans corde à vide si possible."
+    }
+  ]
+}
