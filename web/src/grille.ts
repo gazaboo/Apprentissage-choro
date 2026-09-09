@@ -59,6 +59,83 @@ function selectMasked(slots: Slot[], level: number, seed: string): Set<number> {
   return new Set(ranked.slice(0, target).map((entry) => entry.ordinal));
 }
 
+/* --- Simplification des chiffrages -------------------------------------- */
+
+/**
+ * Ramène un chiffrage à sa forme jouable de base : `Xm`, `X` ou `X7`.
+ *
+ * La grille sert à accompagner, pas à relever : `A7/C#` et `A7/E` demandent le
+ * même accord de la main gauche, et les renversements ne font que charger la
+ * lecture. On retire donc la basse, et l'on replie les enrichissements sur leur
+ * famille — `Gm6`, `Gm7` et `Gm(maj7)` deviennent `Gm`, `D6` devient `D`,
+ * `F7#5` devient `F7`.
+ *
+ * **Deux qualités survivent** : `dim` et `m7b5`. Leur quinte est diminuée, et
+ * la remplacer par une quinte juste s'entend — les accords diminués de passage
+ * sont une signature du choro, non un ornement qu'on peut lisser.
+ *
+ * Tout chiffrage non reconnu est rendu tel quel : mieux vaut afficher un accord
+ * inhabituel que d'en inventer un faux.
+ */
+export function simplifyChord(symbol: string): string {
+  const match = /^([A-G](?:#|b)?)\s*(.*)$/.exec(symbol.trim());
+  if (!match) return symbol;
+
+  const root = match[1] ?? '';
+  const withBass = match[2] ?? '';
+  // La basse d'un renversement s'écrit après une barre oblique.
+  const slash = withBass.indexOf('/');
+  const quality = (slash >= 0 ? withBass.slice(0, slash) : withBass).trim();
+
+  // « C dim » se rencontre dans les données à côté de « Cdim » : même accord.
+  if (/^dim/i.test(quality) || quality === '°') return `${root}dim`;
+  if (/^m(?:in)?7b5$/i.test(quality) || quality === 'ø') return `${root}m7b5`;
+  // `maj7` est un accord majeur ; seul un `m` initial marque le mineur.
+  if (/^m/i.test(quality) && !/^maj/i.test(quality)) return `${root}m`;
+  if (/^(?:7|9|11|13)/.test(quality)) return `${root}7`;
+  // Reste le majeur et tout ce qui s'y ramène : `6`, `maj7`, `add9`, `(#5)`.
+  return root;
+}
+
+/** Simplifie une mesure, puis retire les accords devenus identiques à la file. */
+function simplifyCell(cell: GrilleCell): GrilleCell {
+  const out: string[] = [];
+  for (const chord of cell) {
+    const simple = simplifyChord(chord);
+    // `Cm/Eb | Cm/G` devient un seul `Cm` : la mesure n'est plus partagée.
+    if (out[out.length - 1] !== simple) out.push(simple);
+  }
+  return out;
+}
+
+function simplifyCells(cells: GrilleCell[] | undefined): GrilleCell[] | undefined {
+  return cells?.map(simplifyCell);
+}
+
+/**
+ * Applique la simplification à toute la grille, une fois pour toutes.
+ *
+ * C'est fait à l'entrée plutôt qu'au rendu : le masquage, l'affichage et la
+ * détection des fins de partie repartent tous des mêmes cellules, et les
+ * simplifier en un seul point interdit qu'ils se désynchronisent.
+ */
+export function simplifyGrille(grille: Grille): Grille {
+  return {
+    ...grille,
+    parts: grille.parts.map((part) => ({
+      ...part,
+      sequence: part.sequence.map(simplifyCell),
+      endings: part.endings && {
+        ...(part.endings['1'] && { '1': part.endings['1'].map(simplifyCell) }),
+        ...(part.endings['2'] && { '2': part.endings['2'].map(simplifyCell) }),
+      },
+      coda: simplifyCells(part.coda),
+      transition_in: simplifyCells(part.transition_in),
+    })),
+    coda: simplifyCells(grille.coda),
+  };
+}
+
 /** Deux cellules portent-elles exactement les mêmes accords ? */
 function sameCells(a: GrilleCell, b: GrilleCell): boolean {
   return a.length === b.length && a.every((chord, i) => chord === b[i]);
@@ -134,9 +211,13 @@ export class GrilleView {
     private readonly options: GrilleOptions,
   ) {}
 
-  /** Pose les données, une fois le fichier `data/grilles/<id>.json` chargé. */
+  /**
+   * Pose les données, une fois le fichier `data/grilles/<id>.json` chargé.
+   * Les chiffrages sont simplifiés ici, à l'entrée : c'est la seule forme que
+   * la grille affiche.
+   */
   setGrille(grille: Grille | null): void {
-    this.grille = grille;
+    this.grille = grille ? simplifyGrille(grille) : null;
   }
 
   /** (Re)construit l'affichage pour la grille posée. */
