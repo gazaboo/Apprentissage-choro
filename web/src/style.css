@@ -210,11 +210,16 @@ body {
 .chord-cell .ch {
   white-space: nowrap;
 }
+/* Les accords d'une mesure partagée respirent de part et d'autre du trait :
+   collés, les deux chiffrages et leur séparation se lisent comme un seul mot.
+   L'espace est repris sur le corps du texte, la case gardant sa largeur. */
 .chord-cell.multi {
-  font-size: 0.82em;
+  font-size: 0.78em;
+  gap: 0.45em;
 }
 .chord-cell.multi.multi-3 {
-  font-size: 0.68em;
+  font-size: 0.64em;
+  gap: 0.32em;
 }
 .chord-cell.multi .sep {
   width: 2px;
