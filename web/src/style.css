@@ -108,6 +108,10 @@ body {
   --grille-rule: rgb(var(--mask-ink) / 0.28);
   --grille-ink: rgb(var(--mask-ink));
   --grille-soft: rgb(var(--mask-ink) / 0.5);
+  /* Séparation de deux accords dans une même mesure. Plus soutenue que le
+     cadre des cases : elle sépare des accords, pas des mesures, et se
+     confondrait avec le quadrillage en portant la même valeur. */
+  --grille-split: rgb(var(--mask-ink) / 0.65);
   touch-action: pan-x pan-y pinch-zoom;
   background-color: rgb(var(--mask-paper));
   color: rgb(var(--mask-ink));
@@ -213,10 +217,12 @@ body {
   font-size: 0.68em;
 }
 .chord-cell.multi .sep {
-  width: 1px;
+  width: 2px;
   align-self: stretch;
-  background: var(--grille-rule);
-  margin: 0.25em 0;
+  background: var(--grille-split);
+  /* Retrait réduit : le trait doit courir sur presque toute la hauteur pour se
+     lire comme une division de la mesure, et non comme un artefact. */
+  margin: 0.1em 0;
 }
 .chord-cell.simile {
   color: var(--grille-soft);
