@@ -98,13 +98,16 @@ body {
 
 /* --- Grille d'accords -------------------------------------------------- */
 
-/* La grille est une carte de papier posée sur le fond sombre, exactement
-   comme les pages de partition : même blanc chaud (`--mask-paper`), même
-   encre (`--mask-ink`), même ombre portée. Les accords sont en chasse fixe.
-   Tout est dimensionné en `em` pour qu'un seul `font-size` sur la carte
-   suffise à l'agrandir en plein écran. */
+/* La grille suit les conventions du musicien : bloc de largeur fixe, quatre
+   mesures par ligne, toutes les cases de largeur identique quel que soit leur
+   contenu. C'est une carte de papier posée sur le fond sombre, comme les pages
+   de partition — même blanc chaud (`--mask-paper`), même encre, même ombre.
+   Tout est en `em` : un seul `font-size` sur la carte l'agrandit en plein
+   écran. */
 .grille-surface {
-  --grille-rule: rgb(var(--mask-ink) / 0.18);
+  --grille-rule: rgb(var(--mask-ink) / 0.28);
+  --grille-ink: rgb(var(--mask-ink));
+  --grille-soft: rgb(var(--mask-ink) / 0.5);
   touch-action: pan-x pan-y pinch-zoom;
   background-color: rgb(var(--mask-paper));
   color: rgb(var(--mask-ink));
@@ -112,172 +115,162 @@ body {
   box-shadow:
     0 10px 15px -3px rgb(0 0 0 / 0.4),
     0 4px 6px -4px rgb(0 0 0 / 0.4);
-  padding: clamp(1rem, 3vw, 1.75rem);
-  font-size: 0.95rem;
+  padding: clamp(0.7rem, 2.5vw, 1.1rem);
+  font-size: 0.92rem;
+  max-width: 40rem;
+  margin-inline: auto;
 }
 
 .fp-slot .grille-surface {
-  font-size: calc(0.95rem * var(--fp-zoom, 1));
-  margin-inline: auto;
+  font-size: calc(0.92rem * var(--fp-zoom, 1));
+  max-width: min(40rem, 100%);
+}
+@media (max-width: 400px) {
+  .grille-surface {
+    font-size: 0.82rem;
+  }
 }
 
 .grille-key-note {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.7em;
+  font-size: 0.66em;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgb(var(--mask-ink) / 0.55);
-  margin-bottom: 1em;
+  color: var(--grille-soft);
+  margin: 0 0 0.7em;
 }
 
 .grille-parts {
   display: flex;
   flex-direction: column;
-  gap: 1.6em;
+  gap: 1em;
 }
 
 .grille-part-head {
   display: flex;
   align-items: baseline;
-  gap: 0.7em;
-  margin-bottom: 0.55em;
+  gap: 0.55em;
+  flex-wrap: wrap;
+  margin-bottom: 0.35em;
 }
 .grille-part-head h3 {
   margin: 0;
   font-size: 1em;
   font-weight: 700;
-  letter-spacing: 0.01em;
 }
 .grille-part-meta {
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72em;
-  color: rgb(var(--mask-ink) / 0.55);
+  font-size: 0.66em;
+  color: var(--grille-soft);
 }
 .grille-part-meta .dot {
-  margin: 0 0.35em;
+  margin: 0 0.3em;
   opacity: 0.5;
 }
 
+/* Grille proprement dite : colonne de numéros de mesure + quatre colonnes
+   égales. Largeur totale constante, cases de largeur constante. */
 .grille-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35em;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: 1.5em repeat(4, 1fr);
+  gap: 3px;
 }
-.grille-line {
-  display: flex;
-  align-items: stretch;
-  gap: 0.55em;
-  min-width: max-content;
-}
+
 .grille-barno {
-  flex: 0 0 1.7em;
-  align-self: center;
-  text-align: right;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.7em;
-  color: rgb(var(--mask-ink) / 0.5);
-  font-variant-numeric: tabular-nums;
-}
-.grille-cells {
   display: flex;
-  gap: 0.35em;
-  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.3em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62em;
+  color: var(--grille-soft);
+  font-variant-numeric: tabular-nums;
 }
 
 .chord-cell {
   position: relative;
-  flex: 0 0 5.6em;
-  min-height: 2.8em;
+  min-height: 2.3em;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.15em;
+  overflow: hidden;
   border: 1px solid var(--grille-rule);
-  border-radius: 0.2em;
-  background: rgb(var(--mask-ink) / 0.03);
+  background: rgb(var(--mask-ink) / 0.025);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 500;
-  padding: 0.25em 0.3em;
+  padding: 0.2em 0.15em;
   text-align: center;
-}
-@media (max-width: 560px) {
-  .chord-cell {
-    flex-basis: 4.6em;
-    font-size: 0.9em;
-  }
 }
 .chord-cell .ch {
   white-space: nowrap;
 }
 .chord-cell.multi {
   font-size: 0.82em;
-  gap: 0.3em;
+}
+.chord-cell.multi.multi-3 {
+  font-size: 0.68em;
 }
 .chord-cell.multi .sep {
   width: 1px;
   align-self: stretch;
   background: var(--grille-rule);
-  margin: 0.3em 0;
+  margin: 0.25em 0;
 }
-.chord-cell.hold {
-  color: rgb(var(--mask-ink) / 0.35);
-  background: transparent;
-  border-style: dashed;
-  font-size: 1.1em;
+.chord-cell.simile {
+  color: var(--grille-soft);
 }
 .chord-cell.pad {
   border: none;
   background: transparent;
 }
 
-.grille-ending,
-.grille-subcoda {
-  display: flex;
-  align-items: center;
-  gap: 0.55em;
-  margin-top: 0.4em;
-  padding-left: 2.25em;
-  overflow-x: auto;
+/* Fin de partie : crochet numéroté au-dessus des mesures concernées. Le trait
+   supérieur (numéro + cases) forme le crochet. */
+.chord-cell--ending {
+  border-top: 2px solid var(--grille-ink);
 }
-.grille-etag {
-  flex: 0 0 auto;
-  min-width: 3.4em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.68em;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgb(var(--mask-ink) / 0.55);
-}
-.grille-translbl {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.7em;
-  color: rgb(var(--mask-ink) / 0.5);
-  align-self: center;
+.grille-end-tag {
+  align-items: flex-start;
+  padding-top: 1px;
+  border-top: 2px solid var(--grille-ink);
+  color: var(--grille-ink);
+  font-weight: 700;
+  font-size: 0.6em;
 }
 
-.grille-note {
-  margin: 1.4em 0 0;
-  padding: 0.75em 0.9em;
-  background: rgb(var(--mask-ink) / 0.04);
-  border: 1px solid var(--grille-rule);
-  border-radius: 0.25em;
-  font-size: 0.82em;
-  color: rgb(var(--mask-ink) / 0.7);
-}
-.grille-note ul {
-  margin: 0.4em 0 0;
-  padding-left: 1.1em;
-}
-.grille-note li {
-  margin: 0.25em 0;
-}
-.grille-note-lbl {
+/* Libellé pleine largeur d'une rangée annexe (coda, transition). */
+.grille-row-label {
+  grid-column: 1 / -1;
+  margin-top: 0.35em;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72em;
+  font-size: 0.6em;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgb(var(--mask-ink) / 0.5);
+  color: var(--grille-soft);
+}
+
+/* Points à vérifier : repliés par défaut, hors du champ pendant le jeu. */
+.grille-notes {
+  margin-top: 0.9em;
+  font-size: 0.78em;
+  color: rgb(var(--mask-ink) / 0.7);
+}
+.grille-notes summary {
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grille-soft);
+}
+.grille-notes ul {
+  margin: 0.5em 0 0;
+  padding-left: 1.1em;
+}
+.grille-notes li {
+  margin: 0.2em 0;
 }
 
 /* Masque d'accord : même verre dépoli que `.measure-mask`, mais posé en
@@ -290,7 +283,6 @@ body {
   pointer-events: auto;
   cursor: pointer;
   border: 1px solid rgb(var(--mask-ink) / 0.14);
-  border-radius: 0.2em;
   background-color: rgb(var(--mask-paper) / var(--mask-veil));
   -webkit-backdrop-filter: blur(6px) saturate(0.6);
   backdrop-filter: blur(6px) saturate(0.6);

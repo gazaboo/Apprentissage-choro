@@ -142,20 +142,23 @@ export class GrilleView {
       ordinal = this.renderPart(parts, part, ordinal);
     }
     if (this.grille.coda && this.grille.coda.length > 0) {
-      parts.appendChild(this.renderInline('Coda', this.grille.coda, 'grille-subcoda'));
+      const grid = el('div', { class: 'grille-grid' });
+      pushLabeledRow(grid, 'Coda', this.grille.coda);
+      parts.appendChild(el('section', { class: 'grille-part' }, grid));
     }
     surface.appendChild(parts);
 
-    if (this.grille.coda_note) {
-      surface.appendChild(el('p', { class: 'grille-note' }, this.grille.coda_note));
-    }
-    if (this.grille.notes && this.grille.notes.length > 0) {
+    const remarks = [
+      ...(this.grille.coda_note ? [this.grille.coda_note] : []),
+      ...(this.grille.notes ?? []),
+    ];
+    if (remarks.length > 0) {
       surface.appendChild(
         el(
-          'div',
-          { class: 'grille-note' },
-          el('span', { class: 'grille-note-lbl' }, 'À vérifier'),
-          el('ul', {}, ...this.grille.notes.map((note) => el('li', {}, note))),
+          'details',
+          { class: 'grille-notes' },
+          el('summary', {}, `À vérifier (${remarks.length})`),
+          el('ul', {}, ...remarks.map((note) => el('li', {}, note))),
         ),
       );
     }
@@ -174,78 +177,52 @@ export class GrilleView {
       part.repeat ? 'reprise' : null,
     ].filter((entry): entry is string => entry !== null);
 
-    const head = el(
-      'div',
-      { class: 'grille-part-head' },
-      el('h3', {}, part.name),
-      meta.length > 0
-        ? el('p', { class: 'grille-part-meta' }, ...joinDots(meta))
-        : null,
+    const section = el(
+      'section',
+      { class: 'grille-part' },
+      el(
+        'div',
+        { class: 'grille-part-head' },
+        el('h3', {}, part.name),
+        meta.length > 0
+          ? el('p', { class: 'grille-part-meta' }, ...joinDots(meta))
+          : null,
+      ),
     );
-    const section = el('section', { class: 'grille-part' }, head);
-
-    if (part.transition_in && part.transition_in.length > 0) {
-      section.appendChild(
-        this.renderInline('transition', part.transition_in, 'grille-subcoda'),
-      );
-    }
 
     const grid = el('div', { class: 'grille-grid' });
+
+    if (part.transition_in && part.transition_in.length > 0) {
+      pushLabeledRow(grid, 'transition', part.transition_in);
+    }
+
     let ordinal = startOrdinal;
     for (let i = 0; i < part.sequence.length; i += BARS_PER_LINE) {
       const slice = part.sequence.slice(i, i + BARS_PER_LINE);
-      const cells = el('div', { class: 'grille-cells' });
+      grid.appendChild(el('span', { class: 'grille-barno' }, barLabel(part, i)));
       slice.forEach((cell) => {
-        if (cell.length === 0) {
-          cells.appendChild(holdCell());
-          return;
-        }
-        const cellEl = chordCell(cell);
-        this.cells.set(ordinal, cellEl);
-        if (this.masked.has(ordinal)) this.attachMask(ordinal, cellEl);
-        cells.appendChild(cellEl);
-        ordinal += 1;
+        grid.appendChild(this.measureCell(cell, ordinal));
+        if (cell.length > 0) ordinal += 1;
       });
-      for (let pad = slice.length; pad < BARS_PER_LINE; pad += 1) {
-        cells.appendChild(el('div', { class: 'chord-cell pad' }));
-      }
-      grid.appendChild(
-        el(
-          'div',
-          { class: 'grille-line' },
-          el('span', { class: 'grille-barno' }, barLabel(part, i)),
-          cells,
-        ),
-      );
+      padLine(grid, slice.length);
     }
+
+    if (part.endings?.['1']) pushEnding(grid, '1.', part.endings['1']);
+    if (part.endings?.['2']) pushEnding(grid, '2.', part.endings['2']);
+    if (part.coda && part.coda.length > 0) pushLabeledRow(grid, 'coda', part.coda);
+
     section.appendChild(grid);
-
-    if (part.endings?.['1']) {
-      section.appendChild(this.renderInline('1re fin', part.endings['1'], 'grille-ending'));
-    }
-    if (part.endings?.['2']) {
-      section.appendChild(this.renderInline('2e fin', part.endings['2'], 'grille-ending'));
-    }
-    if (part.coda && part.coda.length > 0) {
-      section.appendChild(this.renderInline('coda', part.coda, 'grille-subcoda'));
-    }
-
     parent.appendChild(section);
     return ordinal;
   }
 
-  /** Fin, coda ou transition : une étiquette et une rangée d'accords visibles. */
-  private renderInline(label: string, seq: GrilleCell[], cls: string): HTMLElement {
-    return el(
-      'div',
-      { class: cls },
-      el('span', { class: 'grille-etag' }, label),
-      el(
-        'div',
-        { class: 'grille-cells' },
-        ...seq.map((cell) => (cell.length === 0 ? holdCell() : chordCell(cell))),
-      ),
-    );
+  /** Cellule d'une mesure de la séquence : masquable si elle porte un accord. */
+  private measureCell(chords: GrilleCell, ordinal: number): HTMLElement {
+    if (chords.length === 0) return simileCell();
+    const cellEl = chordCell(chords);
+    this.cells.set(ordinal, cellEl);
+    if (this.masked.has(ordinal)) this.attachMask(ordinal, cellEl);
+    return cellEl;
   }
 
   private attachMask(ordinal: number, cellEl: HTMLElement): void {
@@ -341,18 +318,57 @@ export class GrilleView {
 }
 
 /** Une cellule d'accords : `['A7']` ou `['A7', 'D7']` (mesure partagée). */
-function chordCell(chords: string[]): HTMLElement {
+function chordCell(chords: string[], variant?: 'ending'): HTMLElement {
   const nodes: Node[] = [];
   chords.forEach((chord, index) => {
     if (index > 0) nodes.push(el('span', { class: 'sep' }));
     nodes.push(el('span', { class: 'ch' }, chord));
   });
-  return el('div', { class: chords.length > 1 ? 'chord-cell multi' : 'chord-cell' }, ...nodes);
+  const cls =
+    'chord-cell' +
+    (chords.length === 2 ? ' multi' : chords.length > 2 ? ' multi multi-3' : '') +
+    (variant === 'ending' ? ' chord-cell--ending' : '');
+  return el('div', { class: cls }, ...nodes);
 }
 
-/** Cellule « on tient l'accord précédent ». */
-function holdCell(): HTMLElement {
-  return el('div', { class: 'chord-cell hold' }, el('span', {}, '·'));
+/** Cellule « on tient » : le signe de répétition de mesure (%). */
+function simileCell(variant?: 'ending'): HTMLElement {
+  const cls = 'chord-cell simile' + (variant === 'ending' ? ' chord-cell--ending' : '');
+  return el('div', { class: cls }, el('span', { class: 'ch' }, '%'));
+}
+
+/** Ajoute des cellules vides jusqu'à compléter une ligne de quatre mesures. */
+function padLine(grid: HTMLElement, filled: number): void {
+  for (let pad = filled; pad < BARS_PER_LINE; pad += 1) {
+    grid.appendChild(el('div', { class: 'chord-cell pad' }));
+  }
+}
+
+/** Rangée de fin (1re / 2e) : un crochet numéroté au-dessus des mesures. */
+function pushEnding(grid: HTMLElement, tag: string, seq: GrilleCell[]): void {
+  for (let i = 0; i < seq.length; i += BARS_PER_LINE) {
+    const slice = seq.slice(i, i + BARS_PER_LINE);
+    grid.appendChild(
+      el('span', { class: 'grille-barno grille-end-tag' }, i === 0 ? tag : ''),
+    );
+    slice.forEach((cell) =>
+      grid.appendChild(cell.length === 0 ? simileCell('ending') : chordCell(cell, 'ending')),
+    );
+    padLine(grid, slice.length);
+  }
+}
+
+/** Rangée annexe (coda, transition) : un libellé pleine largeur puis les mesures. */
+function pushLabeledRow(grid: HTMLElement, label: string, seq: GrilleCell[]): void {
+  grid.appendChild(el('div', { class: 'grille-row-label' }, label));
+  for (let i = 0; i < seq.length; i += BARS_PER_LINE) {
+    const slice = seq.slice(i, i + BARS_PER_LINE);
+    grid.appendChild(el('span', { class: 'grille-barno' }, ''));
+    slice.forEach((cell) =>
+      grid.appendChild(cell.length === 0 ? simileCell() : chordCell(cell)),
+    );
+    padLine(grid, slice.length);
+  }
 }
 
 /** Intercale des points de séparation entre des fragments de texte. */
