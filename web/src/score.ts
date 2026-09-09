@@ -7,35 +7,13 @@
  * quelle taille, sans le moindre recalcul au redimensionnement.
  */
 
+import { seededRandom } from './random';
 import type { Instrument, Measure, Page } from './types';
 
 /** Durée exacte de l'indice éphémère, en millisecondes. */
 export const HINT_DURATION_MS = 5000;
 /** Opacité du masque pendant l'indice : la mesure devient lisible. */
 const HINT_OPACITY = '0.12';
-
-/**
- * Générateur pseudo-aléatoire déterministe (mulberry32).
- * Le motif de masquage doit être stable d'une session à l'autre : on veut
- * réviser les mêmes trous, pas redécouvrir une partition différente à chaque
- * chargement. Le bouton « Mélanger » fait avancer la graine, seule façon
- * d'obtenir un nouveau tirage.
- */
-function seededRandom(seed: string): () => number {
-  let h = 1779033703 ^ seed.length;
-  for (let i = 0; i < seed.length; i += 1) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-  let a = h >>> 0;
-  return () => {
-    a += 0x6d2b79f5;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** Une mesure, replacée dans le fil de lecture de la partition entière. */
 interface Slot {

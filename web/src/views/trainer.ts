@@ -7,6 +7,7 @@
 
 import { el, ui } from '../dom';
 import { EclipseRunner } from '../eclipse';
+import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
 import { BlockTimer, formatCountdown } from '../session';
 import { createControlBar } from '../sheet';
@@ -15,7 +16,16 @@ import type { Progress } from '../store';
 import { getCard, putCard, saveProgress } from '../store';
 import { createTransport } from '../transport';
 import type { Section } from '../transport';
-import type { EclipseIntensity, InstrumentId, MaskLevel, Song, StudyMode } from '../types';
+import type {
+  DisplayMode,
+  EclipseIntensity,
+  Grille,
+  InstrumentId,
+  MaskLevel,
+  Song,
+  StudyMode,
+} from '../types';
+import { isGrille } from '../types';
 import {
   ECLIPSE_INTENSITIES,
   ECLIPSE_LABELS,
@@ -57,6 +67,9 @@ export function renderTrainer(
   let hints = 0;
   let mode: StudyMode = progress.settings.studyMode;
   let maskLevel: MaskLevel = progress.settings.maskLevel;
+  /** Zone d'étude voulue ; la grille n'est servie qu'une fois chargée. */
+  let display: DisplayMode = progress.settings.display;
+  let grille: Grille | null = null;
 
   const anySource = song.audio.reference !== null || song.audio.playback !== null;
 
@@ -67,23 +80,40 @@ export function renderTrainer(
   const maskSeed = () =>
     `${song.id}::${instrumentId}::${progress.settings.maskSeed}`;
 
-  // --- Partition ----------------------------------------------------------
+  // --- Partition et grille ---------------------------------------------
+
+  const onHintUsed = (): void => {
+    hints += 1;
+    paintCounters();
+  };
 
   const scoreContainer = el('div', { class: 'score-surface flex flex-col gap-6' });
-  const scoreView = new ScoreView(scoreContainer, {
-    onHintUsed: () => {
-      hints += 1;
-      paintCounters();
-    },
-  });
+  const scoreView = new ScoreView(scoreContainer, { onHintUsed });
+
+  const grilleContainer = el('div', { class: 'hidden' });
+  const grilleView = new GrilleView(grilleContainer, { onHintUsed });
+
+  /** La grille est-elle disponible pour ce morceau ? */
+  const grilleReady = (): boolean => grille !== null;
+  /** Vue effectivement montrée : la grille demande d'être chargée. */
+  const activeDisplay = (): DisplayMode =>
+    display === 'grille' && grilleReady() ? 'grille' : 'partition';
+  const activeView = (): ScoreView | GrilleView =>
+    activeDisplay() === 'grille' ? grilleView : scoreView;
+  const activeContainer = (): HTMLElement =>
+    activeDisplay() === 'grille' ? grilleContainer : scoreContainer;
 
   const countersLabel = el('p', { class: 'text-[11px] text-zinc-500' });
   function paintCounters(): void {
     if (mode === 'mesures') {
-      const masked = scoreView.maskedCount;
+      const onGrille = activeDisplay() === 'grille';
+      const masked = activeView().maskedCount;
+      const noun = onGrille ? 'accord' : 'mesure';
+      const hidden = onGrille ? 'caché' : 'cachée';
+      const shown = onGrille ? 'révélé' : 'révélée';
       countersLabel.textContent =
-        `${masked} mesure${masked > 1 ? 's' : ''} cachée${masked > 1 ? 's' : ''} · ` +
-        `${hints} révélée${hints > 1 ? 's' : ''}`;
+        `${masked} ${noun}${masked > 1 ? 's' : ''} ${hidden}${masked > 1 ? 's' : ''} · ` +
+        `${hints} ${shown}${hints > 1 ? 's' : ''}`;
     } else if (mode === 'eclipses') {
       const n = eclipses.count;
       countersLabel.textContent =
@@ -98,14 +128,26 @@ export function renderTrainer(
   const effectiveLevel = () => (mode === 'mesures' ? maskLevel : 0);
 
   function drawScore(): void {
-    // « Sans partition » ne masque pas à 100 % : il ne rend aucune page, donc
-    // il ne laisse aucune tentation ni aucun temps de chargement d'images.
+    // « Sans partition » ne masque pas à 100 % : il ne rend rien, donc il ne
+    // laisse aucune tentation ni aucun temps de chargement d'images.
     if (mode === 'sans') {
       scoreView.destroy();
+      grilleView.destroy();
+      scoreContainer.classList.add('hidden');
+      grilleContainer.classList.add('hidden');
       paintCounters();
       return;
     }
-    scoreView.render(currentInstrument(), maskSeed(), effectiveLevel());
+    const onGrille = activeDisplay() === 'grille';
+    if (onGrille) {
+      scoreView.destroy();
+      grilleView.render(currentInstrument(), maskSeed(), effectiveLevel());
+    } else {
+      grilleView.destroy();
+      scoreView.render(currentInstrument(), maskSeed(), effectiveLevel());
+    }
+    scoreContainer.classList.toggle('hidden', onGrille);
+    grilleContainer.classList.toggle('hidden', !onGrille);
     paintCounters();
   }
 
@@ -182,7 +224,58 @@ export function renderTrainer(
     { type: 'button', class: ui.button, 'aria-pressed': 'false' },
     '⛶ Plein écran',
   );
-  const fullpageEnterRow = el('div', { class: 'flex justify-end' }, fullpageEnter);
+
+  // Bascule Partition / Grille : masquée tant que le morceau n'a pas de grille.
+  const displayButtons = new Map<DisplayMode, HTMLButtonElement>();
+  for (const value of ['partition', 'grille'] as DisplayMode[]) {
+    const button = el(
+      'button',
+      { type: 'button', class: ui.button },
+      value === 'partition' ? 'Partition' : 'Grille',
+    );
+    button.addEventListener('click', () => setDisplay(value));
+    displayButtons.set(value, button);
+  }
+  const displayToggle = el('div', { class: 'hidden gap-1' }, ...displayButtons.values());
+
+  const scoreHeaderRow = el(
+    'div',
+    { class: 'flex flex-wrap items-center justify-between gap-2' },
+    displayToggle,
+    fullpageEnter,
+  );
+
+  // Même bascule, format compact, pour la barre du plein écran.
+  const fpDisplayButtons = new Map<DisplayMode, HTMLButtonElement>();
+  for (const value of ['partition', 'grille'] as DisplayMode[]) {
+    const button = el(
+      'button',
+      { type: 'button', class: ui.chip },
+      value === 'partition' ? 'Part.' : 'Grille',
+    );
+    button.addEventListener('click', () => setDisplay(value));
+    fpDisplayButtons.set(value, button);
+  }
+  const fpDisplayToggle = el(
+    'div',
+    { class: 'hidden items-center gap-1' },
+    ...fpDisplayButtons.values(),
+  );
+
+  function paintDisplayToggle(): void {
+    const has = grilleReady();
+    displayToggle.classList.toggle('hidden', !has);
+    displayToggle.classList.toggle('flex', has);
+    fpDisplayToggle.classList.toggle('hidden', !has);
+    fpDisplayToggle.classList.toggle('flex', has);
+    const active = activeDisplay();
+    for (const [value, button] of displayButtons) {
+      button.className = value === active ? ui.buttonActive : ui.button;
+    }
+    for (const [value, button] of fpDisplayButtons) {
+      button.className = value === active ? ui.chipActive : ui.chip;
+    }
+  }
 
   const fullpageExit = el('button', { type: 'button', class: ui.button }, '✕ Fermer');
 
@@ -213,6 +306,7 @@ export function renderTrainer(
     },
     fullpageExit,
     el('span', { class: 'min-w-0 flex-1 truncate text-sm text-zinc-500' }, song.title),
+    fpDisplayToggle,
     fpZoomOut,
     fpZoomLabel,
     fpZoomIn,
@@ -268,12 +362,13 @@ export function renderTrainer(
     fpMiniTime.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
   });
 
-  /** Là où la partition vit hors du plein écran, avec son bouton d'entrée. */
+  /** Là où partition et grille vivent hors du plein écran, avec leur en-tête. */
   const scoreHome = el(
     'div',
     { class: 'flex flex-col gap-3' },
-    fullpageEnterRow,
+    scoreHeaderRow,
     scoreContainer,
+    grilleContainer,
   );
 
   function applyFpLayout(): void {
@@ -287,6 +382,9 @@ export function renderTrainer(
     const colWidth = (avail - (cols - 1) * gap) / cols;
     const pageWidth = Math.max(140, Math.floor(colWidth * fpZoom));
     fullpageSlot.style.setProperty('--fp-page', `${pageWidth}px`);
+    // La grille n'a pas de largeur d'image à suivre : elle grandit par sa
+    // taille de police, pilotée par le même facteur de zoom.
+    fullpageSlot.style.setProperty('--fp-zoom', String(fpZoom));
     fpZoomLabel.textContent = `${Math.round(fpZoom * 100)} %`;
     fpZoomOut.disabled = fpZoom <= FP_ZOOM_MIN + 1e-6;
     fpZoomIn.disabled = fpZoom >= FP_ZOOM_MAX - 1e-6;
@@ -345,7 +443,7 @@ export function renderTrainer(
     fullpageOverlay.classList.toggle('hidden', !on);
     fullpageOverlay.classList.toggle('flex', on);
     if (on) {
-      fullpageSlot.appendChild(scoreContainer);
+      fullpageSlot.replaceChildren(activeContainer());
       applyFpLayout();
       // Le conteneur vient d'apparaître : sa largeur n'est fiable qu'une fois
       // la mise en page passée. On recalcule à la frame suivante.
@@ -353,7 +451,12 @@ export function renderTrainer(
       fullpageScroll.scrollTo(0, 0);
       fullpageExit.focus();
     } else {
-      scoreHome.appendChild(scoreContainer);
+      // On rend les deux conteneurs à `scoreHome` sans les redessiner, et l'on
+      // remet les classes `hidden` selon la vue active.
+      scoreHome.append(scoreContainer, grilleContainer);
+      const onGrille = activeDisplay() === 'grille';
+      scoreContainer.classList.toggle('hidden', onGrille);
+      grilleContainer.classList.toggle('hidden', !onGrille);
     }
     applyFpPlayer();
   }
@@ -372,9 +475,9 @@ export function renderTrainer(
   fpWide.addEventListener('change', onFpViewport);
   window.addEventListener('resize', onFpViewport);
 
-  /** Rien à agrandir en « Sans partition » : le bouton disparaît. */
+  /** Rien à afficher en « Sans partition » : l'en-tête disparaît. */
   function paintFullpage(): void {
-    fullpageEnterRow.classList.toggle('hidden', mode === 'sans');
+    scoreHeaderRow.classList.toggle('hidden', mode === 'sans');
     if (mode === 'sans') setFullpage(false);
     onFpViewport();
     applyFpPlayer();
@@ -422,6 +525,29 @@ export function renderTrainer(
     paintCounters();
   }
 
+  function setDisplay(next: DisplayMode): void {
+    if (next === display) return;
+    if (next === 'grille' && !grilleReady()) return;
+    display = next;
+    progress.settings.display = next;
+    saveProgress(progress);
+    hints = 0;
+    if (fullpage) {
+      // Le plein écran ne contient qu'un conteneur : on y place le nouvel
+      // actif et on rend l'autre à `scoreHome`.
+      const nextActive = activeContainer();
+      const other = nextActive === scoreContainer ? grilleContainer : scoreContainer;
+      scoreHome.append(other);
+      fullpageSlot.replaceChildren(nextActive);
+      applyFpLayout();
+      requestAnimationFrame(applyFpLayout);
+      fullpageScroll.scrollTo(0, 0);
+    }
+    drawScore();
+    paintDisplayToggle();
+    paintFullpage();
+  }
+
   function setMode(next: StudyMode): void {
     if (next === mode) return;
     mode = next;
@@ -455,7 +581,7 @@ export function renderTrainer(
       progress.settings.maskLevel = level;
       saveProgress(progress);
       paintMode();
-      scoreView.setLevel(level, currentInstrument());
+      activeView().setLevel(level, currentInstrument());
       paintCounters();
     });
     maskButtons.set(level, button);
@@ -469,7 +595,7 @@ export function renderTrainer(
   shuffleButton.addEventListener('click', () => {
     progress.settings.maskSeed += 1;
     saveProgress(progress);
-    scoreView.reshuffle(maskSeed(), currentInstrument());
+    activeView().reshuffle(maskSeed(), currentInstrument());
     paintCounters();
   });
   maskRow.append(...maskButtons.values(), shuffleButton);
@@ -540,8 +666,8 @@ export function renderTrainer(
       mode === 'eclipses'
         ? [eclipses.escapeCount, eclipses.count]
         : mode === 'sans'
-          ? [0, scoreView.measureCount]
-          : [hints, scoreView.maskedCount];
+          ? [0, activeView().measureCount]
+          : [hints, activeView().maskedCount];
     const answer = await askSrs(song.title, instrument.name, used, total);
     if (answer) {
       const card = review(
@@ -681,8 +807,36 @@ export function renderTrainer(
   drawScore();
   paintMode();
   paintNoScore();
+  paintDisplayToggle();
   paintFullpage();
   if (mode === 'eclipses') eclipses.start();
+
+  // Grille d'accords du morceau, si elle existe. Tant qu'elle n'est pas là, la
+  // bascule « Grille » reste masquée et seule la partition est proposée.
+  const grilleAbort = new AbortController();
+  void (async () => {
+    try {
+      const res = await fetch(`data/grilles/${song.id}.json`, {
+        signal: grilleAbort.signal,
+      });
+      if (!res.ok) return;
+      const data: unknown = await res.json();
+      if (!isGrille(data)) return;
+      grille = data;
+      grilleView.setGrille(grille);
+      paintDisplayToggle();
+      if (display === 'grille') {
+        drawScore();
+        paintFullpage();
+        if (fullpage) {
+          fullpageSlot.replaceChildren(activeContainer());
+          applyFpLayout();
+        }
+      }
+    } catch {
+      /* réseau coupé, JSON invalide ou écran démonté : pas de grille */
+    }
+  })();
 
   // Le lecteur ne peut être monté qu'une fois son conteneur dans le document.
   if (anySource) {
@@ -715,5 +869,7 @@ export function renderTrainer(
     transport.destroy();
     controlBar.destroy();
     scoreView.destroy();
+    grilleAbort.abort();
+    grilleView.destroy();
   };
 }

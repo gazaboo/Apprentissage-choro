@@ -5,6 +5,7 @@
  */
 
 import type {
+  DisplayMode,
   EclipseIntensity,
   InstrumentId,
   MaskLevel,
@@ -13,7 +14,13 @@ import type {
   SrsCard,
   StudyMode,
 } from './types';
-import { isEclipseIntensity, isInstrumentId, isMaskLevel, isStudyMode } from './types';
+import {
+  isDisplayMode,
+  isEclipseIntensity,
+  isInstrumentId,
+  isMaskLevel,
+  isStudyMode,
+} from './types';
 
 const STORAGE_KEY = 'choro-srs-v1';
 
@@ -35,6 +42,8 @@ export interface Progress {
   /** Préférences d'interface, mémorisées d'une session à l'autre. */
   settings: {
     blockMinutes: number;
+    /** Zone d'étude affichée : partition en portée ou grille d'accords. */
+    display: DisplayMode;
     /** Comment la partition est présentée : voir `StudyMode`. */
     studyMode: StudyMode;
     /** Taux de masquage, utilisé par le seul mode « Mesures cachées ». */
@@ -75,6 +84,7 @@ const DEFAULT_PROGRESS: Progress = {
   _rev: 0,
   settings: {
     blockMinutes: 5,
+    display: 'partition',
     studyMode: 'mesures',
     maskLevel: 50,
     maskSeed: 1,
@@ -207,6 +217,9 @@ function migrateSettings(
   settings: Progress['settings'],
   stored: Record<string, unknown>,
 ): void {
+  if (!isDisplayMode(settings.display)) {
+    settings.display = DEFAULT_PROGRESS.settings.display;
+  }
   if (!isStudyMode(stored.studyMode)) {
     // Le masquage était naguère un simple taux, dont deux valeurs décrivaient
     // en réalité des modes.

@@ -67,6 +67,81 @@ export interface Song {
 /** Quelle source audio le lecteur joue actuellement. */
 export type AudioKind = 'reference' | 'playback';
 
+/** Comment la zone d'étude est présentée : partition en portée ou grille d'accords. */
+export type DisplayMode = 'partition' | 'grille';
+
+export function isDisplayMode(value: unknown): value is DisplayMode {
+  return value === 'partition' || value === 'grille';
+}
+
+/**
+ * Une cellule de grille : les accords joués pendant une mesure écrite.
+ * `[]` = on tient l'accord précédent ; `['Dm']` = un accord ; `['A7', 'D7']` =
+ * mesure partagée entre plusieurs accords.
+ */
+export type GrilleCell = string[];
+
+export interface GrillePart {
+  /** « A », « B », « Intro »… */
+  name: string;
+  /** Centre tonal de la partie, à titre indicatif. */
+  tonic?: string;
+  /** Plage de mesures dans la partition, ex. « 1–32 ». */
+  bars?: string;
+  repeat?: boolean;
+  /** Une entrée par mesure écrite. */
+  sequence: GrilleCell[];
+  /** 1re / 2e fin, quand la partie en porte. */
+  endings?: { '1'?: GrilleCell[]; '2'?: GrilleCell[] };
+  /** Coda propre à la partie (rare). */
+  coda?: GrilleCell[];
+  /** Mesures d'enchaînement précédant la partie (rare). */
+  transition_in?: GrilleCell[];
+}
+
+/**
+ * Grille d'accords d'un morceau, transcrite à la vue (transposition Ut/C).
+ * Un fichier par morceau : `data/grilles/<song-id>.json`.
+ */
+export interface Grille {
+  song_id: string;
+  title: string;
+  composer: string;
+  meter?: string;
+  genre?: string;
+  form?: string;
+  parts: GrillePart[];
+  /** Coda du morceau, jouée après la dernière partie. */
+  coda?: GrilleCell[];
+  coda_note?: string;
+  notes?: string[];
+  confidence?: 'high' | 'medium' | 'low';
+}
+
+function isCellArray(value: unknown): value is GrilleCell[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (cell) => Array.isArray(cell) && cell.every((chord) => typeof chord === 'string'),
+    )
+  );
+}
+
+/** Garde défensive : un fichier grille absent ou mal formé ne casse pas l'écran. */
+export function isGrille(value: unknown): value is Grille {
+  if (typeof value !== 'object' || value === null) return false;
+  const raw = value as Partial<Grille>;
+  if (typeof raw.song_id !== 'string' || typeof raw.title !== 'string') return false;
+  if (!Array.isArray(raw.parts) || raw.parts.length === 0) return false;
+  return raw.parts.every(
+    (part) =>
+      typeof part === 'object' &&
+      part !== null &&
+      typeof (part as GrillePart).name === 'string' &&
+      isCellArray((part as GrillePart).sequence),
+  );
+}
+
 /** Aisance technique déclarée à la fin d'un morceau. */
 export type Tempo = 'sous-tempo' | 'crispe' | 'fluide';
 

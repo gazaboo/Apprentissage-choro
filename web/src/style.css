@@ -96,6 +96,226 @@ body {
   touch-action: pan-x pan-y pinch-zoom;
 }
 
+/* --- Grille d'accords -------------------------------------------------- */
+
+/* La grille est une carte de papier posée sur le fond sombre, exactement
+   comme les pages de partition : même blanc chaud (`--mask-paper`), même
+   encre (`--mask-ink`), même ombre portée. Les accords sont en chasse fixe.
+   Tout est dimensionné en `em` pour qu'un seul `font-size` sur la carte
+   suffise à l'agrandir en plein écran. */
+.grille-surface {
+  --grille-rule: rgb(var(--mask-ink) / 0.18);
+  touch-action: pan-x pan-y pinch-zoom;
+  background-color: rgb(var(--mask-paper));
+  color: rgb(var(--mask-ink));
+  border-radius: 0.5rem;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.4),
+    0 4px 6px -4px rgb(0 0 0 / 0.4);
+  padding: clamp(1rem, 3vw, 1.75rem);
+  font-size: 0.95rem;
+}
+
+.fp-slot .grille-surface {
+  font-size: calc(0.95rem * var(--fp-zoom, 1));
+  margin-inline: auto;
+}
+
+.grille-key-note {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--mask-ink) / 0.55);
+  margin-bottom: 1em;
+}
+
+.grille-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6em;
+}
+
+.grille-part-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  margin-bottom: 0.55em;
+}
+.grille-part-head h3 {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.grille-part-meta {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72em;
+  color: rgb(var(--mask-ink) / 0.55);
+}
+.grille-part-meta .dot {
+  margin: 0 0.35em;
+  opacity: 0.5;
+}
+
+.grille-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  overflow-x: auto;
+}
+.grille-line {
+  display: flex;
+  align-items: stretch;
+  gap: 0.55em;
+  min-width: max-content;
+}
+.grille-barno {
+  flex: 0 0 1.7em;
+  align-self: center;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7em;
+  color: rgb(var(--mask-ink) / 0.5);
+  font-variant-numeric: tabular-nums;
+}
+.grille-cells {
+  display: flex;
+  gap: 0.35em;
+  flex-wrap: nowrap;
+}
+
+.chord-cell {
+  position: relative;
+  flex: 0 0 5.6em;
+  min-height: 2.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--grille-rule);
+  border-radius: 0.2em;
+  background: rgb(var(--mask-ink) / 0.03);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 500;
+  padding: 0.25em 0.3em;
+  text-align: center;
+}
+@media (max-width: 560px) {
+  .chord-cell {
+    flex-basis: 4.6em;
+    font-size: 0.9em;
+  }
+}
+.chord-cell .ch {
+  white-space: nowrap;
+}
+.chord-cell.multi {
+  font-size: 0.82em;
+  gap: 0.3em;
+}
+.chord-cell.multi .sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--grille-rule);
+  margin: 0.3em 0;
+}
+.chord-cell.hold {
+  color: rgb(var(--mask-ink) / 0.35);
+  background: transparent;
+  border-style: dashed;
+  font-size: 1.1em;
+}
+.chord-cell.pad {
+  border: none;
+  background: transparent;
+}
+
+.grille-ending,
+.grille-subcoda {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin-top: 0.4em;
+  padding-left: 2.25em;
+  overflow-x: auto;
+}
+.grille-etag {
+  flex: 0 0 auto;
+  min-width: 3.4em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgb(var(--mask-ink) / 0.55);
+}
+.grille-translbl {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7em;
+  color: rgb(var(--mask-ink) / 0.5);
+  align-self: center;
+}
+
+.grille-note {
+  margin: 1.4em 0 0;
+  padding: 0.75em 0.9em;
+  background: rgb(var(--mask-ink) / 0.04);
+  border: 1px solid var(--grille-rule);
+  border-radius: 0.25em;
+  font-size: 0.82em;
+  color: rgb(var(--mask-ink) / 0.7);
+}
+.grille-note ul {
+  margin: 0.4em 0 0;
+  padding-left: 1.1em;
+}
+.grille-note li {
+  margin: 0.25em 0;
+}
+.grille-note-lbl {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(var(--mask-ink) / 0.5);
+}
+
+/* Masque d'accord : même verre dépoli que `.measure-mask`, mais posé en
+   recouvrement d'une cellule (et non en boîte positionnée en pourcentage). */
+.chord-mask {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  margin: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  border: 1px solid rgb(var(--mask-ink) / 0.14);
+  border-radius: 0.2em;
+  background-color: rgb(var(--mask-paper) / var(--mask-veil));
+  -webkit-backdrop-filter: blur(6px) saturate(0.6);
+  backdrop-filter: blur(6px) saturate(0.6);
+  box-shadow:
+    0 1px 2px rgb(var(--mask-ink) / 0.07),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+@media (hover: hover) {
+  .chord-mask:hover {
+    background-color: rgb(var(--mask-paper) / 0.6);
+    -webkit-backdrop-filter: blur(3px) saturate(0.6);
+    backdrop-filter: blur(3px) saturate(0.6);
+  }
+}
+.chord-mask:active {
+  background-color: rgb(var(--mask-paper) / 0.6);
+  -webkit-backdrop-filter: blur(3px) saturate(0.6);
+  backdrop-filter: blur(3px) saturate(0.6);
+}
+.chord-mask:focus-visible {
+  outline: 2px solid #b45309;
+  outline-offset: 2px;
+}
+
 /* --- Partition en plein écran ------------------------------------------- */
 
 /* En plein écran, les pages ne suivent plus la largeur du conteneur : leur
