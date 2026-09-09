@@ -226,18 +226,23 @@ body {
   background: transparent;
 }
 
-/* Fin de partie : crochet numéroté au-dessus des mesures concernées. Le trait
-   supérieur (numéro + cases) forme le crochet. */
+/* Fin de partie : crochet (trait supérieur épais) au-dessus des mesures
+   concernées, numéro « 1. » / « 2. » posé sur la première. */
 .chord-cell--ending {
+  overflow: visible;
   border-top: 2px solid var(--grille-ink);
 }
-.grille-end-tag {
-  align-items: flex-start;
-  padding-top: 1px;
-  border-top: 2px solid var(--grille-ink);
+.grille-end-label {
+  position: absolute;
+  top: -0.85em;
+  left: -1px;
+  padding: 0 0.2em;
+  background: rgb(var(--mask-paper));
   color: var(--grille-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 700;
-  font-size: 0.6em;
+  font-size: 0.58em;
+  line-height: 1;
 }
 
 /* Libellé pleine largeur d'une rangée annexe (coda, transition). */

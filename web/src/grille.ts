@@ -59,14 +59,43 @@ function selectMasked(slots: Slot[], level: number, seed: string): Set<number> {
   return new Set(ranked.slice(0, target).map((entry) => entry.ordinal));
 }
 
+/** Deux cellules portent-elles exactement les mêmes accords ? */
+function sameCells(a: GrilleCell, b: GrilleCell): boolean {
+  return a.length === b.length && a.every((chord, i) => chord === b[i]);
+}
+
+/** Deux suites de mesures sont-elles identiques ? */
+function sameSequence(a: GrilleCell[], b: GrilleCell[]): boolean {
+  return a.length === b.length && a.every((cell, i) => sameCells(cell, b[i] ?? []));
+}
+
+/**
+ * Remplace par une mesure « tenue » (`[]`) toute mesure vide *ou* identique à
+ * la précédente : c'est le signe `%` de la convention jazz, et non un accord
+ * réécrit à l'identique. Le masquage et le rendu partent tous deux de là.
+ */
+function normalizeSequence(seq: GrilleCell[]): GrilleCell[] {
+  const out: GrilleCell[] = [];
+  let previous: GrilleCell | null = null;
+  for (const cell of seq) {
+    if (cell.length === 0 || (previous && sameCells(cell, previous))) {
+      out.push([]);
+    } else {
+      out.push(cell);
+      previous = cell;
+    }
+  }
+  return out;
+}
+
 /** Rang global (0-based) de chaque cellule masquable d'une grille. */
 function buildSlots(grille: Grille): Slot[] {
   const slots: Slot[] = [];
   let ordinal = 0;
   for (const part of grille.parts) {
     let firstInPart = true;
-    part.sequence.forEach((cell, index) => {
-      if (cell.length === 0) return; // « on tient » : rien à masquer
+    normalizeSequence(part.sequence).forEach((cell, index) => {
+      if (cell.length === 0) return; // « % » : rien à masquer
       slots.push({
         ordinal: ordinal++,
         isPartStart: firstInPart,
@@ -192,24 +221,64 @@ export class GrilleView {
 
     const grid = el('div', { class: 'grille-grid' });
 
+    // Curseur de ligne : `col` = colonne courante (0 à 3) après celle des
+    // numéros de mesure. On remplit les lignes sans jamais revenir à la ligne
+    // tant qu'il reste des cases : les fins de partie prolongent la séquence.
+    let col = 0;
+    const place = (node: HTMLElement, label = ''): void => {
+      if (col === 0) grid.appendChild(el('span', { class: 'grille-barno' }, label));
+      grid.appendChild(node);
+      col = (col + 1) % BARS_PER_LINE;
+    };
+    const closeRow = (): void => {
+      while (col !== 0) place(el('div', { class: 'chord-cell pad' }));
+    };
+
     if (part.transition_in && part.transition_in.length > 0) {
       pushLabeledRow(grid, 'transition', part.transition_in);
     }
 
+    const seq = normalizeSequence(part.sequence);
     let ordinal = startOrdinal;
-    for (let i = 0; i < part.sequence.length; i += BARS_PER_LINE) {
-      const slice = part.sequence.slice(i, i + BARS_PER_LINE);
-      grid.appendChild(el('span', { class: 'grille-barno' }, barLabel(part, i)));
-      slice.forEach((cell) => {
-        grid.appendChild(this.measureCell(cell, ordinal));
-        if (cell.length > 0) ordinal += 1;
+    seq.forEach((cell, i) => {
+      place(this.measureCell(cell, ordinal), barLabel(part, i));
+      if (cell.length > 0) ordinal += 1;
+    });
+
+    // Fins de partie. Deux fins identiques ne sont que les mesures de
+    // conclusion : on les écrit une seule fois, sans crochet ni numéro.
+    const e1 = part.endings?.['1'];
+    const e2 = part.endings?.['2'];
+    const split = Boolean(e1 && e2 && !sameSequence(e1, e2));
+    const inlineEnd = split ? e1 : (e1 ?? e2);
+    const endStartCol = col;
+
+    if (inlineEnd && inlineEnd.length > 0) {
+      normalizeSequence(inlineEnd).forEach((cell, k) => {
+        place(endingCell(cell, split, split && k === 0 ? '1.' : ''));
       });
-      padLine(grid, slice.length);
+    }
+    closeRow();
+
+    if (split && e2 && e2.length > 0) {
+      // 2e fin : rangée courte, alignée sous la 1re fin quand elle y tient.
+      const alignCol =
+        endStartCol + e2.length <= BARS_PER_LINE ? endStartCol : 0;
+      grid.appendChild(el('span', { class: 'grille-barno' }, ''));
+      for (let p = 0; p < alignCol; p += 1) {
+        grid.appendChild(el('div', { class: 'chord-cell pad' }));
+      }
+      normalizeSequence(e2).forEach((cell, k) => {
+        grid.appendChild(endingCell(cell, true, k === 0 ? '2.' : ''));
+      });
+      for (let p = alignCol + e2.length; p < BARS_PER_LINE; p += 1) {
+        grid.appendChild(el('div', { class: 'chord-cell pad' }));
+      }
     }
 
-    if (part.endings?.['1']) pushEnding(grid, '1.', part.endings['1']);
-    if (part.endings?.['2']) pushEnding(grid, '2.', part.endings['2']);
-    if (part.coda && part.coda.length > 0) pushLabeledRow(grid, 'coda', part.coda);
+    if (part.coda && part.coda.length > 0) {
+      pushLabeledRow(grid, 'coda', part.coda);
+    }
 
     section.appendChild(grid);
     parent.appendChild(section);
@@ -331,43 +400,36 @@ function chordCell(chords: string[], variant?: 'ending'): HTMLElement {
   return el('div', { class: cls }, ...nodes);
 }
 
-/** Cellule « on tient » : le signe de répétition de mesure (%). */
+/** Cellule « % » : mesure tenue ou répétée (convention jazz). */
 function simileCell(variant?: 'ending'): HTMLElement {
   const cls = 'chord-cell simile' + (variant === 'ending' ? ' chord-cell--ending' : '');
   return el('div', { class: cls }, el('span', { class: 'ch' }, '%'));
 }
 
-/** Ajoute des cellules vides jusqu'à compléter une ligne de quatre mesures. */
-function padLine(grid: HTMLElement, filled: number): void {
-  for (let pad = filled; pad < BARS_PER_LINE; pad += 1) {
-    grid.appendChild(el('div', { class: 'chord-cell pad' }));
-  }
-}
-
-/** Rangée de fin (1re / 2e) : un crochet numéroté au-dessus des mesures. */
-function pushEnding(grid: HTMLElement, tag: string, seq: GrilleCell[]): void {
-  for (let i = 0; i < seq.length; i += BARS_PER_LINE) {
-    const slice = seq.slice(i, i + BARS_PER_LINE);
-    grid.appendChild(
-      el('span', { class: 'grille-barno grille-end-tag' }, i === 0 ? tag : ''),
-    );
-    slice.forEach((cell) =>
-      grid.appendChild(cell.length === 0 ? simileCell('ending') : chordCell(cell, 'ending')),
-    );
-    padLine(grid, slice.length);
-  }
+/**
+ * Cellule d'une mesure de fin de partie. `bracketed` trace le crochet (trait
+ * supérieur) ; `label` (« 1. » / « 2. ») n'est posé que sur la première.
+ */
+function endingCell(chords: GrilleCell, bracketed: boolean, label: string): HTMLElement {
+  const variant = bracketed ? 'ending' : undefined;
+  const cell =
+    chords.length === 0 ? simileCell(variant) : chordCell(chords, variant);
+  if (label) cell.appendChild(el('span', { class: 'grille-end-label' }, label));
+  return cell;
 }
 
 /** Rangée annexe (coda, transition) : un libellé pleine largeur puis les mesures. */
 function pushLabeledRow(grid: HTMLElement, label: string, seq: GrilleCell[]): void {
   grid.appendChild(el('div', { class: 'grille-row-label' }, label));
-  for (let i = 0; i < seq.length; i += BARS_PER_LINE) {
-    const slice = seq.slice(i, i + BARS_PER_LINE);
-    grid.appendChild(el('span', { class: 'grille-barno' }, ''));
-    slice.forEach((cell) =>
-      grid.appendChild(cell.length === 0 ? simileCell() : chordCell(cell)),
-    );
-    padLine(grid, slice.length);
+  let col = 0;
+  for (const cell of normalizeSequence(seq)) {
+    if (col === 0) grid.appendChild(el('span', { class: 'grille-barno' }, ''));
+    grid.appendChild(cell.length === 0 ? simileCell() : chordCell(cell));
+    col = (col + 1) % BARS_PER_LINE;
+  }
+  while (col !== 0) {
+    grid.appendChild(el('div', { class: 'chord-cell pad' }));
+    col = (col + 1) % BARS_PER_LINE;
   }
 }
 
