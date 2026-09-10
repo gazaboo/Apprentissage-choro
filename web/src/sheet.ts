@@ -5,11 +5,15 @@
  * d'en rendre deux copies. Les écouteurs et l'état visuel suivent donc le
  * déménagement sans qu'on ait à les recâbler.
  *
- * - ≥ 1024 px : dock flottant arrondi en bas, centré. Les réglages s'ouvrent
- *   dans un popover étroit et **déplaçable** : la partition reste visible à
- *   côté, si bien qu'on voit l'effet de chaque réglage au moment où on le
- *   touche, et l'on pousse le panneau là où il ne gêne pas.
- * - < 1024 px : barre basse de ~72 px (lecture, défilement, vitesse) dans la
+ * - ≥ 768 px : dock flottant arrondi en bas, centré, **tout sur une ligne**
+ *   (lecture, frise, bascules, Réglages). Les réglages s'ouvrent dans un
+ *   popover étroit et **déplaçable** : la partition reste visible à côté, si
+ *   bien qu'on voit l'effet de chaque réglage au moment où on le touche, et
+ *   l'on pousse le panneau là où il ne gêne pas. Ce seuil est volontairement
+ *   bas — la ligne unique tient dès ~768 px, et la garder pour « ≥ 1024 »
+ *   seulement faisait retomber sur la pile verticale (bien plus haute) dès
+ *   qu'on avait une mise à l'échelle d'affichage ou un zoom < 100 %.
+ * - < 768 px : barre basse de ~72 px (lecture, défilement, vitesse) dans la
  *   zone du pouce ; les mêmes réglages s'ouvrent par le bas, à la hauteur de
  *   leur contenu. Pas de déplacement : sur un téléphone, il n'y a nulle part
  *   où le mettre.
@@ -18,7 +22,7 @@
 import { el, ui } from './dom';
 import type { Section } from './transport';
 
-const DESKTOP = '(min-width: 1024px)';
+const DESKTOP = '(min-width: 768px)';
 
 export interface ControlBarOptions {
   /** Contrôles toujours visibles : lecture, défilement, vitesse. */
@@ -116,13 +120,13 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   );
   // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
   // l'emporterait sur un `hidden` posé sur le bouton lui-même.
-  const toggleSlot = el('div', { class: 'hidden shrink-0 lg:block' }, toggle);
+  const toggleSlot = el('div', { class: 'hidden shrink-0 md:block' }, toggle);
 
   const miniToggle = el(
     'button',
     {
       type: 'button',
-      class: `${ui.icon} shrink-0 lg:hidden`,
+      class: `${ui.icon} shrink-0 md:hidden`,
       'aria-label': 'Ouvrir les réglages',
       'aria-expanded': 'false',
     },
@@ -134,13 +138,13 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     {
       class:
         'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
-        'flex-col gap-3 p-2 lg:p-3',
+        'flex-col gap-3 p-2 md:p-3',
     },
     el(
       'div',
       // Sur petit écran, l'engrenage s'aligne en bas, au niveau de la rangée
       // de bascules ; sur grand écran, tout est sur une ligne.
-      { class: 'flex w-full items-end gap-2 lg:items-center lg:gap-3' },
+      { class: 'flex w-full items-end gap-2 md:items-center md:gap-3' },
       el('div', { class: 'min-w-0 flex-1' }, options.primary),
       miniToggle,
       toggleSlot,
@@ -151,9 +155,9 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     'div',
     {
       class:
-        'pointer-events-none fixed inset-x-0 bottom-0 z-30 px-2 lg:px-4 ' +
+        'pointer-events-none fixed inset-x-0 bottom-0 z-30 px-2 md:px-4 ' +
         '[padding-bottom:calc(env(safe-area-inset-bottom)+0.5rem)] ' +
-        'lg:[padding-bottom:calc(env(safe-area-inset-bottom)+1.5rem)]',
+        'md:[padding-bottom:calc(env(safe-area-inset-bottom)+1.5rem)]',
     },
     dock,
   );
@@ -234,7 +238,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     toggle.className = `${open ? ui.buttonActive : ui.button} shrink-0`;
     miniToggle.setAttribute('aria-expanded', String(open));
     miniToggle.className =
-      `${open ? ui.iconActive : ui.icon} shrink-0 lg:hidden` +
+      `${open ? ui.iconActive : ui.icon} shrink-0 md:hidden` +
       (blocks.length === 0 ? ' hidden' : '');
     if (open) placePanel();
   }
@@ -254,7 +258,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   function layout(): void {
     const empty = blocks.length === 0;
     body.append(...blocks);
-    toggleSlot.classList.toggle('lg:hidden', empty);
+    toggleSlot.classList.toggle('md:hidden', empty);
     if (query.matches) {
       overlay.className = 'fixed inset-0 z-40 pointer-events-none';
       panel.classList.add('rounded-2xl', 'fixed', 'max-h-[70vh]');

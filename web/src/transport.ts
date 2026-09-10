@@ -182,7 +182,7 @@ export function createTransport(options: TransportOptions): Transport {
 
   const seekRow = el(
     'div',
-    { class: 'order-1 flex min-w-0 flex-1 flex-col gap-0.5 lg:order-2' },
+    { class: 'order-1 flex min-w-0 flex-1 flex-col gap-0.5 md:order-2' },
     seekBar,
     laneSlotBar,
     el(
@@ -209,8 +209,8 @@ export function createTransport(options: TransportOptions): Transport {
   const rateButton = el('button', { type: 'button', class: ui.chip }, '');
   function paintRate(): void {
     const rate = RATE_CYCLE[rateIndex]!;
-    // `className` complet à chaque fois : le rang `lg:order-4` doit survivre.
-    rateButton.className = `${rate === 1 ? ui.chip : ui.chipActive} lg:order-4`;
+    // `className` complet à chaque fois : le rang `md:order-4` doit survivre.
+    rateButton.className = `${rate === 1 ? ui.chip : ui.chipActive} md:order-4`;
     rateButton.textContent = `${rate}×`;
     rateButton.setAttribute(
       'aria-label',
@@ -266,7 +266,7 @@ export function createTransport(options: TransportOptions): Transport {
     // On enchaîne si l'on jouait : s'arrêter à chaque bascule casserait le fil.
     loadSource(player.isPlaying());
   });
-  sourceButton.classList.add('lg:order-3');
+  sourceButton.classList.add('md:order-3');
   paintSourceButton();
 
   // --- Transposition --------------------------------------------------------
@@ -298,12 +298,12 @@ export function createTransport(options: TransportOptions): Transport {
     paintInstrumentButton();
     options.onInstrument(instrumentId);
   });
-  instrumentButton.classList.add('lg:order-5');
+  instrumentButton.classList.add('md:order-5');
   paintInstrumentButton();
 
   // --- Assemblage de la barre principale ---------------------------------
   //
-  // Sous 1024 px, la piste prend toute la largeur sur une première ligne et
+  // Sous 768 px, la piste prend toute la largeur sur une première ligne et
   // les bascules se rangent dessous ; `flex-wrap` évite tout débordement si
   // l'écran est vraiment étroit.
 
@@ -314,18 +314,18 @@ export function createTransport(options: TransportOptions): Transport {
 
   const primary = el(
     'div',
-    { class: 'flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-3' },
+    { class: 'flex w-full flex-col gap-1 md:flex-row md:items-center md:gap-3' },
     seekRow,
     el(
       'div',
-      // `lg:contents` efface cette enveloppe sur grand écran : ses enfants
+      // `md:contents` efface cette enveloppe sur grand écran : ses enfants
       // redeviennent alors des éléments de la rangée et suivent leur `order`.
-      { class: 'order-2 flex flex-wrap items-center gap-2 lg:contents' },
+      { class: 'order-2 flex flex-wrap items-center gap-2 md:contents' },
       playButton,
       ...secondary,
     ),
   );
-  playButton.classList.add('lg:order-1');
+  playButton.classList.add('md:order-1');
 
   // --- Répéter un passage : tracé sur la frise ---------------------------
   //
@@ -469,7 +469,7 @@ export function createTransport(options: TransportOptions): Transport {
     {
       // 44 px sur petit écran, où l'on vise au doigt ; 22 px collés sous la
       // piste sur grand écran, où la souris n'a pas besoin d'autant.
-      class: 'loop-lane relative h-11 w-full touch-none select-none lg:h-[22px]',
+      class: 'loop-lane relative h-11 w-full touch-none select-none md:h-[22px]',
       role: 'group',
       'aria-label': 'Frise du morceau : glissez pour choisir le passage à répéter',
     },
