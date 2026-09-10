@@ -133,6 +133,7 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
 
   function onKey(event: KeyboardEvent): void {
     if (event.key === 'Escape') close();
+    else if (event.key === 'Enter' && !event.isComposing) save();
   }
 
   function save(): void {
