@@ -38,6 +38,16 @@ export function pencil(): SVGSVGElement {
   ]);
 }
 
+/** Chevron vers le haut — monter dans une liste. */
+export function chevronUp(): SVGSVGElement {
+  return svg(['M18 15l-6-6-6 6']);
+}
+
+/** Chevron vers le bas — descendre dans une liste. */
+export function chevronDown(): SVGSVGElement {
+  return svg(['M6 9l6 6 6-6']);
+}
+
 /** Corbeille — supprimer. */
 export function trash(): SVGSVGElement {
   return svg([
