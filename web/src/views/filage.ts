@@ -2,14 +2,20 @@
  *
  * Chaque morceau est joué avec sa bande (accompagnateur → enregistrement
  * original ; soliste Si♭/Mi♭ → playback). À la fin de l'audio, un décompte de
- * 5 secondes annonce le morceau suivant, puis la lecture reprend seule. La
- * partition de la transposition est affichée, masquable d'un bouton.
+ * 5 secondes annonce le morceau suivant, puis la lecture reprend seule.
+ *
+ * La zone d'étude passe par trois états, dans cet ordre : partition, grille
+ * d'accords, puis scène (titre en grand). Un seul bouton les fait défiler,
+ * comme les bascules de la barre de transport — sur un dock déjà chargé, trois
+ * boutons de plus ne tiendraient pas sur un téléphone. Un état sans contenu
+ * pour le morceau courant est sauté : inutile de proposer une grille absente.
  */
 
 import { el, ui } from '../dom';
+import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
-import type { AudioKind, InstrumentId, Song } from '../types';
-import { INSTRUMENT_SHORT_LABELS } from '../types';
+import type { AudioKind, Grille, InstrumentId, Song } from '../types';
+import { INSTRUMENT_SHORT_LABELS, isGrille } from '../types';
 import type { Player } from '../youtube';
 import { formatTime, PLAYBACK_RATES } from '../youtube';
 
@@ -31,6 +37,18 @@ export interface FilageContext {
 const COUNTDOWN_S = 5;
 const INTRO_COUNTDOWN_S = 10;
 
+/** Les trois états de la zone principale, dans l'ordre du cycle. */
+type FilageView = 'partition' | 'grille' | 'scene';
+
+const VIEW_ORDER: FilageView[] = ['partition', 'grille', 'scene'];
+
+/** Le bouton annonce ce que fera l'appui suivant, non l'état courant. */
+const NEXT_VIEW_LABELS: Record<FilageView, string> = {
+  partition: 'Voir la partition',
+  grille: 'Voir la grille',
+  scene: 'Masquer la partition',
+};
+
 export function renderFilage(root: HTMLElement, context: FilageContext): () => void {
   const { player, order, instrumentId } = context;
 
@@ -40,7 +58,12 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   let hasPlayed = false;
   let scrubbing = false;
   let countdownTimer: number | null = null;
-  let showScore = true;
+  /** Ce que montre la zone principale. Voir le commentaire de tête. */
+  let view: FilageView = 'partition';
+  /** Grille du morceau courant, `null` tant qu'elle n'est pas chargée. */
+  let grille: Grille | null = null;
+  /** Annule le chargement de grille en cours quand on change de morceau. */
+  let grilleAbort = new AbortController();
   let unsubscribe: (() => void) | null = null;
 
   // Décompte d'entrée : le temps de prendre son instrument avant le 1er morceau.
@@ -62,6 +85,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const scoreContainer = el('div', { class: 'score-surface flex flex-col gap-6' });
   const scoreView = new ScoreView(scoreContainer, { onHintUsed: () => {} });
   const scoreNote = el('p', { class: `${ui.card} hidden text-sm text-zinc-400` });
+
+  const grilleContainer = el('div', { class: 'hidden' });
+  const grilleView = new GrilleView(grilleContainer, { onHintUsed: () => {} });
 
   // En-tête : contexte discret + sortie.
   const positionLabel = el('p', {
@@ -211,10 +237,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     return button;
   });
 
-  const scoreToggle = el('button', { type: 'button', class: ui.button }, 'Masquer la partition');
+  const scoreToggle = el('button', { type: 'button', class: ui.button }, 'Voir la grille');
   scoreToggle.addEventListener('click', () => {
-    showScore = !showScore;
-    scoreToggle.textContent = showScore ? 'Masquer la partition' : 'Afficher la partition';
+    view = nextView();
     paintScoreVisibility();
   });
 
@@ -318,14 +343,45 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     window.addEventListener('keydown', onIntroKey);
   }
 
+  /** Le morceau courant a-t-il de quoi alimenter cet état ? */
+  function available(candidate: FilageView): boolean {
+    if (candidate === 'partition') {
+      return order[index]?.instruments.some((i) => i.id === instrumentId) ?? false;
+    }
+    if (candidate === 'grille') return grille !== null;
+    return true; // la scène n'a besoin de rien
+  }
+
+  /**
+   * État suivant du cycle, en sautant ceux qui n'ont rien à montrer. La scène
+   * étant toujours disponible, la boucle se termine dans tous les cas.
+   */
+  function nextView(from: FilageView = view): FilageView {
+    let position = VIEW_ORDER.indexOf(from);
+    for (let step = 0; step < VIEW_ORDER.length; step += 1) {
+      position = (position + 1) % VIEW_ORDER.length;
+      const candidate = VIEW_ORDER[position]!;
+      if (available(candidate)) return candidate;
+    }
+    return 'scene';
+  }
+
   function paintScoreVisibility(): void {
-    const hasScore = order[index]?.instruments.some((i) => i.id === instrumentId) ?? false;
-    const showingScore = showScore && hasScore;
-    scoreContainer.classList.toggle('hidden', !showingScore);
-    slimTitle.classList.toggle('hidden', !showingScore);
-    stagePanel.classList.toggle('hidden', showingScore);
-    scoreNote.classList.toggle('hidden', !(showScore && !hasScore));
-    scoreToggle.textContent = showScore ? 'Masquer la partition' : 'Afficher la partition';
+    // Un morceau sans partition ne doit pas laisser l'écran vide : on retombe
+    // sur l'état suivant qui a quelque chose à montrer.
+    if (!available(view)) view = nextView();
+
+    scoreContainer.classList.toggle('hidden', view !== 'partition');
+    grilleContainer.classList.toggle('hidden', view !== 'grille');
+    slimTitle.classList.toggle('hidden', view === 'scene');
+    stagePanel.classList.toggle('hidden', view !== 'scene');
+
+    // La note n'a de sens qu'à l'arrêt sur la scène faute de partition : la
+    // signaler pendant qu'on lit la grille serait un reproche sans objet.
+    const noScore = !available('partition');
+    scoreNote.classList.toggle('hidden', !(view === 'scene' && noScore));
+
+    scoreToggle.textContent = NEXT_VIEW_LABELS[nextView()];
   }
 
   // --- Déroulé ---------------------------------------------------------
@@ -353,6 +409,43 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     );
   }
 
+  /**
+   * Charge la grille du morceau, sans bloquer l'enchaînement : le filage ne
+   * doit jamais attendre le réseau. Une grille absente ferme simplement cet
+   * état du cycle. Le rendu a besoin d'un `Instrument` pour le nombre de
+   * mesures ; à défaut, le premier venu convient, la grille étant écrite en
+   * Ut et la même pour toutes les transpositions.
+   */
+  function loadGrille(song: Song, instrument: Song['instruments'][number] | undefined): void {
+    grilleAbort.abort();
+    grilleAbort = new AbortController();
+    grille = null;
+    grilleView.setGrille(null);
+
+    const reference = instrument ?? song.instruments[0];
+    if (!reference) return;
+
+    const requested = song.id;
+    void (async () => {
+      try {
+        const response = await fetch(`data/grilles/${song.id}.json`, {
+          signal: grilleAbort.signal,
+        });
+        if (!response.ok) return;
+        const data: unknown = await response.json();
+        // Le morceau a pu changer pendant la requête : on jette la réponse
+        // plutôt que d'afficher la grille du précédent.
+        if (!isGrille(data) || order[index]?.id !== requested) return;
+        grille = data;
+        grilleView.setGrille(data);
+        grilleView.render(reference, `${song.id}::grille`, 0);
+        paintScoreVisibility();
+      } catch {
+        /* hors ligne ou requête annulée : la grille reste indisponible */
+      }
+    })();
+  }
+
   function loadSong(i: number, autoplay: boolean): void {
     index = i;
     const song = order[i]!;
@@ -371,6 +464,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       scoreView.destroy();
       scoreNote.textContent = `Pas de partition en ${INSTRUMENT_SHORT_LABELS[instrumentId]} pour ce morceau.`;
     }
+    loadGrille(song, instrument);
     paintScoreVisibility();
 
     const id = audioId(song);
@@ -439,6 +533,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
           slimTitle,
           scoreNote,
           scoreContainer,
+          grilleContainer,
         ),
       ),
 
@@ -531,6 +626,8 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     player.pause();
     player.clearCountdown();
     scoreView.destroy();
+    grilleAbort.abort();
+    grilleView.destroy();
     countdownVeil.remove();
     introVeil.remove();
   };

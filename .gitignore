@@ -6,3 +6,6 @@ web/dist/
 
 # web/public/data/ (partitions générées, ~19 Mo) est désormais versionné :
 # le build Netlify n'exécute pas le pipeline Python.
+
+# Dossier source de travail (partitions brutes non triées)
+library/
