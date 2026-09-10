@@ -40,6 +40,29 @@ export interface Transport {
   destroy: () => void;
 }
 
+/**
+ * Remplit une bascule du dock : micro-libellé de la dimension réglée, valeur
+ * courante en gras, glyphe d'action en fin (`⇄` pour un aller-retour à deux
+ * états, `▾` pour un cycle à plusieurs crans). Sans ça, les pastilles se
+ * lisent comme de simples étiquettes d'état, pas comme des boutons (issue #10).
+ */
+function fillToggle(
+  button: HTMLButtonElement,
+  dimension: string,
+  value: string,
+  glyph: string,
+): void {
+  button.replaceChildren(
+    el(
+      'span',
+      { class: 'text-[10px] font-medium uppercase tracking-wide opacity-60' },
+      dimension,
+    ),
+    el('span', { class: 'font-semibold' }, value),
+    el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, glyph),
+  );
+}
+
 export function createTransport(options: TransportOptions): Transport {
   const { song, player } = options;
 
@@ -206,12 +229,12 @@ export function createTransport(options: TransportOptions): Transport {
   const RATE_CYCLE = [...PLAYBACK_RATES].sort((a, b) => b - a);
 
   let rateIndex = 0;
-  const rateButton = el('button', { type: 'button', class: ui.chip }, '');
+  const rateButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
   function paintRate(): void {
     const rate = RATE_CYCLE[rateIndex]!;
     // `className` complet à chaque fois : le rang `md:order-4` doit survivre.
-    rateButton.className = `${rate === 1 ? ui.chip : ui.chipActive} md:order-4`;
-    rateButton.textContent = `${rate}×`;
+    rateButton.className = `${rate === 1 ? ui.chip : ui.chipActive} gap-1.5 md:order-4`;
+    fillToggle(rateButton, 'Vitesse', `${rate}×`, '▾');
     rateButton.setAttribute(
       'aria-label',
       `Vitesse ${rate} fois, toucher pour ${rate === 1 ? 'ralentir' : 'changer'}`,
@@ -248,9 +271,9 @@ export function createTransport(options: TransportOptions): Transport {
     paintLoop();
   }
 
-  const sourceButton = el('button', { type: 'button', class: ui.chip }, '');
+  const sourceButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
   function paintSourceButton(): void {
-    sourceButton.textContent = SOURCE_LABELS[source];
+    fillToggle(sourceButton, 'Bande', SOURCE_LABELS[source], '⇄');
     sourceButton.title = SOURCE_HINTS[source];
     sourceButton.setAttribute(
       'aria-label',
@@ -283,9 +306,9 @@ export function createTransport(options: TransportOptions): Transport {
   const instrumentName = (id: InstrumentId): string =>
     song.instruments.find((instrument) => instrument.id === id)?.name ?? id;
 
-  const instrumentButton = el('button', { type: 'button', class: ui.chip }, '');
+  const instrumentButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
   function paintInstrumentButton(): void {
-    instrumentButton.textContent = INSTRUMENT_CHIP[instrumentId] ?? instrumentId;
+    fillToggle(instrumentButton, 'Ton', INSTRUMENT_CHIP[instrumentId] ?? instrumentId, '▾');
     instrumentButton.title = instrumentName(instrumentId);
     instrumentButton.setAttribute(
       'aria-label',
