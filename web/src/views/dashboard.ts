@@ -468,18 +468,30 @@ export function renderDashboard(
     );
     filageButton.addEventListener('click', () => context.startFilage());
 
+    // Toutes les rangées ont le même gabarit : un libellé à largeur fixe, un
+    // espace horizontal franc (`sm:gap-x-4`), puis le contenu. Le libellé ne
+    // doit jamais revenir à la ligne ni mordre sur les boutons — d'où
+    // `whitespace-nowrap` et une colonne assez large pour « Technique ».
+    const sessionRow = (label: string, content: HTMLElement): HTMLElement =>
+      el(
+        'div',
+        { class: 'flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-x-4' },
+        el(
+          'span',
+          { class: `${ui.label} whitespace-nowrap sm:w-20 sm:shrink-0` },
+          label,
+        ),
+        content,
+      );
+
     const rows: HTMLElement[] = [
       el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Session du jour'),
-      el(
-        'div',
-        { class: 'flex flex-col gap-2 sm:flex-row sm:items-baseline' },
-        el('span', { class: `${ui.label} sm:w-16 sm:shrink-0` }, 'Travail'),
+      sessionRow(
+        'Travail',
         el('div', { class: 'flex flex-wrap gap-2' }, deepButton, urgentButton),
       ),
-      el(
-        'div',
-        { class: 'flex flex-col gap-2 sm:flex-row sm:items-baseline' },
-        el('span', { class: `${ui.label} sm:w-16 sm:shrink-0` }, 'Filage'),
+      sessionRow(
+        'Filage',
         el(
           'div',
           { class: 'flex flex-col gap-1' },
@@ -503,10 +515,8 @@ export function renderDashboard(
       );
       techniqueButton.addEventListener('click', context.openTechnique);
       rows.push(
-        el(
-          'div',
-          { class: 'flex flex-col gap-2 sm:flex-row sm:items-baseline' },
-          el('span', { class: `${ui.label} sm:w-16 sm:shrink-0` }, 'Technique'),
+        sessionRow(
+          'Technique',
           el(
             'div',
             { class: 'flex flex-col gap-1' },
