@@ -12,13 +12,7 @@ import type { Status } from '../srs';
 import type { Progress } from '../store';
 import { getTechniqueCard } from '../store';
 import type { ExerciceCarte } from '../technique/catalogue';
-import { SENS_LABELS, parFamille, pickExercices } from '../technique/catalogue';
-
-const SENS_MARKS: Record<string, string> = {
-  montant: '↑',
-  descendant: '↓',
-  'aller-retour': '↕',
-};
+import { parFamille, pickExercices } from '../technique/catalogue';
 
 const STATUS_STYLES: Record<Status, string> = {
   jamais: 'border-zinc-700 bg-zinc-800/60 text-zinc-400',
@@ -157,20 +151,35 @@ export function renderTechniqueListe(
 
   paintTonalites();
 
-  /** Une pastille par carte : le chiffrage, une flèche de sens, l'état en couleur. */
-  function chip(carte: ExerciceCarte): HTMLElement {
-    const status = statusOf(getTechniqueCard(progress, carte.id));
-    return el(
-      'span',
+  /**
+   * Un bouton par tonalité, tous sens confondus : cliquer ouvre directement une
+   * séance sur cet accord (comme « Travailler cette tonalité »), c'est donc là
+   * que le sens se choisit — pas en doublant les pastilles avant même de jouer.
+   */
+  function chip(cartesAccord: ExerciceCarte[]): HTMLElement {
+    const statuses = cartesAccord.map((carte) => statusOf(getTechniqueCard(progress, carte.id)));
+    const status: Status = statuses.includes('a-reviser')
+      ? 'a-reviser'
+      : statuses.includes('jamais')
+        ? 'jamais'
+        : 'a-jour';
+    const accord = cartesAccord[0]!.accord;
+    const titre = cartesAccord.map((carte) => dueLabel(progress, carte)).join(' · ');
+
+    const button = el(
+      'button',
       {
+        type: 'button',
         class:
           'inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border ' +
-          `px-3 text-sm font-medium ${STATUS_STYLES[status]}`,
-        title: `${carte.accord} · ${SENS_LABELS[carte.sens]} — ${dueLabel(progress, carte)}`,
+          `px-3 text-sm font-medium transition hover:border-zinc-500 focus:outline-none ` +
+          `focus-visible:ring-2 focus-visible:ring-amber-400 ${STATUS_STYLES[status]}`,
+        title: `${accord} — ${titre}`,
       },
-      carte.accord,
-      el('span', { class: 'opacity-60' }, SENS_MARKS[carte.sens] ?? ''),
+      accord,
     );
+    button.addEventListener('click', () => context.onStartTonalite(cartesAccord));
+    return button;
   }
 
   /** Les motifs d'une famille, chacun avec sa rangée de tonalités. */
@@ -186,6 +195,15 @@ export function renderTechniqueListe(
       const due = list.filter(
         (carte) => statusOf(getTechniqueCard(progress, carte.id)) !== 'a-jour',
       ).length;
+
+      // Une tonalité, un bouton — les cartes montant/descendant s'y regroupent.
+      const byAccord = new Map<string, ExerciceCarte[]>();
+      for (const carte of list) {
+        const accordCartes = byAccord.get(carte.accord);
+        if (accordCartes) accordCartes.push(carte);
+        else byAccord.set(carte.accord, [carte]);
+      }
+
       return el(
         'div',
         { class: 'flex flex-col gap-2' },
@@ -199,7 +217,7 @@ export function renderTechniqueListe(
             due === 0 ? 'tout à jour' : `${due} sur ${list.length} à travailler`,
           ),
         ),
-        el('div', { class: 'flex flex-wrap gap-2' }, ...list.map(chip)),
+        el('div', { class: 'flex flex-wrap gap-2' }, ...[...byAccord.values()].map(chip)),
       );
     });
   }
