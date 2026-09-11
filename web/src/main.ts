@@ -200,6 +200,15 @@ function startTechnique(): void {
   navigate('#/technique/run');
 }
 
+/** Lance une séance restreinte à la tonalité choisie dans le sélecteur dédié. */
+function startTechniqueTonalite(ordre: ExerciceCarte[]): void {
+  if (ordre.length === 0) return;
+  session = null;
+  filage = null;
+  technique = { ordre, worked: new Set() };
+  navigate('#/technique/run');
+}
+
 /** Passe au bloc suivant, ou termine la session. */
 function advanceSession(): void {
   if (!session) {
@@ -384,6 +393,7 @@ function render(): void {
       cartes: exercices,
       navigateHome: goHome,
       onStart: startTechnique,
+      onStartTonalite: startTechniqueTonalite,
     });
     return;
   }
