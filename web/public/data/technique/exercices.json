@@ -9,7 +9,7 @@
       "notes": ["D", "E", "F", "A"],
       "notes_descendant": ["D3", "Bb3", "A3", "F3"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
-      "sens": ["montant", "descendant"],
+      "sens": ["aller-retour"],
       "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce mineure, quinte à la montée ; fondamentale, sixte mineure, quinte, tierce mineure à la descente."
     },
     {
@@ -20,7 +20,7 @@
       "notes": ["C", "D", "E", "G"],
       "notes_descendant": ["C3", "A3", "G3", "E3"],
       "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
-      "sens": ["montant", "descendant"],
+      "sens": ["aller-retour"],
       "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce, quinte à la montée ; fondamentale, sixte, quinte, tierce à la descente."
     },
     {
@@ -30,7 +30,7 @@
       "reference": "A7",
       "notes": ["A", "C#", "E", "G"],
       "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
-      "sens": ["montant", "descendant"],
+      "sens": ["aller-retour"],
       "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
     {

@@ -165,10 +165,21 @@ function expandMotif(motif: MotifSource): ExerciceCarte[] {
     }
 
     for (const sens of senses) {
-      const notes =
-        sens === 'descendant' && descendantNames ? descendantNames : applySens(names, sens);
-      const midi =
-        sens === 'descendant' && descendantMidis ? descendantMidis : applySens(midis, sens);
+      // Aller-retour d'un motif choro : la montée puis la vraie descente,
+      // mises bout à bout — pas la montée rejouée en miroir, qui gommerait
+      // la forme descendante propre au genre.
+      let notes: string[];
+      let midi: number[];
+      if (sens === 'descendant' && descendantNames && descendantMidis) {
+        notes = descendantNames;
+        midi = descendantMidis;
+      } else if (sens === 'aller-retour' && descendantNames && descendantMidis) {
+        notes = [...names, ...descendantNames];
+        midi = [...midis, ...descendantMidis];
+      } else {
+        notes = applySens(names, sens);
+        midi = applySens(midis, sens);
+      }
 
       cartes.push({
         id: `${motif.id}::${formatNote(to)}::${sens}`,

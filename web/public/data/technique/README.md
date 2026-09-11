@@ -83,7 +83,10 @@ L'orthographe choisie ici décide de celle de la tonalité : `Eb` donne `Eb G Bb
 
 `montant`, `descendant`, `aller-retour` — une carte par entrée, car monter et
 descendre ne s'acquièrent pas ensemble. `aller-retour` joue le motif puis son
-miroir, sans rejouer le sommet.
+miroir, sans rejouer le sommet — sauf si `notes_descendant` est renseigné :
+la carte joue alors la montée suivie telle quelle de la vraie descente, au
+lieu de la montée rejouée à l'envers. C'est le cas des arpèges choro, où la
+descente est une forme à part entière (voir `arp-m`, `arp-maj`).
 
 Absent, `["montant", "descendant"]` est retenu.
 
