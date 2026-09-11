@@ -87,7 +87,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const sensLabel = el('p', { class: 'mt-2 text-sm uppercase tracking-widest text-zinc-500' });
   const statusLabel = el('p', { class: 'text-xs text-zinc-600' });
   const notesRow = el('div', { class: 'flex flex-wrap items-center justify-center gap-2' });
-  const workNote = el('p', { class: 'text-sm text-zinc-500' });
+  const workNote = el('p', { class: 'text-sm text-zinc-500 whitespace-pre-line' });
 
   const bpmValue = el('span', {
     class: 'min-w-[4.5rem] text-center font-mono text-3xl text-amber-300',
