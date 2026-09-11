@@ -30,6 +30,8 @@ export interface TechniqueListeContext {
   progress: Progress;
   cartes: ExerciceCarte[];
   onStart: () => void;
+  /** Lance une séance restreinte à une tonalité précise (les deux sens). */
+  onStartTonalite: (cartes: ExerciceCarte[]) => void;
   navigateHome: () => void;
 }
 
@@ -63,6 +65,97 @@ export function renderTechniqueListe(
 
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
   backButton.addEventListener('click', context.navigateHome);
+
+  // --- Travail ciblé : une tonalité précise, choisie plutôt que tirée par le SRS -
+
+  interface MotifOption {
+    motifId: string;
+    nom: string;
+    cartes: ExerciceCarte[];
+  }
+
+  const motifOptions: MotifOption[] = [];
+  {
+    const byMotif = new Map<string, MotifOption>();
+    for (const carte of cartes) {
+      let option = byMotif.get(carte.motifId);
+      if (!option) {
+        option = { motifId: carte.motifId, nom: carte.nom, cartes: [] };
+        byMotif.set(carte.motifId, option);
+        motifOptions.push(option);
+      }
+      option.cartes.push(carte);
+    }
+  }
+
+  const selectClass =
+    'min-h-11 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 text-sm ' +
+    'text-zinc-200 transition hover:border-zinc-500 focus:outline-none ' +
+    'focus-visible:ring-2 focus-visible:ring-amber-400';
+
+  const motifSelect = el(
+    'select',
+    { class: selectClass },
+    ...motifOptions.map((option) => el('option', { value: option.motifId }, option.nom)),
+  );
+  const tonaliteSelect = el('select', { class: selectClass });
+  const targetButton = el('button', { type: 'button', class: ui.primary }, 'Travailler cette tonalité');
+  const targetHint = el('p', { class: 'text-xs text-zinc-500' });
+
+  /** Tonalités d'un motif, dans l'ordre du catalogue, sans doublon (montant/descendant). */
+  function accordsOf(option: MotifOption): string[] {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    for (const carte of option.cartes) {
+      if (!seen.has(carte.accord)) {
+        seen.add(carte.accord);
+        list.push(carte.accord);
+      }
+    }
+    return list;
+  }
+
+  function selectedMotif(): MotifOption | null {
+    return motifOptions.find((option) => option.motifId === motifSelect.value) ?? motifOptions[0] ?? null;
+  }
+
+  /** Les cartes (un ou deux sens) de la tonalité actuellement choisie. */
+  function selectedCartes(): ExerciceCarte[] {
+    const option = selectedMotif();
+    if (!option) return [];
+    const accord = tonaliteSelect.value || accordsOf(option)[0];
+    return option.cartes.filter((carte) => carte.accord === accord);
+  }
+
+  function paintTargetHint(): void {
+    const selected = selectedCartes();
+    if (selected.length === 0) {
+      targetHint.textContent = '';
+      return;
+    }
+    const due = selected.filter(
+      (carte) => statusOf(getTechniqueCard(progress, carte.id)) !== 'a-jour',
+    ).length;
+    targetHint.textContent = due === 0 ? 'Déjà à jour.' : `${due} sur ${selected.length} à travailler.`;
+  }
+
+  function paintTonalites(): void {
+    const option = selectedMotif();
+    if (!option) return;
+    tonaliteSelect.replaceChildren(
+      ...accordsOf(option).map((accord) => el('option', { value: accord }, accord)),
+    );
+    paintTargetHint();
+  }
+
+  motifSelect.addEventListener('change', paintTonalites);
+  tonaliteSelect.addEventListener('change', paintTargetHint);
+  targetButton.addEventListener('click', () => {
+    const selected = selectedCartes();
+    if (selected.length > 0) context.onStartTonalite(selected);
+  });
+
+  paintTonalites();
 
   /** Une pastille par carte : le chiffrage, une flèche de sens, l'état en couleur. */
   function chip(carte: ExerciceCarte): HTMLElement {
@@ -155,6 +248,29 @@ export function renderTechniqueListe(
               'Une note par clic de métronome, sans plaquer d’accord.',
           ),
         ),
+      ),
+
+      el(
+        'section',
+        { class: `${ui.card} flex flex-col gap-3` },
+        el('p', { class: ui.label }, 'Travail ciblé'),
+        el(
+          'div',
+          { class: 'grid gap-3 sm:grid-cols-2' },
+          el(
+            'label',
+            { class: 'flex flex-col gap-1' },
+            el('span', { class: 'text-xs text-zinc-500' }, 'Arpège ou gamme'),
+            motifSelect,
+          ),
+          el(
+            'label',
+            { class: 'flex flex-col gap-1' },
+            el('span', { class: 'text-xs text-zinc-500' }, 'Tonalité'),
+            tonaliteSelect,
+          ),
+        ),
+        el('div', { class: 'flex flex-wrap items-center gap-3' }, targetButton, targetHint),
       ),
 
       ...sections,
