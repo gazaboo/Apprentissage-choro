@@ -2,24 +2,26 @@
   "description": "Arpèges et gammes de travail. Chaque motif est écrit une fois dans sa tonalité de référence, puis transposé à la lecture. Voir README.md pour le format.",
   "exercices": [
     {
-      "id": "arp-m7",
+      "id": "arp-m",
       "famille": "Arpèges",
-      "nom": "Arpège mineur 7",
+      "nom": "Arpège mineur",
       "reference": "Dm",
-      "notes": ["D", "F", "A", "C"],
+      "notes": ["D", "E", "F", "A"],
+      "notes_descendant": ["D3", "Bb3", "A3", "F3"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
-      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+      "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce mineure, quinte à la montée ; fondamentale, sixte mineure, quinte, tierce mineure à la descente."
     },
     {
-      "id": "arp-maj7",
+      "id": "arp-maj",
       "famille": "Arpèges",
-      "nom": "Arpège majeur 7",
+      "nom": "Arpège majeur",
       "reference": "C",
-      "notes": ["C", "E", "G", "B"],
+      "notes": ["C", "D", "E", "G"],
+      "notes_descendant": ["C3", "A3", "G3", "E3"],
       "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
       "sens": ["montant", "descendant"],
-      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+      "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce, quinte à la montée ; fondamentale, sixte, quinte, tierce à la descente."
     },
     {
       "id": "arp-dom7",

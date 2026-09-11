@@ -16,7 +16,15 @@ import type { Progress } from '../store';
 import { getTechniqueCard } from '../store';
 import type { SrsCard } from '../types';
 import type { NoteSpelling } from './theorie';
-import { chordRoot, formatNote, layoutMotif, parseNote, transposeChord, transposeNote } from './theorie';
+import {
+  chordRoot,
+  formatNote,
+  layoutMotif,
+  midiOf,
+  parseNote,
+  transposeChord,
+  transposeNote,
+} from './theorie';
 
 const CATALOGUE_URL = 'data/technique/exercices.json';
 
@@ -48,6 +56,14 @@ interface MotifSource {
   reference: string;
   /** Le motif, en noms de notes ; l'octave est facultative. */
   notes: string[];
+  /**
+   * Notes de la descente, quand elles diffèrent de la montée — le cas des
+   * vrais arpèges de choro. Absent, la carte descendante rejoue `notes` à
+   * l'envers. Présent, l'octave doit être précisée sur chaque note : la
+   * forme n'est pas une simple gamme qui monte, `layoutMotif` ne peut pas la
+   * déduire seule.
+   */
+  notes_descendant?: string[];
   roots?: string[];
   sens?: Sens[];
   note_de_travail?: string;
@@ -85,7 +101,10 @@ function isMotifSource(value: unknown): value is MotifSource {
     typeof raw.reference === 'string' &&
     Array.isArray(raw.notes) &&
     raw.notes.length > 0 &&
-    raw.notes.every((note) => typeof note === 'string')
+    raw.notes.every((note) => typeof note === 'string') &&
+    (raw.notes_descendant === undefined ||
+      (Array.isArray(raw.notes_descendant) &&
+        raw.notes_descendant.every((note) => typeof note === 'string')))
   );
 }
 
@@ -107,6 +126,15 @@ function expandMotif(motif: MotifSource): ExerciceCarte[] {
     .filter((note): note is NoteSpelling => note !== null);
   if (parsed.length !== motif.notes.length) return [];
 
+  const descendantSource = motif.notes_descendant;
+  let parsedDescendant: NoteSpelling[] | null = null;
+  if (descendantSource) {
+    const candidate = descendantSource
+      .map(parseNote)
+      .filter((note): note is NoteSpelling => note !== null);
+    parsedDescendant = candidate.length === descendantSource.length ? candidate : null;
+  }
+
   const roots =
     Array.isArray(motif.roots) && motif.roots.length > 0 ? motif.roots : DEFAULT_ROOTS;
   const senses =
@@ -125,7 +153,23 @@ function expandMotif(motif: MotifSource): ExerciceCarte[] {
     const names = transposed.map(formatNote);
     const midis = layoutMotif(transposed);
 
+    // La descente d'un arpège choro n'est pas le miroir de la montée : ses
+    // notes sont écrites à part, octave comprise, et transposées telles
+    // quelles plutôt que redéduites de la montée.
+    let descendantNames: string[] | null = null;
+    let descendantMidis: number[] | null = null;
+    if (parsedDescendant) {
+      const transposedDescendant = parsedDescendant.map((note) => transposeNote(note, from, to));
+      descendantNames = transposedDescendant.map(formatNote);
+      descendantMidis = transposedDescendant.map(midiOf);
+    }
+
     for (const sens of senses) {
+      const notes =
+        sens === 'descendant' && descendantNames ? descendantNames : applySens(names, sens);
+      const midi =
+        sens === 'descendant' && descendantMidis ? descendantMidis : applySens(midis, sens);
+
       cartes.push({
         id: `${motif.id}::${formatNote(to)}::${sens}`,
         motifId: motif.id,
@@ -133,8 +177,8 @@ function expandMotif(motif: MotifSource): ExerciceCarte[] {
         nom: motif.nom,
         accord,
         sens,
-        notes: applySens(names, sens),
-        midi: applySens(midis, sens),
+        notes,
+        midi,
         noteDeTravail: motif.note_de_travail ?? null,
       });
     }
