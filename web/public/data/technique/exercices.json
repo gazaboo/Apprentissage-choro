@@ -7,10 +7,10 @@
       "nom": "Arpège mineur",
       "reference": "Dm",
       "notes": ["D", "E", "F", "A"],
-      "notes_descendant": ["D3", "Bb3", "A3", "F3"],
+      "notes_descendant": ["D3", "Bb3", "A3", "F3", "D3"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
-      "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce mineure, quinte à la montée ; fondamentale, sixte mineure, quinte, tierce mineure à la descente."
+      "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce mineure, quinte à la montée ; fondamentale, sixte mineure, quinte, tierce mineure, fondamentale à la descente."
     },
     {
       "id": "arp-maj",
@@ -18,10 +18,10 @@
       "nom": "Arpège majeur",
       "reference": "C",
       "notes": ["C", "D", "E", "G"],
-      "notes_descendant": ["C3", "A3", "G3", "E3"],
+      "notes_descendant": ["C3", "A3", "G3", "E3", "C3"],
       "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
       "sens": ["aller-retour"],
-      "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce, quinte à la montée ; fondamentale, sixte, quinte, tierce à la descente."
+      "note_de_travail": "Arpège choro réel : fondamentale, seconde, tierce, quinte à la montée ; fondamentale, sixte, quinte, tierce, fondamentale à la descente."
     },
     {
       "id": "arp-dom7",

@@ -53,8 +53,9 @@ jusqu'à dépasser la précédente.
 Optionnel. Au choro, l'arpège descendant n'est pas la montée rejouée à
 l'envers — c'est une particularité du genre, pas une gamme qui redescend.
 L'arpège mineur, par exemple, monte fondamentale-seconde-tierce mineure-quinte
-mais descend fondamentale-sixte mineure-quinte-tierce mineure : deux formes de
-quatre notes, mais pas les mêmes notes.
+mais descend fondamentale-sixte mineure-quinte-tierce mineure-fondamentale :
+la montée fait quatre notes, la descente cinq — elle referme la phrase sur la
+tonique.
 
 Quand cette forme diffère de l'inverse de `notes`, écrivez-la ici, **avec
 l'octave sur chaque note** (do central = `C4`) : la forme n'étant pas une
@@ -63,7 +64,7 @@ note comme elle le fait pour `notes`.
 
 ```jsonc
 "notes": ["D", "E", "F", "A"],
-"notes_descendant": ["D3", "Bb3", "A3", "F3"]
+"notes_descendant": ["D3", "Bb3", "A3", "F3", "D3"]
 ```
 
 Absent, la carte « descendant » rejoue `notes` à l'envers — le comportement
