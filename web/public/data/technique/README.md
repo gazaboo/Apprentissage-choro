@@ -5,8 +5,10 @@ seule fois**, dans la tonalité où il a été pensé ; l'application le transpo
 la lecture et en fait une carte de répétition espacée par tonalité et par sens.
 
 Le fichier livré ne contient qu'un jeu de départ (arpège mineur 7, arpège de
-dominante, gamme majeure). Il est fait pour être remplacé par les motifs propres
-au répertoire — c'est le seul endroit à modifier pour changer ce qu'on travaille.
+dominante, arpège majeur 7, gamme majeure, gamme mineure naturelle, gamme
+mineure harmonique, gamme mineure mélodique). Il est fait pour être remplacé
+par les motifs propres au répertoire — c'est le seul endroit à modifier pour
+changer ce qu'on travaille.
 
 ## Format
 
