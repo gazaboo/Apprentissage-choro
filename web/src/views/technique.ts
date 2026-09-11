@@ -61,6 +61,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let judged = new Map<number, 'juste' | 'faux'>();
   let tracker: PitchTracker | null = null;
   let micError: string | null = null;
+  /** Le temps que `getUserMedia` réponde : sans cet état, le clic semble ignoré. */
+  let micActivating = false;
   /** Sur quelle note du motif on a réellement démarré ; voir `meilleurDecalage`. */
   let decalage = 0;
 
@@ -101,8 +103,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const finishButton = el('button', { type: 'button', class: ui.button }, 'Terminer et évaluer');
   const stopButton = el('button', { type: 'button', class: ui.button }, 'Terminer la séance');
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
-  const micButton = el('button', { type: 'button', class: ui.button }, 'Écouter au micro');
-  const micHint = el('p', { class: 'text-xs text-zinc-500' });
+  const micButton = el('button', {
+    type: 'button',
+    class: ui.button,
+    'aria-pressed': 'false',
+  }, 'Écouter au micro');
+  // `aria-live` : le message d'état change sans que le bouton ne reprenne le
+  // focus, il faut donc l'annoncer explicitement aux lecteurs d'écran.
+  const micHint = el('p', { class: 'text-xs text-zinc-500', 'aria-live': 'polite' });
 
   // --- Peinture -----------------------------------------------------------
 
@@ -173,13 +181,23 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     revealButton.className = revealed ? ui.buttonActive : ui.button;
 
     const listening = tracker?.listening ?? false;
-    micButton.textContent = listening ? 'Couper le micro' : 'Écouter au micro';
+    micButton.textContent = micActivating
+      ? 'Activation du micro…'
+      : listening
+        ? 'Couper le micro'
+        : 'Écouter au micro';
+    // `ui.buttonActive` n'a pas de style désactivé : le réserver à l'écoute
+    // effective garde le bouton visiblement grisé pendant l'activation.
     micButton.className = listening ? ui.buttonActive : ui.button;
+    micButton.disabled = micActivating;
+    micButton.setAttribute('aria-pressed', String(listening));
     micHint.textContent =
       micError ??
-      (listening
-        ? 'Le relevé est indicatif : sur des notes qui se recouvrent, il se trompe.'
-        : 'Facultatif. Sans micro, l’évaluation reste entièrement la vôtre.');
+      (micActivating
+        ? 'Autorisez le micro dans le navigateur pour continuer.'
+        : listening
+          ? 'Micro actif — le relevé est indicatif : sur des notes qui se recouvrent, il se trompe.'
+          : 'Facultatif. Sans micro, l’évaluation reste entièrement la vôtre.');
     micHint.classList.toggle('text-rose-300', micError !== null);
     micHint.classList.toggle('text-zinc-500', micError === null);
   }
@@ -288,12 +306,17 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   }
 
   async function toggleMic(): Promise<void> {
+    // Sans cette garde, un clic pendant l'attente de `getUserMedia` relancerait
+    // une seconde demande d'accès au micro au lieu d'être ignoré.
+    if (micActivating) return;
     micError = null;
     if (tracker?.listening) {
       tracker.stop();
       paintTransport();
       return;
     }
+    micActivating = true;
+    paintTransport();
     try {
       const context = await metronome.prepare();
       tracker ??= new PitchTracker(context, handleOnset);
@@ -302,6 +325,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     } catch {
       micError = 'Micro indisponible — l’évaluation reste manuelle.';
     }
+    micActivating = false;
     paintTransport();
   }
 
