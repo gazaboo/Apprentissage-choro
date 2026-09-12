@@ -36,6 +36,11 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+          # Autorise Claude à répondre à un commentaire @claude sur une PR/issue
+          # même quand l'acteur déclencheur (auteur du commentaire précédent, etc.)
+          # est claude[bot] lui-même (cf. issue #22).
+          allowed_bots: "claude[bot]"
+
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
