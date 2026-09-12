@@ -27,6 +27,9 @@ import { askSrs } from './srsModal';
 /** Pas des boutons de tempo — assez large pour se sentir, assez fin pour régler. */
 const BPM_STEP = 4;
 
+/** Délai d'écoute sans attaque détectée avant d'alerter : le temps de se mettre en place. */
+const SILENCE_WARNING_MS = 4000;
+
 export interface TechniqueContext {
   progress: Progress;
   /** Les cartes de la séance, dans l'ordre de passage. */
@@ -61,6 +64,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let judged = new Map<number, 'juste' | 'faux'>();
   let tracker: PitchTracker | null = null;
   let micError: string | null = null;
+  /** `true` passé quelques secondes d'écoute sans qu'aucune attaque n'ait été détectée. */
+  let micSilence = false;
+  let silenceTimer: number | null = null;
   /** Sur quelle note du motif on a réellement démarré ; voir `meilleurDecalage`. */
   let decalage = 0;
 
@@ -103,6 +109,18 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
   const micButton = el('button', { type: 'button', class: ui.button }, 'Écouter au micro');
   const micHint = el('p', { class: 'text-xs text-zinc-500' });
+  /** Point animé : seul repère qui bouge en continu, preuve que l'écoute est active. */
+  const micStatusDot = el('span', { class: 'hidden h-2 w-2 rounded-full bg-amber-400 animate-pulse' });
+  const micStatusText = el('span', { class: 'hidden text-xs font-medium text-amber-300' }, 'Écoute en cours…');
+  /** VU-mètre minimal : la seule preuve continue que le micro capte du son. */
+  const micLevelTrack = el(
+    'div',
+    { class: 'hidden h-1.5 w-32 overflow-hidden rounded-full bg-zinc-800' },
+  );
+  const micLevelFill = el('div', {
+    class: 'h-full w-0 rounded-full bg-amber-400 transition-[width] duration-75',
+  });
+  micLevelTrack.append(micLevelFill);
 
   // --- Peinture -----------------------------------------------------------
 
@@ -175,13 +193,21 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     const listening = tracker?.listening ?? false;
     micButton.textContent = listening ? 'Couper le micro' : 'Écouter au micro';
     micButton.className = listening ? ui.buttonActive : ui.button;
+
+    micStatusDot.classList.toggle('hidden', !listening);
+    micStatusText.classList.toggle('hidden', !listening);
+    micLevelTrack.classList.toggle('hidden', !listening);
+    if (!listening) micLevelFill.style.width = '0%';
+
     micHint.textContent =
       micError ??
-      (listening
-        ? 'Le relevé est indicatif : sur des notes qui se recouvrent, il se trompe.'
-        : 'Facultatif. Sans micro, l’évaluation reste entièrement la vôtre.');
-    micHint.classList.toggle('text-rose-300', micError !== null);
-    micHint.classList.toggle('text-zinc-500', micError === null);
+      (micSilence
+        ? 'Aucun son détecté pour l’instant — jouez près du micro.'
+        : listening
+          ? 'Le relevé est indicatif : sur des notes qui se recouvrent, il se trompe.'
+          : 'Facultatif. Sans micro, l’évaluation reste entièrement la vôtre.');
+    micHint.classList.toggle('text-rose-300', micError !== null || micSilence);
+    micHint.classList.toggle('text-zinc-500', micError === null && !micSilence);
   }
 
   // --- Tempo et métronome -------------------------------------------------
@@ -262,6 +288,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
    * déjà à la battue suivante.
    */
   function handleOnset(onset: Onset): void {
+    if (silenceTimer !== null) {
+      window.clearTimeout(silenceTimer);
+      silenceTimer = null;
+    }
+    if (micSilence) {
+      micSilence = false;
+      paintTransport();
+    }
     prise.onsets.push(onset);
 
     const motif = carte().midi;
@@ -287,20 +321,46 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     paintNotes();
   }
 
+  function handleLevel(level: number): void {
+    micLevelFill.style.width = `${Math.round(level * 100)}%`;
+  }
+
+  function clearSilenceTimer(): void {
+    if (silenceTimer !== null) window.clearTimeout(silenceTimer);
+    silenceTimer = null;
+  }
+
   async function toggleMic(): Promise<void> {
     micError = null;
     if (tracker?.listening) {
       tracker.stop();
+      clearSilenceTimer();
+      micSilence = false;
       paintTransport();
       return;
     }
     try {
       const context = await metronome.prepare();
-      tracker ??= new PitchTracker(context, handleOnset);
+      tracker ??= new PitchTracker(context, handleOnset, handleLevel);
       await tracker.start();
       prise = { beats: [], onsets: [] };
-    } catch {
-      micError = 'Micro indisponible — l’évaluation reste manuelle.';
+      micSilence = false;
+      clearSilenceTimer();
+      silenceTimer = window.setTimeout(() => {
+        silenceTimer = null;
+        micSilence = true;
+        paintTransport();
+      }, SILENCE_WARNING_MS);
+    } catch (error) {
+      // Le nom de l'exception distingue le refus de permission — qui appelle un
+      // geste précis dans les réglages du navigateur — d'une simple absence de
+      // micro, que rien ne peut réparer depuis l'écran.
+      micError =
+        error instanceof DOMException && error.name === 'NotAllowedError'
+          ? 'Accès au micro refusé — autorisez-le dans les réglages du navigateur pour ce site.'
+          : error instanceof DOMException && error.name === 'NotFoundError'
+            ? 'Aucun micro détecté sur cet appareil.'
+            : 'Micro indisponible — l’évaluation reste manuelle.';
     }
     paintTransport();
   }
@@ -433,7 +493,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           el('span', { class: 'text-sm text-zinc-500' }, 'BPM'),
         ),
         bpmHint,
-        el('div', { class: 'mt-1 flex flex-wrap gap-2' }, playButton, micButton),
+        el('div', { class: 'mt-1 flex flex-wrap items-center gap-2' }, playButton, micButton),
+        el(
+          'div',
+          { class: 'flex flex-wrap items-center gap-2' },
+          micStatusDot,
+          micStatusText,
+          micLevelTrack,
+        ),
         micHint,
       ),
 
@@ -450,6 +517,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   return () => {
     stopFrames();
+    clearSilenceTimer();
     // Le micro d'abord : il faut relâcher les pistes de capture avant de
     // fermer le contexte auquel elles sont raccordées.
     tracker?.destroy();

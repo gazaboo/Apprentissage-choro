@@ -36,6 +36,9 @@ const PITCH_DELAY_MS = 45;
 /** Énergie en deçà de laquelle on considère qu'on n'a rien joué. */
 const SILENCE_RMS = 0.008;
 
+/** Énergie jugée « forte », pour ramener le niveau affiché entre 0 et 1. */
+const LOUD_RMS = 0.25;
+
 /** Rapport d'énergie qui fait une attaque, comparé à la fenêtre précédente. */
 const RISE_FACTOR = 1.8;
 
@@ -61,6 +64,7 @@ export interface Onset {
 export class PitchTracker {
   private readonly context: AudioContext;
   private readonly onOnset: (onset: Onset) => void;
+  private readonly onLevel?: (level: number) => void;
   private stream: MediaStream | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
   private onsetAnalyser: AnalyserNode | null = null;
@@ -72,9 +76,19 @@ export class PitchTracker {
   private lastOnsetAt = -Infinity;
   private pending: number[] = [];
 
-  constructor(context: AudioContext, onOnset: (onset: Onset) => void) {
+  /**
+   * `onLevel` publie le niveau sonore courant (0–1) à chaque image, qu'il y ait
+   * ou non une attaque : c'est ce qui alimente un simple VU-mètre, la seule
+   * preuve continue que le micro capte quelque chose.
+   */
+  constructor(
+    context: AudioContext,
+    onOnset: (onset: Onset) => void,
+    onLevel?: (level: number) => void,
+  ) {
     this.context = context;
     this.onOnset = onOnset;
+    this.onLevel = onLevel;
   }
 
   /**
@@ -136,6 +150,8 @@ export class PitchTracker {
     analyser.getFloatTimeDomainData(this.onsetBuffer);
     const rms = rootMeanSquare(this.onsetBuffer);
     const now = this.context.currentTime;
+
+    this.onLevel?.(Math.min(1, rms / LOUD_RMS));
 
     const rising = rms > SILENCE_RMS && rms > this.previousRms * RISE_FACTOR;
     if (rising && now - this.lastOnsetAt > MIN_GAP_S) {
