@@ -8,8 +8,11 @@
  * notes.
  *
  * Le son est synthétisé, comme le clic du métronome : le projet n'embarque
- * aucun échantillon, et une onde triangulaire suffit à identifier une
- * hauteur sans laisser croire qu'il s'agit d'un instrument de référence.
+ * aucun échantillon. Plutôt qu'un simple oscillateur (trop « robotique »,
+ * cf. retour sur la PR), chaque note est une corde pincée synthétisée par
+ * Karplus-Strong — une salve de bruit filtrant en boucle dans une ligne à
+ * retard accordée sur la fréquence visée — pour un timbre proche d'une
+ * guitare/cavaquinho, cohérent avec le répertoire de choros.
  */
 
 import { frequencyOf } from './technique/theorie';
@@ -121,18 +124,59 @@ export class SequencePlayer {
     }, delay);
   }
 
+  /**
+   * Synthèse Karplus-Strong : une salve de bruit blanc, de la durée d'une
+   * période du signal visé, est injectée dans une ligne à retard bouclée sur
+   * elle-même (retard = 1 / fréquence) avec un filtre passe-bas dans la
+   * boucle qui use les harmoniques hautes à chaque tour — exactement le
+   * comportement d'une corde pincée qui s'assourdit en vibrant. `envelope`
+   * porte l'extinction audible ; la boucle retard/filtre est débranchée une
+   * fois la note éteinte pour ne pas laisser tourner un nœud audio inutile
+   * pendant une lecture en boucle prolongée.
+   */
   private pluck(midi: number, at: number): void {
-    const oscillator = this.context.createOscillator();
-    const gain = this.context.createGain();
+    const frequency = frequencyOf(midi);
+    const period = 1 / frequency;
+    const burstSize = Math.max(2, Math.round(this.context.sampleRate * period));
 
-    oscillator.type = 'triangle';
-    oscillator.frequency.value = frequencyOf(midi);
-    gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(0.3, at + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, at + NOTE_S);
+    const burstBuffer = this.context.createBuffer(1, burstSize, this.context.sampleRate);
+    const burstData = burstBuffer.getChannelData(0);
+    for (let i = 0; i < burstSize; i += 1) burstData[i] = Math.random() * 2 - 1;
 
-    oscillator.connect(gain).connect(this.context.destination);
-    oscillator.start(at);
-    oscillator.stop(at + NOTE_S + 0.02);
+    const burst = this.context.createBufferSource();
+    burst.buffer = burstBuffer;
+
+    const delay = this.context.createDelay(1);
+    delay.delayTime.value = period;
+
+    const damping = this.context.createBiquadFilter();
+    damping.type = 'lowpass';
+    damping.frequency.value = 3500;
+
+    const feedback = this.context.createGain();
+    feedback.gain.value = 0.985;
+
+    const envelope = this.context.createGain();
+    envelope.gain.setValueAtTime(0.5, at);
+    envelope.gain.exponentialRampToValueAtTime(0.0001, at + NOTE_S);
+
+    burst.connect(delay);
+    delay.connect(damping);
+    damping.connect(feedback);
+    feedback.connect(delay);
+    delay.connect(envelope);
+    envelope.connect(this.context.destination);
+
+    burst.start(at);
+    burst.stop(at + period);
+
+    const cleanupDelayMs = Math.max(0, at - this.context.currentTime + NOTE_S + 0.05) * 1000;
+    window.setTimeout(() => {
+      burst.disconnect();
+      delay.disconnect();
+      damping.disconnect();
+      feedback.disconnect();
+      envelope.disconnect();
+    }, cleanupDelayMs);
   }
 }
