@@ -1,5 +1,5 @@
-/** Lecture MIDI d'une séquence de notes, pour entendre un arpège ou une gamme
- * à la hauteur et au tempo exacts de l'exercice.
+/** Lecture d'une séquence de notes, pour entendre un arpège ou une gamme à la
+ * hauteur et au tempo exacts de l'exercice.
  *
  * Même procédé de programmation à l'avance que `metronome.ts` : un réveil
  * fréquent mais imprécis qui planifie les notes tombant dans la fenêtre
@@ -7,28 +7,41 @@
  * chaîner des `setTimeout` qui dériveraient sur une gamme de sept ou huit
  * notes.
  *
- * Le son est synthétisé, comme le clic du métronome : le projet n'embarque
- * aucun échantillon. Plutôt qu'un simple oscillateur (trop « robotique »,
- * cf. retour sur la PR), chaque note est une corde pincée synthétisée par
- * Karplus-Strong — une salve de bruit filtrant en boucle dans une ligne à
- * retard accordée sur la fréquence visée — pour un timbre proche d'une
- * guitare/cavaquinho, cohérent avec le répertoire de choros.
+ * Le son est un vrai piano échantillonné (`technique/piano.ts`) — une
+ * synthèse maison (oscillateur, puis Karplus-Strong) a été essayée et jugée
+ * trop artificielle. Chaque note est tenue jusqu'au début de la suivante
+ * (« noire après noire »), pas une decay courte : c'est `holdUntil` dans
+ * `playNote` qui porte ce phrasé lié.
  */
 
-import { frequencyOf } from './technique/theorie';
+import { loadPianoSamples, sampleFor } from './technique/piano';
 
 const TICK_MS = 25;
 const LOOKAHEAD_S = 0.1;
 
-/** Durée de l'enveloppe d'une note. Assez longue pour s'entendre, assez
- * brève pour ne jamais chevaucher la suivante à 240 BPM (0,25 s l'écart). */
-const NOTE_S = 0.22;
+/** Montée en volume au début d'une note : assez courte pour ne pas retarder
+ * l'attaque perçue, assez longue pour ne jamais cliquer. */
+const ATTACK_S = 0.005;
+/** Redescente à zéro juste avant la note suivante : le phrasé lié vient de
+ * la tenir jusque-là, pas de cette rampe, volontairement brève. */
+const RELEASE_S = 0.03;
+/** Fondu forcé quand l'utilisateur arrête l'écoute en plein milieu d'une
+ * note tenue — sans quoi elle sonnerait jusqu'à une seconde de plus. */
+const STOP_FADE_S = 0.018;
+/** Niveau de soutien d'une note : pas 1, pour laisser de la marge pendant le
+ * bref chevauchement avec la fin de la précédente. */
+const SUSTAIN_LEVEL = 0.7;
 
 export interface SequencePlayerOptions {
   /** Appelé au moment de la **programmation**, avec l'instant audio visé. */
   onNote: (index: number, audioTime: number) => void;
   /** Appelé une fois la dernière note jouée éteinte, hors lecture en boucle. */
   onDone: () => void;
+}
+
+interface Voice {
+  source: AudioBufferSourceNode;
+  gain: GainNode;
 }
 
 export class SequencePlayer {
@@ -38,6 +51,9 @@ export class SequencePlayer {
   private timer: number | null = null;
   /** Réveil de fin, pendant la fenêtre où la dernière note sonne encore. */
   private pendingDone: number | null = null;
+  private buffers: Map<number, AudioBuffer> | null = null;
+  /** Dernière voix déclenchée, pour pouvoir la couper sur un arrêt utilisateur. */
+  private activeVoice: Voice | null = null;
   private midi: number[] = [];
   private bpm = 60;
   private loop = false;
@@ -52,23 +68,35 @@ export class SequencePlayer {
   }
 
   /** Joue `midi` une note à la fois, au tempo `bpm`. */
-  start(midi: number[], bpm: number, loop: boolean): void {
-    this.stop();
+  async start(midi: number[], bpm: number, loop: boolean): Promise<void> {
+    this.stop(false);
     if (midi.length === 0) return;
+
+    // Le décodage des échantillons (premier appel seulement, ensuite mis en
+    // cache) peut prendre le temps de quelques images : recalculer l'instant
+    // de départ après l'attente, pas avant, sinon la première note tombe
+    // dans le passé.
+    this.buffers = await loadPianoSamples(this.context);
 
     this.midi = midi;
     this.bpm = bpm;
     this.loop = loop;
     this.index = 0;
-    // Le même court délai que le métronome : sans lui, la première note
-    // tombe dans le passé et n'est jamais jouée.
     this.nextNoteTime = this.context.currentTime + 0.15;
     this.lastNoteTime = this.nextNoteTime;
     this.timer = window.setInterval(() => this.schedule(), TICK_MS);
     this.schedule();
   }
 
-  stop(): void {
+  /**
+   * `userInitiated` distingue un arrêt demandé (clic sur « Arrêter
+   * l'écoute », changement d'écran, exclusion mutuelle avec le métronome) —
+   * qui doit couper la note en train de sonner tout de suite — d'un arrêt
+   * interne (redémarrage depuis `start()`, fin normale de séquence depuis
+   * `finish()`) où la voix en cours a déjà sa propre extinction programmée
+   * et ne doit pas être coupée une seconde fois.
+   */
+  stop(userInitiated = true): void {
     if (this.timer !== null) {
       window.clearInterval(this.timer);
       this.timer = null;
@@ -77,6 +105,17 @@ export class SequencePlayer {
       window.clearTimeout(this.pendingDone);
       this.pendingDone = null;
     }
+    if (userInitiated && this.activeVoice) {
+      const { source, gain } = this.activeVoice;
+      const now = this.context.currentTime;
+      // Annuler l'automation programmée (tenue/relâchement) avant d'en poser
+      // une nouvelle : sinon les deux se disputent la valeur et ça clique.
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(0, now + STOP_FADE_S);
+      source.stop(now + STOP_FADE_S + 0.01);
+    }
+    this.activeVoice = null;
   }
 
   /**
@@ -94,7 +133,7 @@ export class SequencePlayer {
 
     while (this.index < this.midi.length && this.nextNoteTime < horizon) {
       const midiNote = this.midi[this.index]!;
-      this.pluck(midiNote, this.nextNoteTime);
+      this.playNote(midiNote, this.nextNoteTime);
       this.onNote(this.index, this.nextNoteTime);
 
       this.lastNoteTime = this.nextNoteTime;
@@ -115,8 +154,8 @@ export class SequencePlayer {
    * s'éteigne avant de prévenir l'écran : couper là gèlerait le surlignage
    * une fraction de seconde avant que le son ne s'arrête vraiment. */
   private finish(): void {
-    const doneAt = this.lastNoteTime + NOTE_S;
-    this.stop();
+    const doneAt = this.lastNoteTime + 60 / this.bpm;
+    this.stop(false);
     const delay = Math.max(0, doneAt - this.context.currentTime) * 1000;
     this.pendingDone = window.setTimeout(() => {
       this.pendingDone = null;
@@ -125,58 +164,29 @@ export class SequencePlayer {
   }
 
   /**
-   * Synthèse Karplus-Strong : une salve de bruit blanc, de la durée d'une
-   * période du signal visé, est injectée dans une ligne à retard bouclée sur
-   * elle-même (retard = 1 / fréquence) avec un filtre passe-bas dans la
-   * boucle qui use les harmoniques hautes à chaque tour — exactement le
-   * comportement d'une corde pincée qui s'assourdit en vibrant. `envelope`
-   * porte l'extinction audible ; la boucle retard/filtre est débranchée une
-   * fois la note éteinte pour ne pas laisser tourner un nœud audio inutile
-   * pendant une lecture en boucle prolongée.
+   * Joue `midi` à l'instant `at` et la tient jusqu'au début de la note
+   * suivante (`at + 60/bpm`, appelé `holdUntil` ci-dessous) — le phrasé lié
+   * demandé, plutôt qu'une decay courte. `activeVoice` retient la voix pour
+   * qu'un arrêt utilisateur puisse la couper avant cette échéance naturelle.
    */
-  private pluck(midi: number, at: number): void {
-    const frequency = frequencyOf(midi);
-    const period = 1 / frequency;
-    const burstSize = Math.max(2, Math.round(this.context.sampleRate * period));
+  private playNote(midi: number, at: number): void {
+    const { buffer, playbackRate } = sampleFor(midi, this.buffers!);
+    const holdUntil = at + 60 / this.bpm;
 
-    const burstBuffer = this.context.createBuffer(1, burstSize, this.context.sampleRate);
-    const burstData = burstBuffer.getChannelData(0);
-    for (let i = 0; i < burstSize; i += 1) burstData[i] = Math.random() * 2 - 1;
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.playbackRate.value = playbackRate;
 
-    const burst = this.context.createBufferSource();
-    burst.buffer = burstBuffer;
+    const gain = this.context.createGain();
+    gain.gain.setValueAtTime(0, at);
+    gain.gain.linearRampToValueAtTime(SUSTAIN_LEVEL, at + ATTACK_S);
+    gain.gain.setValueAtTime(SUSTAIN_LEVEL, holdUntil - RELEASE_S);
+    gain.gain.linearRampToValueAtTime(0, holdUntil);
 
-    const delay = this.context.createDelay(1);
-    delay.delayTime.value = period;
+    source.connect(gain).connect(this.context.destination);
+    source.start(at);
+    source.stop(holdUntil + 0.02);
 
-    const damping = this.context.createBiquadFilter();
-    damping.type = 'lowpass';
-    damping.frequency.value = 3500;
-
-    const feedback = this.context.createGain();
-    feedback.gain.value = 0.985;
-
-    const envelope = this.context.createGain();
-    envelope.gain.setValueAtTime(0.5, at);
-    envelope.gain.exponentialRampToValueAtTime(0.0001, at + NOTE_S);
-
-    burst.connect(delay);
-    delay.connect(damping);
-    damping.connect(feedback);
-    feedback.connect(delay);
-    delay.connect(envelope);
-    envelope.connect(this.context.destination);
-
-    burst.start(at);
-    burst.stop(at + period);
-
-    const cleanupDelayMs = Math.max(0, at - this.context.currentTime + NOTE_S + 0.05) * 1000;
-    window.setTimeout(() => {
-      burst.disconnect();
-      delay.disconnect();
-      damping.disconnect();
-      feedback.disconnect();
-      envelope.disconnect();
-    }, cleanupDelayMs);
+    this.activeVoice = { source, gain };
   }
 }

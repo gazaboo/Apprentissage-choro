@@ -260,7 +260,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       },
       onDone: stopEcouter,
     });
-    player.start(carte().midi, bpm, bouclerEcoute);
+    await player.start(carte().midi, bpm, bouclerEcoute);
     startFrames();
     paintTransport();
   }
