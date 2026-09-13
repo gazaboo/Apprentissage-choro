@@ -4,9 +4,10 @@
 seule fois**, dans la tonalité où il a été pensé ; l'application le transpose à
 la lecture et en fait une carte de répétition espacée par tonalité et par sens.
 
-Le fichier livré ne contient qu'un jeu de départ (arpège mineur 7, arpège de
-dominante, gamme majeure). Il est fait pour être remplacé par les motifs propres
-au répertoire — c'est le seul endroit à modifier pour changer ce qu'on travaille.
+Le fichier livré ne contient qu'un jeu de départ (arpège mineur, arpège
+majeur, arpège de dominante, gammes). Il est fait pour être remplacé par les
+motifs propres au répertoire — c'est le seul endroit à modifier pour changer
+ce qu'on travaille.
 
 ## Format
 
@@ -20,6 +21,7 @@ au répertoire — c'est le seul endroit à modifier pour changer ce qu'on trava
       "nom": "Arpège mineur 7",  // sous-titre
       "reference": "Dm7",        // chiffrage de la tonalité d'écriture
       "notes": ["D", "F", "A", "C"],
+      "notes_descendant": ["D3", "Bb3", "A3", "F3"], // optionnel, voir plus bas
       "roots": ["D", "G", "A", "C", "F", "Bb", "E", "B"],
       "sens": ["montant", "descendant"],
       "note_de_travail": "Une note par clic, sans plaquer d'accord."
@@ -46,6 +48,28 @@ Sans octave, l'application les attribue elle-même : la fondamentale est placée
 au plus bas de la tessiture de la guitare (mi grave), et chaque note monte
 jusqu'à dépasser la précédente.
 
+### `notes_descendant`
+
+Optionnel. Au choro, l'arpège descendant n'est pas la montée rejouée à
+l'envers — c'est une particularité du genre, pas une gamme qui redescend.
+L'arpège mineur, par exemple, monte fondamentale-seconde-tierce mineure-quinte
+mais descend fondamentale-sixte mineure-quinte-tierce mineure-fondamentale :
+la montée fait quatre notes, la descente cinq — elle referme la phrase sur la
+tonique.
+
+Quand cette forme diffère de l'inverse de `notes`, écrivez-la ici, **avec
+l'octave sur chaque note** (do central = `C4`) : la forme n'étant pas une
+montée simple, l'application ne peut pas déduire seule le registre de chaque
+note comme elle le fait pour `notes`.
+
+```jsonc
+"notes": ["D", "E", "F", "A"],
+"notes_descendant": ["D3", "Bb3", "A3", "F3", "D3"]
+```
+
+Absent, la carte « descendant » rejoue `notes` à l'envers — le comportement
+d'origine, toujours correct pour les gammes et les arpèges de dominante.
+
 ### `roots`
 
 Les tonalités engendrées, en noms de notes. **C'est le seul levier de volume du
@@ -60,7 +84,10 @@ L'orthographe choisie ici décide de celle de la tonalité : `Eb` donne `Eb G Bb
 
 `montant`, `descendant`, `aller-retour` — une carte par entrée, car monter et
 descendre ne s'acquièrent pas ensemble. `aller-retour` joue le motif puis son
-miroir, sans rejouer le sommet.
+miroir, sans rejouer le sommet — sauf si `notes_descendant` est renseigné :
+la carte joue alors la montée suivie telle quelle de la vraie descente, au
+lieu de la montée rejouée à l'envers. C'est le cas des arpèges choro, où la
+descente est une forme à part entière (voir `arp-m`, `arp-maj`).
 
 Absent, `["montant", "descendant"]` est retenu.
 

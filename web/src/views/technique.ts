@@ -9,11 +9,14 @@
  * La rangée de pastilles sous le chiffrage tient le rôle d'une portée minimale.
  * Masquée, elle montre encore où l'on en est dans le motif ; révélée, elle
  * donne les noms. Dans les deux cas, la pastille courante suit l'horloge audio
- * du métronome, non `Date.now()` : le surlignage ne dérive donc jamais du clic.
+ * — celle du métronome ou celle du bouton « Écouter », qui rejoue le motif à
+ * la bonne hauteur —, non `Date.now()` : le surlignage ne dérive donc jamais
+ * du son.
  */
 
 import { el, ui } from '../dom';
 import { Metronome, MAX_BPM, MIN_BPM, clampBpm } from '../metronome';
+import { SequencePlayer } from '../player';
 import type { Onset } from '../pitch';
 import { PitchTracker } from '../pitch';
 import { review, statusOf } from '../srs';
@@ -26,6 +29,9 @@ import { askSrs } from './srsModal';
 
 /** Pas des boutons de tempo — assez large pour se sentir, assez fin pour régler. */
 const BPM_STEP = 4;
+
+/** Délai d'écoute sans attaque détectée avant d'alerter : le temps de se mettre en place. */
+const SILENCE_WARNING_MS = 4000;
 
 export interface TechniqueContext {
   progress: Progress;
@@ -49,8 +55,12 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   /** Battues déjà programmées, pour caler le surlignage sur l'horloge audio. */
   let beats: { index: number; time: number }[] = [];
   let frame: number | null = null;
-  /** Pastille surlignée, ou `-1` quand le métronome est à l'arrêt. */
+  /** Pastille surlignée, ou `-1` quand rien ne tourne. */
   let lit = -1;
+
+  /** Lecteur du motif au tempo, créé au premier appui sur « Écouter ». */
+  let player: SequencePlayer | null = null;
+  let bouclerEcoute = false;
 
   /** Ce que le micro a entendu depuis le démarrage du métronome. */
   let prise: { beats: { index: number; time: number }[]; onsets: Onset[] } = {
@@ -63,6 +73,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let micError: string | null = null;
   /** Le temps que `getUserMedia` réponde : sans cet état, le clic semble ignoré. */
   let micActivating = false;
+  /** `true` passé quelques secondes d'écoute sans qu'aucune attaque n'ait été détectée. */
+  let micSilence = false;
+  let silenceTimer: number | null = null;
   /** Sur quelle note du motif on a réellement démarré ; voir `meilleurDecalage`. */
   let decalage = 0;
 
@@ -89,7 +102,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const sensLabel = el('p', { class: 'mt-2 text-sm uppercase tracking-widest text-zinc-500' });
   const statusLabel = el('p', { class: 'text-xs text-zinc-600' });
   const notesRow = el('div', { class: 'flex flex-wrap items-center justify-center gap-2' });
-  const workNote = el('p', { class: 'text-sm text-zinc-500' });
+  const workNote = el('p', { class: 'text-sm text-zinc-500 whitespace-pre-line' });
 
   const bpmValue = el('span', {
     class: 'min-w-[4.5rem] text-center font-mono text-3xl text-amber-300',
@@ -100,6 +113,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const plus = el('button', { type: 'button', class: ui.icon, 'aria-label': 'Plus vite' }, '+');
   const playButton = el('button', { type: 'button', class: ui.primary }, 'Démarrer le métronome');
   const revealButton = el('button', { type: 'button', class: ui.button }, 'Voir les notes');
+  const ecouterButton = el('button', { type: 'button', class: ui.button }, '▶ Écouter');
+  const boucleButton = el('button', { type: 'button', class: ui.chip }, '🔁 Boucle');
   const finishButton = el('button', { type: 'button', class: ui.button }, 'Terminer et évaluer');
   const stopButton = el('button', { type: 'button', class: ui.button }, 'Terminer la séance');
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
@@ -111,6 +126,18 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   // `aria-live` : le message d'état change sans que le bouton ne reprenne le
   // focus, il faut donc l'annoncer explicitement aux lecteurs d'écran.
   const micHint = el('p', { class: 'text-xs text-zinc-500', 'aria-live': 'polite' });
+  /** Point animé : seul repère qui bouge en continu, preuve que l'écoute est active. */
+  const micStatusDot = el('span', { class: 'hidden h-2 w-2 rounded-full bg-amber-400 animate-pulse' });
+  const micStatusText = el('span', { class: 'hidden text-xs font-medium text-amber-300' }, 'Écoute en cours…');
+  /** VU-mètre minimal : la seule preuve continue que le micro capte du son. */
+  const micLevelTrack = el(
+    'div',
+    { class: 'hidden h-1.5 w-32 overflow-hidden rounded-full bg-zinc-800' },
+  );
+  const micLevelFill = el('div', {
+    class: 'h-full w-0 rounded-full bg-amber-400 transition-[width] duration-75',
+  });
+  micLevelTrack.append(micLevelFill);
 
   // --- Peinture -----------------------------------------------------------
 
@@ -180,6 +207,15 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     finishButton.className = metronome.running ? ui.button : ui.primary;
     revealButton.className = revealed ? ui.buttonActive : ui.button;
 
+    // Écoute et métronome partagent le même surlignage : les lancer ensemble
+    // brouillerait la pastille allumée, donc l'un exclut l'autre.
+    const ecouteEnCours = player?.playing ?? false;
+    ecouterButton.textContent = ecouteEnCours ? '❚❚ Arrêter l’écoute' : '▶ Écouter';
+    ecouterButton.className = ecouteEnCours ? ui.buttonActive : ui.button;
+    ecouterButton.disabled = metronome.running;
+    playButton.disabled = ecouteEnCours;
+    boucleButton.className = bouclerEcoute ? ui.chipActive : ui.chip;
+
     const listening = tracker?.listening ?? false;
     micButton.textContent = micActivating
       ? 'Activation du micro…'
@@ -191,15 +227,23 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micButton.className = listening ? ui.buttonActive : ui.button;
     micButton.disabled = micActivating;
     micButton.setAttribute('aria-pressed', String(listening));
+
+    micStatusDot.classList.toggle('hidden', !listening);
+    micStatusText.classList.toggle('hidden', !listening);
+    micLevelTrack.classList.toggle('hidden', !listening);
+    if (!listening) micLevelFill.style.width = '0%';
+
     micHint.textContent =
       micError ??
       (micActivating
         ? 'Autorisez le micro dans le navigateur pour continuer.'
-        : listening
-          ? 'Micro actif — le relevé est indicatif : sur des notes qui se recouvrent, il se trompe.'
-          : 'Facultatif. Sans micro, l’évaluation reste entièrement la vôtre.');
-    micHint.classList.toggle('text-rose-300', micError !== null);
-    micHint.classList.toggle('text-zinc-500', micError === null);
+        : micSilence
+          ? 'Aucun son détecté pour l’instant — jouez près du micro.'
+          : listening
+            ? 'Le relevé est indicatif : sur des notes qui se recouvrent, il se trompe.'
+            : 'Facultatif. Sans micro, l’évaluation reste entièrement la vôtre.');
+    micHint.classList.toggle('text-rose-300', micError !== null || micSilence);
+    micHint.classList.toggle('text-zinc-500', micError === null && !micSilence);
   }
 
   // --- Tempo et métronome -------------------------------------------------
@@ -241,6 +285,45 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   playButton.addEventListener('click', () => void toggleMetronome());
 
   /**
+   * Joue le motif affiché, une note à la fois, à la hauteur et au tempo
+   * exacts de la carte. Le lecteur partage l'horloge audio du métronome —
+   * `metronome.prepare()` — pour que le surlignage des pastilles se cale
+   * dessus sans code séparé : `tick()` lit déjà `metronome.currentTime`.
+   */
+  async function toggleEcouter(): Promise<void> {
+    if (player?.playing) {
+      stopEcouter();
+      return;
+    }
+    beats = [];
+    const context = await metronome.prepare();
+    player ??= new SequencePlayer(context, {
+      onNote: (position, time) => {
+        beats.push({ index: position, time });
+        if (beats.length > 8) beats = beats.slice(-8);
+      },
+      onDone: stopEcouter,
+    });
+    await player.start(carte().midi, bpm, bouclerEcoute);
+    startFrames();
+    paintTransport();
+  }
+
+  function stopEcouter(): void {
+    player?.stop();
+    stopFrames();
+    lit = -1;
+    paintNotes();
+    paintTransport();
+  }
+
+  ecouterButton.addEventListener('click', () => void toggleEcouter());
+  boucleButton.addEventListener('click', () => {
+    bouclerEcoute = !bouclerEcoute;
+    paintTransport();
+  });
+
+  /**
    * Le surlignage se déduit de l'horloge audio à chaque image : la battue
    * courante est la dernière dont l'instant est déjà passé. Repeindre depuis
    * `onBeat` avancerait le surlignage de la portée de programmation, soit un
@@ -280,6 +363,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
    * déjà à la battue suivante.
    */
   function handleOnset(onset: Onset): void {
+    if (silenceTimer !== null) {
+      window.clearTimeout(silenceTimer);
+      silenceTimer = null;
+    }
+    if (micSilence) {
+      micSilence = false;
+      paintTransport();
+    }
     prise.onsets.push(onset);
 
     const motif = carte().midi;
@@ -305,6 +396,15 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     paintNotes();
   }
 
+  function handleLevel(level: number): void {
+    micLevelFill.style.width = `${Math.round(level * 100)}%`;
+  }
+
+  function clearSilenceTimer(): void {
+    if (silenceTimer !== null) window.clearTimeout(silenceTimer);
+    silenceTimer = null;
+  }
+
   async function toggleMic(): Promise<void> {
     // Sans cette garde, un clic pendant l'attente de `getUserMedia` relancerait
     // une seconde demande d'accès au micro au lieu d'être ignoré.
@@ -312,6 +412,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micError = null;
     if (tracker?.listening) {
       tracker.stop();
+      clearSilenceTimer();
+      micSilence = false;
       paintTransport();
       return;
     }
@@ -319,11 +421,26 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     paintTransport();
     try {
       const context = await metronome.prepare();
-      tracker ??= new PitchTracker(context, handleOnset);
+      tracker ??= new PitchTracker(context, handleOnset, handleLevel);
       await tracker.start();
       prise = { beats: [], onsets: [] };
-    } catch {
-      micError = 'Micro indisponible — l’évaluation reste manuelle.';
+      micSilence = false;
+      clearSilenceTimer();
+      silenceTimer = window.setTimeout(() => {
+        silenceTimer = null;
+        micSilence = true;
+        paintTransport();
+      }, SILENCE_WARNING_MS);
+    } catch (error) {
+      // Le nom de l'exception distingue le refus de permission — qui appelle un
+      // geste précis dans les réglages du navigateur — d'une simple absence de
+      // micro, que rien ne peut réparer depuis l'écran.
+      micError =
+        error instanceof DOMException && error.name === 'NotAllowedError'
+          ? 'Accès au micro refusé — autorisez-le dans les réglages du navigateur pour ce site.'
+          : error instanceof DOMException && error.name === 'NotFoundError'
+            ? 'Aucun micro détecté sur cet appareil.'
+            : 'Micro indisponible — l’évaluation reste manuelle.';
     }
     micActivating = false;
     paintTransport();
@@ -347,6 +464,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   async function finish(endSession = false): Promise<void> {
     const current = carte();
     stopMetronome();
+    stopEcouter();
 
     // Une hauteur attendue par battue relevée : le motif se répète tant que le
     // métronome tourne, et l'on note tout ce qui a été joué. Le décalage est
@@ -440,7 +558,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         accordLabel,
         sensLabel,
         el('div', { class: 'mt-8 w-full' }, notesRow),
-        el('div', { class: 'mt-4' }, revealButton),
+        el(
+          'div',
+          { class: 'mt-4 flex flex-wrap items-center justify-center gap-2' },
+          revealButton,
+          ecouterButton,
+          boucleButton,
+        ),
         el('div', { class: 'mt-6 text-center' }, workNote),
       ),
 
@@ -457,7 +581,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           el('span', { class: 'text-sm text-zinc-500' }, 'BPM'),
         ),
         bpmHint,
-        el('div', { class: 'mt-1 flex flex-wrap gap-2' }, playButton, micButton),
+        el('div', { class: 'mt-1 flex flex-wrap items-center gap-2' }, playButton, micButton),
+        el(
+          'div',
+          { class: 'flex flex-wrap items-center gap-2' },
+          micStatusDot,
+          micStatusText,
+          micLevelTrack,
+        ),
         micHint,
       ),
 
@@ -474,10 +605,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   return () => {
     stopFrames();
+    clearSilenceTimer();
     // Le micro d'abord : il faut relâcher les pistes de capture avant de
     // fermer le contexte auquel elles sont raccordées.
     tracker?.destroy();
     tracker = null;
+    player?.stop();
+    player = null;
     metronome.destroy();
   };
 }
