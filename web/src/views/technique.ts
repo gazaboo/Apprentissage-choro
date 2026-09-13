@@ -9,11 +9,14 @@
  * La rangée de pastilles sous le chiffrage tient le rôle d'une portée minimale.
  * Masquée, elle montre encore où l'on en est dans le motif ; révélée, elle
  * donne les noms. Dans les deux cas, la pastille courante suit l'horloge audio
- * du métronome, non `Date.now()` : le surlignage ne dérive donc jamais du clic.
+ * — celle du métronome ou celle du bouton « Écouter », qui rejoue le motif à
+ * la bonne hauteur —, non `Date.now()` : le surlignage ne dérive donc jamais
+ * du son.
  */
 
 import { el, ui } from '../dom';
 import { Metronome, MAX_BPM, MIN_BPM, clampBpm } from '../metronome';
+import { SequencePlayer } from '../player';
 import type { Onset } from '../pitch';
 import { PitchTracker } from '../pitch';
 import { review, statusOf } from '../srs';
@@ -52,8 +55,12 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   /** Battues déjà programmées, pour caler le surlignage sur l'horloge audio. */
   let beats: { index: number; time: number }[] = [];
   let frame: number | null = null;
-  /** Pastille surlignée, ou `-1` quand le métronome est à l'arrêt. */
+  /** Pastille surlignée, ou `-1` quand rien ne tourne. */
   let lit = -1;
+
+  /** Lecteur du motif au tempo, créé au premier appui sur « Écouter ». */
+  let player: SequencePlayer | null = null;
+  let bouclerEcoute = false;
 
   /** Ce que le micro a entendu depuis le démarrage du métronome. */
   let prise: { beats: { index: number; time: number }[]; onsets: Onset[] } = {
@@ -104,6 +111,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const plus = el('button', { type: 'button', class: ui.icon, 'aria-label': 'Plus vite' }, '+');
   const playButton = el('button', { type: 'button', class: ui.primary }, 'Démarrer le métronome');
   const revealButton = el('button', { type: 'button', class: ui.button }, 'Voir les notes');
+  const ecouterButton = el('button', { type: 'button', class: ui.button }, '▶ Écouter');
+  const boucleButton = el('button', { type: 'button', class: ui.chip }, '🔁 Boucle');
   const finishButton = el('button', { type: 'button', class: ui.button }, 'Terminer et évaluer');
   const stopButton = el('button', { type: 'button', class: ui.button }, 'Terminer la séance');
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
@@ -190,6 +199,15 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     finishButton.className = metronome.running ? ui.button : ui.primary;
     revealButton.className = revealed ? ui.buttonActive : ui.button;
 
+    // Écoute et métronome partagent le même surlignage : les lancer ensemble
+    // brouillerait la pastille allumée, donc l'un exclut l'autre.
+    const ecouteEnCours = player?.playing ?? false;
+    ecouterButton.textContent = ecouteEnCours ? '❚❚ Arrêter l’écoute' : '▶ Écouter';
+    ecouterButton.className = ecouteEnCours ? ui.buttonActive : ui.button;
+    ecouterButton.disabled = metronome.running;
+    playButton.disabled = ecouteEnCours;
+    boucleButton.className = bouclerEcoute ? ui.chipActive : ui.chip;
+
     const listening = tracker?.listening ?? false;
     micButton.textContent = listening ? 'Couper le micro' : 'Écouter au micro';
     micButton.className = listening ? ui.buttonActive : ui.button;
@@ -247,6 +265,45 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   }
 
   playButton.addEventListener('click', () => void toggleMetronome());
+
+  /**
+   * Joue le motif affiché, une note à la fois, à la hauteur et au tempo
+   * exacts de la carte. Le lecteur partage l'horloge audio du métronome —
+   * `metronome.prepare()` — pour que le surlignage des pastilles se cale
+   * dessus sans code séparé : `tick()` lit déjà `metronome.currentTime`.
+   */
+  async function toggleEcouter(): Promise<void> {
+    if (player?.playing) {
+      stopEcouter();
+      return;
+    }
+    beats = [];
+    const context = await metronome.prepare();
+    player ??= new SequencePlayer(context, {
+      onNote: (position, time) => {
+        beats.push({ index: position, time });
+        if (beats.length > 8) beats = beats.slice(-8);
+      },
+      onDone: stopEcouter,
+    });
+    await player.start(carte().midi, bpm, bouclerEcoute);
+    startFrames();
+    paintTransport();
+  }
+
+  function stopEcouter(): void {
+    player?.stop();
+    stopFrames();
+    lit = -1;
+    paintNotes();
+    paintTransport();
+  }
+
+  ecouterButton.addEventListener('click', () => void toggleEcouter());
+  boucleButton.addEventListener('click', () => {
+    bouclerEcoute = !bouclerEcoute;
+    paintTransport();
+  });
 
   /**
    * Le surlignage se déduit de l'horloge audio à chaque image : la battue
@@ -383,6 +440,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   async function finish(endSession = false): Promise<void> {
     const current = carte();
     stopMetronome();
+    stopEcouter();
 
     // Une hauteur attendue par battue relevée : le motif se répète tant que le
     // métronome tourne, et l'on note tout ce qui a été joué. Le décalage est
@@ -476,7 +534,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         accordLabel,
         sensLabel,
         el('div', { class: 'mt-8 w-full' }, notesRow),
-        el('div', { class: 'mt-4' }, revealButton),
+        el(
+          'div',
+          { class: 'mt-4 flex flex-wrap items-center justify-center gap-2' },
+          revealButton,
+          ecouterButton,
+          boucleButton,
+        ),
         el('div', { class: 'mt-6 text-center' }, workNote),
       ),
 
@@ -522,6 +586,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // fermer le contexte auquel elles sont raccordées.
     tracker?.destroy();
     tracker = null;
+    player?.stop();
+    player = null;
     metronome.destroy();
   };
 }
