@@ -41,23 +41,15 @@ export interface Transport {
 }
 
 /**
- * Remplit une bascule du dock : micro-libellé de la dimension réglée, valeur
- * courante en gras, glyphe d'action en fin (`⇄` pour un aller-retour à deux
- * états, `▾` pour un cycle à plusieurs crans). Sans ça, les pastilles se
- * lisent comme de simples étiquettes d'état, pas comme des boutons (issue #10).
+ * Remplit une bascule du dock : valeur courante en gras, glyphe d'action en
+ * fin (`⇄` pour un aller-retour à deux états, `▾` pour un cycle à plusieurs
+ * crans). Sans le glyphe, les pastilles se liraient comme de simples
+ * étiquettes d'état, pas comme des boutons (issue #10) ; le micro-libellé de
+ * la dimension (« Bande », « Vitesse », « Ton ») a été retiré pour ne pas
+ * surcharger visuellement le dock — `aria-label`/`title` portent l'info.
  */
-function fillToggle(
-  button: HTMLButtonElement,
-  dimension: string,
-  value: string,
-  glyph: string,
-): void {
+function fillToggle(button: HTMLButtonElement, value: string, glyph: string): void {
   button.replaceChildren(
-    el(
-      'span',
-      { class: 'text-[10px] font-medium uppercase tracking-wide opacity-60' },
-      dimension,
-    ),
     el('span', { class: 'font-semibold' }, value),
     el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, glyph),
   );
@@ -234,7 +226,7 @@ export function createTransport(options: TransportOptions): Transport {
     const rate = RATE_CYCLE[rateIndex]!;
     // `className` complet à chaque fois : le rang `md:order-4` doit survivre.
     rateButton.className = `${rate === 1 ? ui.chip : ui.chipActive} gap-1.5 md:order-4`;
-    fillToggle(rateButton, 'Vitesse', `${rate}×`, '▾');
+    fillToggle(rateButton, `${rate}×`, '▾');
     rateButton.setAttribute(
       'aria-label',
       `Vitesse ${rate} fois, toucher pour ${rate === 1 ? 'ralentir' : 'changer'}`,
@@ -273,7 +265,7 @@ export function createTransport(options: TransportOptions): Transport {
 
   const sourceButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
   function paintSourceButton(): void {
-    fillToggle(sourceButton, 'Bande', SOURCE_LABELS[source], '⇄');
+    fillToggle(sourceButton, SOURCE_LABELS[source], '⇄');
     sourceButton.title = SOURCE_HINTS[source];
     sourceButton.setAttribute(
       'aria-label',
@@ -308,7 +300,7 @@ export function createTransport(options: TransportOptions): Transport {
 
   const instrumentButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
   function paintInstrumentButton(): void {
-    fillToggle(instrumentButton, 'Ton', INSTRUMENT_CHIP[instrumentId] ?? instrumentId, '▾');
+    fillToggle(instrumentButton, INSTRUMENT_CHIP[instrumentId] ?? instrumentId, '▾');
     instrumentButton.title = instrumentName(instrumentId);
     instrumentButton.setAttribute(
       'aria-label',
