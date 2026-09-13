@@ -162,6 +162,20 @@ function expandMotif(motif: MotifSource): ExerciceCarte[] {
       const transposedDescendant = parsedDescendant.map((note) => transposeNote(note, from, to));
       descendantNames = transposedDescendant.map(formatNote);
       descendantMidis = transposedDescendant.map(midiOf);
+
+      // La montée place sa fondamentale au plus bas de la tessiture de la
+      // guitare (`layoutMotif`), tandis que la descente garde l'octave
+      // écrite dans le catalogue, simplement transposée : les deux registres
+      // ne coïncident que dans la tonalité de référence. On recale donc toute
+      // la descente pour que sa dernière note — le retour à la fondamentale —
+      // tombe exactement sur la première note de la montée ; sinon
+      // l'aller-retour saute d'une octave ou plus à la jonction dans les
+      // autres tonalités.
+      const dernier = descendantMidis[descendantMidis.length - 1];
+      if (dernier !== undefined) {
+        const decalage = midis[0]! - dernier;
+        descendantMidis = descendantMidis.map((value) => value + decalage);
+      }
     }
 
     for (const sens of senses) {
