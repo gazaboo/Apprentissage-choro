@@ -23,7 +23,7 @@ const HINT_OPACITY = '0.12';
 const BARS_PER_LINE = 4;
 
 /** Une cellule masquable, replacée dans le fil de lecture de la grille. */
-interface Slot {
+export interface Slot {
   /** Rang de la cellule parmi les cellules masquables, dans l'ordre de jeu. */
   ordinal: number;
   /** Première cellule d'une partie. */
@@ -43,7 +43,7 @@ export interface GrilleOptions {
  * partie et de ligne — sont servis en dernier : ce sont eux qu'on regarde
  * quand la mémoire lâche.
  */
-function selectMasked(slots: Slot[], level: number, seed: string): Set<number> {
+export function selectMasked(slots: Slot[], level: number, seed: string): Set<number> {
   if (level <= 0 || slots.length === 0) return new Set();
   const random = seededRandom(seed);
 
@@ -166,7 +166,7 @@ function normalizeSequence(seq: GrilleCell[]): GrilleCell[] {
 }
 
 /** Rang global (0-based) de chaque cellule masquable d'une grille. */
-function buildSlots(grille: Grille): Slot[] {
+export function buildSlots(grille: Grille): Slot[] {
   const slots: Slot[] = [];
   let ordinal = 0;
   for (const part of grille.parts) {
