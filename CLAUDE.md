@@ -12,12 +12,16 @@
 
 ## Vérification
 
-- Le projet n'a **aucune suite de tests**. Avant d'ouvrir une PR :
-  `cd web && npm run build` (tsc + vite) doit passer.
-- **Logique pure** (calculs, transformations de données) : vérifier avec un
-  script Node jetable qui appelle directement la fonction concernée, pas via
-  un cycle navigateur complet. Vérifier plusieurs cas (ex. plusieurs
-  tonalités transposées, pas seulement le cas de référence).
+- Avant d'ouvrir une PR : `cd web && npm run build` (tsc + vite) **et**
+  `npm test` (vitest) doivent passer.
+- **Logique pure** (calculs, transformations de données) : couvrir par un
+  test vitest (`web/src/**/*.test.ts`) plutôt que vérifier via un cycle
+  navigateur complet — voir `web/src/technique/catalogue.test.ts` pour un
+  exemple (régression du bug d'octave des arpèges, PR #38). Si l'écrire en
+  test n'est pas rentable pour un cas isolé, un script Node jetable qui
+  appelle directement la fonction reste l'alternative. Dans les deux cas,
+  vérifier plusieurs cas (ex. plusieurs tonalités transposées, pas seulement
+  le cas de référence).
 - **Visuel** : piloter Chromium headless en CDP (l'extension Chrome n'est
   pas connectée). Pendant le debug, lire l'état via `Runtime.evaluate`
   (DOM/texte/JSON) plutôt que des captures ; réserver la capture d'écran à
