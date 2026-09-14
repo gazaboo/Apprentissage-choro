@@ -15,11 +15,10 @@ export default defineConfig({
       },
       {
         test: {
-          // `setupFiles` arrive en phase 2 (`test/setup.dom.ts`), avec les
-          // premiers tests jsdom : rien à charger tant que ce projet est vide.
           name: 'dom',
           environment: 'jsdom',
           include: ['src/**/*.dom.test.ts'],
+          setupFiles: ['test/setup.dom.ts'],
         },
       },
     ],
