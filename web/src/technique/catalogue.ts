@@ -42,7 +42,7 @@ function isSens(value: unknown): value is Sens {
 }
 
 /** Tonalités engendrées quand le motif n'en précise pas. */
-const DEFAULT_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+export const DEFAULT_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 /** BPM proposé sur une carte jamais travaillée. */
 export const DEFAULT_BPM = 60;
@@ -116,8 +116,8 @@ function applySens<T>(values: T[], sens: Sens): T[] {
   return [...values, ...[...values].reverse().slice(1)];
 }
 
-/** Déplie un motif en une carte par tonalité et par sens. */
-function expandMotif(motif: MotifSource): ExerciceCarte[] {
+/** Déplie un motif en une carte par tonalité et par sens. Exporté pour les tests. */
+export function expandMotif(motif: MotifSource): ExerciceCarte[] {
   const from = chordRoot(motif.reference);
   if (!from) return [];
 
