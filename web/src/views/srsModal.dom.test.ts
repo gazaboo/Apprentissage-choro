@@ -34,4 +34,29 @@ describe('askSrs', () => {
 
     await expect(promise).resolves.toEqual({ grade: 3, tempo: 'fluide', hints: 2 });
   });
+
+  it('rend le détail note-à-note quand il est fourni, sous le contexte', async () => {
+    const detail = document.createElement('div');
+    const ligne = document.createElement('p');
+    ligne.textContent = 'Passe 2, temps 4 — attendu E4, rien entendu';
+    detail.append(ligne);
+    const promise = askSrs('Arpège m7', 'Dm7', 0, 4, 'Travaillé à 72 BPM.', detail);
+
+    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.textContent).toContain('Travaillé à 72 BPM.');
+    expect(dialog.textContent).toContain('Passe 2, temps 4 — attendu E4, rien entendu');
+    // Bloc scrollable : un relevé de 27 lignes ne doit pas pousser les boutons
+    // de notation hors de l'écran.
+    expect(dialog.querySelector('.max-h-40.overflow-y-auto')).toBeTruthy();
+
+    [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!.click();
+    await promise;
+  });
+
+  it('n’ajoute aucun bloc de détail pour un morceau (appelant sans détail)', () => {
+    void askSrs('Carinhoso', 'Ut', 1, 10);
+    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.querySelector('.max-h-40')).toBeNull();
+    expect(dialog.textContent).toContain('1 indice déclenché sur 10 mesures masquées.');
+  });
 });

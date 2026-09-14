@@ -134,7 +134,12 @@ export class Metronome {
     if (!context) return;
     const horizon = context.currentTime + LOOKAHEAD_S;
 
-    while (this.nextBeatTime < horizon) {
+    // `this.timer !== null` relit l'état à chaque tour : `onBeat` a le droit
+    // d'appeler `stop()` — la fin d'une évaluation le fait, pour ne pas
+    // programmer une battue de plus que demandé — et la programmation doit
+    // alors cesser immédiatement, sans dépendre du fait qu'une battue soit
+    // plus longue que l'horizon (vrai jusqu'à 240 BPM, mais accidentel).
+    while (this.timer !== null && this.nextBeatTime < horizon) {
       const countIn = this.beatIndex < 0;
       const accented =
         !countIn && this.accentEvery > 0 && this.beatIndex % this.accentEvery === 0;
