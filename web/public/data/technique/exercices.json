@@ -38,7 +38,7 @@
       "famille": "Gammes",
       "nom": "Gamme majeure",
       "reference": "C",
-      "notes": ["C", "D", "E", "F", "G", "A", "B"],
+      "notes": ["C", "D", "E", "F", "G", "A", "B", "C"],
       "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
       "sens": ["montant", "descendant"],
       "note_de_travail": "Sur une seule position, sans corde à vide si possible."
@@ -48,7 +48,7 @@
       "famille": "Gammes",
       "nom": "Gamme mineure naturelle",
       "reference": "Am",
-      "notes": ["A", "B", "C", "D", "E", "F", "G"],
+      "notes": ["A", "B", "C", "D", "E", "F", "G", "A"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
       "note_de_travail": "Sur une seule position, sans corde à vide si possible."
@@ -58,7 +58,7 @@
       "famille": "Gammes",
       "nom": "Gamme mineure harmonique",
       "reference": "Am",
-      "notes": ["A", "B", "C", "D", "E", "F", "G#"],
+      "notes": ["A", "B", "C", "D", "E", "F", "G#", "A"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
       "note_de_travail": "Sur une seule position, sans corde à vide si possible. La sensible (7e degré) est haussée d'un demi-ton."
@@ -68,7 +68,7 @@
       "famille": "Gammes",
       "nom": "Gamme mineure mélodique",
       "reference": "Am",
-      "notes": ["A", "B", "C", "D", "E", "F#", "G#"],
+      "notes": ["A", "B", "C", "D", "E", "F#", "G#", "A"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
       "note_de_travail": "Sur une seule position, sans corde à vide si possible. Forme jazz : les 6e et 7e degrés restent haussés à la descente."
