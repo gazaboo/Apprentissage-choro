@@ -23,9 +23,14 @@
   vérifier plusieurs cas (ex. plusieurs tonalités transposées, pas seulement
   le cas de référence).
 - **Visuel** : piloter Chromium headless en CDP (l'extension Chrome n'est
-  pas connectée). Pendant le debug, lire l'état via `Runtime.evaluate`
-  (DOM/texte/JSON) plutôt que des captures ; réserver la capture d'écran à
-  la vérification finale.
+  pas connectée), via les aides de `scripts/cdp-verify.mjs`
+  (`launchChromium`, `openTab`, `connect`, `setViewport`, `evaluate`,
+  `clickSelector`, `screenshot`, `stopChromium`…) plutôt que réécrire le
+  protocole à la main — elles encodent les pièges déjà rencontrés (verbe
+  PUT sur `/json/new`, viewport par défaut trop petit, clic JS insuffisant
+  pour un geste de confiance, etc.). Pendant le debug, lire l'état via
+  `evaluate` (DOM/texte/JSON) plutôt que des captures ; réserver la capture
+  d'écran à la vérification finale.
 - **Toute PR doit être démontrée par une capture d'écran quand le cas s'y
   prête** (changement visible dans l'UI, même indirectement). Composite
   avant/après : `node scripts/capture-avant-apres.mjs avant.png apres.png
