@@ -14,16 +14,35 @@
 
 - Le projet n'a **aucune suite de tests**. Avant d'ouvrir une PR :
   `cd web && npm run build` (tsc + vite) doit passer.
-- Vérification visuelle : piloter Chromium headless en CDP (l'extension Chrome
-  n'est pas connectée).
+- **Logique pure** (calculs, transformations de données) : vérifier avec un
+  script Node jetable qui appelle directement la fonction concernée, pas via
+  un cycle navigateur complet. Vérifier plusieurs cas (ex. plusieurs
+  tonalités transposées, pas seulement le cas de référence).
+- **Visuel** : piloter Chromium headless en CDP (l'extension Chrome n'est
+  pas connectée). Pendant le debug, lire l'état via `Runtime.evaluate`
+  (DOM/texte/JSON) plutôt que des captures ; réserver la capture d'écran à
+  la vérification finale.
 - **Toute PR doit être démontrée par une capture d'écran quand le cas s'y
-  prête** (changement visible dans l'UI, même indirectement). Joindre la
-  capture (avant/après si pertinent, composite ImageMagick, bordure orange =
-  avant, verte = après ; capture simple sinon) dans `docs/fixes/` et la
-  référencer via l'URL `raw.githubusercontent.com` de la branche. Si la PR ne
-  touche à rien de visible (refacto pur, script, doc, données sans effet
-  visuel), l'omettre est acceptable — mais le dire explicitement dans la
-  description de la PR plutôt que de l'oublier silencieusement.
+  prête** (changement visible dans l'UI, même indirectement). Composite
+  avant/après : `node scripts/capture-avant-apres.mjs avant.png apres.png
+  docs/fixes/nom.png` (bordure orange = avant, verte = après ; capture
+  simple sinon). Joindre le résultat dans `docs/fixes/` et le référencer via
+  l'URL `raw.githubusercontent.com` de la branche. Si la PR ne touche à rien
+  de visible (refacto pur, script, doc, données sans effet visuel), l'omettre
+  est acceptable — mais le dire explicitement dans la description de la PR
+  plutôt que de l'oublier silencieusement.
+
+## Budget / contexte
+
+- **Ne jamais lire directement un PDF** de `pdf-partitions/` ou `library/`
+  (coût élevé en tokens vision) : passer par `scripts/preprocess_all.py` et
+  ne lire que sa sortie texte/JSON.
+- Sur les gros fichiers (`web/src/views/*.ts`, `transport.ts`, `grille.ts`…),
+  chercher (`grep`) avant de lire, puis `Read` ciblé (offset/limit) plutôt
+  que le fichier entier.
+- Recherche exploratoire (« où est géré X ») : déléguer à un sous-agent
+  plutôt que de faire remonter la sortie brute dans le contexte principal.
+- `README.md` est long : lire la section pertinente, pas le fichier entier.
 
 ## Données
 
