@@ -1,0 +1,147 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  activeSetlist,
+  cardKey,
+  deleteSetlist,
+  getCard,
+  loadProgress,
+  persistMerged,
+  putCard,
+  recordSession,
+  saveProgress,
+  setActiveSetlist,
+  setAfterSave,
+  upsertSetlist,
+  type Progress,
+} from './store';
+import type { SessionRun, Setlist, SrsCard } from './types';
+
+function baseProgress(overrides: Partial<Progress> = {}): Progress {
+  return {
+    cards: {},
+    setlists: [],
+    activeSetlistId: null,
+    sessions: [],
+    _rev: 0,
+    settings: {
+      blockMinutes: 5,
+      display: 'partition',
+      studyMode: 'mesures',
+      maskLevel: 50,
+      maskSeed: 1,
+      eclipseIntensity: 'moyennes',
+      panel: null,
+      fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
+    },
+    ...overrides,
+  };
+}
+
+function card(overrides: Partial<SrsCard> = {}): SrsCard {
+  return { ease: 2.5, interval: 6, repetitions: 2, due: '2026-09-10', history: [], ...overrides };
+}
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(2026, 8, 14, 12, 0, 0));
+});
+
+afterEach(() => {
+  setAfterSave(() => {});
+  vi.useRealTimers();
+});
+
+describe('saveProgress', () => {
+  it('pose `_rev` à `Date.now()` et appelle le hook `afterSave`', () => {
+    const hook = vi.fn();
+    setAfterSave(hook);
+    const progress = baseProgress({ _rev: 1 });
+    saveProgress(progress);
+    expect(progress._rev).toBe(Date.now());
+    expect(hook).toHaveBeenCalledWith(progress);
+  });
+
+  it('persiste réellement dans `localStorage` (relecture via `loadProgress`)', () => {
+    const progress = baseProgress({ cards: { x: card() } });
+    saveProgress(progress);
+    expect(loadProgress().cards.x).toEqual(card());
+  });
+});
+
+describe('persistMerged', () => {
+  it('écrit sans toucher `_rev` ni déclencher le hook `afterSave`', () => {
+    const hook = vi.fn();
+    setAfterSave(hook);
+    const progress = baseProgress({ _rev: 42, cards: { x: card() } });
+    persistMerged(progress);
+    expect(progress._rev).toBe(42);
+    expect(hook).not.toHaveBeenCalled();
+    expect(loadProgress().cards.x).toEqual(card());
+    expect(loadProgress()._rev).toBe(42);
+  });
+});
+
+describe('helpers de mutation — mutent en place et persistent', () => {
+  it('upsertSetlist ajoute puis remplace par id', () => {
+    const progress = baseProgress();
+    const setlist: Setlist = { id: 's1', name: 'Concert', songIds: ['a'], createdAt: '2026-01-01T00:00:00Z' };
+    upsertSetlist(progress, setlist);
+    expect(progress.setlists).toEqual([setlist]);
+    expect(loadProgress().setlists).toEqual([setlist]);
+
+    const renamed: Setlist = { ...setlist, name: 'Concert renommé' };
+    upsertSetlist(progress, renamed);
+    expect(progress.setlists).toEqual([renamed]);
+  });
+
+  it('deleteSetlist retire la setlist et neutralise `activeSetlistId` si c\'était elle', () => {
+    const setlist: Setlist = { id: 's1', name: 'Concert', songIds: [], createdAt: '2026-01-01T00:00:00Z' };
+    const progress = baseProgress({ setlists: [setlist], activeSetlistId: 's1' });
+    deleteSetlist(progress, 's1');
+    expect(progress.setlists).toEqual([]);
+    expect(progress.activeSetlistId).toBeNull();
+    expect(loadProgress().setlists).toEqual([]);
+  });
+
+  it('setActiveSetlist refuse un id qui ne correspond à aucune setlist', () => {
+    const setlist: Setlist = { id: 's1', name: 'Concert', songIds: [], createdAt: '2026-01-01T00:00:00Z' };
+    const progress = baseProgress({ setlists: [setlist] });
+    setActiveSetlist(progress, 'inconnue');
+    expect(progress.activeSetlistId).toBeNull();
+    setActiveSetlist(progress, 's1');
+    expect(progress.activeSetlistId).toBe('s1');
+  });
+
+  it('putCard écrit sous la clé `songId::instrumentId` et persiste', () => {
+    const progress = baseProgress();
+    putCard(progress, 'song-a', 'bb', card());
+    expect(getCard(progress, 'song-a', 'bb')).toEqual(card());
+    expect(loadProgress().cards[cardKey('song-a', 'bb')]).toEqual(card());
+  });
+
+  it('recordSession ajoute et plafonne l\'historique à 200, en ordre d\'ajout', () => {
+    const progress = baseProgress();
+    const run = (i: number): SessionRun => ({
+      date: `2026-01-01T00:00:${String(i).padStart(2, '0')}Z`,
+      kind: 'deep',
+      instrumentId: null,
+      setlistId: null,
+      setlistName: 'Tout le répertoire',
+      songCount: 1,
+    });
+    for (let i = 0; i < 205; i += 1) recordSession(progress, run(i));
+    expect(progress.sessions).toHaveLength(200);
+    expect(progress.sessions[0]!.date).toBe(run(5).date);
+    expect(progress.sessions.at(-1)!.date).toBe(run(204).date);
+  });
+});
+
+describe('activeSetlist', () => {
+  it('renvoie `null` sans `activeSetlistId`, et la setlist sinon', () => {
+    const setlist: Setlist = { id: 's1', name: 'Concert', songIds: [], createdAt: '2026-01-01T00:00:00Z' };
+    expect(activeSetlist(baseProgress({ setlists: [setlist] }))).toBeNull();
+    expect(
+      activeSetlist(baseProgress({ setlists: [setlist], activeSetlistId: 's1' })),
+    ).toEqual(setlist);
+  });
+});
