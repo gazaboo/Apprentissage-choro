@@ -89,6 +89,25 @@ export function formatNote(note: NoteSpelling): string {
   return `${note.letter}${alter}`;
 }
 
+/** Noms des douze hauteurs, dièses par défaut — voir `nameFromMidi`. */
+const MIDI_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
+
+/**
+ * Nomme une hauteur MIDI, octave comprise : 60 donne « C4 ».
+ *
+ * L'orthographe est arbitraire — hors contexte tonal, rien ne permet de
+ * trancher entre « A# » et « Bb », et ce nom ne sert pas à lire une partition
+ * mais à afficher ce que le micro a entendu. L'octave, elle, est gardée
+ * exprès : l'erreur d'octave est un mode de défaillance connu du détecteur de
+ * hauteur, et on ne la repère qu'en la montrant.
+ */
+export function nameFromMidi(midi: number): string {
+  const rounded = Math.round(midi);
+  const pc = ((rounded % 12) + 12) % 12;
+  const octave = Math.floor(rounded / 12) - 1;
+  return `${MIDI_NAMES[pc] ?? 'C'}${octave}`;
+}
+
 /**
  * Fondamentale d'un chiffrage : « Dm7 » → ré, « Bb7(b9) » → si bémol.
  * On ne lit que le début du symbole ; la qualité reste au chiffrage, qui est
