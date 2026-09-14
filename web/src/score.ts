@@ -16,7 +16,7 @@ export const HINT_DURATION_MS = 5000;
 const HINT_OPACITY = '0.12';
 
 /** Une mesure, replacée dans le fil de lecture de la partition entière. */
-interface Slot {
+export interface Slot {
   pageIndex: number;
   measureIndex: number;
   /** Rang de la mesure dans la partition complète. */
@@ -29,7 +29,7 @@ interface Slot {
 }
 
 /** Regroupe les mesures d'une page par système, d'après leur ordonnée. */
-function buildSlots(instrument: Instrument): Slot[] {
+export function buildSlots(instrument: Instrument): Slot[] {
   const slots: Slot[] = [];
   let ordinal = 0;
 
@@ -76,7 +76,7 @@ function buildSlots(instrument: Instrument): Slot[] {
  * auxquels on se raccroche quand la mémoire lâche ; les épargner tant que le
  * taux le permet est ce qui distingue une partition à trous d'une page noire.
  */
-function selectMasked(slots: Slot[], level: number, seed: string): Set<number> {
+export function selectMasked(slots: Slot[], level: number, seed: string): Set<number> {
   if (level <= 0) return new Set();
   const random = seededRandom(seed);
 

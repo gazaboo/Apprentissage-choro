@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatNote,
+  frequencyOf,
   layoutMotif,
+  midiFromFrequency,
   midiOf,
   parseNote,
   pitchClass,
@@ -25,6 +27,25 @@ describe('parseNote', () => {
   it("rejette ce qui n'est pas une note", () => {
     expect(parseNote('H')).toBeNull();
     expect(parseNote('')).toBeNull();
+  });
+
+  it('round-trip parseNote/formatNote sur une double altération', () => {
+    expect(formatNote(parseNote('F##')!)).toBe('F##');
+    expect(formatNote(parseNote('Ebb')!)).toBe('Ebb');
+  });
+});
+
+describe('frequencyOf / midiFromFrequency', () => {
+  it('MIDI 69 (A4) vaut 440 Hz, et le round-trip retombe sur le même MIDI', () => {
+    expect(frequencyOf(69)).toBe(440);
+    expect(midiFromFrequency(440)).toBeCloseTo(69, 9);
+  });
+
+  it('round-trip fréquence→MIDI→fréquence sur plusieurs hauteurs', () => {
+    for (const midi of [40, 60, 69, 81, 96]) {
+      const freq = frequencyOf(midi);
+      expect(midiFromFrequency(freq)).toBeCloseTo(midi, 9);
+    }
   });
 });
 

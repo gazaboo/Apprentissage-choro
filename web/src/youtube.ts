@@ -30,6 +30,12 @@ function loadApi(): Promise<void> {
       resolve();
       return;
     }
+    // Seam de test (E2E et composants) : un `window.YT.Player` factice est
+    // posé avant le montage, il n'y a alors rien à charger depuis YouTube.
+    if (import.meta.env.VITE_YT_STUB || w.__YT_STUB__) {
+      resolve();
+      return;
+    }
     const previous = w.onYouTubeIframeAPIReady;
     w.onYouTubeIframeAPIReady = () => {
       previous?.();
