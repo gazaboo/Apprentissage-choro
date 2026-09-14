@@ -9,6 +9,7 @@
  *   #/technique      arpèges et gammes : vue d'ensemble
  *   #/technique/run  séance d'arpèges et gammes, au métronome
  *   #/compte      accès au compte et à la synchro
+ *   #/aide        principes de mémorisation expliqués à l'utilisateur
  *
  * Tant qu'aucun choix de compte n'a été fait, l'écran d'accueil (`#/compte` en
  * mode passerelle) s'impose avant toute autre vue.
@@ -26,6 +27,7 @@ import type { ExerciceCarte } from './technique/catalogue';
 import { chargerCatalogue, pickExercices } from './technique/catalogue';
 import type { AudioKind, InstrumentId, Song } from './types';
 import { Player } from './youtube';
+import { renderAbout } from './views/about';
 import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';
 import { renderFilage } from './views/filage';
@@ -323,6 +325,11 @@ function render(): void {
     return;
   }
 
+  if (hash === '#/aide') {
+    teardown = renderAbout(root!, { navigateHome: goHome });
+    return;
+  }
+
   if (hash === '#/session' && session) {
     const { song, instrumentId } = currentSessionItem(session);
     // On force l'instrument choisi par la session en le plaçant en tête.
@@ -426,6 +433,7 @@ function render(): void {
     progress,
     openSong: (songId) => navigate(`#/song/${songId}`),
     openAccount: () => navigate('#/compte'),
+    openAbout: () => navigate('#/aide'),
     startSession,
     startFilage,
     openTechnique: exercices.length > 0 ? openTechnique : null,

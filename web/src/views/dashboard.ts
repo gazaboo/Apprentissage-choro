@@ -33,6 +33,7 @@ export interface DashboardContext {
   progress: Progress;
   openSong: (songId: string) => void;
   openAccount: () => void;
+  openAbout: () => void;
   startSession: (kind: 'deep' | 'urgent') => void;
   startFilage: () => void;
   /** `null` quand le catalogue d'arpèges est absent : la section disparaît. */
@@ -595,6 +596,13 @@ export function renderDashboard(
   );
   accountLink.addEventListener('click', context.openAccount);
 
+  const aboutLink = el(
+    'button',
+    { type: 'button', class: ui.button, title: 'Les principes de mémorisation de l’app' },
+    'Comment ça marche ?',
+  );
+  aboutLink.addEventListener('click', context.openAbout);
+
   root.replaceChildren(
     el(
       'div',
@@ -609,7 +617,7 @@ export function renderDashboard(
           el('h1', { class: 'text-3xl font-semibold text-zinc-100' }, 'Répertoire de choros'),
           subtitle,
         ),
-        accountLink,
+        el('div', { class: 'flex flex-wrap gap-2' }, aboutLink, accountLink),
       ),
 
       scopeRow,

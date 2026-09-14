@@ -40,6 +40,7 @@ function mountDashboard(songs: Song[], contextOverrides: Partial<DashboardContex
     progress: baseProgress(),
     openSong: vi.fn(),
     openAccount: vi.fn(),
+    openAbout: vi.fn(),
     startSession: vi.fn(),
     startFilage: vi.fn(),
     openTechnique: vi.fn(),
