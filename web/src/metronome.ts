@@ -52,8 +52,13 @@ export class Metronome {
    * L'`AudioContext` n'est créé qu'ici : les navigateurs refusent de le
    * démarrer hors d'un geste de l'utilisateur, et en créer un au chargement
    * laisserait un contexte suspendu pour rien.
+   *
+   * `countIn` fait démarrer `beatIndex` en négatif : ces battues de
+   * préparation passent par le même `onBeat`, sur la même horloge, pour que
+   * le compteur affiché à l'écran ne puisse pas dériver du clic qu'on
+   * entend.
    */
-  async start(bpm: number, accentEvery?: number): Promise<void> {
+  async start(bpm: number, accentEvery?: number, countIn = 0): Promise<void> {
     this.stop();
     this.bpm = clampBpm(bpm);
     if (accentEvery !== undefined) this.accentEvery = accentEvery;
@@ -61,7 +66,7 @@ export class Metronome {
     const context = this.ensureContext();
     if (context.state === 'suspended') await context.resume();
 
-    this.beatIndex = 0;
+    this.beatIndex = -Math.max(0, Math.round(countIn));
     // Un court délai avant la première battue : sans lui, le premier clic
     // tombe dans le passé et n'est jamais joué.
     this.nextBeatTime = context.currentTime + 0.15;
@@ -130,9 +135,10 @@ export class Metronome {
     const horizon = context.currentTime + LOOKAHEAD_S;
 
     while (this.nextBeatTime < horizon) {
+      const countIn = this.beatIndex < 0;
       const accented =
-        this.accentEvery > 0 && this.beatIndex % this.accentEvery === 0;
-      this.click(context, this.nextBeatTime, accented);
+        !countIn && this.accentEvery > 0 && this.beatIndex % this.accentEvery === 0;
+      this.click(context, this.nextBeatTime, accented, countIn);
       this.onBeat(this.beatIndex, this.nextBeatTime);
 
       this.beatIndex += 1;
@@ -144,20 +150,37 @@ export class Metronome {
    * Le clic est synthétisé plutôt que chargé : un fichier de plus à servir
    * pour deux sinusoïdes n'en vaut pas la peine. L'enveloppe évite le claquement
    * qu'un simple `stop()` produirait sur une oscillation tronquée.
+   *
+   * Le clic de préparation a son propre timbre (le plus grave des trois) :
+   * il doit s'entendre comme un décompte, jamais se confondre avec l'accent
+   * de motif qui marque le début d'une passe réelle.
    */
-  private click(context: AudioContext, at: number, accented: boolean): void {
+  private click(context: AudioContext, at: number, accented: boolean, countIn = false): void {
     const oscillator = context.createOscillator();
     const gain = context.createGain();
 
-    oscillator.frequency.value = accented ? 1000 : 800;
+    oscillator.frequency.value = countIn ? 600 : accented ? 1000 : 800;
     gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(accented ? 0.5 : 0.3, at + 0.002);
+    gain.gain.exponentialRampToValueAtTime(accented || countIn ? 0.5 : 0.3, at + 0.002);
     gain.gain.exponentialRampToValueAtTime(0.0001, at + CLICK_S);
 
     oscillator.connect(gain).connect(context.destination);
     oscillator.start(at);
     oscillator.stop(at + CLICK_S + 0.01);
   }
+}
+
+/**
+ * Passe en cours à cette battue, ou `null` pendant le décompte de
+ * préparation (`beatIndex` négatif) — c'est-à-dire avant que la première
+ * note du motif n'ait été jouée.
+ *
+ * `cycleLength` est la longueur d'un passage complet du motif, en battues —
+ * la même valeur que `accentEvery` transmis à `Metronome.start()`.
+ */
+export function cycleOf(beatIndex: number, cycleLength: number): number | null {
+  if (beatIndex < 0 || cycleLength <= 0) return null;
+  return Math.floor(beatIndex / cycleLength);
 }
 
 export function clampBpm(bpm: number): number {
