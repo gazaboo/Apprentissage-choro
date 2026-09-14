@@ -15,10 +15,15 @@
 - Le projet n'a **aucune suite de tests**. Avant d'ouvrir une PR :
   `cd web && npm run build` (tsc + vite) doit passer.
 - Vérification visuelle : piloter Chromium headless en CDP (l'extension Chrome
-  n'est pas connectée). Pour une PR de correctif UI, joindre une capture
-  avant/après dans `docs/fixes/` (composite ImageMagick, bordure orange =
-  avant, verte = après) et la référencer via l'URL `raw.githubusercontent.com`
-  de la branche.
+  n'est pas connectée).
+- **Toute PR doit être démontrée par une capture d'écran quand le cas s'y
+  prête** (changement visible dans l'UI, même indirectement). Joindre la
+  capture (avant/après si pertinent, composite ImageMagick, bordure orange =
+  avant, verte = après ; capture simple sinon) dans `docs/fixes/` et la
+  référencer via l'URL `raw.githubusercontent.com` de la branche. Si la PR ne
+  touche à rien de visible (refacto pur, script, doc, données sans effet
+  visuel), l'omettre est acceptable — mais le dire explicitement dans la
+  description de la PR plutôt que de l'oublier silencieusement.
 
 ## Données
 
