@@ -101,7 +101,11 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   });
   const sensLabel = el('p', { class: 'mt-2 text-sm uppercase tracking-widest text-zinc-500' });
   const statusLabel = el('p', { class: 'text-xs text-zinc-600' });
-  const notesRow = el('div', { class: 'flex flex-wrap items-center justify-center gap-2' });
+  // `w-max` + `mx-auto` : centré tant que ça tient, mais un motif trop long
+  // (gamme complète, aller-retour) déborde plutôt que de casser sur une
+  // ligne orpheline — `flex-wrap` isolait la dernière note sur une ligne à
+  // elle seule dès que la rangée dépassait la largeur de l'écran.
+  const notesRow = el('div', { class: 'mx-auto flex w-max flex-nowrap items-center gap-2' });
   const workNote = el('p', { class: 'text-sm text-zinc-500 whitespace-pre-line' });
 
   const bpmValue = el('span', {
@@ -177,7 +181,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           'span',
           {
             class:
-              'inline-flex h-11 min-w-11 items-center justify-center rounded-lg px-3 ' +
+              'inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg px-3 ' +
               'font-mono text-lg transition ' +
               (active ? 'bg-amber-400/20 text-amber-200' : 'bg-zinc-800/60 text-zinc-400') +
               ring,
@@ -557,7 +561,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         { class: 'flex flex-col items-center rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-10' },
         accordLabel,
         sensLabel,
-        el('div', { class: 'mt-8 w-full' }, notesRow),
+        el('div', { class: 'mt-8 w-full overflow-x-auto' }, notesRow),
         el(
           'div',
           { class: 'mt-4 flex flex-wrap items-center justify-center gap-2' },
