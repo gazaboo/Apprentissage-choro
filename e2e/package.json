@@ -1,0 +1,17 @@
+{
+  "name": "choro-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Parcours utilisateur déclaratifs (Playwright) — Phase 3 de l'issue #17. Pilote l'app réellement construite (vite build + vite preview), pas de mock de main.ts.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
