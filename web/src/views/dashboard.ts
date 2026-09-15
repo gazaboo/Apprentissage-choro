@@ -8,7 +8,7 @@
 import { el, ui } from '../dom';
 import { pencil, plus, trash } from '../icons';
 import { pickSessionItems } from '../session';
-import { daysOverdue, statusOf } from '../srs';
+import { daysOverdue, MASTERY_LEVELS, masteryLevel, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { activeSetlist, deleteSetlist, getCard, setActiveSetlist } from '../store';
 import { accountMode, getSyncCode } from '../sync';
@@ -22,11 +22,6 @@ type Badge = 'a-travailler' | 'a-jour';
 const BADGE_LABELS: Record<Badge, string> = {
   'a-travailler': 'À travailler',
   'a-jour': 'À jour',
-};
-
-const BADGE_STYLES: Record<Badge, string> = {
-  'a-travailler': 'bg-amber-400/15 text-amber-200 ring-1 ring-amber-400/30',
-  'a-jour': 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/25',
 };
 
 export interface DashboardContext {
@@ -75,6 +70,20 @@ function songBadge(song: Song, progress: Progress): Badge {
   );
   if (statuses.includes('a-reviser')) return 'a-travailler';
   return statuses.includes('a-jour') ? 'a-jour' : 'a-travailler';
+}
+
+/**
+ * Niveau de maîtrise du morceau : celui de la transposition la plus
+ * travaillée. Comme pour `songBadge`, exiger un accord entre toutes les
+ * transpositions laisserait les deux non travaillées tirer la jauge à 0.
+ */
+function songMasteryLevel(song: Song, progress: Progress): number {
+  return Math.max(
+    0,
+    ...song.instruments.map((instrument) =>
+      masteryLevel(getCard(progress, song.id, instrument.id)),
+    ),
+  );
 }
 
 /** Échéance de révision du morceau, affichée discrètement dans la liste. */
@@ -634,6 +643,30 @@ export function renderDashboard(
   };
 }
 
+/**
+ * Jauge de maîtrise : `MASTERY_LEVELS` pastilles, remplies jusqu'au niveau
+ * atteint. La couleur porte le statut « dû/pas dû » (`badge`), le nombre de
+ * pastilles pleines porte la profondeur de travail déjà accompli — deux axes
+ * indépendants qu'un simple badge à deux couleurs ne distinguait pas.
+ */
+function masteryGauge(level: number, badge: Badge): HTMLElement {
+  const filledClass = badge === 'a-jour' ? 'bg-emerald-400' : 'bg-amber-400';
+  const dots = Array.from({ length: MASTERY_LEVELS }, (_, i) =>
+    el('span', {
+      class: `h-2 w-2 rounded-full ${i < level ? filledClass : 'bg-zinc-700/60'}`,
+    }),
+  );
+  return el(
+    'span',
+    {
+      class: 'flex shrink-0 items-center gap-1',
+      title: `${BADGE_LABELS[badge]} · maîtrise ${level}/${MASTERY_LEVELS}`,
+      'aria-label': `${BADGE_LABELS[badge]}, maîtrise ${level} sur ${MASTERY_LEVELS}`,
+    },
+    ...dots,
+  );
+}
+
 function songRow(song: Song, progress: Progress, context: DashboardContext): HTMLElement {
   const badge = songBadge(song, progress);
   const row = el(
@@ -657,13 +690,7 @@ function songRow(song: Song, progress: Progress, context: DashboardContext): HTM
       ),
       el('span', { class: 'block text-xs text-zinc-600' }, dueLabel(song, progress)),
     ),
-    el(
-      'span',
-      {
-        class: `shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${BADGE_STYLES[badge]}`,
-      },
-      BADGE_LABELS[badge],
-    ),
+    masteryGauge(songMasteryLevel(song, progress), badge),
   );
   row.addEventListener('click', () => context.openSong(song.id));
   return row;

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderDashboard, type DashboardContext } from './dashboard';
-import type { Progress } from '../store';
-import type { Song } from '../types';
+import { cardKey, type Progress } from '../store';
+import type { InstrumentId, Song, SrsCard } from '../types';
 
 function song(id: string, title = id): Song {
   return {
@@ -65,6 +65,38 @@ describe('renderDashboard — smoke', () => {
     expect(() => teardown()).not.toThrow();
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
+  });
+});
+
+describe('renderDashboard — jauge de maîtrise', () => {
+  function withCard(instrumentId: InstrumentId, card: SrsCard): Partial<Progress> {
+    return { cards: { [cardKey('a', instrumentId)]: card } };
+  }
+
+  it('affiche 0 pastille pleine pour un morceau jamais travaillé', () => {
+    const { root } = mountDashboard([song('a')], { progress: baseProgress() });
+    const gauge = [...root.querySelectorAll('span[title]')].find((s) =>
+      s.getAttribute('title')?.includes('maîtrise'),
+    )!;
+    expect(gauge.getAttribute('title')).toContain('maîtrise 0/5');
+  });
+
+  it('affiche autant de pastilles pleines que le niveau de maîtrise atteint', () => {
+    const card: SrsCard = {
+      ease: 2.5,
+      interval: 6,
+      repetitions: 2,
+      due: '2099-01-01',
+      history: [{ date: '2020-01-01', grade: 5, tempo: 'fluide', hints: 0 }],
+    };
+    const { root } = mountDashboard([song('a')], {
+      progress: baseProgress(withCard('c', card)),
+    });
+    const gauge = [...root.querySelectorAll('span[title]')].find((s) =>
+      s.getAttribute('title')?.includes('maîtrise'),
+    )!;
+    expect(gauge.getAttribute('title')).toContain('maîtrise 2/5');
+    expect(gauge.querySelectorAll('.bg-emerald-400')).toHaveLength(2);
   });
 });
 
