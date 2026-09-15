@@ -3,6 +3,7 @@ import {
   addDays,
   daysOverdue,
   isoDate,
+  masteryLevel,
   newCard,
   review,
   statusOf,
@@ -154,6 +155,47 @@ describe('statusOf', () => {
       history: [{ date: '2026-09-13', grade: 1, tempo: 'crispe', hints: 5 }],
     };
     expect(statusOf(card)).toBe('a-jour');
+  });
+});
+
+describe('masteryLevel', () => {
+  it('0 si la carte est absente ou sans historique', () => {
+    expect(masteryLevel(undefined)).toBe(0);
+    expect(masteryLevel({ ease: 2.5, interval: 0, repetitions: 0, due: '2026-09-14', history: [] })).toBe(0);
+  });
+
+  it('monte de 1 à 5 sur des réussites successives (note 4, ease constant à 2.5)', () => {
+    // Note 4 laisse `ease` inchangé (delta nul dans la formule SM-2), donc
+    // l'intervalle suit exactement 1, 6, 15, 38, 95 — un cas propre pour
+    // vérifier les seuils sans dérive d'`ease`.
+    let card: SrsCard | undefined = undefined;
+    const levels: number[] = [];
+    for (let i = 0; i < 5; i += 1) {
+      card = review(card, 4, 'fluide', 0);
+      levels.push(masteryLevel(card));
+    }
+    expect(levels).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('monte plus vite avec des notes parfaites (ease croît à chaque révision)', () => {
+    let card: SrsCard | undefined = undefined;
+    const levels: number[] = [];
+    for (let i = 0; i < 5; i += 1) {
+      card = review(card, 5, 'fluide', 0);
+      levels.push(masteryLevel(card));
+    }
+    expect(levels).toEqual([1, 2, 4, 5, 5]);
+  });
+
+  it('un échec après plusieurs réussites retombe à 1, jamais à 0', () => {
+    let card: SrsCard | undefined = undefined;
+    for (let i = 0; i < 4; i += 1) {
+      card = review(card, 5, 'fluide', 0);
+    }
+    expect(masteryLevel(card)).toBeGreaterThan(1);
+    const afterFailure = review(card, 1, 'fluide', 3);
+    expect(afterFailure.interval).toBe(1);
+    expect(masteryLevel(afterFailure)).toBe(1);
   });
 });
 
