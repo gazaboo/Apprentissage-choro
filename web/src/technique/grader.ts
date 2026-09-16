@@ -11,6 +11,7 @@
  */
 
 import type { Onset } from '../pitch';
+import { nameFromMidi } from './theorie';
 
 /** Fenêtre de placement, en fraction de battue, de part et d'autre du clic. */
 const WINDOW_RATIO = 0.3;
@@ -25,6 +26,14 @@ export interface NoteJouee {
   joue: number | null;
   /** Écart au clic en millisecondes, ou `null` faute d'attaque appariée. */
   ecartMs: number | null;
+  /**
+   * Cette note-ci est-elle tombée dans la fenêtre de placement ?
+   *
+   * Le compte global (`Resultat.dansLaFenetre`) dit combien de notes sont en
+   * place ; celui-ci dit **lesquelles**, ce qui distingue une vraie fausse
+   * note d'une note juste mais décalée — le cas courant d'une dérive de tempo.
+   */
+  dansLaFenetre: boolean;
 }
 
 export interface Resultat {
@@ -34,6 +43,13 @@ export interface Resultat {
   /** Écart absolu moyen au clic, sur les seules notes appariées. */
   ecartMoyenMs: number;
   detail: NoteJouee[];
+  /**
+   * Rang, dans les `battues`/`attendues` reçues, de la battue qui a produit
+   * `detail[0]` — les clics écoulés avant la première attaque sont écartés.
+   * L'appelant en a besoin pour relier chaque ligne du détail à la battue
+   * d'origine, donc à la passe et au temps qu'elle occupait dans le motif.
+   */
+  start: number;
 }
 
 /** Durée d'une battue, déduite des instants relevés — médiane des écarts. */
@@ -62,6 +78,7 @@ export function noter(attendues: number[], battues: number[], onsets: Onset[]): 
     dansLaFenetre: 0,
     ecartMoyenMs: 0,
     detail: [],
+    start: 0,
   };
   if (attendues.length === 0 || battues.length === 0 || onsets.length === 0) return vide;
 
@@ -94,7 +111,7 @@ export function noter(attendues: number[], battues: number[], onsets: Onset[]): 
     }
 
     if (bestIndex === -1 || bestGap > beat * MATCH_RATIO) {
-      detail.push({ midi: attendu, joue: null, ecartMs: null });
+      detail.push({ midi: attendu, joue: null, ecartMs: null, dansLaFenetre: false });
       continue;
     }
 
@@ -103,12 +120,13 @@ export function noter(attendues: number[], battues: number[], onsets: Onset[]): 
     const ecart = (onset?.audioTime ?? 0) - cible;
     const joue = onset?.midi ?? 0;
 
+    const enPlace = Math.abs(ecart) <= beat * WINDOW_RATIO;
     if (joue === attendu) justes += 1;
-    if (Math.abs(ecart) <= beat * WINDOW_RATIO) dansLaFenetre += 1;
+    if (enPlace) dansLaFenetre += 1;
     ecartTotal += Math.abs(ecart);
     apparies += 1;
 
-    detail.push({ midi: attendu, joue, ecartMs: ecart * 1000 });
+    detail.push({ midi: attendu, joue, ecartMs: ecart * 1000, dansLaFenetre: enPlace });
   }
 
   return {
@@ -117,6 +135,7 @@ export function noter(attendues: number[], battues: number[], onsets: Onset[]): 
     dansLaFenetre,
     ecartMoyenMs: apparies === 0 ? 0 : (ecartTotal / apparies) * 1000,
     detail,
+    start,
   };
 }
 
@@ -167,4 +186,60 @@ export function resume(resultat: Resultat, bpm: number): string {
     `${resultat.dansLaFenetre} dans le tempo (écart moyen ${ecart} ms). ` +
     'Relevé indicatif — à vous de juger.'
   );
+}
+
+/**
+ * Relevé note à note de ce qui reste à vérifier, une ligne de texte par note.
+ *
+ * Le résumé chiffré ne dit pas *où* ça a accroché, et sans ce détail on ne peut
+ * pas distinguer une faute de jeu d'une erreur du détecteur — doute qui suffit
+ * à faire cesser de se fier au relevé. Les notes déjà justes et en place sont
+ * omises : elles sont comptées dans le résumé, les lister noierait le reste.
+ *
+ * `battues` est la suite complète des battues relevées (celle passée à
+ * `noter()`), dont `Resultat.start` donne le point d'entrée : c'est l'index de
+ * battue qui redonne la passe et le temps dans le motif.
+ *
+ * Comme `resume()`, ce relevé n'interprète rien — il rapporte.
+ */
+export function detailLignes(
+  resultat: Resultat,
+  battues: { index: number }[],
+  motifLength: number,
+): string[] {
+  if (motifLength <= 0) return [];
+
+  const lignes: string[] = [];
+  resultat.detail.forEach((note, i) => {
+    const juste = note.joue === note.midi;
+    if (juste && note.dansLaFenetre) return;
+
+    const beat = battues[resultat.start + i];
+    if (!beat) return;
+    const passe = Math.floor(beat.index / motifLength) + 1;
+    const temps = (beat.index % motifLength) + 1;
+    const ou = `Passe ${passe}, temps ${temps}`;
+    const attendu = nameFromMidi(note.midi);
+
+    if (note.joue === null) {
+      lignes.push(`${ou} — attendu ${attendu}, rien entendu`);
+      return;
+    }
+
+    const ecart = Math.round(note.ecartMs ?? 0);
+    if (!juste) {
+      const signe = ecart >= 0 ? '+' : '−';
+      lignes.push(
+        `${ou} — attendu ${attendu}, entendu ${nameFromMidi(note.joue)} ` +
+          `(écart ${signe}${Math.abs(ecart)} ms)`,
+      );
+      return;
+    }
+
+    // Bonne note, hors fenêtre : le cas qui trahit une dérive de tempo plutôt
+    // qu'une erreur de doigt, et qu'un simple « faux » masquerait.
+    lignes.push(`${ou} — ${attendu} juste, mais décalé de ${Math.abs(ecart)} ms`);
+  });
+
+  return lignes;
 }

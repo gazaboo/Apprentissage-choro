@@ -118,3 +118,40 @@ describe('renderTechnique — évaluation de fin', () => {
     expect(context.onFinish).toHaveBeenCalledOnce();
   });
 });
+
+describe('renderTechnique — test du micro', () => {
+  it('propose un test du micro, distinct de l\'évaluation', () => {
+    const { root } = mount([carte()]);
+    const test = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Tester le micro',
+    ) as HTMLButtonElement;
+    expect(test).toBeTruthy();
+    expect(test.getAttribute('aria-pressed')).toBe('false');
+    expect(test.disabled).toBe(false);
+    // Le relevé du test est bien là, mais masqué tant qu'il ne tourne pas.
+    const releve = root.querySelector('.flex-col.gap-2') as HTMLElement;
+    expect(releve.textContent).toContain('Micro : jouez une note…');
+    expect(releve.classList.contains('hidden')).toBe(true);
+  });
+
+  it('n\'ouvre ni métronome ni modale quand le micro est indisponible', async () => {
+    // jsdom n'a pas d'`AudioContext` : le test échoue là où il échouerait sur
+    // un appareil sans micro, ce qui est précisément le cas à signaler.
+    const { root } = mount([carte()]);
+    const test = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Tester le micro',
+    ) as HTMLButtonElement;
+    test.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(root.textContent).toContain('Micro indisponible');
+    expect((root.querySelector('.flex-col.gap-2') as HTMLElement).classList).toContain('hidden');
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    // Rien n'a démarré : « Démarrer le métronome » est toujours proposé.
+    const play = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Démarrer le métronome',
+    ) as HTMLButtonElement;
+    expect(play.disabled).toBe(false);
+  });
+});
