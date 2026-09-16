@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   formatNote,
   frequencyOf,
+  GUITAR_LOW_E,
   layoutMotif,
   midiFromFrequency,
   midiOf,
+  nameFromMidi,
   parseNote,
   pitchClass,
   transposeChord,
@@ -105,5 +107,33 @@ describe('layoutMotif', () => {
     const notes = ['D3', 'F3', 'A3', 'C4', 'A3'].map((n) => parseNote(n)!);
     const midis = layoutMotif(notes);
     expect(midis).toEqual(notes.map((n) => midiOf(n)));
+  });
+});
+
+describe('nameFromMidi', () => {
+  it('nomme le do central et le la du diapason', () => {
+    expect(nameFromMidi(60)).toBe('C4');
+    expect(nameFromMidi(69)).toBe('A4');
+  });
+
+  it('écrit les touches noires en dièses, faute de contexte tonal', () => {
+    expect(nameFromMidi(61)).toBe('C#4');
+    expect(nameFromMidi(70)).toBe('A#4');
+  });
+
+  it('garde l’octave, y compris au mi grave de la guitare', () => {
+    // L'erreur d'octave est un mode de défaillance connu du détecteur : elle
+    // ne se repère que si l'octave est affichée.
+    expect(nameFromMidi(GUITAR_LOW_E)).toBe('E2');
+    expect(nameFromMidi(GUITAR_LOW_E + 12)).toBe('E3');
+  });
+
+  it('descend sous le do 0 sans se casser', () => {
+    expect(nameFromMidi(0)).toBe('C-1');
+  });
+
+  it('arrondit au demi-ton le plus proche', () => {
+    expect(nameFromMidi(59.6)).toBe('C4');
+    expect(nameFromMidi(midiFromFrequency(frequencyOf(64)))).toBe('E4');
   });
 });
