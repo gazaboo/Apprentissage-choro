@@ -93,6 +93,24 @@ function pluck(
   return out;
 }
 
+/**
+ * Le clic du métronome, tel que `Metronome.click` le synthétise : une sinusoïde
+ * pure sous une enveloppe exponentielle de 30 ms.
+ */
+function click(frequency: number, peak: number, frames: number): Float32Array {
+  const out = new Float32Array(frames);
+  const DUREE = 0.03;
+  const PLANCHER = 0.0001;
+  for (let i = 0; i < frames; i += 1) {
+    const t = i / SR;
+    let gain = 0;
+    if (t < 0.002) gain = PLANCHER * (peak / PLANCHER) ** (t / 0.002);
+    else if (t < DUREE) gain = peak * (PLANCHER / peak) ** ((t - 0.002) / (DUREE - 0.002));
+    out[i] = gain * Math.sin(2 * Math.PI * frequency * t);
+  }
+  return out;
+}
+
 /** Mélange des notes à des instants donnés, comme un arpège laissé sonner. */
 function arpeggio(notes: { midi: number; atMs: number }[], totalMs: number): Float32Array {
   const frames = Math.round((totalMs / 1000) * SR);
@@ -147,6 +165,17 @@ describe('detectPitch — tessiture de la guitare 7 cordes', () => {
     for (const midi of [36, 40, 45, 47, 52]) {
       const heard = midiOf(pluck(midi, 2048, { seed: midi, fundamental: 0.15 }));
       expect(heard, `fondamentale faible sur ${midi}`).toBe(midi);
+    }
+  });
+
+  it('ne prend pas le clic du métronome pour une note', () => {
+    // Le clic sort dans les haut-parleurs et le micro l'entend. Sinusoïde pure,
+    // il est plus périodique qu'une corde : le détecteur le préférait à la note
+    // jouée et annonçait un B5 pile sur le temps. Les fréquences sont celles de
+    // `metronome.ts` — décompte, battue, accent.
+    for (const [frequence, pic] of [[600, 0.5], [800, 0.3], [1000, 0.5]] as const) {
+      const heard = midiOf(click(frequence, pic, 2048));
+      expect(heard, `clic à ${frequence} Hz`).toBeNull();
     }
   });
 
