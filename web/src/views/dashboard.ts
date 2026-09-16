@@ -685,13 +685,9 @@ export function renderDashboard(
       ),
 
       techniqueSlot,
+      sessionSlot,
 
-      el(
-        'div',
-        { class: 'flex flex-col gap-6 rounded-2xl border border-zinc-800/60 p-5' },
-        sessionSlot,
-        el('section', { class: 'flex flex-col gap-4' }, list),
-      ),
+      el('section', { class: 'flex flex-col gap-4' }, list),
     ),
   );
 
