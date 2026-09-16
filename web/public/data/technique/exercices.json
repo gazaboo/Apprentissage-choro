@@ -28,7 +28,7 @@
       "famille": "Arpèges",
       "nom": "Arpège de dominante",
       "reference": "A7",
-      "notes": ["A", "C#", "E", "G"],
+      "notes": ["A", "C#", "E", "G", "A"],
       "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
       "sens": ["aller-retour"],
       "note_de_travail": "Une note par clic, sans plaquer d'accord."
