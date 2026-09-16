@@ -530,6 +530,10 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   ecouterButton.addEventListener('click', () => void toggleEcouter());
   boucleButton.addEventListener('click', () => {
     bouclerEcoute = !bouclerEcoute;
+    // Une lecture déjà démarrée avec « Écouter » a capturé l'ancienne valeur
+    // au lancement ; sans ce réglage à chaud, activer Boucle en cours de
+    // route n'aurait d'effet qu'à la prochaine pression sur « Écouter ».
+    player?.setLoop(bouclerEcoute);
     paintTransport();
   });
 
