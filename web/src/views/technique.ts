@@ -229,7 +229,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const revealButton = el('button', { type: 'button', class: ui.button }, 'Voir les notes');
   const ecouterButton = el('button', { type: 'button', class: ui.button }, '▶ Écouter');
   const boucleButton = el('button', { type: 'button', class: ui.chip }, '🔁 Boucle');
-  const finishButton = el('button', { type: 'button', class: ui.button }, 'Terminer et évaluer');
+  const finishButton = el('button', { type: 'button', class: ui.button }, 'Noter et continuer');
   const stopButton = el('button', { type: 'button', class: ui.button }, 'Terminer la séance');
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
   const micButton = el('button', {
