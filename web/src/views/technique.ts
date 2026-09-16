@@ -63,7 +63,8 @@ export interface TechniqueContext {
   ordre: ExerciceCarte[];
   /** Consigne un exercice effectivement travaillé, pour le résumé de séance. */
   markWorked: (id: string) => void;
-  navigateHome: () => void;
+  /** Retour à la liste des exercices — pas à l'accueil, malgré le nom des autres écrans. */
+  navigateBack: () => void;
   onFinish: () => void;
 }
 
@@ -857,7 +858,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   finishButton.addEventListener('click', () => void finish());
   stopButton.addEventListener('click', () => void finish(true));
-  backButton.addEventListener('click', () => context.navigateHome());
+  backButton.addEventListener('click', () => context.navigateBack());
 
   // --- Assemblage ---------------------------------------------------------
 

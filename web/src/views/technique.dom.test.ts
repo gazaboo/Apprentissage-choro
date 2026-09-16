@@ -45,7 +45,7 @@ function mount(ordre: ExerciceCarte[], overrides: Partial<TechniqueContext> = {}
     progress: baseProgress(),
     ordre,
     markWorked: vi.fn(),
-    navigateHome: vi.fn(),
+    navigateBack: vi.fn(),
     onFinish: vi.fn(),
     ...overrides,
   };
@@ -78,11 +78,11 @@ describe('renderTechnique — smoke', () => {
     expect(notesRow.textContent).toBe('DFAC');
   });
 
-  it('« Retour » appelle navigateHome() sans ouvrir l\'évaluation', () => {
+  it('« Retour » appelle navigateBack() sans ouvrir l\'évaluation', () => {
     const { root, context } = mount([carte()]);
     const back = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Retour')!;
     back.click();
-    expect(context.navigateHome).toHaveBeenCalledOnce();
+    expect(context.navigateBack).toHaveBeenCalledOnce();
   });
 });
 

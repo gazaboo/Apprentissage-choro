@@ -114,7 +114,7 @@ function mount() {
     progress: baseProgress(),
     ordre: [carte()],
     markWorked: vi.fn(),
-    navigateHome: vi.fn(),
+    navigateBack: vi.fn(),
     onFinish: vi.fn(),
   };
   const teardown = renderTechnique(root, context);
