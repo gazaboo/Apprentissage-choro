@@ -22,3 +22,28 @@ export function seededRandom(seed: string): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/**
+ * Mélange en place, par groupes d'éléments consécutifs de même clé, sans
+ * changer l'ordre des groupes entre eux — le tableau doit déjà être trié par
+ * `keyOf`. Sert à départager équitablement des ex-æquo (ex. même retard SRS)
+ * sans perturber le tri global qui les précède.
+ */
+export function shuffleTies<T>(
+  items: T[],
+  keyOf: (item: T) => unknown,
+  rng: () => number = Math.random,
+): T[] {
+  let start = 0;
+  for (let i = 1; i <= items.length; i += 1) {
+    if (i === items.length || keyOf(items[i]!) !== keyOf(items[start]!)) {
+      // Fisher-Yates sur la tranche [start, i).
+      for (let k = i - 1; k > start; k -= 1) {
+        const j = start + Math.floor(rng() * (k - start + 1));
+        [items[k], items[j]] = [items[j]!, items[k]!];
+      }
+      start = i;
+    }
+  }
+  return items;
+}

@@ -7,6 +7,7 @@
  * plus durable ensuite.
  */
 
+import { shuffleTies } from './random';
 import { daysOverdue } from './srs';
 import type { Progress } from './store';
 import { getCard } from './store';
@@ -36,11 +37,16 @@ function preferredInstrument(song: Song, progress: Progress): InstrumentId {
  * Sélectionne les morceaux prioritaires : jamais travaillés d'abord, puis les
  * plus en retard. `count` vaut 2 ou 3 — au-delà, la rotation devient trop
  * diluée pour que chaque retour soit un vrai rappel.
+ *
+ * Les morceaux à égalité de retard sont départagés au hasard (`rng`,
+ * `Math.random` par défaut — injectable pour un tirage déterministe en test),
+ * pour que ce ne soit pas toujours le même qui l'emporte à égalité (#82).
  */
 export function pickSessionItems(
   songs: Song[],
   progress: Progress,
   count: number,
+  rng: () => number = Math.random,
 ): SessionItem[] {
   const scored = songs
     .filter((song) => song.instruments.length > 0)
@@ -49,11 +55,8 @@ export function pickSessionItems(
       const overdue = daysOverdue(getCard(progress, song.id, instrumentId));
       return { song, instrumentId, overdue };
     })
-    .sort((a, b) => {
-      if (a.overdue !== b.overdue) return b.overdue - a.overdue;
-      // Départage stable mais non alphabétique, pour varier les sessions.
-      return Math.random() - 0.5;
-    });
+    .sort((a, b) => b.overdue - a.overdue);
+  shuffleTies(scored, (entry) => entry.overdue, rng);
 
   return scored
     .slice(0, Math.max(1, Math.min(count, scored.length)))

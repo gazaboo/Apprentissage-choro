@@ -11,6 +11,7 @@
  * de déverrouillage — c'est le fichier qui décide.
  */
 
+import { shuffleTies } from '../random';
 import { daysOverdue, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { getTechniqueCard } from '../store';
@@ -254,12 +255,15 @@ export const NOUVELLES_PAR_SEANCE = 5;
  * catalogue seraient toutes à égalité de priorité maximale, et une première
  * séance ne serait qu'une marche aléatoire sans fin. Les neuves sont prises
  * dans l'ordre du catalogue, non au hasard, pour qu'une famille s'installe
- * avant que la suivante ne commence.
+ * avant que la suivante ne commence — en revanche, les cartes en retard à
+ * égalité de retard sont départagées au hasard (`rng`, injectable pour un
+ * tirage déterministe en test) plutôt que par l'ordre figé du catalogue (#82).
  */
 export function pickExercices(
   cartes: ExerciceCarte[],
   progress: Progress,
   maxNouvelles = NOUVELLES_PAR_SEANCE,
+  rng: () => number = Math.random,
 ): ExerciceCarte[] {
   const dues: { carte: ExerciceCarte; retard: number }[] = [];
   const nouvelles: ExerciceCarte[] = [];
@@ -271,6 +275,7 @@ export function pickExercices(
   }
 
   dues.sort((a, b) => b.retard - a.retard);
+  shuffleTies(dues, (entry) => entry.retard, rng);
   return [...dues.map((entry) => entry.carte), ...nouvelles.slice(0, maxNouvelles)];
 }
 
