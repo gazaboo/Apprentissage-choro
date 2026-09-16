@@ -49,11 +49,17 @@ function runSummary(run: SessionRun): string {
     run.kind === 'filage' && run.instrumentId
       ? `filage ${INSTRUMENT_SHORT_LABELS[run.instrumentId]}`
       : RUN_KIND_LABELS[run.kind];
-  const count =
-    run.kind === 'technique'
-      ? `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`
-      : `${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
-  return `${run.setlistName} · ${kind} · ${count}`;
+  return `${run.setlistName} · ${kind} · ${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
+}
+
+/**
+ * Résumé d'une séance technique, sans nom de setlist : contrairement au
+ * répertoire, les arpèges et gammes n'appartiennent à aucune setlist — le
+ * champ `setlistName` n'y vaut qu'un libellé générique (« Arpèges et
+ * gammes ») redondant avec le titre de la carte.
+ */
+function techniqueRunSummary(run: SessionRun): string {
+  return `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`;
 }
 
 /**
@@ -110,6 +116,10 @@ export function renderDashboard(
   const subtitle = el('p', { class: 'mt-1 text-sm text-zinc-400' });
   const sessionSlot = el('section', {
     class: 'rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-5',
+  });
+  /** Section technique : visuellement distincte, car indépendante de la setlist. */
+  const techniqueSlot = el('section', {
+    class: 'rounded-2xl border border-sky-400/25 bg-sky-400/[0.05] p-5',
   });
 
   const songById = new Map(songs.map((song) => [song.id, song]));
@@ -213,6 +223,7 @@ export function renderDashboard(
     paintHeader();
     paintList();
     paintSessionCard();
+    paintTechniqueCard();
   }
 
   function chooseSetlist(id: string): void {
@@ -435,7 +446,7 @@ export function renderDashboard(
   }
 
   const scopeRow = el(
-    'section',
+    'div',
     { class: 'flex flex-col gap-2' },
     el('p', { class: ui.label }, 'Setlist travaillée'),
     el(
@@ -495,7 +506,8 @@ export function renderDashboard(
       );
 
     const rows: HTMLElement[] = [
-      el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Session du jour'),
+      el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Étude de répertoire'),
+      scopeRow,
       sessionRow(
         'Travail',
         el('div', { class: 'flex flex-wrap gap-2' }, deepButton, urgentButton),
@@ -515,33 +527,8 @@ export function renderDashboard(
       ),
     ];
 
-    // Les arpèges et gammes ne dépendent d'aucune setlist : la rangée vient
-    // après le répertoire, et disparaît si le catalogue est absent.
-    if (context.openTechnique) {
-      const techniqueButton = el(
-        'button',
-        { type: 'button', class: ui.button },
-        context.techniqueCount > 0 ? 'Commencer' : 'Voir les exercices',
-      );
-      techniqueButton.addEventListener('click', context.openTechnique);
-      rows.push(
-        sessionRow(
-          'Technique',
-          el(
-            'div',
-            { class: 'flex flex-col gap-1' },
-            el('div', { class: 'flex flex-wrap gap-2' }, techniqueButton),
-            el(
-              'span',
-              { class: 'text-[11px] text-zinc-500' },
-              'Arpèges et gammes au métronome, note à note, hors répertoire.',
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (progress.sessions.length > 0) {
+    const repertoireRuns = progress.sessions.filter((run) => run.kind !== 'technique');
+    if (repertoireRuns.length > 0) {
       const toggle = el(
         'button',
         { type: 'button', class: 'self-start text-sm text-amber-300/80 hover:text-amber-200' },
@@ -554,7 +541,7 @@ export function renderDashboard(
       rows.push(toggle);
 
       if (sessionsExpanded) {
-        const recent = [...progress.sessions].slice(-10).reverse();
+        const recent = repertoireRuns.slice(-10).reverse();
         rows.push(
           el(
             'ul',
@@ -575,6 +562,80 @@ export function renderDashboard(
     }
 
     sessionSlot.replaceChildren(el('div', { class: 'flex flex-col gap-3' }, ...rows));
+  }
+
+  // --- Technique : arpèges et gammes, indépendants de toute setlist ----
+
+  let techniqueSessionsExpanded = false;
+
+  /**
+   * Section à part : contrairement au travail de répertoire, la technique ne
+   * dépend d'aucune setlist et n'apparaît pas dans son historique (issue #52 —
+   * les deux étaient entrelacées dans une même carte « Session du jour »).
+   */
+  function paintTechniqueCard(): void {
+    if (!context.openTechnique) {
+      techniqueSlot.replaceChildren();
+      return;
+    }
+    const openTechnique = context.openTechnique;
+
+    const techniqueButton = el(
+      'button',
+      { type: 'button', class: ui.button },
+      context.techniqueCount > 0 ? 'Commencer' : 'Voir les exercices',
+    );
+    techniqueButton.addEventListener('click', openTechnique);
+
+    const rows: HTMLElement[] = [
+      el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Technique instrumentale'),
+      el(
+        'div',
+        { class: 'flex flex-col gap-1' },
+        el('div', { class: 'flex flex-wrap gap-2' }, techniqueButton),
+        el(
+          'span',
+          { class: 'text-[11px] text-zinc-500' },
+          'Arpèges et gammes au métronome, note à note, hors répertoire.',
+        ),
+      ),
+    ];
+
+    const techniqueRuns = progress.sessions.filter((run) => run.kind === 'technique');
+    if (techniqueRuns.length > 0) {
+      const toggle = el(
+        'button',
+        { type: 'button', class: 'self-start text-sm text-sky-300/80 hover:text-sky-200' },
+        techniqueSessionsExpanded ? 'Masquer les dernières séances' : 'Voir les dernières séances',
+      );
+      toggle.addEventListener('click', () => {
+        techniqueSessionsExpanded = !techniqueSessionsExpanded;
+        paintTechniqueCard();
+      });
+      rows.push(toggle);
+
+      if (techniqueSessionsExpanded) {
+        const recent = techniqueRuns.slice(-10).reverse();
+        rows.push(
+          el(
+            'ul',
+            { class: 'flex flex-col gap-1 text-sm text-zinc-400' },
+            ...recent.map((run) =>
+              el(
+                'li',
+                {},
+                `${new Date(run.date).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'short',
+                })} · ${techniqueRunSummary(run)}`,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    techniqueSlot.replaceChildren(el('div', { class: 'flex flex-col gap-3' }, ...rows));
   }
 
   function paintList(): void {
@@ -629,7 +690,7 @@ export function renderDashboard(
         el('div', { class: 'flex flex-wrap gap-2' }, aboutLink, accountLink),
       ),
 
-      scopeRow,
+      techniqueSlot,
       sessionSlot,
 
       el('section', { class: 'flex flex-col gap-4' }, list),
