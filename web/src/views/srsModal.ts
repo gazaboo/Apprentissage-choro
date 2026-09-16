@@ -18,8 +18,12 @@ export interface SrsAnswer {
 const TEMPOS: Tempo[] = ['sous-tempo', 'crispe', 'fluide'];
 
 /**
- * Affiche la modale et résout avec la réponse, ou `null` si l'utilisateur
- * passe son tour (échapper) — mieux vaut aucune donnée qu'une note bâclée.
+ * Affiche la modale et résout avec la réponse, `null` si l'utilisateur passe
+ * son tour (« Passer » — mieux vaut aucune donnée qu'une note bâclée, mais
+ * l'appelant enchaîne quand même), ou `'cancelled'` si l'utilisateur annule
+ * l'évaluation entière (croix, Échap, clic hors de la modale) — l'appelant
+ * doit alors ni noter, ni enchaîner, et laisser l'utilisateur reprendre
+ * l'exercice.
  *
  * `contexte` remplace le rappel des indices déclenchés par un autre relevé —
  * pour les arpèges et gammes, le tempo tenu et ce que le micro a entendu. Il
@@ -31,7 +35,7 @@ export function askSrs(
   hints: number,
   maskedCount: number,
   contexte?: string,
-): Promise<SrsAnswer | null> {
+): Promise<SrsAnswer | null | 'cancelled'> {
   return new Promise((resolve) => {
     const suggested = suggestGrade(hints, maskedCount);
     let grade = suggested;
@@ -86,14 +90,31 @@ export function askSrs(
 
     const validate = el('button', { type: 'button', class: ui.primary }, 'Enregistrer');
     const skip = el('button', { type: 'button', class: ui.button }, 'Passer');
+    const cancelButton = el(
+      'button',
+      { type: 'button', class: ui.icon, 'aria-label': "Annuler l'évaluation, revenir à l'exercice" },
+      '✕',
+    );
 
-    const close = (answer: SrsAnswer | null): void => {
+    const close = (result: SrsAnswer | null | 'cancelled'): void => {
+      document.removeEventListener('keydown', onKeyDown);
       overlay.remove();
-      resolve(answer);
+      resolve(result);
+    };
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') close('cancelled');
     };
 
     validate.addEventListener('click', () => close({ grade, tempo, hints }));
     skip.addEventListener('click', () => close(null));
+    cancelButton.addEventListener('click', () => close('cancelled'));
+    // Seul un clic sur le voile lui-même ferme — pas un clic qui a démarré
+    // dans la modale et fini dessus (sélection de texte relâchée dehors).
+    overlay.addEventListener('pointerdown', (event) => {
+      if (event.target === overlay) close('cancelled');
+    });
+    document.addEventListener('keydown', onKeyDown);
 
     overlay.append(
       el(
@@ -104,9 +125,18 @@ export function askSrs(
           role: 'dialog',
           'aria-modal': 'true',
         },
-        el('p', { class: ui.label }, 'Auto-évaluation'),
-        el('h2', { class: 'mt-1 text-xl font-semibold text-zinc-100' }, title),
-        el('p', { class: 'text-sm text-zinc-500' }, instrumentName),
+        el(
+          'div',
+          { class: 'flex items-start justify-between gap-3' },
+          el(
+            'div',
+            {},
+            el('p', { class: ui.label }, 'Auto-évaluation'),
+            el('h2', { class: 'mt-1 text-xl font-semibold text-zinc-100' }, title),
+            el('p', { class: 'text-sm text-zinc-500' }, instrumentName),
+          ),
+          cancelButton,
+        ),
 
         el(
           'p',

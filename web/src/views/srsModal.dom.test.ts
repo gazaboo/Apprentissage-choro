@@ -34,4 +34,38 @@ describe('askSrs', () => {
 
     await expect(promise).resolves.toEqual({ grade: 3, tempo: 'fluide', hints: 2 });
   });
+
+  it('la croix annule : résout avec \'cancelled\', distinct de « Passer »', async () => {
+    const promise = askSrs('Carinhoso', 'Ut', 0, 10);
+    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const cancel = dialog.querySelector('button[aria-label*="Annuler"]') as HTMLButtonElement;
+    expect(cancel).toBeTruthy();
+    cancel.click();
+
+    await expect(promise).resolves.toBe('cancelled');
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('Échap annule la modale', async () => {
+    const promise = askSrs('Carinhoso', 'Ut', 0, 10);
+    expect(document.body.querySelector('[role="dialog"]')).toBeTruthy();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    await expect(promise).resolves.toBe('cancelled');
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('un clic sur le voile annule, un clic dans la modale ne fait rien', async () => {
+    const promise = askSrs('Carinhoso', 'Ut', 0, 10);
+    const overlay = document.body.querySelector('.fixed.inset-0.z-50') as HTMLElement;
+    const dialog = overlay.querySelector('[role="dialog"]') as HTMLElement;
+
+    dialog.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    expect(document.body.querySelector('[role="dialog"]')).toBeTruthy();
+
+    overlay.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await expect(promise).resolves.toBe('cancelled');
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+  });
 });

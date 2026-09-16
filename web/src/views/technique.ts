@@ -507,6 +507,12 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       contexte,
     );
 
+    // Annulation : ni note, ni passage à l'exercice suivant — on reprend celui-ci.
+    if (answer === 'cancelled') {
+      paintNotes();
+      paintTransport();
+      return;
+    }
     if (answer) {
       const card = review(
         getTechniqueCard(progress, current.id),

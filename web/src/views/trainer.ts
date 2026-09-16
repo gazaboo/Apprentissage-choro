@@ -669,6 +669,8 @@ export function renderTrainer(
           ? [0, activeView().measureCount]
           : [hints, activeView().maskedCount];
     const answer = await askSrs(song.title, instrument.name, used, total);
+    // Annulation : ni note, ni changement de bloc/séance — on reste sur le morceau.
+    if (answer === 'cancelled') return;
     if (answer) {
       const card = review(
         getCard(progress, song.id, instrumentId),
