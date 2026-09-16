@@ -440,7 +440,7 @@ export function renderDashboard(
   }
 
   const scopeRow = el(
-    'section',
+    'div',
     { class: 'flex flex-col gap-2' },
     el('p', { class: ui.label }, 'Setlist travaillée'),
     el(
@@ -500,7 +500,8 @@ export function renderDashboard(
       );
 
     const rows: HTMLElement[] = [
-      el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Session du jour'),
+      el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Étude de répertoire'),
+      scopeRow,
       sessionRow(
         'Travail',
         el('div', { class: 'flex flex-wrap gap-2' }, deepButton, urgentButton),
@@ -683,15 +684,14 @@ export function renderDashboard(
         el('div', { class: 'flex flex-wrap gap-2' }, aboutLink, accountLink),
       ),
 
+      techniqueSlot,
+
       el(
         'div',
         { class: 'flex flex-col gap-6 rounded-2xl border border-zinc-800/60 p-5' },
-        scopeRow,
         sessionSlot,
         el('section', { class: 'flex flex-col gap-4' }, list),
       ),
-
-      techniqueSlot,
     ),
   );
 
