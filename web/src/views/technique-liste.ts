@@ -101,17 +101,23 @@ export function renderTechniqueListe(
     }
 
     return [...byMotif.values()].map((list) => {
-      const due = list.filter(
-        (carte) => statusOf(getTechniqueCard(progress, carte.id)) !== 'a-jour',
-      ).length;
-
       // Une tonalité, un bouton — les cartes montant/descendant s'y regroupent.
+      // Le décompte affiché porte sur les tonalités (ce que montrent les
+      // pastilles), pas sur les cartes : une gamme a un sens montant et un
+      // sens descendant par tonalité, donc deux fois plus de cartes que de
+      // tonalités visibles à l'écran.
       const byAccord = new Map<string, ExerciceCarte[]>();
       for (const carte of list) {
         const accordCartes = byAccord.get(carte.accord);
         if (accordCartes) accordCartes.push(carte);
         else byAccord.set(carte.accord, [carte]);
       }
+      const accords = [...byAccord.values()];
+      const due = accords.filter((cartesAccord) =>
+        cartesAccord.some(
+          (carte) => statusOf(getTechniqueCard(progress, carte.id)) !== 'a-jour',
+        ),
+      ).length;
 
       return el(
         'div',
@@ -123,10 +129,10 @@ export function renderTechniqueListe(
           el(
             'span',
             { class: 'ml-2 text-xs text-zinc-500' },
-            due === 0 ? 'tout à jour' : `${due} sur ${list.length} à travailler`,
+            due === 0 ? 'tout à jour' : `${due} sur ${accords.length} à travailler`,
           ),
         ),
-        el('div', { class: 'flex flex-wrap gap-2' }, ...[...byAccord.values()].map(chip)),
+        el('div', { class: 'flex flex-wrap gap-2' }, ...accords.map(chip)),
       );
     });
   }

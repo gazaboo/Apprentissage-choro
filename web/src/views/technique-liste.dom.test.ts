@@ -61,6 +61,24 @@ describe('renderTechniqueListe — smoke', () => {
     expect(root.textContent).toContain('2 exercices');
   });
 
+  it('compte les tonalités, pas les cartes (une gamme a un sens montant et un descendant par tonalité)', () => {
+    // Régression #72 : « 24 sur 24 à travailler » pour 12 tonalités réelles —
+    // le compte prenait les cartes (12 tonalités × 2 sens) au lieu des
+    // pastilles affichées (une par tonalité).
+    const cartes = ['D', 'E'].flatMap((root) => [
+      carte({ id: `gamme::${root}::montant`, motifId: 'gamme', accord: root, sens: 'montant' }),
+      carte({
+        id: `gamme::${root}::descendant`,
+        motifId: 'gamme',
+        accord: root,
+        sens: 'descendant',
+      }),
+    ]);
+    const { root } = mount(cartes);
+    expect(root.textContent).toContain('2 sur 2 à travailler');
+    expect(root.textContent).not.toContain('4 sur 4 à travailler');
+  });
+
   it('teardown ne lève pas', () => {
     const { teardown } = mount([carte()]);
     expect(() => teardown()).not.toThrow();
