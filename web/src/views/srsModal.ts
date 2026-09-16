@@ -28,6 +28,11 @@ const TEMPOS: Tempo[] = ['sous-tempo', 'crispe', 'fluide'];
  * `contexte` remplace le rappel des indices déclenchés par un autre relevé —
  * pour les arpèges et gammes, le tempo tenu et ce que le micro a entendu. Il
  * informe la note ; il ne la décide pas.
+ *
+ * `detail` ajoute sous ce relevé le note-à-note de ce que le micro a entendu,
+ * quand l'appelant en fournit un : un résumé chiffré seul ne permet pas de
+ * distinguer une faute de jeu d'une erreur du détecteur, et c'est justement ce
+ * doute qui décourage de se fier au relevé.
  */
 export function askSrs(
   title: string,
@@ -35,6 +40,7 @@ export function askSrs(
   hints: number,
   maskedCount: number,
   contexte?: string,
+  detail?: Node,
 ): Promise<SrsAnswer | null | 'cancelled'> {
   return new Promise((resolve) => {
     const suggested = suggestGrade(hints, maskedCount);
@@ -146,6 +152,20 @@ export function askSrs(
               ? 'Aucun indice déclenché pendant ce passage.'
               : `${hints} indice${hints > 1 ? 's' : ''} déclenché${hints > 1 ? 's' : ''} sur ${maskedCount} mesure${maskedCount > 1 ? 's' : ''} masquée${maskedCount > 1 ? 's' : ''}.`),
         ),
+
+        ...(detail
+          ? [
+              el(
+                'div',
+                {
+                  class:
+                    'mt-2 max-h-40 overflow-y-auto rounded-lg bg-zinc-800/40 px-3 py-2 ' +
+                    'font-mono text-xs leading-relaxed text-zinc-400',
+                },
+                detail,
+              ),
+            ]
+          : []),
 
         el('p', { class: `${ui.label} mt-5` }, 'Mémoire (0 – 5)'),
         el('div', { class: 'mt-2 grid grid-cols-6 gap-2' }, ...gradeButtons),

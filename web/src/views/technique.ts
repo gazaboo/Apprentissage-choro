@@ -15,7 +15,7 @@
  */
 
 import { el, ui } from '../dom';
-import { Metronome, MAX_BPM, MIN_BPM, clampBpm } from '../metronome';
+import { Metronome, MAX_BPM, MIN_BPM, clampBpm, cycleOf } from '../metronome';
 import { SequencePlayer } from '../player';
 import type { Onset } from '../pitch';
 import { PitchTracker } from '../pitch';
@@ -24,7 +24,8 @@ import type { Progress } from '../store';
 import { getTechniqueCard, putTechniqueCard } from '../store';
 import type { ExerciceCarte } from '../technique/catalogue';
 import { DEFAULT_BPM, SENS_LABELS, dernierBpm } from '../technique/catalogue';
-import { meilleurDecalage, noter, resume } from '../technique/grader';
+import { detailLignes, meilleurDecalage, noter, resume } from '../technique/grader';
+import { nameFromMidi } from '../technique/theorie';
 import { askSrs } from './srsModal';
 
 /** Pas des boutons de tempo — assez large pour se sentir, assez fin pour régler. */
@@ -32,6 +33,29 @@ const BPM_STEP = 4;
 
 /** Délai d'écoute sans attaque détectée avant d'alerter : le temps de se mettre en place. */
 const SILENCE_WARNING_MS = 4000;
+
+/** Battues de préparation avant que l'évaluation déclenchée au micro ne commence réellement. */
+const COUNT_IN_BEATS = 4;
+
+/** Passes complètes du motif que le micro exige avant de s'arrêter et de se noter seul. */
+const PASSES_REQUISES = 3;
+
+/**
+ * Message d'erreur micro à afficher tel quel.
+ *
+ * Le nom de l'exception distingue le refus de permission — qui appelle un geste
+ * précis dans les réglages du navigateur — d'une simple absence de micro, que
+ * rien ne peut réparer depuis l'écran.
+ */
+function messageMicro(error: unknown): string {
+  if (error instanceof DOMException && error.name === 'NotAllowedError') {
+    return 'Accès au micro refusé — autorisez-le dans les réglages du navigateur pour ce site.';
+  }
+  if (error instanceof DOMException && error.name === 'NotFoundError') {
+    return 'Aucun micro détecté sur cet appareil.';
+  }
+  return 'Micro indisponible — l’évaluation reste manuelle.';
+}
 
 export interface TechniqueContext {
   progress: Progress;
@@ -78,6 +102,30 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let silenceTimer: number | null = null;
   /** Sur quelle note du motif on a réellement démarré ; voir `meilleurDecalage`. */
   let decalage = 0;
+  /** `true` entre l'appui sur « Écouter au micro » et la fin (notation auto ou annulation). */
+  let evaluating = false;
+  /** `true` tant que le décompte de préparation tourne (`onBeat` avec un index négatif). */
+  let countingIn = false;
+  /** Passe en cours (1 à `PASSES_REQUISES`), affichée pendant l'évaluation. */
+  let currentPasse = 1;
+  /** Marge laissée après le dernier clic de la dernière passe pour que la note finale soit captée. */
+  let graceTimer: number | null = null;
+
+  /**
+   * Test du micro : une écoute libre, sans métronome, sans prise et sans
+   * notation. Instance de `PitchTracker` distincte de celle de l'évaluation —
+   * les callbacks sont fixés au constructeur, et ceux-là affichent au lieu de
+   * juger.
+   */
+  let testTracker: PitchTracker | null = null;
+  let micTesting = false;
+  let micTestActivating = false;
+  /** Incrémenté à chaque coupure du test (`stopMicTest`) : permet à une activation en
+   *  cours (`toggleMicTest`) de se découvrir annulée à son réveil et de ne pas passer
+   *  `micTesting` à `true` par-dessus une évaluation ou un métronome démarré entre-temps. */
+  let micTestGeneration = 0;
+  /** Dernière hauteur entendue pendant le test, nommée, ou `null` avant la première. */
+  let testHeard: string | null = null;
 
   function carte(): ExerciceCarte {
     return ordre[index] ?? ordre[0]!;
@@ -88,8 +136,63 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       beats.push({ index: beatIndex, time: audioTime });
       // Deux battues d'historique suffisent : au-delà, elles sont déjà passées.
       if (beats.length > 8) beats = beats.slice(-8);
+
+      if (beatIndex < 0) {
+        // Décompte de préparation : rien n'est encore joué, seul le repère
+        // visuel avance — la prise démarre à zéro battue plus loin.
+        // (`countingIn` est déjà passé à `true` par `toggleMic()`, dès le
+        // clic : sans ça, le premier repaint arriverait après ce premier
+        // `onBeat`, avec un bref retard visible.)
+        if (evaluating) paintCountdown(-beatIndex);
+        return;
+      }
+      if (countingIn) {
+        // Le compteur vient de s'achever : ardoise vierge, pour qu'un bruit
+        // capté pendant la préparation ne fausse pas la première note jugée.
+        countingIn = false;
+        prise = { beats: [], onsets: [] };
+        judged = new Map();
+        paintCountdown(null);
+        paintTransport();
+      }
+
       // La prise, elle, garde tout : c'est la matière de la notation finale.
       if (tracker?.listening) prise.beats.push({ index: beatIndex, time: audioTime });
+
+      if (evaluating) {
+        const motifLength = carte().notes.length;
+        const cycle = cycleOf(beatIndex, motifLength);
+        if (cycle !== null) {
+          const passe = Math.min(cycle + 1, PASSES_REQUISES);
+          if (passe !== currentPasse) {
+            currentPasse = passe;
+            paintTransport();
+          }
+        }
+        if (motifLength > 0 && beatIndex === PASSES_REQUISES * motifLength - 1) {
+          // Dernier clic de la dernière passe programmé : on coupe ici la
+          // *programmation* des battues suivantes. Sans ça, le métronome
+          // continue de tourner pendant le délai de grâce ci-dessous et
+          // programme une battue de plus — une 28ᵉ battue fantôme sur un motif
+          // de 9 notes en 3 passes, sans note jouée en face, comptée comme une
+          // note manquée et gonflant `attendues` de 27 à 28.
+          //
+          // `metronome.stop()`, la méthode de la classe, et non le
+          // `stopMetronome()` local : celui-ci réinitialiserait le surlignage
+          // des pastilles avant l'heure. Le clic de cette battue-ci est déjà
+          // commis au graphe Web Audio, il sonne donc normalement.
+          metronome.stop();
+
+          // On laisse ensuite une battue de marge, mesurée sur l'horloge audio
+          // et non sur `Date.now()`, pour que la dernière note ait le temps
+          // d'être entendue avant d'arrêter et de noter.
+          const delayMs = Math.max(0, (audioTime - metronome.currentTime) * 1000) + (60000 / bpm);
+          graceTimer = window.setTimeout(() => {
+            graceTimer = null;
+            void finish();
+          }, delayMs);
+        }
+      }
     },
   });
 
@@ -100,6 +203,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     class: 'text-6xl font-semibold tracking-tight text-zinc-100 sm:text-7xl',
   });
   const sensLabel = el('p', { class: 'mt-2 text-sm uppercase tracking-widest text-zinc-500' });
+  // Décompte de préparation : prend temporairement la place du chiffrage,
+  // bien visible, pour qu'il soit impossible de manquer le moment où
+  // l'évaluation démarre réellement.
+  const countdownLabel = el('p', {
+    class: 'hidden text-6xl font-semibold tracking-tight text-amber-300 sm:text-7xl',
+    'aria-live': 'assertive',
+  });
   const statusLabel = el('p', { class: 'text-xs text-zinc-600' });
   // `w-max` + `mx-auto` : centré tant que ça tient, mais un motif trop long
   // (gamme complète, aller-retour) déborde plutôt que de casser sur une
@@ -119,7 +229,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const revealButton = el('button', { type: 'button', class: ui.button }, 'Voir les notes');
   const ecouterButton = el('button', { type: 'button', class: ui.button }, '▶ Écouter');
   const boucleButton = el('button', { type: 'button', class: ui.chip }, '🔁 Boucle');
-  const finishButton = el('button', { type: 'button', class: ui.button }, 'Terminer et évaluer');
+  const finishButton = el('button', { type: 'button', class: ui.button }, 'Noter et continuer');
   const stopButton = el('button', { type: 'button', class: ui.button }, 'Terminer la séance');
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
   const micButton = el('button', {
@@ -142,6 +252,38 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     class: 'h-full w-0 rounded-full bg-amber-400 transition-[width] duration-75',
   });
   micLevelTrack.append(micLevelFill);
+
+  // Test du micro : hors évaluation, pour lever le doute sur le matériel
+  // (micro, distance, bruit ambiant) avant de s'engager dans 3 passes
+  // chronométrées — sans quoi un mauvais score reste indécidable entre une
+  // erreur de jeu et une détection défaillante.
+  const testMicButton = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-pressed': 'false' },
+    'Tester le micro',
+  );
+  const testHeardLabel = el('span', {
+    class: 'font-mono text-sm text-amber-300',
+    'aria-live': 'polite',
+  });
+  const testLevelTrack = el('div', {
+    class: 'h-1.5 w-32 overflow-hidden rounded-full bg-zinc-800',
+  });
+  const testLevelFill = el('div', {
+    class: 'h-full w-0 rounded-full bg-emerald-400 transition-[width] duration-75',
+  });
+  testLevelTrack.append(testLevelFill);
+  const testRow = el(
+    'div',
+    { class: 'hidden flex-col gap-2' },
+    el('div', { class: 'flex flex-wrap items-center gap-3' }, testHeardLabel, testLevelTrack),
+    el(
+      'p',
+      { class: 'text-xs text-zinc-500' },
+      'Test libre : rien n’est chronométré ni noté. Jouez quelques notes et vérifiez '
+        + 'qu’elles s’affichent à la bonne hauteur et à la bonne octave.',
+    ),
+  );
 
   // --- Peinture -----------------------------------------------------------
 
@@ -192,6 +334,15 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     );
   }
 
+  /** Bascule entre le chiffrage et le décompte de préparation. `null` le masque. */
+  function paintCountdown(remaining: number | null): void {
+    const active = remaining !== null;
+    countdownLabel.textContent = active ? String(remaining) : '';
+    countdownLabel.classList.toggle('hidden', !active);
+    accordLabel.classList.toggle('hidden', active);
+    sensLabel.classList.toggle('hidden', active);
+  }
+
   function paintTempo(): void {
     bpmValue.textContent = String(bpm);
     minus.disabled = bpm <= MIN_BPM;
@@ -201,14 +352,43 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       last === null ? 'Jamais chronométré.' : `Dernière fois à ${last} BPM.`;
   }
 
+  /**
+   * Le test du micro a sa propre peinture : son callback `onOnset` la rappelle
+   * à chaque note entendue, bien plus souvent que le reste du transport.
+   */
+  function paintMicTest(): void {
+    testMicButton.textContent = micTestActivating
+      ? 'Activation du micro…'
+      : micTesting
+        ? 'Arrêter le test'
+        : 'Tester le micro';
+    testMicButton.className = micTesting ? ui.buttonActive : ui.button;
+    // Même micro physique, même règle d'exclusion que Play/Micro depuis #49 :
+    // on ne teste pas pendant qu'une écoute ou une lecture tourne.
+    testMicButton.disabled =
+      micTestActivating ||
+      micActivating ||
+      metronome.running ||
+      evaluating ||
+      (player?.playing ?? false);
+    testMicButton.setAttribute('aria-pressed', String(micTesting));
+
+    testRow.classList.toggle('hidden', !micTesting);
+    testRow.classList.toggle('flex', micTesting);
+    testHeardLabel.textContent =
+      testHeard === null ? 'Micro : jouez une note…' : `Micro : ${testHeard}`;
+  }
+
   function paintTransport(): void {
+    // Le métronome libre (bouton Play) et l'évaluation (bouton Micro)
+    // partagent le même moteur, mais ne doivent jamais sembler tourner tous
+    // les deux à la fois : `playRunning` ne reflète que le premier.
+    const playRunning = metronome.running && !evaluating;
+
     // Le métronome est l'action première tant qu'il est à l'arrêt ; une fois
     // lancé, il s'efface au profit de « Terminer », qui devient la suite.
-    playButton.textContent = metronome.running
-      ? 'Arrêter le métronome'
-      : 'Démarrer le métronome';
-    playButton.className = metronome.running ? ui.buttonActive : ui.primary;
-    finishButton.className = metronome.running ? ui.button : ui.primary;
+    playButton.textContent = playRunning ? 'Arrêter le métronome' : 'Démarrer le métronome';
+    playButton.className = playRunning ? ui.buttonActive : ui.primary;
     revealButton.className = revealed ? ui.buttonActive : ui.button;
 
     // Écoute et métronome partagent le même surlignage : les lancer ensemble
@@ -216,24 +396,45 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     const ecouteEnCours = player?.playing ?? false;
     ecouterButton.textContent = ecouteEnCours ? '❚❚ Arrêter l’écoute' : '▶ Écouter';
     ecouterButton.className = ecouteEnCours ? ui.buttonActive : ui.button;
-    ecouterButton.disabled = metronome.running;
-    playButton.disabled = ecouteEnCours;
+    // `evaluating` en plus de `metronome.running` : entre le dernier clic et
+    // la notation, le métronome est déjà arrêté (voir `onBeat`) alors que
+    // l'évaluation, elle, court toujours.
+    ecouterButton.disabled = metronome.running || evaluating || micTesting || micTestActivating;
+    playButton.disabled = ecouteEnCours || evaluating || micTesting || micTestActivating;
     boucleButton.className = bouclerEcoute ? ui.chipActive : ui.chip;
+
+    // L'évaluation se note elle-même après ses 3 passes : « Terminer et
+    // évaluer » n'a de sens que pour la pratique libre. `style.display`,
+    // pas `classList` : `ui.primary`/`ui.button` posent `inline-flex`, qui
+    // l'emporterait sur `.hidden` (même spécificité, déclarée après dans le
+    // CSS généré par Tailwind).
+    finishButton.className = playRunning ? ui.button : ui.primary;
+    finishButton.style.display = evaluating ? 'none' : '';
 
     const listening = tracker?.listening ?? false;
     micButton.textContent = micActivating
       ? 'Activation du micro…'
-      : listening
-        ? 'Couper le micro'
+      : evaluating
+        ? 'Annuler l’évaluation'
         : 'Écouter au micro';
     // `ui.buttonActive` n'a pas de style désactivé : le réserver à l'écoute
     // effective garde le bouton visiblement grisé pendant l'activation.
     micButton.className = listening ? ui.buttonActive : ui.button;
-    micButton.disabled = micActivating;
+    // Le métronome libre tourne déjà : le micro attend qu'il s'arrête plutôt
+    // que de faire démarrer un second métronome par-dessus.
+    micButton.disabled =
+      micActivating || micTesting || micTestActivating || (metronome.running && !evaluating);
     micButton.setAttribute('aria-pressed', String(listening));
+
+    paintMicTest();
 
     micStatusDot.classList.toggle('hidden', !listening);
     micStatusText.classList.toggle('hidden', !listening);
+    micStatusText.textContent = countingIn
+      ? 'Préparez-vous…'
+      : evaluating
+        ? `Passe ${currentPasse} / ${PASSES_REQUISES}`
+        : 'Écoute en cours…';
     micLevelTrack.classList.toggle('hidden', !listening);
     if (!listening) micLevelFill.style.width = '0%';
 
@@ -241,11 +442,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       micError ??
       (micActivating
         ? 'Autorisez le micro dans le navigateur pour continuer.'
-        : micSilence
-          ? 'Aucun son détecté pour l’instant — jouez près du micro.'
-          : listening
-            ? 'Le relevé est indicatif : sur des notes qui se recouvrent, il se trompe.'
-            : 'Facultatif. Sans micro, l’évaluation reste entièrement la vôtre.');
+        : evaluating
+          ? micSilence
+            ? 'Aucun son détecté pour l’instant — jouez près du micro.'
+            : 'Notes et rythme sont évalués sur ces 3 passes. Un nouvel appui annule.'
+          : playRunning
+            ? 'Le métronome libre tourne déjà : arrêtez-le pour lancer l’évaluation.'
+            : 'Lance un compteur de 4 temps, puis évalue 3 passes complètes (notes et rythme).');
     micHint.classList.toggle('text-rose-300', micError !== null || micSilence);
     micHint.classList.toggle('text-zinc-500', micError === null && !micSilence);
   }
@@ -268,6 +471,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       stopMetronome();
       return;
     }
+    // Le test partage le micro et l'attention : démarrer le métronome le clôt.
+    stopMicTest();
     beats = [];
     prise = { beats: [], onsets: [] };
     judged = new Map();
@@ -409,18 +614,32 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     silenceTimer = null;
   }
 
+  /** Annule l'évaluation en cours (compteur ou passes) sans la noter. */
+  function cancelEvaluation(): void {
+    if (graceTimer !== null) {
+      window.clearTimeout(graceTimer);
+      graceTimer = null;
+    }
+    tracker?.stop();
+    clearSilenceTimer();
+    micSilence = false;
+    evaluating = false;
+    countingIn = false;
+    currentPasse = 1;
+    paintCountdown(null);
+    stopMetronome();
+  }
+
   async function toggleMic(): Promise<void> {
     // Sans cette garde, un clic pendant l'attente de `getUserMedia` relancerait
     // une seconde demande d'accès au micro au lieu d'être ignoré.
     if (micActivating) return;
     micError = null;
     if (tracker?.listening) {
-      tracker.stop();
-      clearSilenceTimer();
-      micSilence = false;
-      paintTransport();
+      cancelEvaluation();
       return;
     }
+    stopMicTest();
     micActivating = true;
     paintTransport();
     try {
@@ -428,29 +647,96 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       tracker ??= new PitchTracker(context, handleOnset, handleLevel);
       await tracker.start();
       prise = { beats: [], onsets: [] };
+      judged = new Map();
+      decalage = 0;
       micSilence = false;
       clearSilenceTimer();
+      evaluating = true;
+      countingIn = true;
+      currentPasse = 1;
+      // Le micro déclenche désormais lui-même son métronome, synchronisé sur
+      // un compteur de préparation : c'est le seul point d'entrée d'une
+      // évaluation complète (voir issue #49).
+      await metronome.start(bpm, carte().notes.length, COUNT_IN_BEATS);
+      startFrames();
       silenceTimer = window.setTimeout(() => {
         silenceTimer = null;
         micSilence = true;
         paintTransport();
       }, SILENCE_WARNING_MS);
     } catch (error) {
-      // Le nom de l'exception distingue le refus de permission — qui appelle un
-      // geste précis dans les réglages du navigateur — d'une simple absence de
-      // micro, que rien ne peut réparer depuis l'écran.
-      micError =
-        error instanceof DOMException && error.name === 'NotAllowedError'
-          ? 'Accès au micro refusé — autorisez-le dans les réglages du navigateur pour ce site.'
-          : error instanceof DOMException && error.name === 'NotFoundError'
-            ? 'Aucun micro détecté sur cet appareil.'
-            : 'Micro indisponible — l’évaluation reste manuelle.';
+      micError = messageMicro(error);
+      evaluating = false;
     }
     micActivating = false;
     paintTransport();
   }
 
   micButton.addEventListener('click', () => void toggleMic());
+
+  /**
+   * Écoute libre, pour vérifier que le micro et la détection de hauteur
+   * fonctionnent sur ce matériel avant de s'engager dans une évaluation
+   * chronométrée : ni métronome, ni prise, ni notation — juste la note
+   * entendue et un niveau d'entrée.
+   */
+  async function toggleMicTest(): Promise<void> {
+    if (micTestActivating) return;
+    if (micTesting) {
+      stopMicTest();
+      return;
+    }
+    micError = null;
+    micTestActivating = true;
+    testHeard = null;
+    paintTransport();
+    // Capturé avant les `await` : si `stopMicTest()` est appelé entre-temps (par
+    // exemple parce que le micro ou le métronome a démarré ailleurs pendant que le
+    // navigateur demandait la permission), la génération aura changé à notre réveil.
+    const generation = micTestGeneration;
+    try {
+      // Même `AudioContext` que le métronome, comme pour l'évaluation : un
+      // second contexte n'apporterait rien et coûterait un périphérique de
+      // plus à ouvrir.
+      const context = await metronome.prepare();
+      testTracker ??= new PitchTracker(
+        context,
+        (onset) => {
+          testHeard = nameFromMidi(onset.midi);
+          paintMicTest();
+        },
+        (level) => {
+          testLevelFill.style.width = `${Math.round(level * 100)}%`;
+        },
+      );
+      await testTracker.start();
+      if (generation !== micTestGeneration) {
+        // Annulé pendant l'activation : ne pas ressusciter le test par-dessus
+        // ce qui a démarré entre-temps.
+        testTracker.stop();
+      } else {
+        micTesting = true;
+      }
+    } catch (error) {
+      micError = messageMicro(error);
+    }
+    micTestActivating = false;
+    paintTransport();
+  }
+
+  function stopMicTest(): void {
+    // Compte même si le test n'a pas encore fini de s'activer : c'est ce qui permet
+    // à `toggleMicTest()` de se découvrir annulé à son réveil, voir plus haut.
+    micTestGeneration++;
+    if (!micTesting) return;
+    testTracker?.stop();
+    micTesting = false;
+    testHeard = null;
+    testLevelFill.style.width = '0%';
+    paintTransport();
+  }
+
+  testMicButton.addEventListener('click', () => void toggleMicTest());
 
   // --- Indice -------------------------------------------------------------
 
@@ -467,8 +753,23 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   async function finish(endSession = false): Promise<void> {
     const current = carte();
+    // Appelé aussi bien depuis la fin automatique des 3 passes (le micro
+    // écoute encore) que depuis « Terminer la séance » en pleine évaluation :
+    // dans les deux cas, le micro doit se taire avant la notation.
+    if (graceTimer !== null) {
+      window.clearTimeout(graceTimer);
+      graceTimer = null;
+    }
+    if (evaluating) {
+      tracker?.stop();
+      evaluating = false;
+      countingIn = false;
+      currentPasse = 1;
+      paintCountdown(null);
+    }
     stopMetronome();
     stopEcouter();
+    stopMicTest();
 
     // Une hauteur attendue par battue relevée : le motif se répète tant que le
     // métronome tourne, et l'on note tout ce qui a été joué. Le décalage est
@@ -499,12 +800,22 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
             hints === 0 ? 'Les notes n’ont pas été révélées.' : `Notes révélées ${hints} fois.`
           }`;
 
+    // Le relevé note à note : ce que le résumé chiffré ne dit pas. Seulement
+    // s'il y a quelque chose à montrer — un passage sans accroc n'a pas de
+    // lignes, et une modale vide ferait douter du relevé plutôt que l'éclairer.
+    const lignes = detailLignes(resultat, prise.beats, current.midi.length);
+    const detail =
+      lignes.length > 0
+        ? el('div', {}, ...lignes.map((ligne) => el('p', {}, ligne)))
+        : undefined;
+
     const answer = await askSrs(
       current.accord,
       `${current.nom} · ${SENS_LABELS[current.sens]}`,
       hints,
       current.notes.length,
       contexte,
+      detail,
     );
 
     // Annulation : ni note, ni passage à l'exercice suivant — on reprend celui-ci.
@@ -566,6 +877,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         'section',
         { class: 'flex flex-col items-center rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-10' },
         accordLabel,
+        countdownLabel,
         sensLabel,
         el('div', { class: 'mt-8 w-full overflow-x-auto' }, notesRow),
         el(
@@ -591,7 +903,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           el('span', { class: 'text-sm text-zinc-500' }, 'BPM'),
         ),
         bpmHint,
-        el('div', { class: 'mt-1 flex flex-wrap items-center gap-2' }, playButton, micButton),
+        el(
+          'div',
+          { class: 'mt-1 flex flex-wrap items-center gap-2' },
+          playButton,
+          micButton,
+          testMicButton,
+        ),
         el(
           'div',
           { class: 'flex flex-wrap items-center gap-2' },
@@ -600,6 +918,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           micLevelTrack,
         ),
         micHint,
+        testRow,
       ),
 
       el('div', { class: 'flex flex-wrap gap-2' }, finishButton, stopButton),
@@ -616,10 +935,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   return () => {
     stopFrames();
     clearSilenceTimer();
+    if (graceTimer !== null) window.clearTimeout(graceTimer);
     // Le micro d'abord : il faut relâcher les pistes de capture avant de
     // fermer le contexte auquel elles sont raccordées.
     tracker?.destroy();
     tracker = null;
+    testTracker?.destroy();
+    testTracker = null;
     player?.stop();
     player = null;
     metronome.destroy();
