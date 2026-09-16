@@ -98,6 +98,23 @@ describe('renderDashboard — jauge de maîtrise', () => {
     expect(gauge.getAttribute('title')).toContain('maîtrise 2/5');
     expect(gauge.querySelectorAll('.bg-emerald-400')).toHaveLength(2);
   });
+
+  it('affiche le niveau en texte à côté des pastilles, lisible sans tooltip (issue #60)', () => {
+    const card: SrsCard = {
+      ease: 2.5,
+      interval: 6,
+      repetitions: 2,
+      due: '2099-01-01',
+      history: [{ date: '2020-01-01', grade: 5, tempo: 'fluide', hints: 0 }],
+    };
+    const { root } = mountDashboard([song('a')], {
+      progress: baseProgress(withCard('c', card)),
+    });
+    const gauge = [...root.querySelectorAll('span[title]')].find((s) =>
+      s.getAttribute('title')?.includes('maîtrise'),
+    )!;
+    expect(gauge.textContent).toContain('2/5');
+  });
 });
 
 describe('renderDashboard — CTA', () => {

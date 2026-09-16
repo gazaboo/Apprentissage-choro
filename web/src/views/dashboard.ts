@@ -648,6 +648,10 @@ export function renderDashboard(
  * atteint. La couleur porte le statut « dû/pas dû » (`badge`), le nombre de
  * pastilles pleines porte la profondeur de travail déjà accompli — deux axes
  * indépendants qu'un simple badge à deux couleurs ne distinguait pas.
+ *
+ * Le décompte « N/5 » à côté des pastilles est ce qui rend la jauge lisible
+ * sans le tooltip (issue #60) : les pastilles seules ne disaient pas sur
+ * quelle échelle elles se lisaient.
  */
 function masteryGauge(level: number, badge: Badge): HTMLElement {
   const filledClass = badge === 'a-jour' ? 'bg-emerald-400' : 'bg-amber-400';
@@ -659,11 +663,12 @@ function masteryGauge(level: number, badge: Badge): HTMLElement {
   return el(
     'span',
     {
-      class: 'flex shrink-0 items-center gap-1',
+      class: 'flex shrink-0 items-center gap-1.5',
       title: `${BADGE_LABELS[badge]} · maîtrise ${level}/${MASTERY_LEVELS}`,
       'aria-label': `${BADGE_LABELS[badge]}, maîtrise ${level} sur ${MASTERY_LEVELS}`,
     },
-    ...dots,
+    el('span', { class: 'flex items-center gap-1' }, ...dots),
+    el('span', { class: 'text-xs tabular-nums text-zinc-500' }, `${level}/${MASTERY_LEVELS}`),
   );
 }
 
