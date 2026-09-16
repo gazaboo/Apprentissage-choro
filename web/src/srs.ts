@@ -136,6 +136,25 @@ export const STATUS_LABELS: Record<Status, string> = {
   'a-jour': 'À jour',
 };
 
+export const MASTERY_LEVELS = 5;
+
+/**
+ * Niveau de maîtrise affiché (0 à `MASTERY_LEVELS`), dérivé de l'intervalle
+ * SRS courant plutôt que de `repetitions` : ce dernier repart de 0 après un
+ * échec (voir `statusOf`), ce qui ferait retomber la jauge à vide alors que
+ * le morceau a déjà été travaillé. `interval` ne descend jamais sous 1, donc
+ * un échec ramène la jauge à 1, jamais à 0.
+ */
+export function masteryLevel(card: SrsCard | undefined): number {
+  if (!card || card.history.length === 0) return 0;
+  const { interval } = card;
+  if (interval <= 1) return 1;
+  if (interval <= 6) return 2;
+  if (interval <= 15) return 3;
+  if (interval <= 40) return 4;
+  return 5;
+}
+
 /** Note suggérée dans le questionnaire, d'après les indices déclenchés. */
 export function suggestGrade(hints: number, maskedCount: number): number {
   if (maskedCount === 0) return 4;
