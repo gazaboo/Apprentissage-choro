@@ -130,7 +130,7 @@ function bouton(root: HTMLElement, texte: string): HTMLButtonElement {
 describe('renderTechnique — décompte des battues évaluées', () => {
   it('s’arrête à 3 × N battues, sans battue fantôme pendant le délai de grâce', async () => {
     const { root, teardown } = mount();
-    bouton(root, 'Écouter au micro').click();
+    bouton(root, 'Évaluation au micro').click();
     // Laisse `getUserMedia` et `metronome.start()` se résoudre.
     await vi.advanceTimersByTimeAsync(0);
     expect(trackers[0]?.listening).toBe(true);
@@ -167,7 +167,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
 
   it('détaille les notes à vérifier, une ligne par note, sans interpréter', async () => {
     const { root, teardown } = mount();
-    bouton(root, 'Écouter au micro').click();
+    bouton(root, 'Évaluation au micro').click();
     await vi.advanceTimersByTimeAsync(0);
 
     const total = PASSES * MOTIF.length;
