@@ -57,6 +57,23 @@ function messageMicro(error: unknown): string {
   return 'Micro indisponible — l’évaluation reste manuelle.';
 }
 
+/** Fréquence mesurée, au dixième de hertz, à la française. */
+function formatHertz(frequency: number): string {
+  return `${frequency.toFixed(1).replace('.', ',')} Hz`;
+}
+
+/**
+ * Écart au demi-ton tempéré, en centièmes, signe compris.
+ *
+ * Le signe est ce qui compte : une note juste mais constamment à −20 dit une
+ * corde à remonter, là où un nom de note seul laisserait croire à un caprice
+ * de la détection.
+ */
+function formatCents(cents: number): string {
+  if (cents === 0) return 'juste';
+  return `${cents > 0 ? '+' : '−'}${Math.abs(cents)} ¢`;
+}
+
 export interface TechniqueContext {
   progress: Progress;
   /** Les cartes de la séance, dans l'ordre de passage. */
@@ -124,8 +141,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
    *  cours (`toggleMicTest`) de se découvrir annulée à son réveil et de ne pas passer
    *  `micTesting` à `true` par-dessus une évaluation ou un métronome démarré entre-temps. */
   let micTestGeneration = 0;
-  /** Dernière hauteur entendue pendant le test, nommée, ou `null` avant la première. */
-  let testHeard: string | null = null;
+  /** Cinq dernières notes entendues pendant le test, la plus récente en tête. */
+  let testHeard: Onset[] = [];
 
   function carte(): ExerciceCarte {
     return ordre[index] ?? ordre[0]!;
@@ -266,6 +283,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     class: 'font-mono text-sm text-amber-300',
     'aria-live': 'polite',
   });
+  const testHistoryLabel = el('span', {
+    class: 'font-mono text-xs text-zinc-500',
+  });
   const testLevelTrack = el('div', {
     class: 'h-1.5 w-32 overflow-hidden rounded-full bg-zinc-800',
   });
@@ -277,11 +297,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     'div',
     { class: 'hidden flex-col gap-2' },
     el('div', { class: 'flex flex-wrap items-center gap-3' }, testHeardLabel, testLevelTrack),
+    testHistoryLabel,
     el(
       'p',
       { class: 'text-xs text-zinc-500' },
       'Test libre : rien n’est chronométré ni noté. Jouez quelques notes et vérifiez '
-        + 'qu’elles s’affichent à la bonne hauteur et à la bonne octave.',
+        + 'qu’elles s’affichent à la bonne hauteur et à la bonne octave. L’écart en '
+        + 'centièmes dit la justesse : s’il penche toujours du même côté, c’est la '
+        + 'guitare qu’il faut accorder, pas la détection qui se trompe.',
     ),
   );
 
@@ -375,8 +398,18 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
     testRow.classList.toggle('hidden', !micTesting);
     testRow.classList.toggle('flex', micTesting);
+    const [dernier] = testHeard;
     testHeardLabel.textContent =
-      testHeard === null ? 'Micro : jouez une note…' : `Micro : ${testHeard}`;
+      dernier === undefined
+        ? 'Micro : jouez une note…'
+        : `Micro : ${nameFromMidi(dernier.midi)} · ${formatHertz(dernier.frequency)}`
+          + ` · ${formatCents(dernier.cents)}`;
+    // Les précédentes restent affichées : une note isolée ne dit pas si la
+    // détection suit, une suite le dit tout de suite.
+    testHistoryLabel.textContent =
+      testHeard.length > 1
+        ? `avant : ${testHeard.slice(1).map((o) => nameFromMidi(o.midi)).join('  ')}`
+        : '';
   }
 
   function paintTransport(): void {
@@ -688,7 +721,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     }
     micError = null;
     micTestActivating = true;
-    testHeard = null;
+    testHeard = [];
     paintTransport();
     // Capturé avant les `await` : si `stopMicTest()` est appelé entre-temps (par
     // exemple parce que le micro ou le métronome a démarré ailleurs pendant que le
@@ -702,7 +735,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       testTracker ??= new PitchTracker(
         context,
         (onset) => {
-          testHeard = nameFromMidi(onset.midi);
+          testHeard = [onset, ...testHeard].slice(0, 5);
           paintMicTest();
         },
         (level) => {
@@ -731,7 +764,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     if (!micTesting) return;
     testTracker?.stop();
     micTesting = false;
-    testHeard = null;
+    testHeard = [];
     testLevelFill.style.width = '0%';
     paintTransport();
   }
