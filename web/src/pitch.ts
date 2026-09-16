@@ -270,6 +270,8 @@ export class PitchTracker {
   private source: MediaStreamAudioSourceNode | null = null;
   private node: AudioWorkletNode | null = null;
   private pitchStream: PitchStream | null = null;
+  /** Lots bruts conservés quand un enregistrement de diagnostic est en cours. */
+  private recorded: Float32Array[] | null = null;
 
   /**
    * `onLevel` publie le niveau sonore courant (0–1) à chaque lot, qu'il y ait
@@ -312,6 +314,9 @@ export class PitchTracker {
       numberOfOutputs: 0,
     });
     this.node.port.onmessage = (event: MessageEvent<{ frame: number; samples: Float32Array }>) => {
+      // Le lot vient d'être transféré : il nous appartient, on peut le garder
+      // tel quel sans copie.
+      this.recorded?.push(event.data.samples);
       this.pitchStream?.push(event.data.frame, event.data.samples);
     };
 
@@ -322,7 +327,32 @@ export class PitchTracker {
     return this.stream !== null;
   }
 
+  /**
+   * Conserve le signal brut tel que le détecteur le reçoit.
+   *
+   * Diagnostic seulement : mesurer sur guitare synthétique a ses limites, et
+   * seul le signal réel dit pourquoi une note n'est pas reconnue. Ce qu'on
+   * enregistre est exactement ce qui entre dans l'analyse — après
+   * `getUserMedia`, avant toute décision.
+   */
+  startRecording(): void {
+    this.recorded = [];
+  }
+
+  get recording(): boolean {
+    return this.recorded !== null;
+  }
+
+  /** Rend l'enregistrement en WAV 16 bits, et arrête la capture. */
+  stopRecording(): Blob | null {
+    const lots = this.recorded;
+    this.recorded = null;
+    if (!lots || lots.length === 0) return null;
+    return encodeWav(lots, this.context.sampleRate);
+  }
+
   stop(): void {
+    this.recorded = null;
     if (this.node) this.node.port.onmessage = null;
     this.source?.disconnect();
     this.node?.disconnect();
@@ -336,6 +366,41 @@ export class PitchTracker {
   destroy(): void {
     this.stop();
   }
+}
+
+/** WAV PCM 16 bits mono : le format que lisent tous les outils d'analyse. */
+function encodeWav(lots: Float32Array[], sampleRate: number): Blob {
+  let total = 0;
+  for (const lot of lots) total += lot.length;
+
+  const buffer = new ArrayBuffer(44 + total * 2);
+  const view = new DataView(buffer);
+  const ascii = (offset: number, text: string) => {
+    for (let i = 0; i < text.length; i += 1) view.setUint8(offset + i, text.charCodeAt(i));
+  };
+  ascii(0, 'RIFF');
+  view.setUint32(4, 36 + total * 2, true);
+  ascii(8, 'WAVE');
+  ascii(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  ascii(36, 'data');
+  view.setUint32(40, total * 2, true);
+
+  let offset = 44;
+  for (const lot of lots) {
+    for (let i = 0; i < lot.length; i += 1) {
+      const value = Math.max(-1, Math.min(1, lot[i] ?? 0));
+      view.setInt16(offset, Math.round(value * 32767), true);
+      offset += 2;
+    }
+  }
+  return new Blob([buffer], { type: 'audio/wav' });
 }
 
 function rootMeanSquare(buffer: Float32Array): number {

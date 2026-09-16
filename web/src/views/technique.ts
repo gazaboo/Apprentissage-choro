@@ -143,6 +143,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let micTestGeneration = 0;
   /** Cinq dernières notes entendues pendant le test, la plus récente en tête. */
   let testHeard: Onset[] = [];
+  /** Diagnostic : relevé de ce que le détecteur a cru entendre pendant l'enregistrement. */
+  let recordLog: string[] = [];
+  let recordTimer: number | null = null;
 
   function carte(): ExerciceCarte {
     return ordre[index] ?? ordre[0]!;
@@ -286,6 +289,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const testHistoryLabel = el('span', {
     class: 'font-mono text-xs text-zinc-500',
   });
+  // Diagnostic : enregistre le signal tel que le détecteur le reçoit, pour
+  // pouvoir l'analyser hors ligne. Mesurer sur guitare synthétique a ses
+  // limites ; seul le signal réel dit pourquoi une note n'est pas reconnue.
+  const recordButton = el(
+    'button',
+    { type: 'button', class: ui.button },
+    'Enregistrer 20 s',
+  );
   const testLevelTrack = el('div', {
     class: 'h-1.5 w-32 overflow-hidden rounded-full bg-zinc-800',
   });
@@ -298,6 +309,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     { class: 'hidden flex-col gap-2' },
     el('div', { class: 'flex flex-wrap items-center gap-3' }, testHeardLabel, testLevelTrack),
     testHistoryLabel,
+    el('div', { class: 'flex flex-wrap items-center gap-3' }, recordButton),
     el(
       'p',
       { class: 'text-xs text-zinc-500' },
@@ -736,6 +748,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         context,
         (onset) => {
           testHeard = [onset, ...testHeard].slice(0, 5);
+          if (testTracker?.recording) {
+            recordLog.push(
+              `${onset.audioTime.toFixed(3)}s  ${nameFromMidi(onset.midi)}`
+                + `  ${onset.frequency.toFixed(1)} Hz  ${onset.cents >= 0 ? '+' : ''}${onset.cents} c`
+                + `  clarte=${onset.clarte.toFixed(3)}`,
+            );
+          }
           paintMicTest();
         },
         (level) => {
@@ -770,6 +789,36 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   }
 
   testMicButton.addEventListener('click', () => void toggleMicTest());
+
+  /** Propose un fichier au téléchargement, sans passer par le serveur. */
+  function telecharger(blob: Blob, nom: string): void {
+    const url = URL.createObjectURL(blob);
+    const lien = el('a', { href: url, download: nom }) as HTMLAnchorElement;
+    document.body.append(lien);
+    lien.click();
+    lien.remove();
+    // Laisser au navigateur le temps d'ouvrir le flux avant de le révoquer.
+    window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
+
+  recordButton.addEventListener('click', () => {
+    if (!testTracker?.listening || recordTimer !== null) return;
+    recordLog = [];
+    testTracker.startRecording();
+    recordButton.textContent = 'Enregistrement…';
+    recordButton.disabled = true;
+    recordTimer = window.setTimeout(() => {
+      recordTimer = null;
+      const wav = testTracker?.stopRecording() ?? null;
+      recordButton.textContent = 'Enregistrer 20 s';
+      recordButton.disabled = false;
+      if (!wav) return;
+      telecharger(wav, 'echantillon-micro.wav');
+      const entete = `Relevé du détecteur pendant l'enregistrement\n`
+        + `${recordLog.length} attaque(s) retenue(s)\n\n`;
+      telecharger(new Blob([entete + recordLog.join('\n')], { type: 'text/plain' }), 'echantillon-micro.txt');
+    }, 20_000);
+  });
 
   // --- Indice -------------------------------------------------------------
 
