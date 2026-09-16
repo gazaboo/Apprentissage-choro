@@ -120,6 +120,10 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let testTracker: PitchTracker | null = null;
   let micTesting = false;
   let micTestActivating = false;
+  /** Incrémenté à chaque coupure du test (`stopMicTest`) : permet à une activation en
+   *  cours (`toggleMicTest`) de se découvrir annulée à son réveil et de ne pas passer
+   *  `micTesting` à `true` par-dessus une évaluation ou un métronome démarré entre-temps. */
+  let micTestGeneration = 0;
   /** Dernière hauteur entendue pendant le test, nommée, ou `null` avant la première. */
   let testHeard: string | null = null;
 
@@ -395,8 +399,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // `evaluating` en plus de `metronome.running` : entre le dernier clic et
     // la notation, le métronome est déjà arrêté (voir `onBeat`) alors que
     // l'évaluation, elle, court toujours.
-    ecouterButton.disabled = metronome.running || evaluating || micTesting;
-    playButton.disabled = ecouteEnCours || evaluating || micTesting;
+    ecouterButton.disabled = metronome.running || evaluating || micTesting || micTestActivating;
+    playButton.disabled = ecouteEnCours || evaluating || micTesting || micTestActivating;
     boucleButton.className = bouclerEcoute ? ui.chipActive : ui.chip;
 
     // L'évaluation se note elle-même après ses 3 passes : « Terminer et
@@ -418,7 +422,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micButton.className = listening ? ui.buttonActive : ui.button;
     // Le métronome libre tourne déjà : le micro attend qu'il s'arrête plutôt
     // que de faire démarrer un second métronome par-dessus.
-    micButton.disabled = micActivating || micTesting || (metronome.running && !evaluating);
+    micButton.disabled =
+      micActivating || micTesting || micTestActivating || (metronome.running && !evaluating);
     micButton.setAttribute('aria-pressed', String(listening));
 
     paintMicTest();
@@ -685,6 +690,10 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micTestActivating = true;
     testHeard = null;
     paintTransport();
+    // Capturé avant les `await` : si `stopMicTest()` est appelé entre-temps (par
+    // exemple parce que le micro ou le métronome a démarré ailleurs pendant que le
+    // navigateur demandait la permission), la génération aura changé à notre réveil.
+    const generation = micTestGeneration;
     try {
       // Même `AudioContext` que le métronome, comme pour l'évaluation : un
       // second contexte n'apporterait rien et coûterait un périphérique de
@@ -701,7 +710,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         },
       );
       await testTracker.start();
-      micTesting = true;
+      if (generation !== micTestGeneration) {
+        // Annulé pendant l'activation : ne pas ressusciter le test par-dessus
+        // ce qui a démarré entre-temps.
+        testTracker.stop();
+      } else {
+        micTesting = true;
+      }
     } catch (error) {
       micError = messageMicro(error);
     }
@@ -710,6 +725,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   }
 
   function stopMicTest(): void {
+    // Compte même si le test n'a pas encore fini de s'activer : c'est ce qui permet
+    // à `toggleMicTest()` de se découvrir annulé à son réveil, voir plus haut.
+    micTestGeneration++;
     if (!micTesting) return;
     testTracker?.stop();
     micTesting = false;
