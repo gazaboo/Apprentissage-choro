@@ -88,11 +88,34 @@ const MIN_GAP_S = 0.07;
  * assez bas pour garder les notes de fin d'arpège. */
 const MIN_CLARITY = 0.7;
 
-/** Bornes de recherche. La guitare 7 cordes descend à C2 (36) et monte à E5
- *  (76) : on garde un ton de marge en bas, et de quoi suivre une harmonique
- *  franche en haut. Chercher plus bas coûterait des `tau` pour rien. */
+/** Bornes de recherche : la guitare 7 cordes va de C2 (36) à E5 (76), plus un
+ *  ton de marge de part et d'autre.
+ *
+ *  Le haut est serré exprès. Chercher jusqu'à 1300 Hz laissait le détecteur
+ *  nommer des sons qu'aucune guitare ne peut produire — à commencer par le
+ *  clic du métronome, qui repassait en B5. Ce qui sort de la tessiture de
+ *  l'instrument ne vient pas de l'instrument. */
 const MIN_MIDI = 34;
-const MAX_MIDI = 88;
+const MAX_MIDI = 78;
+
+/**
+ * Fréquences du clic du métronome (`metronome.ts`), à retirer de l'entrée.
+ *
+ * Le clic sort dans les haut-parleurs, le micro l'entend, et comme c'est une
+ * sinusoïde pure il est plus périodique que n'importe quelle corde : le
+ * détecteur le préférait à la note jouée et annonçait un B5 (l'accent à
+ * 1000 Hz) ou un G5 (la battue à 800 Hz), pile sur le temps.
+ *
+ * Trois cloches étroites suffisent à l'effacer. Une corde, elle, répartit son
+ * énergie sur une douzaine de partiels : lui en retirer trois bandes de
+ * quelques dizaines de hertz ne coûte que 0,01 de clarté — mesuré — parce que
+ * l'autocorrélation ne dépend pas de la forme du spectre, seulement de sa
+ * périodicité.
+ */
+const CLICK_HZ = [600, 800, 1000];
+
+/** Étroitesse des cloches : assez fines pour ne mordre que sur le clic. */
+const CLICK_Q = 20;
 
 export interface Onset {
   /** Instant `AudioContext.currentTime` de l'attaque. */
@@ -269,6 +292,7 @@ export class PitchTracker {
   private stream: MediaStream | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
   private node: AudioWorkletNode | null = null;
+  private notches: BiquadFilterNode[] = [];
   private pitchStream: PitchStream | null = null;
 
   /**
@@ -315,7 +339,19 @@ export class PitchTracker {
       this.pitchStream?.push(event.data.frame, event.data.samples);
     };
 
-    this.source.connect(this.node);
+    // Le clic du métronome est retiré avant toute analyse : voir `CLICK_HZ`.
+    this.notches = CLICK_HZ.map((frequency) => {
+      const filter = this.context.createBiquadFilter();
+      filter.type = 'notch';
+      filter.frequency.value = frequency;
+      filter.Q.value = CLICK_Q;
+      return filter;
+    });
+    const entree = this.notches.reduce<AudioNode>(
+      (amont, filtre) => amont.connect(filtre),
+      this.source,
+    );
+    entree.connect(this.node);
   }
 
   get listening(): boolean {
@@ -325,6 +361,8 @@ export class PitchTracker {
   stop(): void {
     if (this.node) this.node.port.onmessage = null;
     this.source?.disconnect();
+    for (const filtre of this.notches) filtre.disconnect();
+    this.notches = [];
     this.node?.disconnect();
     this.source = null;
     this.node = null;
