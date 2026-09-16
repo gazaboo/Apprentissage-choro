@@ -28,11 +28,40 @@ function lireWav(chemin: string): { data: Float32Array; sampleRate: number } {
   return { data, sampleRate };
 }
 
+/**
+ * Cloche étroite, identique à celle que `PitchTracker` pose sur l'entrée.
+ *
+ * Sans elle, l'analyse hors ligne ne voit pas le même signal que
+ * l'application — et conclut à côté : c'est arrivé, le clic du métronome
+ * ressortait ici alors que le filtre l'effaçait dans le navigateur.
+ */
+function notch(x: Float32Array, frequency: number, sampleRate: number, Q = 20): Float32Array {
+  const w = (2 * Math.PI * frequency) / sampleRate;
+  const alpha = Math.sin(w) / (2 * Q);
+  const cosw = Math.cos(w);
+  const a0 = 1 + alpha;
+  const b0 = 1 / a0, b1 = (-2 * cosw) / a0, b2 = 1 / a0;
+  const a1 = (-2 * cosw) / a0, a2 = (1 - alpha) / a0;
+  const y = new Float32Array(x.length);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let i = 0; i < x.length; i += 1) {
+    const xi = x[i] ?? 0;
+    const yi = b0 * xi + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+    x2 = x1; x1 = xi; y2 = y1; y1 = yi; y[i] = yi;
+  }
+  return y;
+}
+
 it('analyse', () => {
   const chemin = process.env.ECHANTILLON;
   if (!chemin) { writeFileSync('/tmp/analyse.txt', 'ECHANTILLON non défini'); return; }
-  const { data, sampleRate } = lireWav(chemin);
-  log(`${chemin}`);
+  const brutWav = lireWav(chemin);
+  const sampleRate = brutWav.sampleRate;
+  // `SANS_FILTRE=1` pour voir le signal tel quel, clic compris.
+  const data = process.env.SANS_FILTRE
+    ? brutWav.data
+    : [600, 800, 1000].reduce((x, f) => notch(x, f, sampleRate), brutWav.data);
+  log(`${chemin}${process.env.SANS_FILTRE ? '  (sans le filtre anti-clic)' : '  (filtre anti-clic appliqué, comme dans l\'application)'}`);
   log(`${(data.length / sampleRate).toFixed(2)} s à ${sampleRate} Hz, ${data.length} échantillons`);
 
   const rms = (a: number, b: number) => { let s = 0; const e = Math.min(b, data.length);
