@@ -4,7 +4,7 @@ import { detailLignes, noter, resume } from './grader';
 
 /** Attaque de test : seuls l'instant et la hauteur comptent pour la notation. */
 function onset(audioTime: number, midi: number): Onset {
-  return { audioTime, midi, clarte: 1 };
+  return { audioTime, midi, frequency: 0, cents: 0, clarte: 1 };
 }
 
 /** Battues régulières d'une seconde, comme les relève `prise.beats`. */

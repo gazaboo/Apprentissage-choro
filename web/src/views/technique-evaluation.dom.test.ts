@@ -93,6 +93,11 @@ const BEAT_S = 60 / DEFAULT_BPM;
 /** Instant audio de la première battue jouée (après le décompte). */
 const PREMIERE_S = AMORCE_S + COUNT_IN * BEAT_S;
 
+/** Attaque de test : la notation ne lit que l'instant et la hauteur. */
+function onset(audioTime: number, midi: number): Onset {
+  return { audioTime, midi, frequency: 0, cents: 0, clarte: 1 };
+}
+
 let restoreAudio: () => void;
 
 beforeEach(() => {
@@ -142,11 +147,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
     // Une attaque juste sur chaque battue jouée, rien d'autre. Toutes d'un
     // coup : `noter()` ne lit que leurs instants.
     for (let i = 0; i < total; i += 1) {
-      trackers[0]?.onOnset({
-        audioTime: PREMIERE_S + i * BEAT_S,
-        midi: MOTIF[i % MOTIF.length]!,
-        clarte: 1,
-      });
+      trackers[0]?.onOnset(onset(PREMIERE_S + i * BEAT_S, MOTIF[i % MOTIF.length]!));
     }
 
     // Le délai de grâce (une battue) expire et déclenche la notation.
@@ -178,11 +179,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
       // bonne note, mais 400 ms en retard — une dérive, pas une faute.
       if (i === 5) continue;
       const retard = i === 8 ? 0.4 : 0;
-      trackers[0]?.onOnset({
-        audioTime: PREMIERE_S + i * BEAT_S + retard,
-        midi: MOTIF[i % MOTIF.length]!,
-        clarte: 1,
-      });
+      trackers[0]?.onOnset(onset(PREMIERE_S + i * BEAT_S + retard, MOTIF[i % MOTIF.length]!));
     }
 
     await vi.advanceTimersByTimeAsync(2 * BEAT_S * 1000);
