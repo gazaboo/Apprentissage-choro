@@ -87,9 +87,9 @@ describe('renderTechnique — smoke', () => {
 });
 
 describe('renderTechnique — évaluation de fin', () => {
-  it('« Terminer et évaluer » (dernier exercice) ouvre la modale puis appelle onFinish après notation', async () => {
+  it('« Noter et continuer » (dernier exercice) ouvre la modale puis appelle onFinish après notation', async () => {
     const { root, context } = mount([carte()]);
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Noter et continuer')!;
     finish.click();
     await Promise.resolve();
 
@@ -105,7 +105,7 @@ describe('renderTechnique — évaluation de fin', () => {
 
   it('« Enregistrer » avec une note marque l\'exercice comme travaillé', async () => {
     const { root, context } = mount([carte()]);
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Noter et continuer')!;
     finish.click();
     await Promise.resolve();
 
