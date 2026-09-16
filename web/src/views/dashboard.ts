@@ -49,11 +49,17 @@ function runSummary(run: SessionRun): string {
     run.kind === 'filage' && run.instrumentId
       ? `filage ${INSTRUMENT_SHORT_LABELS[run.instrumentId]}`
       : RUN_KIND_LABELS[run.kind];
-  const count =
-    run.kind === 'technique'
-      ? `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`
-      : `${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
-  return `${run.setlistName} · ${kind} · ${count}`;
+  return `${run.setlistName} · ${kind} · ${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
+}
+
+/**
+ * Résumé d'une séance technique, sans nom de setlist : contrairement au
+ * répertoire, les arpèges et gammes n'appartiennent à aucune setlist — le
+ * champ `setlistName` n'y vaut qu'un libellé générique (« Arpèges et
+ * gammes ») redondant avec le titre de la carte.
+ */
+function techniqueRunSummary(run: SessionRun): string {
+  return `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`;
 }
 
 /**
@@ -621,7 +627,7 @@ export function renderDashboard(
                 `${new Date(run.date).toLocaleDateString('fr-FR', {
                   day: 'numeric',
                   month: 'short',
-                })} · ${runSummary(run)}`,
+                })} · ${techniqueRunSummary(run)}`,
               ),
             ),
           ),
