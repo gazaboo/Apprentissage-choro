@@ -775,6 +775,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     stopMetronome();
     stopEcouter();
     stopMicTest();
+    // Le minuteur d'alerte silence, armé par toggleMic(), continuerait sinon
+    // à courir et pourrait se déclencher sur l'exercice suivant.
+    clearSilenceTimer();
 
     // Une hauteur attendue par battue relevée : le motif se répète tant que le
     // métronome tourne, et l'on note tout ce qui a été joué. Le décalage est
