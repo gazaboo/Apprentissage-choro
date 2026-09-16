@@ -410,7 +410,7 @@ function render(): void {
       progress,
       ordre: technique.ordre,
       markWorked: (id) => technique?.worked.add(id),
-      navigateHome: goHome,
+      navigateBack: () => navigate('#/technique'),
       onFinish: finishRun,
     });
     return;

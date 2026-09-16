@@ -128,6 +128,15 @@ export class SequencePlayer {
     return this.timer !== null || this.pendingDone !== null;
   }
 
+  /**
+   * Change le bouclage d'une lecture déjà démarrée : `schedule()` relit
+   * `this.loop` à chaque fin de séquence, donc l'effet est immédiat, sans
+   * redémarrer la lecture en cours.
+   */
+  setLoop(loop: boolean): void {
+    this.loop = loop;
+  }
+
   private schedule(): void {
     const horizon = this.context.currentTime + LOOKAHEAD_S;
 

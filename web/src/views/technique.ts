@@ -63,7 +63,8 @@ export interface TechniqueContext {
   ordre: ExerciceCarte[];
   /** Consigne un exercice effectivement travaillé, pour le résumé de séance. */
   markWorked: (id: string) => void;
-  navigateHome: () => void;
+  /** Retour à la liste des exercices — pas à l'accueil, malgré le nom des autres écrans. */
+  navigateBack: () => void;
   onFinish: () => void;
 }
 
@@ -529,6 +530,10 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   ecouterButton.addEventListener('click', () => void toggleEcouter());
   boucleButton.addEventListener('click', () => {
     bouclerEcoute = !bouclerEcoute;
+    // Une lecture déjà démarrée avec « Écouter » a capturé l'ancienne valeur
+    // au lancement ; sans ce réglage à chaud, activer Boucle en cours de
+    // route n'aurait d'effet qu'à la prochaine pression sur « Écouter ».
+    player?.setLoop(bouclerEcoute);
     paintTransport();
   });
 
@@ -857,7 +862,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   finishButton.addEventListener('click', () => void finish());
   stopButton.addEventListener('click', () => void finish(true));
-  backButton.addEventListener('click', () => context.navigateHome());
+  backButton.addEventListener('click', () => context.navigateBack());
 
   // --- Assemblage ---------------------------------------------------------
 

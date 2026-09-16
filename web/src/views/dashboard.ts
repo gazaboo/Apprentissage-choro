@@ -468,16 +468,22 @@ export function renderDashboard(
     const empty = poolSize === 0;
     const urgentN = Math.min(3, poolSize);
 
-    const deepButton = el(
-      'button',
-      { type: 'button', class: ui.primary, disabled: empty },
-      set ? 'Travailler toute la setlist' : 'Parcourir tout le répertoire',
-    );
-    deepButton.addEventListener('click', () => context.startSession('deep'));
+    // Setlist active : « Travailler toute la setlist » faisait doublon avec
+    // les urgences et le filage ci-dessous — seule reste la révision ciblée.
+    // Sans setlist (on parcourt tout le répertoire), c'est le seul moyen
+    // d'entrer en séance, donc le bouton reste.
+    const deepButton = set
+      ? null
+      : el(
+          'button',
+          { type: 'button', class: ui.primary, disabled: empty },
+          'Parcourir tout le répertoire',
+        );
+    deepButton?.addEventListener('click', () => context.startSession('deep'));
 
     const urgentButton = el(
       'button',
-      { type: 'button', class: ui.button, disabled: empty },
+      { type: 'button', class: set ? ui.primary : ui.button, disabled: empty },
       urgentN <= 1 ? 'Réviser le plus en retard' : `Réviser les ${urgentN} plus en retard`,
     );
     urgentButton.addEventListener('click', () => context.startSession('urgent'));
@@ -485,7 +491,7 @@ export function renderDashboard(
     const filageButton = el(
       'button',
       { type: 'button', class: ui.button, disabled: empty },
-      'Préparer un filage',
+      'Préparer un concert',
     );
     filageButton.addEventListener('click', () => context.startFilage());
 
@@ -521,7 +527,7 @@ export function renderDashboard(
           el(
             'span',
             { class: 'text-[11px] text-zinc-500' },
-            'La setlist enchaînée avec l’audio, décompte de 5 s entre les morceaux.',
+            'Enchaîner toute la setlist.',
           ),
         ),
       ),

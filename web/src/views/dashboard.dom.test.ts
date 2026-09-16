@@ -137,13 +137,29 @@ describe('renderDashboard — CTA', () => {
     expect(context.startSession).toHaveBeenCalledWith('urgent');
   });
 
-  it('« Préparer un filage » déclenche startFilage()', () => {
+  it('« Préparer un concert » déclenche startFilage()', () => {
     const { root, context } = mountDashboard([song('a')]);
     const button = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Préparer un filage',
+      (b) => b.textContent === 'Préparer un concert',
     );
     button!.click();
     expect(context.startFilage).toHaveBeenCalledOnce();
+  });
+
+  // Régression #76 : une setlist active proposait « Travailler toute la
+  // setlist » en plus des urgences et du filage — trois façons de faire la
+  // même chose. Seule la révision ciblée doit rester à côté du filage.
+  it('setlist active : pas de « Travailler toute la setlist », seulement la révision ciblée', () => {
+    const { root } = mountDashboard([song('a')], {
+      progress: baseProgress({
+        setlists: [{ id: 's1', name: 'Marmite des Adrets', songIds: ['a'], createdAt: '2026-01-01' }],
+        activeSetlistId: 's1',
+      }),
+    });
+    const labels = [...root.querySelectorAll('button')].map((b) => b.textContent);
+    expect(labels).not.toContain('Travailler toute la setlist');
+    expect(labels).not.toContain('Parcourir tout le répertoire');
+    expect(labels.some((label) => label?.startsWith('Réviser'))).toBe(true);
   });
 
   it('la rangée technique appelle openTechnique() quand fourni', () => {
