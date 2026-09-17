@@ -132,9 +132,14 @@ body {
   container-type: inline-size;
 }
 
+/* En plein écran, le zoom agrandit la carte autant que le texte : sans cela,
+   les cases gardaient leur largeur pendant que les chiffrages grossissaient, et
+   les plus longs finissaient par en déborder. La carte s'arrête à la largeur
+   disponible, où la requête de conteneur prend le relais en repliant les
+   colonnes. */
 .fp-slot .grille-surface {
   font-size: calc(0.92rem * var(--fp-zoom, 1));
-  max-width: min(52rem, 100%);
+  max-width: min(calc(52rem * var(--fp-zoom, 1)), 100%);
 }
 @media (max-width: 400px) {
   .grille-surface {
@@ -193,7 +198,7 @@ body {
    et c'est lui qui fait le filet. */
 .chord-cell {
   position: relative;
-  min-height: 3.1em;
+  min-height: 3.25em;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,20 +218,40 @@ body {
    qualité la suit en petit sur la ligne, le chiffre monte en exposant. C'est
    ce qui rend un accord lisible d'un coup d'œil sans qu'il prenne la place de
    deux — d'où l'abandon de la fonte à chasse fixe des cases, qui donnait au
-   `m` la même avance qu'au `B` et posait les exposants de travers. */
+   `m` la même avance qu'au `B` et posait les exposants de travers.
+
+   La fondamentale est poussée aussi loin que la case le permet : c'est elle
+   qu'on lit en jouant, souvent de loin et d'un seul coup d'œil, et la place
+   perdue autour ne sert à rien. Les corps réduits de la qualité et de
+   l'exposant suivent, pour que l'accord reste un seul mot. */
 .chord-cell .rt {
   font-style: normal;
-  font-size: 1.16em;
+  font-size: 2.5em;
+  letter-spacing: -0.01em;
 }
 .chord-cell .qa {
   font-style: normal;
-  font-size: 0.74em;
+  font-size: 1.15em;
 }
 .chord-cell .sp {
   font-style: normal;
-  font-size: 0.62em;
+  font-size: 1em;
   vertical-align: super;
   line-height: 0;
+}
+
+/* Une mesure partagée porte deux chiffrages dans la hauteur d'une seule case,
+   chacun tenant dans son triangle : le corps y est nécessairement plus
+   contenu. Il est fixé ici, et non par le seul `font-size` de la case, pour
+   que l'accord seul puisse grandir sans l'entraîner. */
+.chord-cell.multi .rt {
+  font-size: 1.85em;
+}
+.chord-cell.multi .qa {
+  font-size: 1.1em;
+}
+.chord-cell.multi .sp {
+  font-size: 0.95em;
 }
 
 /* Mesure partagée entre deux accords : la case est coupée en diagonale, le
@@ -243,8 +268,8 @@ body {
      des deux chiffrages et les coins n'iraient nulle part. */
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr;
-  font-size: 0.78em;
-  min-height: 3.97em; /* 0.78 × 3.97 ≈ les 3.1em d'une case ordinaire */
+  font-size: 0.66em;
+  min-height: 4.92em; /* 0.66 × 4.92 ≈ les 3.25em d'une case ordinaire */
   padding: 0.15em 0.35em;
   background-image: linear-gradient(
     to bottom right,
@@ -254,10 +279,13 @@ body {
     transparent calc(50% + 0.6px)
   );
 }
-.chord-cell.multi:not(.multi-3) .ch:first-child {
+/* Repérés par leur rang et non par `:first-child` / `:last-child` : la case
+   peut encore recevoir un libellé de fin (« 1. ») et un masque, qui prendraient
+   la place de dernier enfant et décrocheraient le second accord de son coin. */
+.chord-cell.multi:not(.multi-3) .ch:nth-child(1) {
   place-self: start start;
 }
-.chord-cell.multi:not(.multi-3) .ch:last-child {
+.chord-cell.multi:not(.multi-3) .ch:nth-child(2) {
   place-self: end end;
 }
 
@@ -265,8 +293,8 @@ body {
    diagonale n'a plus de sens : on revient à la file horizontale, séparée par
    des filets, au corps réduit. */
 .chord-cell.multi.multi-3 {
-  font-size: 0.68em;
-  min-height: 4.56em; /* idem : 0.68 × 4.56 ≈ 3.1em */
+  font-size: 0.56em;
+  min-height: 5.8em; /* idem : 0.56 × 5.8 ≈ 3.25em */
   gap: 0.28em;
 }
 /* Filet court et centré : sur une case haute, un trait courant d'un bord à
@@ -281,7 +309,7 @@ body {
   color: rgb(var(--mask-ink) / 0.75);
 }
 .chord-cell.simile .ch {
-  font-size: 1.16em;
+  font-size: 2.5em;
 }
 /* Bourrage de fin de ligne : une case vide du quadrillage, comme sur une
    grille écrite à la main — et non un trou dans le tracé. */
