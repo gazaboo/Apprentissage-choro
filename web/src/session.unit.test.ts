@@ -10,6 +10,7 @@ function song(id: string, instruments: Song['instruments'] = [{ id: 'c', name: '
     composer: '',
     audio: { reference: null, playback: null },
     instruments,
+    contraponto: null,
   };
 }
 

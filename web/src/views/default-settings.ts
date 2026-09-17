@@ -14,11 +14,10 @@ export interface DefaultSettingsValues {
 }
 
 /** Vrai dès qu'un morceau propose une variante avec/sans contre-chant.
- *  Toujours faux tant que #80 (import des PDF contraponto) n'est pas fait —
- *  l'option correspondante reste alors absente du contrôle plutôt que
- *  proposée sans effet. */
-export function hasContrechantData(_songs: Song[]): boolean {
-  return false; // TODO(#80) : brancher sur le champ réel une fois qu'il existe.
+ *  L'option correspondante reste absente du contrôle tant qu'aucun morceau
+ *  n'a de contraponto, plutôt que proposée sans effet. */
+export function hasContrechantData(songs: Song[]): boolean {
+  return songs.some((song) => song.contraponto !== null);
 }
 
 type AffichageChoice = 'partition' | 'partition-contrechant' | 'grille';

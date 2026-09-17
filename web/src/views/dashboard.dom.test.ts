@@ -10,6 +10,7 @@ function song(id: string, title = id): Song {
     composer: 'Pixinguinha',
     audio: { reference: null, playback: null },
     instruments: [{ id: 'c', name: 'Ut', page_count: 1, measure_count: 1, pages: [] }],
+    contraponto: null,
   };
 }
 

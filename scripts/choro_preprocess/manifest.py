@@ -10,7 +10,9 @@ from .scan import SongFolder
 MANIFEST_NAME = "manifest.json"
 
 
-def song_entry(song: SongFolder, instruments: list[dict]) -> dict:
+def song_entry(
+    song: SongFolder, instruments: list[dict], contraponto: dict | None = None
+) -> dict:
     """Assemble l'entrée JSON d'un morceau."""
     return {
         "id": song.song_id,
@@ -21,6 +23,7 @@ def song_entry(song: SongFolder, instruments: list[dict]) -> dict:
             "playback": song.playback.to_dict() if song.playback else None,
         },
         "instruments": instruments,
+        "contraponto": contraponto,
     }
 
 
@@ -30,6 +33,15 @@ def instrument_entry(
     return {
         "id": instrument_id,
         "name": instrument_name,
+        "page_count": len(pages),
+        "measure_count": sum(len(p["measures"]) for p in pages),
+        "pages": pages,
+    }
+
+
+def contraponto_entry(pages: list[dict]) -> dict:
+    """Partition Ut avec contre-chant (#80) : pas une tonalité, pas d'`id`/`name`."""
+    return {
         "page_count": len(pages),
         "measure_count": sum(len(p["measures"]) for p in pages),
         "pages": pages,

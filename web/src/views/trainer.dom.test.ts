@@ -11,6 +11,7 @@ function song(overrides: Partial<Song> = {}): Song {
     composer: 'Compositeur',
     audio: { reference: null, playback: null },
     instruments: [{ id: 'c', name: 'Ut', page_count: 0, measure_count: 0, pages: [] }],
+    contraponto: null,
     ...overrides,
   };
 }
@@ -106,6 +107,73 @@ describe('renderTrainer — retour et navigation', () => {
     const back = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Retour')!;
     back.click();
     expect(context.navigateHome).toHaveBeenCalledOnce();
+  });
+});
+
+describe('renderTrainer — bascule contre-chant (#80)', () => {
+  it('le morceau sans contraponto ne montre pas la bascule', () => {
+    const { root } = mount({ contraponto: null });
+    const button = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Mélodie et contre-chant',
+    )!;
+    expect(button.parentElement?.classList.contains('hidden')).toBe(true);
+  });
+
+  it('le morceau avec contraponto bascule le rendu et enregistre le choix', () => {
+    const { root, context } = mount({
+      instruments: [
+        {
+          id: 'c',
+          name: 'Ut',
+          page_count: 1,
+          measure_count: 1,
+          pages: [
+            {
+              page_number: 1,
+              image_path: 'data/choro-a/c/page_1.webp',
+              measures_source: 'vector',
+              measures: [],
+            },
+          ],
+        },
+      ],
+      contraponto: {
+        page_count: 2,
+        measure_count: 2,
+        pages: [
+          {
+            page_number: 1,
+            image_path: 'data/choro-a/contraponto/page_1.webp',
+            measures_source: 'vector',
+            measures: [],
+          },
+          {
+            page_number: 2,
+            image_path: 'data/choro-a/contraponto/page_2.webp',
+            measures_source: 'vector',
+            measures: [],
+          },
+        ],
+      },
+    });
+
+    expect(root.querySelectorAll('img')).toHaveLength(1);
+
+    const avec = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Mélodie et contre-chant',
+    )!;
+    avec.click();
+    const images = [...root.querySelectorAll('img')];
+    expect(images).toHaveLength(2);
+    expect(images[0]!.src).toContain('/contraponto/');
+    expect(context.progress.settings.contrechant).toBe('avec');
+
+    const seul = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Mélodie seule',
+    )!;
+    seul.click();
+    expect(root.querySelectorAll('img')).toHaveLength(1);
+    expect(context.progress.settings.contrechant).toBe('sans');
   });
 });
 
