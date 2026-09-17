@@ -184,19 +184,37 @@ body {
   gap: 1px;
   background: var(--grille-rule);
   border: 1px solid var(--grille-rule);
+  /* Le corps des chiffrages se règle sur la largeur de la carte, et non sur
+     celle du texte de la page. C'est ce qui donne à une case une géométrie
+     constante — toujours ~6,7 em de large sur 3,25 em de haut, quel que soit
+     l'écran. Avec un corps fixe, la même case mesurait 4,7 em sur un téléphone
+     et 9,1 em sur une tablette : le chiffrage y était tantôt rogné, tantôt
+     perdu au milieu du vide. C'est cette constance qui permet de calculer les
+     corps une fois pour toutes (voir `fitRootEm` dans `grille.ts`). */
+  font-size: 1.77cqi;
 }
 
 /* Huit est un multiple de quatre : une rangée se coupe en deux sans que rien
-   ne se décale, cellules de bourrage comprises. */
-@container (max-width: 38em) {
+   ne se décale, cellules de bourrage comprises.
+   Le seuil vaut la largeur en deçà de laquelle huit cases deviendraient trop
+   étroites pour un chiffrage — et non une largeur d'écran : c'est la carte qui
+   porte les colonnes, et elle grandit aussi avec le zoom du plein écran. */
+@container (max-width: 44em) {
   .grille-grid {
     grid-template-columns: repeat(4, 1fr);
+    font-size: 3.44cqi;
   }
 }
 
 /* Le fond de la case masque le fond de la grille : seul le `gap` reste visible,
    et c'est lui qui fait le filet. */
 .chord-cell {
+  /* Corps de la fondamentale. Les mesures partagées le reçoivent de `grille.ts`,
+     calculé pour que chaque chiffrage tienne dans sa part de la case ; les
+     autres gardent cette valeur, la plus grande que la case supporte — l'écart
+     avec la hauteur de case (3,25 em) tient au retrait et à l'exposant, qui
+     dépasse la ligne. */
+  --rt: 2.8em;
   position: relative;
   min-height: 3.25em;
   display: flex;
@@ -226,32 +244,18 @@ body {
    l'exposant suivent, pour que l'accord reste un seul mot. */
 .chord-cell .rt {
   font-style: normal;
-  font-size: 2.5em;
+  font-size: var(--rt);
   letter-spacing: -0.01em;
 }
 .chord-cell .qa {
   font-style: normal;
-  font-size: 1.15em;
+  font-size: calc(var(--rt) * 0.46);
 }
 .chord-cell .sp {
   font-style: normal;
-  font-size: 1em;
+  font-size: calc(var(--rt) * 0.4);
   vertical-align: super;
   line-height: 0;
-}
-
-/* Une mesure partagée porte deux chiffrages dans la hauteur d'une seule case,
-   chacun tenant dans son triangle : le corps y est nécessairement plus
-   contenu. Il est fixé ici, et non par le seul `font-size` de la case, pour
-   que l'accord seul puisse grandir sans l'entraîner. */
-.chord-cell.multi .rt {
-  font-size: 1.85em;
-}
-.chord-cell.multi .qa {
-  font-size: 1.1em;
-}
-.chord-cell.multi .sp {
-  font-size: 0.95em;
 }
 
 /* Mesure partagée entre deux accords : la case est coupée en diagonale, le
@@ -263,14 +267,17 @@ body {
    colonnes comme au zoom plein écran. */
 .chord-cell.multi:not(.multi-3) {
   display: grid;
-  /* Une colonne pleine largeur et deux demi-hauteurs : sans tracés explicites,
-     le `justify-content: center` de la case réduirait la colonne au plus large
-     des deux chiffrages et les coins n'iraient nulle part. */
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr;
-  font-size: 0.66em;
-  min-height: 4.92em; /* 0.66 × 4.92 ≈ les 3.25em d'une case ordinaire */
-  padding: 0.15em 0.35em;
+  /* Une seule zone, pleine case, où les deux chiffrages se superposent : sans
+     tracé explicite, le `justify-content: center` de la case réduirait la
+     colonne au plus large des deux et les coins n'iraient nulle part. Les
+     partager en deux demi-hauteurs bornerait inutilement le corps — la coupe
+     les sépare déjà, et rien ne les empêche de se croiser en hauteur puisqu'ils
+     sont chacun d'un côté d'elle. */
+  grid-template: 1fr / 1fr;
+  /* Le retrait vertical suit le corps : la boîte d'une lettre dépasse sa ligne
+     d'environ 0,19 corps vers le haut, et un chiffrage calé en haut de case s'y
+     ferait rogner. `grille.ts` compte ce retrait dans son calcul. */
+  padding: calc(var(--rt) * 0.19) 0.35em;
   background-image: linear-gradient(
     to bottom right,
     transparent calc(50% - 0.6px),
@@ -283,18 +290,18 @@ body {
    peut encore recevoir un libellé de fin (« 1. ») et un masque, qui prendraient
    la place de dernier enfant et décrocheraient le second accord de son coin. */
 .chord-cell.multi:not(.multi-3) .ch:nth-child(1) {
+  grid-area: 1 / 1;
   place-self: start start;
 }
 .chord-cell.multi:not(.multi-3) .ch:nth-child(2) {
+  grid-area: 1 / 1;
   place-self: end end;
 }
 
 /* Au-delà de deux accords (rare : quatre chiffrages sur une mesure), la
    diagonale n'a plus de sens : on revient à la file horizontale, séparée par
-   des filets, au corps réduit. */
+   des filets. Le corps vient de `grille.ts`, la largeur seule bornant ici. */
 .chord-cell.multi.multi-3 {
-  font-size: 0.56em;
-  min-height: 5.8em; /* idem : 0.56 × 5.8 ≈ 3.25em */
   gap: 0.28em;
 }
 /* Filet court et centré : sur une case haute, un trait courant d'un bord à
@@ -309,7 +316,7 @@ body {
   color: rgb(var(--mask-ink) / 0.75);
 }
 .chord-cell.simile .ch {
-  font-size: 2.5em;
+  font-size: var(--rt);
 }
 /* Bourrage de fin de ligne : une case vide du quadrillage, comme sur une
    grille écrite à la main — et non un trou dans le tracé. */
@@ -347,11 +354,15 @@ body {
   right: 0;
   transform: scaleX(-1);
 }
-/* Le chiffrage se retire de sous la barre. */
-.chord-cell--repeat-open {
+/* Le chiffrage se retire de sous la barre. Le retrait est répété pour les
+   mesures partagées, dont la règle de retrait l'emporterait autrement en
+   spécificité et laisserait l'accord passer sur la barre. */
+.chord-cell--repeat-open,
+.chord-cell.multi.chord-cell--repeat-open {
   padding-left: 1.1em;
 }
-.chord-cell--repeat-close {
+.chord-cell--repeat-close,
+.chord-cell.multi.chord-cell--repeat-close {
   padding-right: 1.1em;
 }
 
@@ -408,6 +419,19 @@ body {
 }
 .grille-notes li {
   margin: 0.2em 0;
+}
+
+/* Sonde de mesure : une carte hors champ où `grille.ts` lit la largeur des
+   chiffrages avant de composer la grille. `visibility: hidden` et non
+   `display: none` — il faut que le texte soit mis en page pour être mesuré. */
+.grille-probe {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  box-shadow: none;
+  max-width: none;
 }
 
 /* Masque d'accord : même verre dépoli que `.measure-mask`, mais posé en

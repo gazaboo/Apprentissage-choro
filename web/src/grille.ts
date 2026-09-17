@@ -230,6 +230,23 @@ export function buildSlots(grille: Grille): Slot[] {
   return slots;
 }
 
+/** Tous les chiffrages d'une grille, doublons compris. */
+function collectChords(grille: Grille): string[] {
+  const out: string[] = [];
+  const add = (cells: GrilleCell[] | undefined): void => {
+    for (const cell of cells ?? []) out.push(...cell);
+  };
+  for (const part of grille.parts) {
+    add(part.sequence);
+    add(part.endings?.['1']);
+    add(part.endings?.['2']);
+    add(part.coda);
+    add(part.transition_in);
+  }
+  add(grille.coda);
+  return out;
+}
+
 /** Rend une grille d'accords et pilote son masquage. */
 export class GrilleView {
   private grille: Grille | null = null;
@@ -277,6 +294,9 @@ export class GrilleView {
 
     this.slots = buildSlots(this.grille);
     this.masked = selectMasked(this.slots, level, seed);
+    // Avant de composer quoi que ce soit : la largeur de chaque chiffrage, dont
+    // dépend le corps des mesures partagées.
+    measureChords(collectChords(this.grille));
 
     const surface = el('div', { class: 'grille-surface' });
     if (this.keyNote) {
@@ -395,8 +415,10 @@ export class GrilleView {
     }
 
     if (part.repeat) {
-      (firstCell as HTMLElement | null)?.classList.add('chord-cell--repeat-open');
-      (lastCell as HTMLElement | null)?.classList.add('chord-cell--repeat-close');
+      const open = firstCell as HTMLElement | null;
+      const close = lastCell as HTMLElement | null;
+      if (open) markRepeat(open, 'open');
+      if (close) markRepeat(close, 'close');
     }
 
     if (part.coda && part.coda.length > 0) {
@@ -509,6 +531,151 @@ export class GrilleView {
   }
 }
 
+/* --- Ajustement du corps dans une mesure partagée ------------------------ */
+
+/**
+ * Géométrie d'une case, en em du corps de la grille — une constante, et c'est
+ * tout l'intérêt : le CSS règle ce corps sur la largeur de la carte (`cqi`),
+ * de sorte qu'une case garde les mêmes proportions sur un téléphone comme en
+ * plein écran. Voir `.grille-grid` dans `style.css`, qui porte ces deux
+ * valeurs : elles doivent bouger ensemble.
+ */
+const CELL_W = 6.9;
+const CELL_H = 3.25;
+
+/** Retraits intérieurs d'une case, en em — ils mangent la place utile. */
+const PAD_X_DIAGONAL = 0.35;
+const PAD_X_INLINE = 0.3;
+/** Une case qui porte une barre de reprise doit lui laisser la place. */
+const PAD_X_REPEAT = 1.1;
+
+/**
+ * Débord d'un chiffrage au-dessus de sa ligne, en multiples de son corps.
+ *
+ * La boîte d'une lettre ne fait pas la hauteur de son corps mais celle de la
+ * fonte, hampes et jambages compris — environ 1,37 fois, dont 0,19 au-dessus.
+ * Un chiffrage calé en haut de sa case déborderait donc par le haut, où
+ * `overflow: hidden` le rognerait. Le retrait vertical des mesures partagées
+ * suit le corps (`calc(var(--rt) * 0.19)` dans `style.css`) pour l'absorber,
+ * et il faut le compter ici comme de la place perdue.
+ */
+const ASCENT_OVER_LINE = 0.19;
+
+/** Part de la case qu'un chiffrage s'autorise : le reste tient la coupe à distance. */
+const FILL = 0.93;
+
+/** Corps maximal dans une mesure partagée : un accord seul doit rester le plus gros. */
+const MAX_SHARED_ROOT = 1.85;
+
+/** Corps de repli quand la mesure est impossible (pas de rendu, pas de fonte). */
+const FALLBACK_ROOT = 1.2;
+
+/** Place prise par un filet de séparation entre deux chiffrages, en em. */
+const SEP_EM = 0.62;
+
+/**
+ * Largeur d'un chiffrage, en multiples du corps de sa fondamentale.
+ *
+ * Mesurée sur la fonte réellement rendue, et non tabulée : les métriques
+ * changent d'un système à l'autre, et une table figée finirait par mentir —
+ * un chiffrage plus large que prévu traverserait la coupe de sa mesure.
+ */
+const chordWidths = new Map<string, number>();
+
+/** Chiffrages d'une case, pour pouvoir réajuster son corps après coup. */
+const cellChords = new WeakMap<HTMLElement, string[]>();
+
+/** Corps à donner à une case, d'après ses chiffrages et la place qui lui reste. */
+function fitCell(cell: HTMLElement, padX?: number): void {
+  const chords = cellChords.get(cell);
+  if (!chords || chords.length < 2) return;
+  const widths = chords.map((chord) => chordWidths.get(chord) ?? 0);
+  const root =
+    chords.length === 2 ? fitDiagonalRoot(widths, padX) : fitInlineRoot(widths, padX);
+  cell.style.setProperty('--rt', `${root}em`);
+}
+
+/**
+ * Pose une barre de reprise sur une case, et lui rend son corps.
+ *
+ * La barre prend la place d'un chiffrage : sans ce réajustement, celui-ci lui
+ * passerait dessus. C'est fait ici et non à la composition de la case, car on
+ * ne sait quelle mesure ferme la reprise qu'une fois la partie entière placée.
+ */
+function markRepeat(cell: HTMLElement, side: 'open' | 'close'): void {
+  cell.classList.add(`chord-cell--repeat-${side}`);
+  fitCell(cell, PAD_X_REPEAT);
+}
+
+/**
+ * Mesure les chiffrages encore inconnus, dans une sonde posée hors champ.
+ *
+ * La sonde est accrochée au `body` et non à la grille : celle-ci est parfois
+ * rendue alors que son conteneur est masqué (`hidden` posé par l'écran
+ * d'entraînement), et tout y mesurerait zéro.
+ */
+function measureChords(symbols: string[]): void {
+  const unknown = [...new Set(symbols)].filter((symbol) => !chordWidths.has(symbol));
+  if (unknown.length === 0 || typeof document === 'undefined') return;
+
+  const probe = el('div', { class: 'grille-surface grille-probe' });
+  const cells = unknown.map((symbol) => {
+    const cell = el('div', { class: 'chord-cell' }, chordSymbol(symbol));
+    probe.appendChild(cell);
+    return cell;
+  });
+  document.body.appendChild(probe);
+  unknown.forEach((symbol, index) => {
+    const cell = cells[index];
+    const ch = cell?.querySelector('.ch');
+    const rt = cell?.querySelector('.rt');
+    if (!ch || !rt) return;
+    const root = Number.parseFloat(getComputedStyle(rt).fontSize);
+    const width = ch.getBoundingClientRect().width;
+    if (root > 0 && width > 0) chordWidths.set(symbol, width / root);
+  });
+  probe.remove();
+}
+
+/**
+ * Corps de la fondamentale pour les deux chiffrages d'une mesure coupée en
+ * diagonale, en em.
+ *
+ * Chacun doit tenir dans son triangle. Pour le chiffrage du haut, dont le coin
+ * bas-droit est le point critique, cela s'écrit `largeur/W + hauteur/H < 1` —
+ * et la coupe étant symétrique, la même inégalité borne celui du bas. La
+ * hauteur d'un chiffrage valant son corps, il ne reste qu'à résoudre en `R`.
+ *
+ * C'est ce calcul qui permet à `Dm | A7` d'être écrit bien plus gros que
+ * `C♯m7b5 | F♯7` : à corps égal pour tous, les mesures courtes gaspillaient la
+ * moitié de leur place.
+ */
+export function fitDiagonalRoot(widths: number[], padX = PAD_X_DIAGONAL): number {
+  const widest = Math.max(...widths);
+  if (!Number.isFinite(widest) || widest <= 0) return FALLBACK_ROOT;
+  const place = FILL - padX / CELL_W;
+  const root = place / (widest / CELL_W + (1 + ASCENT_OVER_LINE) / CELL_H);
+  return quantize(Math.min(root, MAX_SHARED_ROOT));
+}
+
+/**
+ * Corps de la fondamentale pour trois accords ou plus alignés sur une mesure.
+ *
+ * Ceux-là se suivent horizontalement : seule la largeur borne, filets compris.
+ * La case en gardait les trois quarts de la hauteur inutilisés.
+ */
+export function fitInlineRoot(widths: number[], padX = PAD_X_INLINE): number {
+  const total = widths.reduce((sum, width) => sum + width, 0);
+  const place = CELL_W - PAD_X_INLINE - padX - SEP_EM * (widths.length - 1);
+  if (!Number.isFinite(total) || total <= 0 || place <= 0) return FALLBACK_ROOT;
+  return quantize(Math.min((FILL * place) / total, MAX_SHARED_ROOT));
+}
+
+/** Par paliers de 0,05 em : deux mesures voisines ne doivent pas sembler se contredire. */
+function quantize(root: number): number {
+  return Math.max(FALLBACK_ROOT, Math.floor(root * 20) / 20);
+}
+
 /** Un chiffrage écrit : fondamentale, qualité sur la ligne, chiffre en exposant. */
 function chordSymbol(chord: string): HTMLElement {
   const { root, quality, sup } = splitChordSymbol(chord);
@@ -543,7 +710,16 @@ function chordCell(chords: string[], variant?: 'ending'): HTMLElement {
     'chord-cell' +
     (diagonal ? ' multi' : chords.length > 2 ? ' multi multi-3' : '') +
     (variant === 'ending' ? ' chord-cell--ending' : '');
-  return el('div', { class: cls }, ...nodes);
+  const cell = el('div', { class: cls }, ...nodes);
+
+  // Un accord seul garde le corps de la feuille de style, le plus grand que la
+  // case supporte. Une mesure partagée reçoit le sien, calculé sur la largeur
+  // de ses propres chiffrages.
+  if (chords.length > 1) {
+    cellChords.set(cell, chords);
+    fitCell(cell);
+  }
+  return cell;
 }
 
 /** Cellule « % » : mesure tenue ou répétée (convention jazz). */
