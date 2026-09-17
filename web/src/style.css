@@ -169,13 +169,6 @@ body {
   font-size: 1em;
   font-weight: 700;
 }
-.grille-part-meta {
-  margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.66em;
-  color: var(--grille-soft);
-}
-
 /* Grille proprement dite : huit colonnes égales, quadrillage continu.
    Les filets ne sont pas des bordures de cases — ce sont les interstices du
    `gap`, par lesquels on voit le fond de la grille. Deux cases voisines
@@ -237,9 +230,12 @@ body {
 }
 
 /* Mesure partagée entre deux accords : la case est coupée en diagonale, le
-   premier accord en haut à gauche, le second en bas à droite. La coupe est un
-   dégradé de coin à coin — elle suit le format de la case sans calcul, et
-   survit au repli en quatre colonnes comme au zoom plein écran. */
+   premier accord en haut à gauche, le second en bas à droite. La coupe monte
+   du coin bas-gauche au coin haut-droit — c'est elle, et non l'autre
+   diagonale, qui sépare ces deux coins-là ; prise à l'envers, elle passerait
+   au travers des deux chiffrages au lieu de les séparer. Tracée en dégradé,
+   elle suit le format de la case sans calcul, et survit au repli en quatre
+   colonnes comme au zoom plein écran. */
 .chord-cell.multi:not(.multi-3) {
   display: grid;
   /* Une colonne pleine largeur et deux demi-hauteurs : sans tracés explicites,
@@ -251,7 +247,7 @@ body {
   min-height: 3.97em; /* 0.78 × 3.97 ≈ les 3.1em d'une case ordinaire */
   padding: 0.15em 0.35em;
   background-image: linear-gradient(
-    to top right,
+    to bottom right,
     transparent calc(50% - 0.6px),
     var(--grille-split) calc(50% - 0.6px),
     var(--grille-split) calc(50% + 0.6px),
@@ -260,11 +256,9 @@ body {
 }
 .chord-cell.multi:not(.multi-3) .ch:first-child {
   place-self: start start;
-  margin-left: 0.15em;
 }
 .chord-cell.multi:not(.multi-3) .ch:last-child {
   place-self: end end;
-  margin-right: 0.15em;
 }
 
 /* Au-delà de deux accords (rare : quatre chiffrages sur une mesure), la
@@ -293,6 +287,44 @@ body {
    grille écrite à la main — et non un trou dans le tracé. */
 .chord-cell.pad {
   background: rgb(var(--mask-paper));
+}
+
+/* Barres de reprise (𝄆 𝄇), posées sur la première et la dernière mesure jouée
+   d'une partie qui se reprend. Dessinées plutôt qu'écrites : les glyphes
+   Unicode des barres de reprise manquent à la plupart des fontes système.
+   Une seule figure, retournée pour la barre fermante — trait épais, trait
+   fin, puis les deux points, de l'extérieur vers l'intérieur. */
+.chord-cell--repeat-open::before,
+.chord-cell--repeat-close::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  width: 0.86em;
+  background-image:
+    linear-gradient(
+      to right,
+      var(--grille-ink) 0 0.2em,
+      transparent 0.2em 0.29em,
+      var(--grille-ink) 0.29em 0.36em,
+      transparent 0.36em
+    ),
+    radial-gradient(circle at 0.63em 37%, var(--grille-ink) 0.11em, transparent 0.11em),
+    radial-gradient(circle at 0.63em 63%, var(--grille-ink) 0.11em, transparent 0.11em);
+}
+.chord-cell--repeat-open::before {
+  left: 0;
+}
+/* La barre fermante est la même figure vue en miroir. */
+.chord-cell--repeat-close::after {
+  right: 0;
+  transform: scaleX(-1);
+}
+/* Le chiffrage se retire de sous la barre. */
+.chord-cell--repeat-open {
+  padding-left: 1.1em;
+}
+.chord-cell--repeat-close {
+  padding-right: 1.1em;
 }
 
 /* Fin de partie : crochet (trait supérieur épais) au-dessus des mesures

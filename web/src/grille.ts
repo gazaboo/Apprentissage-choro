@@ -320,18 +320,13 @@ export class GrilleView {
     part: GrillePart,
     startOrdinal: number,
   ): number {
-    // La lettre de section et, le cas échéant, la reprise : c'est tout ce que
-    // porte l'en-tête. Centre tonal et plage de mesures encombraient la lecture
-    // sans servir au jeu — ils restent dans les données.
+    // La lettre de section, et rien d'autre : la reprise s'écrit sur la grille
+    // en barres de reprise, et le centre tonal comme la plage de mesures
+    // encombraient la lecture sans servir au jeu — ils restent dans les données.
     const section = el(
       'section',
       { class: 'grille-part' },
-      el(
-        'div',
-        { class: 'grille-part-head' },
-        el('h3', {}, part.name),
-        part.repeat ? el('p', { class: 'grille-part-meta' }, 'reprise') : null,
-      ),
+      el('div', { class: 'grille-part-head' }, el('h3', {}, part.name)),
     );
 
     const grid = el('div', { class: 'grille-grid' });
@@ -340,7 +335,17 @@ export class GrilleView {
     // jamais revenir à la ligne tant qu'il reste des cases : les fins de
     // partie prolongent la séquence.
     let col = 0;
+    // Première et dernière mesure jouée de la partie : c'est entre elles que se
+    // posent les barres de reprise. Les cellules de bourrage n'en sont pas, et
+    // les rangées annexes (transition, coda) s'ajoutent hors de `place` — la
+    // reprise ne les embrasse donc pas, ce qui est bien ce qu'on joue.
+    let firstCell: HTMLElement | null = null;
+    let lastCell: HTMLElement | null = null;
     const place = (node: HTMLElement): void => {
+      if (!node.classList.contains('pad')) {
+        if (firstCell === null) firstCell = node;
+        lastCell = node;
+      }
       grid.appendChild(node);
       col = (col + 1) % BARS_PER_LINE;
     };
@@ -387,6 +392,11 @@ export class GrilleView {
       for (let p = alignCol + e2.length; p < BARS_PER_LINE; p += 1) {
         grid.appendChild(el('div', { class: 'chord-cell pad' }));
       }
+    }
+
+    if (part.repeat) {
+      (firstCell as HTMLElement | null)?.classList.add('chord-cell--repeat-open');
+      (lastCell as HTMLElement | null)?.classList.add('chord-cell--repeat-close');
     }
 
     if (part.coda && part.coda.length > 0) {
