@@ -40,6 +40,14 @@
   de visible (refacto pur, script, doc, données sans effet visuel), l'omettre
   est acceptable — mais le dire explicitement dans la description de la PR
   plutôt que de l'oublier silencieusement.
+- **Cette règle vaut aussi pour chaque commit supplémentaire poussé sur une
+  PR déjà ouverte** (retour de relecture, correction demandée, etc.), pas
+  seulement à la création de la PR : si ce commit change quelque chose de
+  visible, joindre une nouvelle capture (avant/après si pertinent) dans
+  `docs/fixes/` et la référencer dans le commentaire de mise à jour sur la
+  PR — ne pas se contenter d'un commentaire textuel. Même exception que
+  ci-dessus si le commit ne touche à rien de visible, à condition de le
+  dire explicitement.
 
 ## Budget / contexte
 
