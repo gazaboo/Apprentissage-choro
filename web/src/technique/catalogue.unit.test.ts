@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_ROOTS, expandMotif, type Sens } from './catalogue';
+import type { Progress } from '../store';
+import type { SrsCard } from '../types';
+import { DEFAULT_ROOTS, expandMotif, pickExercices, type ExerciceCarte, type Sens } from './catalogue';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -72,4 +74,124 @@ describe('expandMotif — jonction montée/descente (aller-retour)', () => {
       });
     }
   }
+});
+
+function carte(id: string): ExerciceCarte {
+  return {
+    id,
+    motifId: id,
+    famille: 'test',
+    nom: id,
+    accord: id,
+    sens: 'montant',
+    notes: [],
+    midi: [],
+    noteDeTravail: null,
+  };
+}
+
+function baseProgress(overrides: Partial<Progress> = {}): Progress {
+  return {
+    cards: {},
+    setlists: [],
+    activeSetlistId: null,
+    sessions: [],
+    _rev: 0,
+    settings: {
+      blockMinutes: 5,
+      display: 'partition',
+      studyMode: 'mesures',
+      maskLevel: 50,
+      maskSeed: 1,
+      eclipseIntensity: 'moyennes',
+      panel: null,
+      fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
+    },
+    ...overrides,
+  } as Progress;
+}
+
+/** Carte SRS « en retard », déjà travaillée, échue depuis `due`. */
+function carteEnRetard(due: string): SrsCard {
+  return {
+    ease: 2.5,
+    interval: 1,
+    repetitions: 1,
+    due,
+    history: [{ date: '2020-01-01', grade: 4, tempo: 'fluide', hints: 0 }],
+  };
+}
+
+describe('pickExercices — ordre aléatoire à égalité de retard (#82)', () => {
+  // Cinq cartes déjà travaillées, échues à la même date : même retard.
+  const cartes = ['a', 'b', 'c', 'd', 'e'].map(carte);
+  function progressAvecMemeRetard(): Progress {
+    return baseProgress({
+      cards: Object.fromEntries(cartes.map((c) => [`tech::${c.id}`, carteEnRetard('2000-01-01')])),
+    });
+  }
+
+  it('une graine fixe donne un ordre déterministe et reproductible', () => {
+    const first = pickExercices(cartes, progressAvecMemeRetard(), 0, () => 0.42).map((c) => c.id);
+    const second = pickExercices(cartes, progressAvecMemeRetard(), 0, () => 0.42).map(
+      (c) => c.id,
+    );
+    expect(first).toEqual(second);
+  });
+
+  it('deux séquences de rng différentes donnent des ordres différents', () => {
+    let callA = 0;
+    const sequence = [0.1, 0.9, 0.2, 0.8, 0.3];
+    const rngA = () => sequence[callA++ % sequence.length]!;
+    let callB = 0;
+    const reversed = [...sequence].reverse();
+    const rngB = () => reversed[callB++ % reversed.length]!;
+
+    const orderA = pickExercices(cartes, progressAvecMemeRetard(), 0, rngA).map((c) => c.id);
+    const orderB = pickExercices(cartes, progressAvecMemeRetard(), 0, rngB).map((c) => c.id);
+    expect(orderA).not.toEqual(orderB);
+    // Même ensemble malgré l'ordre différent : rien n'est perdu ni dupliqué.
+    expect([...orderA].sort()).toEqual([...orderB].sort());
+  });
+
+  it('sans rng fourni (`Math.random` par défaut), reste une permutation valide', () => {
+    for (let i = 0; i < 5; i += 1) {
+      const order = pickExercices(cartes, progressAvecMemeRetard(), 0).map((c) => c.id);
+      expect([...order].sort()).toEqual(['a', 'b', 'c', 'd', 'e']);
+    }
+  });
+
+  it('ne mélange jamais deux cartes de retard différent', () => {
+    // "a", "b" très en retard (échues en 2000) ; "c", "d", "e" un peu en
+    // retard (échues en 2010) : les deux premières doivent toujours devancer
+    // les trois autres, quel que soit le tirage à l'intérieur de chaque
+    // groupe.
+    const progress = baseProgress({
+      cards: {
+        'tech::a': carteEnRetard('2000-01-01'),
+        'tech::b': carteEnRetard('2000-01-01'),
+        'tech::c': carteEnRetard('2010-01-01'),
+        'tech::d': carteEnRetard('2010-01-01'),
+        'tech::e': carteEnRetard('2010-01-01'),
+      },
+    });
+    for (const value of [0.01, 0.5, 0.99]) {
+      const order = pickExercices(cartes, progress, 0, () => value).map((c) => c.id);
+      expect(new Set(order.slice(0, 2))).toEqual(new Set(['a', 'b']));
+      expect(new Set(order.slice(2))).toEqual(new Set(['c', 'd', 'e']));
+    }
+  });
+
+  it('les cartes neuves restent dans l’ordre du catalogue, non mélangées', () => {
+    const progress = baseProgress({
+      cards: { 'tech::b': carteEnRetard('2000-01-01') },
+    });
+    const trois = ['a', 'b', 'c'].map(carte);
+    // "a" et "c" sont neuves (jamais travaillées) : elles suivent "b" (en
+    // retard) dans l'ordre du catalogue, jamais mélangées entre elles.
+    for (const value of [0.01, 0.5, 0.99]) {
+      const order = pickExercices(trois, progress, 5, () => value).map((c) => c.id);
+      expect(order).toEqual(['b', 'a', 'c']);
+    }
+  });
 });
