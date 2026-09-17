@@ -19,8 +19,14 @@ import type { Grille, GrilleCell, GrillePart, Instrument } from './types';
 /** Opacité du masque pendant l'indice : l'accord redevient lisible. */
 const HINT_OPACITY = '0.12';
 
-/** Nombre de mesures par ligne de grille. */
-const BARS_PER_LINE = 4;
+/** Nombre de mesures par ligne de grille (convention de la grille de jazz).
+ *
+ * Le CSS replie ces huit colonnes en quatre quand la carte devient étroite.
+ * C'est un multiple exact : une rangée de huit se coupe proprement en deux
+ * rangées de quatre, cellules de bourrage comprises, sans que le JS ait à
+ * mesurer quoi que ce soit — ce qu'il ne peut pas faire, le conteneur étant
+ * déplacé en plein écran sans redessin. */
+const BARS_PER_LINE = 8;
 
 /** Une cellule masquable, replacée dans le fil de lecture de la grille. */
 export interface Slot {
@@ -28,7 +34,7 @@ export interface Slot {
   ordinal: number;
   /** Première cellule d'une partie. */
   isPartStart: boolean;
-  /** Première cellule d'une ligne de quatre mesures. */
+  /** Première cellule d'une ligne de grille. */
   isLineStart: boolean;
 }
 
@@ -136,6 +142,46 @@ export function simplifyGrille(grille: Grille): Grille {
   };
 }
 
+/**
+ * Découpe un chiffrage en ses trois corps d'écriture.
+ *
+ * La grille de jazz n'écrit pas `Em7b5` d'un seul tenant : la fondamentale
+ * porte le regard, la qualité la suit en petit sur la ligne, et le chiffre
+ * monte en exposant — `E` `m` `⁷♭⁵`. C'est ce découpage que rend cette
+ * fonction, et le CSS se charge des corps.
+ *
+ * `simplifyChord` n'ayant laissé que cinq formes (`X`, `Xm`, `X7`, `Xdim`,
+ * `Xm7b5`), la règle tient en deux temps : la fondamentale est la lettre et
+ * son altération, puis ce qui reste se coupe entre lettres (la qualité) et
+ * chiffres (l'exposant).
+ *
+ * Un chiffrage non reconnu part entier dans `root`, sans mise en forme : même
+ * prudence que `simplifyChord`, mieux vaut un symbole brut qu'un symbole faux.
+ */
+export function splitChordSymbol(symbol: string): {
+  root: string;
+  quality: string;
+  sup: string;
+} {
+  const match = /^([A-G])([#b]?)(.*)$/.exec(symbol);
+  if (!match) return { root: symbol, quality: '', sup: '' };
+
+  const letter = match[1] ?? '';
+  const accidental = match[2] ?? '';
+  const rest = match[3] ?? '';
+
+  // Le `b` et le `#` typographiques : accolés à une lettre et réduits, les
+  // caractères ASCII se lisent comme une partie du nom de l'accord.
+  const sign = accidental === 'b' ? '♭' : accidental === '#' ? '♯' : '';
+  // `m7b5` se coupe en `m` + `7b5` ; `dim` n'a pas d'exposant ; `7` n'a que ça.
+  const cut = /^([A-Za-z]*)(.*)$/.exec(rest);
+  return {
+    root: letter + sign,
+    quality: cut?.[1] ?? '',
+    sup: cut?.[2] ?? '',
+  };
+}
+
 /** Deux cellules portent-elles exactement les mêmes accords ? */
 function sameCells(a: GrilleCell, b: GrilleCell): boolean {
   return a.length === b.length && a.every((chord, i) => chord === b[i]);
@@ -151,7 +197,7 @@ function sameSequence(a: GrilleCell[], b: GrilleCell[]): boolean {
  * la précédente : c'est le signe `%` de la convention jazz, et non un accord
  * réécrit à l'identique. Le masquage et le rendu partent tous deux de là.
  */
-function normalizeSequence(seq: GrilleCell[]): GrilleCell[] {
+export function normalizeSequence(seq: GrilleCell[]): GrilleCell[] {
   const out: GrilleCell[] = [];
   let previous: GrilleCell | null = null;
   for (const cell of seq) {
@@ -182,13 +228,6 @@ export function buildSlots(grille: Grille): Slot[] {
     });
   }
   return slots;
-}
-
-/** Numéro de la première mesure d'une ligne, d'après `part.bars`. */
-function barLabel(part: GrillePart, offset: number): string {
-  const match = part.bars?.match(/\d+/);
-  if (!match || match[0] === undefined) return '';
-  return String(parseInt(match[0], 10) + offset);
 }
 
 /** Rend une grille d'accords et pilote son masquage. */
@@ -281,12 +320,9 @@ export class GrilleView {
     part: GrillePart,
     startOrdinal: number,
   ): number {
-    const meta = [
-      part.tonic ? `centre : ${part.tonic}` : null,
-      part.bars ? `mes. ${part.bars}` : null,
-      part.repeat ? 'reprise' : null,
-    ].filter((entry): entry is string => entry !== null);
-
+    // La lettre de section et, le cas échéant, la reprise : c'est tout ce que
+    // porte l'en-tête. Centre tonal et plage de mesures encombraient la lecture
+    // sans servir au jeu — ils restent dans les données.
     const section = el(
       'section',
       { class: 'grille-part' },
@@ -294,20 +330,17 @@ export class GrilleView {
         'div',
         { class: 'grille-part-head' },
         el('h3', {}, part.name),
-        meta.length > 0
-          ? el('p', { class: 'grille-part-meta' }, ...joinDots(meta))
-          : null,
+        part.repeat ? el('p', { class: 'grille-part-meta' }, 'reprise') : null,
       ),
     );
 
     const grid = el('div', { class: 'grille-grid' });
 
-    // Curseur de ligne : `col` = colonne courante (0 à 3) après celle des
-    // numéros de mesure. On remplit les lignes sans jamais revenir à la ligne
-    // tant qu'il reste des cases : les fins de partie prolongent la séquence.
+    // Curseur de ligne : `col` = colonne courante. On remplit les lignes sans
+    // jamais revenir à la ligne tant qu'il reste des cases : les fins de
+    // partie prolongent la séquence.
     let col = 0;
-    const place = (node: HTMLElement, label = ''): void => {
-      if (col === 0) grid.appendChild(el('span', { class: 'grille-barno' }, label));
+    const place = (node: HTMLElement): void => {
       grid.appendChild(node);
       col = (col + 1) % BARS_PER_LINE;
     };
@@ -321,8 +354,8 @@ export class GrilleView {
 
     const seq = normalizeSequence(part.sequence);
     let ordinal = startOrdinal;
-    seq.forEach((cell, i) => {
-      place(this.measureCell(cell, ordinal), barLabel(part, i));
+    seq.forEach((cell) => {
+      place(this.measureCell(cell, ordinal));
       if (cell.length > 0) ordinal += 1;
     });
 
@@ -345,7 +378,6 @@ export class GrilleView {
       // 2e fin : rangée courte, alignée sous la 1re fin quand elle y tient.
       const alignCol =
         endStartCol + e2.length <= BARS_PER_LINE ? endStartCol : 0;
-      grid.appendChild(el('span', { class: 'grille-barno' }, ''));
       for (let p = 0; p < alignCol; p += 1) {
         grid.appendChild(el('div', { class: 'chord-cell pad' }));
       }
@@ -467,16 +499,39 @@ export class GrilleView {
   }
 }
 
-/** Une cellule d'accords : `['A7']` ou `['A7', 'D7']` (mesure partagée). */
+/** Un chiffrage écrit : fondamentale, qualité sur la ligne, chiffre en exposant. */
+function chordSymbol(chord: string): HTMLElement {
+  const { root, quality, sup } = splitChordSymbol(chord);
+  return el(
+    'span',
+    { class: 'ch' },
+    el('i', { class: 'rt' }, root),
+    quality ? el('i', { class: 'qa' }, quality) : null,
+    sup ? el('i', { class: 'sp' }, sup) : null,
+  );
+}
+
+/**
+ * Une cellule d'accords : `['A7']` ou `['A7', 'D7']` (mesure partagée).
+ *
+ * Deux accords se partagent la mesure en diagonale — le premier en haut à
+ * gauche, le second en bas à droite, la coupe tracée par le CSS. C'est la
+ * convention de la grille manuscrite, et elle tient dans la même case qu'un
+ * accord seul, là où deux chiffrages côte à côte forçaient à rétrécir.
+ *
+ * Au-delà de deux (rare : `F7 E7 Eb7 D7` sur une mesure), la diagonale n'a
+ * plus de sens : on revient à la file horizontale séparée par des filets.
+ */
 function chordCell(chords: string[], variant?: 'ending'): HTMLElement {
+  const diagonal = chords.length === 2;
   const nodes: Node[] = [];
   chords.forEach((chord, index) => {
-    if (index > 0) nodes.push(el('span', { class: 'sep' }));
-    nodes.push(el('span', { class: 'ch' }, chord));
+    if (index > 0 && !diagonal) nodes.push(el('span', { class: 'sep' }));
+    nodes.push(chordSymbol(chord));
   });
   const cls =
     'chord-cell' +
-    (chords.length === 2 ? ' multi' : chords.length > 2 ? ' multi multi-3' : '') +
+    (diagonal ? ' multi' : chords.length > 2 ? ' multi multi-3' : '') +
     (variant === 'ending' ? ' chord-cell--ending' : '');
   return el('div', { class: cls }, ...nodes);
 }
@@ -504,7 +559,6 @@ function pushLabeledRow(grid: HTMLElement, label: string, seq: GrilleCell[]): vo
   grid.appendChild(el('div', { class: 'grille-row-label' }, label));
   let col = 0;
   for (const cell of normalizeSequence(seq)) {
-    if (col === 0) grid.appendChild(el('span', { class: 'grille-barno' }, ''));
     grid.appendChild(cell.length === 0 ? simileCell() : chordCell(cell));
     col = (col + 1) % BARS_PER_LINE;
   }
@@ -512,14 +566,4 @@ function pushLabeledRow(grid: HTMLElement, label: string, seq: GrilleCell[]): vo
     grid.appendChild(el('div', { class: 'chord-cell pad' }));
     col = (col + 1) % BARS_PER_LINE;
   }
-}
-
-/** Intercale des points de séparation entre des fragments de texte. */
-function joinDots(items: string[]): Node[] {
-  const nodes: Node[] = [];
-  items.forEach((item, index) => {
-    if (index > 0) nodes.push(el('span', { class: 'dot' }, '·'));
-    nodes.push(document.createTextNode(item));
-  });
-  return nodes;
 }
