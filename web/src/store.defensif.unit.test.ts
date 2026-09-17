@@ -36,6 +36,8 @@ describe('loadProgress — chemins défensifs', () => {
     expect(progress.sessions).toEqual([]);
     expect(progress._rev).toBe(0);
     expect(progress.settings.display).toBe('partition');
+    expect(progress.settings.instrumentDefault).toBe('c');
+    expect(progress.settings.contrechant).toBe('sans');
   });
 
   it('JSON invalide → progression par défaut, sans lever', () => {
@@ -90,6 +92,38 @@ describe('loadProgress — chemins défensifs', () => {
       JSON.stringify({ settings: { maskLevel: 80 } }),
     );
     expect(loadProgress().settings.maskLevel).toBe(75);
+  });
+
+  it('un `instrumentDefault` valide est conservé', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { instrumentDefault: 'eb' } }),
+    );
+    expect(loadProgress().settings.instrumentDefault).toBe('eb');
+  });
+
+  it('un `instrumentDefault` invalide retombe sur `c`', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { instrumentDefault: 'fa-dièse' } }),
+    );
+    expect(loadProgress().settings.instrumentDefault).toBe('c');
+  });
+
+  it('un `contrechant` valide est conservé', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { contrechant: 'avec' } }),
+    );
+    expect(loadProgress().settings.contrechant).toBe('avec');
+  });
+
+  it('un `contrechant` invalide retombe sur `sans`', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { contrechant: 'peut-être' } }),
+    );
+    expect(loadProgress().settings.contrechant).toBe('sans');
   });
 
   it('une setlist malformée (sans `id`) est écartée', () => {

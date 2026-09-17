@@ -57,6 +57,15 @@ export interface Progress {
     maskSeed: number;
     /** Réglage du seul mode « Éclipses ». */
     eclipseIntensity: EclipseIntensity;
+    /** Tonalité par défaut, utilisée pour préremplir les écrans qui doivent
+     *  choisir un instrument avant tout historique par morceau (filage,
+     *  premier passage sur un morceau). Ne force jamais un choix déjà fait
+     *  morceau par morceau. */
+    instrumentDefault: InstrumentId;
+    /** Préférence avec/sans contre-chant. Sans effet tant qu'aucun morceau ne
+     *  propose de variante contraponto (#80) — champ posé à l'avance pour que
+     *  l'assistant d'accueil et la page Compte puissent déjà l'enregistrer. */
+    contrechant: 'avec' | 'sans';
     /** Position du panneau de réglages, déplacé à la main. */
     panel: { x: number; y: number } | null;
     /** Préférences du mode plein écran de la partition. */
@@ -90,6 +99,8 @@ const DEFAULT_PROGRESS: Progress = {
     maskLevel: 50,
     maskSeed: 1,
     eclipseIntensity: 'moyennes',
+    instrumentDefault: 'c',
+    contrechant: 'sans',
     panel: null,
     fullpage: { ...DEFAULT_FULLPAGE },
   },
@@ -235,6 +246,12 @@ function migrateSettings(
   }
   if (!isEclipseIntensity(settings.eclipseIntensity)) {
     settings.eclipseIntensity = DEFAULT_PROGRESS.settings.eclipseIntensity;
+  }
+  if (!isInstrumentId(settings.instrumentDefault)) {
+    settings.instrumentDefault = DEFAULT_PROGRESS.settings.instrumentDefault;
+  }
+  if (settings.contrechant !== 'avec' && settings.contrechant !== 'sans') {
+    settings.contrechant = DEFAULT_PROGRESS.settings.contrechant;
   }
   if (typeof settings.maskSeed !== 'number' || !Number.isFinite(settings.maskSeed)) {
     settings.maskSeed = DEFAULT_PROGRESS.settings.maskSeed;

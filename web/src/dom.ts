@@ -80,3 +80,34 @@ export const ui = {
   card: 'rounded-xl border border-zinc-800 bg-zinc-900/60 p-4',
   label: 'text-xs font-semibold uppercase tracking-wider text-zinc-500',
 };
+
+const segClass = (on: boolean): string =>
+  'min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium transition ' +
+  (on
+    ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
+    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
+
+/** Groupe de boutons à choix unique, largeur égale. Rappelle `onPick` et se repeint seul. */
+export function segmented<T extends string>(
+  options: { value: T; label: string }[],
+  initial: T,
+  onPick: (value: T) => void,
+): HTMLElement {
+  let current = initial;
+  const buttons = options.map((option) => {
+    const button = el(
+      'button',
+      { type: 'button', class: segClass(option.value === current) },
+      option.label,
+    );
+    button.addEventListener('click', () => {
+      current = option.value;
+      buttons.forEach((other, i) => {
+        other.className = segClass(options[i]!.value === current);
+      });
+      onPick(current);
+    });
+    return button;
+  });
+  return el('div', { class: 'flex gap-2' }, ...buttons);
+}

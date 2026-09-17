@@ -4,53 +4,24 @@
  * reste ensuite modifiable pendant tout le filage (voir `filage.ts`).
  */
 
-import { el, ui } from '../dom';
+import { el, segmented, ui } from '../dom';
+import type { Progress } from '../store';
 import type { AudioKind, InstrumentId } from '../types';
 import { INSTRUMENT_KEY_LABELS } from '../types';
 
 export interface FilageConfigContext {
+  progress: Progress;
   setlistName: string;
   songCount: number;
   navigateHome: () => void;
   onStart: (instrumentId: InstrumentId, audioKind: AudioKind) => void;
 }
 
-const segClass = (on: boolean): string =>
-  'min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium transition ' +
-  (on
-    ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
-
-/** Groupe de boutons à choix unique. Rappelle `onPick` et se repeint seul. */
-function segmented<T extends string>(
-  options: { value: T; label: string }[],
-  initial: T,
-  onPick: (value: T) => void,
-): HTMLElement {
-  let current = initial;
-  const buttons = options.map((option) => {
-    const button = el(
-      'button',
-      { type: 'button', class: segClass(option.value === current) },
-      option.label,
-    );
-    button.addEventListener('click', () => {
-      current = option.value;
-      buttons.forEach((other, i) => {
-        other.className = segClass(options[i]!.value === current);
-      });
-      onPick(current);
-    });
-    return button;
-  });
-  return el('div', { class: 'flex gap-2' }, ...buttons);
-}
-
 export function renderFilageConfig(
   root: HTMLElement,
   context: FilageConfigContext,
 ): () => void {
-  let instrumentId: InstrumentId = 'c';
+  let instrumentId: InstrumentId = context.progress.settings.instrumentDefault;
   let audioKind: AudioKind = 'reference';
 
   const partitionGroup = segmented<InstrumentId>(

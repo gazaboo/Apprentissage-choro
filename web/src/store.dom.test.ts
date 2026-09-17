@@ -30,6 +30,8 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
       maskLevel: 50,
       maskSeed: 1,
       eclipseIntensity: 'moyennes',
+      instrumentDefault: 'c',
+      contrechant: 'sans',
       panel: null,
       fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
     },
