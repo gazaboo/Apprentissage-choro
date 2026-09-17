@@ -20,9 +20,15 @@ import './style.css';
 import { el, ui } from './dom';
 import { buildRotation, pickSessionItems } from './session';
 import type { SessionBlock, SessionItem } from './session';
-import { activeSetlist, lastSession, loadProgress, recordSession } from './store';
+import { activeSetlist, lastSession, loadProgress, recordSession, saveProgress } from './store';
 import type { Progress } from './store';
-import { accountMode, initSync, syncNow } from './sync';
+import {
+  accountMode,
+  hasCompletedOnboarding,
+  initSync,
+  markOnboardingComplete,
+  syncNow,
+} from './sync';
 import type { ExerciceCarte } from './technique/catalogue';
 import { chargerCatalogue, pickExercices } from './technique/catalogue';
 import type { AudioKind, InstrumentId, Song } from './types';
@@ -32,6 +38,7 @@ import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';
 import { renderFilage } from './views/filage';
 import { renderFilageConfig } from './views/filage-config';
+import { renderOnboarding } from './views/onboarding';
 // L'édition des setlists est une modale ouverte depuis le tableau de bord,
 // plus une route dédiée.
 import { renderTechnique } from './views/technique';
@@ -326,16 +333,45 @@ function render(): void {
   // Passerelle d'accueil : tant qu'aucun choix n'est fait, elle passe avant tout.
   const account = accountMode();
   if (account === 'none' || hash === '#/compte') {
+    const wasGate = account === 'none';
     teardown = renderAccount(root!, {
-      gate: account === 'none',
+      gate: wasGate,
+      progress: wasGate ? null : progress,
+      songs,
       onChange: () => {
         progress = loadProgress();
         // Un identifiant vient d'être saisi/créé depuis la page compte : on
         // ramène l'utilisateur au répertoire plutôt que de rester sur « Compte ».
-        if (hash === '#/compte' && accountMode() !== 'none') navigate('#/');
-        else render();
+        if (hash === '#/compte' && accountMode() !== 'none') {
+          navigate('#/');
+        } else if (wasGate && !hasCompletedOnboarding()) {
+          navigate('#/onboarding');
+        } else {
+          render();
+        }
       },
       navigateHome: account === 'none' ? null : goHome,
+    });
+    return;
+  }
+
+  // Grandfathering : quiconque atteint ce point avait déjà un compte résolu
+  // avant l'apparition de l'assistant — on ne l'interrompt jamais après coup.
+  if (!hasCompletedOnboarding() && hash !== '#/onboarding') {
+    markOnboardingComplete();
+  }
+
+  if (hash === '#/onboarding') {
+    teardown = renderOnboarding(root!, {
+      songs,
+      onComplete: (values) => {
+        progress.settings.instrumentDefault = values.instrumentDefault;
+        progress.settings.display = values.display;
+        progress.settings.contrechant = values.contrechant;
+        saveProgress(progress);
+        markOnboardingComplete();
+        navigate('#/');
+      },
     });
     return;
   }
@@ -383,6 +419,7 @@ function render(): void {
     }
     const scope = scopeFromActiveSetlist();
     teardown = renderFilageConfig(root!, {
+      progress,
       setlistName: scope.setlistName,
       songCount: order.length,
       navigateHome: goHome,

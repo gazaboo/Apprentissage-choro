@@ -63,7 +63,9 @@ export function renderTrainer(
   const { progress, player } = context;
 
   // --- État local de l'écran ---------------------------------------------
-  let instrumentId: InstrumentId = song.instruments[0]!.id;
+  let instrumentId: InstrumentId =
+    song.instruments.find((i) => i.id === progress.settings.instrumentDefault)?.id ??
+    song.instruments[0]!.id;
   let hints = 0;
   let mode: StudyMode = progress.settings.studyMode;
   let maskLevel: MaskLevel = progress.settings.maskLevel;

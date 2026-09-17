@@ -17,6 +17,7 @@ import type { SrsCard, SrsReview } from './types';
 const CODE_KEY = 'choro-sync-code';
 const LAST_SYNC_KEY = 'choro-sync-at';
 const ACCOUNT_KEY = 'choro-account';
+const ONBOARDING_KEY = 'choro-onboarding-done';
 const ENDPOINT = '/.netlify/functions/sync';
 const DEBOUNCE_MS = 3000;
 const CODE_PATTERN = /^[A-Za-z0-9_-]{3,64}$/;
@@ -89,6 +90,26 @@ export function signOut(): void {
   try {
     localStorage.removeItem(ACCOUNT_KEY);
     localStorage.removeItem(LAST_SYNC_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+// --- Assistant d'accueil (#86) -----------------------------------------
+
+/** `true` une fois l'assistant d'accueil complété (ou l'utilisateur
+ *  grandfathered, voir `main.ts`). */
+export function hasCompletedOnboarding(): boolean {
+  try {
+    return localStorage.getItem(ONBOARDING_KEY) === '1';
+  } catch {
+    return true; // stockage indisponible : ne jamais bloquer sur l'assistant
+  }
+}
+
+export function markOnboardingComplete(): void {
+  try {
+    localStorage.setItem(ONBOARDING_KEY, '1');
   } catch {
     /* ignore */
   }

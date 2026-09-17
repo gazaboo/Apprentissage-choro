@@ -1,6 +1,30 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderAccount, type AccountContext } from './account';
 import { accountMode, getSyncCode } from '../sync';
+import type { Progress } from '../store';
+
+function baseProgress(overrides: Partial<Progress['settings']> = {}): Progress {
+  return {
+    cards: {},
+    setlists: [],
+    activeSetlistId: null,
+    sessions: [],
+    _rev: 0,
+    settings: {
+      blockMinutes: 5,
+      display: 'partition',
+      studyMode: 'mesures',
+      maskLevel: 50,
+      maskSeed: 1,
+      eclipseIntensity: 'moyennes',
+      instrumentDefault: 'c',
+      contrechant: 'sans',
+      panel: null,
+      fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
+      ...overrides,
+    },
+  };
+}
 
 function mount(overrides: Partial<AccountContext> = {}) {
   const root = document.createElement('div');
@@ -8,6 +32,8 @@ function mount(overrides: Partial<AccountContext> = {}) {
     gate: false,
     onChange: vi.fn(),
     navigateHome: vi.fn(),
+    progress: null,
+    songs: [],
     ...overrides,
   };
   const teardown = renderAccount(root, context);
@@ -105,5 +131,20 @@ describe('renderAccount — page compte (gate: false)', () => {
     findButton(root, 'Se déconnecter').click();
     expect(context.onChange).toHaveBeenCalledOnce();
     expect(accountMode()).toBe('none');
+  });
+
+  it('sans `progress` (passerelle) : pas de section réglages par défaut', () => {
+    const { root } = mount({ gate: false, progress: null });
+    expect(root.textContent).not.toContain('Réglages par défaut');
+  });
+
+  it('avec `progress` : la section réglages par défaut est modifiable en direct', () => {
+    const progress = baseProgress();
+    const { root } = mount({ gate: false, progress });
+    expect(root.textContent).toContain('Réglages par défaut');
+    findButton(root, 'Si♭ / B♭').click();
+    expect(progress.settings.instrumentDefault).toBe('bb');
+    findButton(root, 'Grille d’accords').click();
+    expect(progress.settings.display).toBe('grille');
   });
 });

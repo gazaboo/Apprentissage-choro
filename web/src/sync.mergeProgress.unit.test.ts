@@ -17,6 +17,8 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
       maskLevel: 50,
       maskSeed: 1,
       eclipseIntensity: 'moyennes',
+      instrumentDefault: 'c',
+      contrechant: 'sans',
       panel: null,
       fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
     },
@@ -182,6 +184,8 @@ describe('mergeProgress — réglages et setlists', () => {
     maskLevel: 75,
     maskSeed: 9,
     eclipseIntensity: 'intenses',
+    instrumentDefault: 'bb',
+    contrechant: 'sans',
     panel: null,
     fullpage: { zoom: 1.5, twoColumns: false, playerHidden: true },
   };

@@ -21,6 +21,9 @@ import {
   signOut,
   syncNow,
 } from '../sync';
+import { saveProgress, type Progress } from '../store';
+import { renderDefaultSettingsFields } from './default-settings';
+import type { Song } from '../types';
 
 export interface AccountContext {
   /** `true` à la première arrivée : pas de retour possible, il faut choisir. */
@@ -29,6 +32,9 @@ export interface AccountContext {
   onChange: () => void;
   /** Retour au répertoire (absent en mode passerelle). */
   navigateHome: (() => void) | null;
+  /** Absents en mode passerelle : nécessaires pour la section réglages. */
+  progress: Progress | null;
+  songs: Song[];
 }
 
 const inputClass =
@@ -256,6 +262,32 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
         el('p', { class: 'text-sm text-zinc-300' }, 'Vous travaillez sur cet appareil uniquement.'),
         el('p', { class: ui.label }, 'Synchroniser mes appareils'),
         codeForm(connect),
+      ),
+    );
+  }
+
+  if (context.progress) {
+    const progress = context.progress;
+    const fields = renderDefaultSettingsFields(
+      context.songs,
+      {
+        instrumentDefault: progress.settings.instrumentDefault,
+        display: progress.settings.display,
+        contrechant: progress.settings.contrechant,
+      },
+      (next) => {
+        progress.settings.instrumentDefault = next.instrumentDefault;
+        progress.settings.display = next.display;
+        progress.settings.contrechant = next.contrechant;
+        saveProgress(progress);
+      },
+    );
+    blocks.push(
+      el(
+        'section',
+        { class: `${ui.card} flex flex-col gap-4` },
+        el('p', { class: ui.label }, 'Réglages par défaut'),
+        fields,
       ),
     );
   }
