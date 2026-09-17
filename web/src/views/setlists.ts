@@ -304,8 +304,8 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
       'div',
       {
         class:
-          'flex max-h-[85vh] w-full max-w-lg flex-col gap-4 rounded-2xl border ' +
-          'border-zinc-800 bg-zinc-900 p-5 shadow-2xl shadow-black/60',
+          'flex max-h-[85vh] w-full max-w-lg lg:max-w-3xl flex-col gap-4 rounded-2xl ' +
+          'border border-zinc-800 bg-zinc-900 p-5 shadow-2xl shadow-black/60',
       },
       el(
         'h2',
@@ -313,35 +313,50 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
         editing ? 'Modifier la setlist' : 'Nouvelle setlist',
       ),
       nameInput,
+      // Deux colonnes à partir de `lg` : sur laptop, autant profiter de la
+      // largeur pour voir l'ordre de passage et le choix des morceaux côte à
+      // côte plutôt qu'empilés (#63).
       el(
         'div',
-        { class: 'flex items-baseline justify-between gap-3' },
-        el('p', { class: ui.label }, 'Ordre de passage'),
-        countLabel,
-      ),
-      el(
-        'p',
-        { class: '-mt-1 text-xs text-zinc-500' },
-        'Glissez une ligne, ou utilisez ▲▼, pour fixer l’ordre du filage.',
-      ),
-      el(
-        'div',
-        {
-          class:
-            'max-h-52 shrink-0 overflow-y-auto rounded-lg border border-zinc-800 ' +
-            'bg-zinc-900/60 p-2',
-        },
-        orderList,
-      ),
-      el('p', { class: ui.label }, 'Tous les morceaux'),
-      el(
-        'div',
-        {
-          class:
-            'min-h-0 flex-1 overflow-y-auto rounded-lg border border-zinc-800 ' +
-            'bg-zinc-900/60 p-2',
-        },
-        checklist,
+        { class: 'flex min-h-0 flex-1 flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-x-6' },
+        el(
+          'div',
+          { class: 'flex min-h-0 flex-col gap-2' },
+          el(
+            'div',
+            { class: 'flex items-baseline justify-between gap-3' },
+            el('p', { class: ui.label }, 'Ordre de passage'),
+            countLabel,
+          ),
+          el(
+            'p',
+            { class: 'text-xs text-zinc-500' },
+            'Glissez une ligne, ou utilisez ▲▼, pour fixer l’ordre du filage.',
+          ),
+          el(
+            'div',
+            {
+              class:
+                'max-h-52 lg:max-h-80 shrink-0 overflow-y-auto rounded-lg border ' +
+                'border-zinc-800 bg-zinc-900/60 p-2',
+            },
+            orderList,
+          ),
+        ),
+        el(
+          'div',
+          { class: 'flex min-h-0 flex-1 flex-col gap-2 lg:flex-none' },
+          el('p', { class: ui.label }, 'Tous les morceaux'),
+          el(
+            'div',
+            {
+              class:
+                'min-h-0 flex-1 lg:max-h-80 overflow-y-auto rounded-lg border ' +
+                'border-zinc-800 bg-zinc-900/60 p-2',
+            },
+            checklist,
+          ),
+        ),
       ),
       el('div', { class: 'flex justify-end gap-2' }, cancelButton, saveButton),
       liveRegion,

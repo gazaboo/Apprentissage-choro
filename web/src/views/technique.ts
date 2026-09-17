@@ -103,7 +103,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let silenceTimer: number | null = null;
   /** Sur quelle note du motif on a réellement démarré ; voir `meilleurDecalage`. */
   let decalage = 0;
-  /** `true` entre l'appui sur « Écouter au micro » et la fin (notation auto ou annulation). */
+  /** `true` entre l'appui sur « Évaluation au micro » et la fin (notation auto ou annulation). */
   let evaluating = false;
   /** `true` tant que le décompte de préparation tourne (`onBeat` avec un index négatif). */
   let countingIn = false;
@@ -237,7 +237,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     type: 'button',
     class: ui.button,
     'aria-pressed': 'false',
-  }, 'Écouter au micro');
+  }, 'Évaluation au micro');
   // `aria-live` : le message d'état change sans que le bouton ne reprenne le
   // focus, il faut donc l'annoncer explicitement aux lecteurs d'écran.
   const micHint = el('p', { class: 'text-xs text-zinc-500', 'aria-live': 'polite' });
@@ -417,7 +417,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       ? 'Activation du micro…'
       : evaluating
         ? 'Annuler l’évaluation'
-        : 'Écouter au micro';
+        : 'Évaluation au micro';
     // `ui.buttonActive` n'a pas de style désactivé : le réserver à l'écoute
     // effective garde le bouton visiblement grisé pendant l'activation.
     micButton.className = listening ? ui.buttonActive : ui.button;
