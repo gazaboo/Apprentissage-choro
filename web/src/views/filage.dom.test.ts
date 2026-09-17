@@ -13,6 +13,7 @@ function song(id: string, title = id): Song {
       playback: null,
     },
     instruments: [{ id: 'c', name: 'Ut', page_count: 0, measure_count: 0, pages: [] }],
+    contraponto: null,
   };
 }
 

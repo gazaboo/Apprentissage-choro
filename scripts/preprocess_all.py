@@ -44,6 +44,7 @@ class Report:
     measures: int = 0
     raster_pages: int = 0
     bytes_written: int = 0
+    contraponto_songs: int = 0
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
@@ -179,13 +180,29 @@ def process_song(
         report.warnings.append(f"{song.song_id}: aucune partition exploitable, ignore")
         return None
 
+    contraponto_entry: dict | None = None
+    if song.contraponto is not None:
+        try:
+            contraponto_pages = process_pdf(
+                song.contraponto, song.song_id, out_dir, data_prefix, dpi,
+                force_raster, debug, report,
+            )
+        except Exception as exc:
+            report.errors.append(f"{song.song_id}/contraponto: {exc}")
+            traceback.print_exc()
+            contraponto_pages = []
+        if contraponto_pages:
+            contraponto_entry = manifest_mod.contraponto_entry(contraponto_pages)
+            report.contraponto_songs += 1
+
     report.songs += 1
     measures = sum(i["measure_count"] for i in instruments)
     log(
         f"  ✓ {song.title} — {len(instruments)} partition(s), "
         f"{sum(i['page_count'] for i in instruments)} page(s), {measures} mesures"
+        + (" · +contraponto" if contraponto_entry else "")
     )
-    return manifest_mod.song_entry(song, instruments)
+    return manifest_mod.song_entry(song, instruments, contraponto_entry)
 
 
 # ---------------------------------------------------------------------------
@@ -272,7 +289,8 @@ def main(argv: list[str] | None = None) -> int:
     log("\n" + "─" * 66)
     log(
         f"{report.songs} morceaux · {report.instruments} partitions · "
-        f"{report.pages} pages · {report.measures} mesures"
+        f"{report.pages} pages · {report.measures} mesures · "
+        f"{report.contraponto_songs} avec contraponto"
     )
     log(
         f"Images : {report.bytes_written / 1_048_576:.1f} Mo · "

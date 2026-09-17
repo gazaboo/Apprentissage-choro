@@ -20,6 +20,7 @@ import type {
   DisplayMode,
   EclipseIntensity,
   Grille,
+  Instrument,
   InstrumentId,
   MaskLevel,
   Song,
@@ -72,11 +73,27 @@ export function renderTrainer(
   /** Zone d'étude voulue ; la grille n'est servie qu'une fois chargée. */
   let display: DisplayMode = progress.settings.display;
   let grille: Grille | null = null;
+  /** Mélodie seule ou avec contre-chant ; sans effet hors Ut (#80). */
+  let contrechant: 'avec' | 'sans' = progress.settings.contrechant;
 
   const anySource = song.audio.reference !== null || song.audio.playback !== null;
 
-  const currentInstrument = () =>
-    song.instruments.find((instrument) => instrument.id === instrumentId)!;
+  /** Le contraponto n'existe qu'en Ut (V1, #80). */
+  const contrechantAvailable = (): boolean =>
+    instrumentId === 'c' && song.contraponto !== null;
+
+  const currentInstrument = (): Instrument => {
+    const base = song.instruments.find((instrument) => instrument.id === instrumentId)!;
+    if (contrechantAvailable() && contrechant === 'avec' && song.contraponto) {
+      return {
+        ...base,
+        page_count: song.contraponto.page_count,
+        measure_count: song.contraponto.measure_count,
+        pages: song.contraponto.pages,
+      };
+    }
+    return base;
+  };
 
   /** La graine n'avance que sur « Mélanger » : le motif est sinon stable. */
   const maskSeed = () =>
@@ -240,10 +257,29 @@ export function renderTrainer(
   }
   const displayToggle = el('div', { class: 'hidden gap-1' }, ...displayButtons.values());
 
+  // Bascule Mélodie seule / Mélodie et contre-chant : masquée hors Ut et pour
+  // tout morceau sans contraponto (#80).
+  const contrechantButtons = new Map<'sans' | 'avec', HTMLButtonElement>();
+  for (const value of ['sans', 'avec'] as const) {
+    const button = el(
+      'button',
+      { type: 'button', class: ui.button },
+      value === 'sans' ? 'Mélodie seule' : 'Mélodie et contre-chant',
+    );
+    button.addEventListener('click', () => setContrechant(value));
+    contrechantButtons.set(value, button);
+  }
+  const contrechantToggle = el(
+    'div',
+    { class: 'hidden gap-1' },
+    ...contrechantButtons.values(),
+  );
+
   const scoreHeaderRow = el(
     'div',
     { class: 'flex flex-wrap items-center justify-between gap-2' },
     displayToggle,
+    contrechantToggle,
     fullpageEnter,
   );
 
@@ -264,6 +300,23 @@ export function renderTrainer(
     ...fpDisplayButtons.values(),
   );
 
+  // Même bascule contre-chant, format compact, pour la barre du plein écran.
+  const fpContrechantButtons = new Map<'sans' | 'avec', HTMLButtonElement>();
+  for (const value of ['sans', 'avec'] as const) {
+    const button = el(
+      'button',
+      { type: 'button', class: ui.chip },
+      value === 'sans' ? 'Mél.' : 'Mél.+CC',
+    );
+    button.addEventListener('click', () => setContrechant(value));
+    fpContrechantButtons.set(value, button);
+  }
+  const fpContrechantToggle = el(
+    'div',
+    { class: 'hidden items-center gap-1' },
+    ...fpContrechantButtons.values(),
+  );
+
   function paintDisplayToggle(): void {
     const has = grilleReady();
     displayToggle.classList.toggle('hidden', !has);
@@ -276,6 +329,22 @@ export function renderTrainer(
     }
     for (const [value, button] of fpDisplayButtons) {
       button.className = value === active ? ui.chipActive : ui.chip;
+    }
+  }
+
+  /** Indépendante de la bascule Partition/Grille : visible dès que le
+   *  contraponto est disponible pour la tonalité courante. */
+  function paintContrechantToggle(): void {
+    const has = contrechantAvailable();
+    contrechantToggle.classList.toggle('hidden', !has);
+    contrechantToggle.classList.toggle('flex', has);
+    fpContrechantToggle.classList.toggle('hidden', !has);
+    fpContrechantToggle.classList.toggle('flex', has);
+    for (const [value, button] of contrechantButtons) {
+      button.className = value === contrechant ? ui.buttonActive : ui.button;
+    }
+    for (const [value, button] of fpContrechantButtons) {
+      button.className = value === contrechant ? ui.chipActive : ui.chip;
     }
   }
 
@@ -309,6 +378,7 @@ export function renderTrainer(
     fullpageExit,
     el('span', { class: 'min-w-0 flex-1 truncate text-sm text-zinc-500' }, song.title),
     fpDisplayToggle,
+    fpContrechantToggle,
     fpZoomOut,
     fpZoomLabel,
     fpZoomIn,
@@ -550,6 +620,16 @@ export function renderTrainer(
     paintFullpage();
   }
 
+  function setContrechant(next: 'avec' | 'sans'): void {
+    if (next === contrechant) return;
+    contrechant = next;
+    progress.settings.contrechant = next;
+    saveProgress(progress);
+    hints = 0;
+    drawScore();
+    paintContrechantToggle();
+  }
+
   function setMode(next: StudyMode): void {
     if (next === mode) return;
     mode = next;
@@ -641,6 +721,7 @@ export function renderTrainer(
       instrumentId = id;
       hints = 0;
       drawScore();
+      paintContrechantToggle();
     },
   });
 
@@ -812,6 +893,7 @@ export function renderTrainer(
   paintMode();
   paintNoScore();
   paintDisplayToggle();
+  paintContrechantToggle();
   paintFullpage();
   if (mode === 'eclipses') eclipses.start();
 

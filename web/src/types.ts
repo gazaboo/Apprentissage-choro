@@ -47,6 +47,14 @@ export interface Instrument {
   pages: Page[];
 }
 
+/** Partition Ut avec une deuxième voix (contre-chant). Pas une tonalité :
+ *  volontairement hors de `Song.instruments`, voir `Song.contraponto`. */
+export interface ContrapontoScore {
+  page_count: number;
+  measure_count: number;
+  pages: Page[];
+}
+
 export interface AudioSource {
   url: string;
   youtube_id: string;
@@ -62,6 +70,9 @@ export interface Song {
     playback: AudioSource | null;
   };
   instruments: Instrument[];
+  /** Partition Ut avec contre-chant, si disponible (#80). `null` pour tout
+   *  morceau sans contraponto, ou pour toute tonalité autre que Ut en V1. */
+  contraponto: ContrapontoScore | null;
 }
 
 /** Quelle source audio le lecteur joue actuellement. */
