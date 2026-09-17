@@ -20,6 +20,11 @@ MAX_SKEW_DEGREES = 15.0  # plage d'angles explorée par la transformée de Hough
 LEVEL_TOLERANCE = 1.5  # en pixels : deux bandes voisines = même ligne
 STAFF_LINE_COVERAGE = 0.25  # part de la largeur devant être encrée
 BARLINE_COVERAGE = 0.85  # part de la hauteur de portée devant être encrée
+CONTRAST_LOW_PERCENTILE = 2.0  # centile mappé sur le noir
+CONTRAST_HIGH_PERCENTILE = 98.0  # centile mappé sur le blanc
+CONTENT_BRIGHTNESS_THRESHOLD = 200  # niveau de gris au-delà duquel un pixel compte comme "papier"
+CONTENT_ROW_COVERAGE = 0.5  # part d'une ligne/colonne devant être "papier" pour appartenir au contenu
+CONTENT_MARGIN_FRACTION = 0.01  # marge de sécurité gardée autour de la boîte détectée
 
 
 def _binarise(gray: np.ndarray) -> np.ndarray:
@@ -28,6 +33,48 @@ def _binarise(gray: np.ndarray) -> np.ndarray:
         gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
     return binary
+
+
+def normalise_contrast(gray: np.ndarray) -> np.ndarray:
+    """Étirement d'histogramme par centiles.
+
+    Les scans photographiés (fond de reliure, papier jauni, bruit JPEG) ont
+    un contraste papier/encre bien plus faible qu'un rendu vectoriel. On
+    étire les niveaux pour ramener le papier près du blanc et l'encre près
+    du noir — ça profite aussi à la binarisation Otsu utilisée juste après
+    pour le redressement et la détection de portées, plus fiable sur une
+    image contrastée que sur le gris terne d'origine.
+    """
+    low, high = np.percentile(gray, [CONTRAST_LOW_PERCENTILE, CONTRAST_HIGH_PERCENTILE])
+    if high <= low:
+        return gray
+    stretched = (gray.astype(np.float32) - low) * (255.0 / (high - low))
+    return np.clip(stretched, 0, 255).astype(np.uint8)
+
+
+def crop_to_content(image: np.ndarray) -> np.ndarray:
+    """Recadre sur la boîte englobante du papier photographié.
+
+    Une photo de page reliée embarque du fond noir et la spirale de
+    reliure autour du papier utile. On repère les lignes/colonnes très
+    majoritairement claires (le papier, pas le fond ni les anneaux) et on
+    recadre dessus, avec une petite marge de sécurité. Sans effet sur un
+    rendu déjà propre (page pleinement claire de bord en bord).
+    """
+    height, width = image.shape[:2]
+    bright = image > CONTENT_BRIGHTNESS_THRESHOLD
+    rows = np.flatnonzero(bright.mean(axis=1) >= CONTENT_ROW_COVERAGE)
+    cols = np.flatnonzero(bright.mean(axis=0) >= CONTENT_ROW_COVERAGE)
+    if rows.size == 0 or cols.size == 0:
+        return image
+
+    margin_y = int(height * CONTENT_MARGIN_FRACTION)
+    margin_x = int(width * CONTENT_MARGIN_FRACTION)
+    top = max(0, int(rows[0]) - margin_y)
+    bottom = min(height, int(rows[-1]) + 1 + margin_y)
+    left = max(0, int(cols[0]) - margin_x)
+    right = min(width, int(cols[-1]) + 1 + margin_x)
+    return image[top:bottom, left:right]
 
 
 def detect_skew(binary: np.ndarray) -> float:
@@ -128,22 +175,24 @@ def _detect_barlines(binary: np.ndarray, staff: Staff) -> list[float]:
 
 
 def analyse(gray: np.ndarray) -> tuple[PageGeometry, np.ndarray, float]:
-    """Redresse l'image puis détecte portées et barres.
+    """Contraste, redresse puis recadre l'image, et détecte portées et barres.
 
-    Retourne la géométrie, l'image redressée (celle qu'il faut enregistrer,
+    Retourne la géométrie, l'image finale (celle qu'il faut enregistrer,
     pour que les boîtes correspondent au pixel près) et l'angle appliqué.
     """
-    angle = detect_skew(_binarise(gray))
-    straight = deskew(gray, angle)
-    binary = _binarise(straight)
+    contrasted = normalise_contrast(gray)
+    angle = detect_skew(_binarise(contrasted))
+    straight = deskew(contrasted, angle)
+    cropped = crop_to_content(straight)
+    binary = _binarise(cropped)
 
     staves = group_staves(_staff_levels(binary))
     for staff in staves:
         found = list(staff.barlines) + _detect_barlines(binary, staff)
         staff.barlines = sorted(x for x in found if staff.x_left < x < staff.x_right)
 
-    height, width = straight.shape[:2]
+    height, width = cropped.shape[:2]
     geometry = PageGeometry(
         width=float(width), height=float(height), staves=staves, source="raster"
     )
-    return geometry, straight, angle
+    return geometry, cropped, angle
