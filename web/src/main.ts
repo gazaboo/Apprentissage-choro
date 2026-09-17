@@ -93,6 +93,21 @@ function navigate(hash: string): void {
   else window.location.hash = hash;
 }
 
+/**
+ * Une activité est en cours sur ces routes (lecture, plein écran, exercice au
+ * métronome) : un rafraîchissement en arrière-plan n'a pas à démonter la vue,
+ * sous peine de couper l'audio ou de réinitialiser sa progression locale
+ * (#79, #81). L'utilisateur récupère l'état à jour à la prochaine navigation.
+ */
+function isLiveActivityRoute(hash: string): boolean {
+  return (
+    hash === '#/session' ||
+    hash === '#/technique/run' ||
+    hash === '#/filage/run' ||
+    /^#\/song\/(.+)$/.test(hash)
+  );
+}
+
 /** Item (morceau + instrument) du bloc courant d'une session. */
 function currentSessionItem(state: SessionState): SessionItem {
   return state.kind === 'urgent'
@@ -467,7 +482,14 @@ async function boot(): Promise<void> {
 
   // Synchro entre appareils (silencieuse si aucun code n'est renseigné).
   initSync(() => {
-    progress = loadProgress();
+    const fresh = loadProgress();
+    if (isLiveActivityRoute(window.location.hash)) {
+      // On met à jour l'objet en place (même référence) pour que la vue
+      // active en tienne compte à sa prochaine écriture, sans la démonter.
+      Object.assign(progress, fresh);
+      return;
+    }
+    progress = fresh;
     render();
   });
   try {
