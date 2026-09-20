@@ -11,13 +11,13 @@
  * pour le morceau courant est sauté : inutile de proposer une grille absente.
  */
 
-import { el, ui } from '../dom';
+import { el, renderRateStepper, ui } from '../dom';
 import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
 import type { AudioKind, Grille, InstrumentId, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS, isGrille } from '../types';
 import type { Player } from '../audio';
-import { formatTime, PLAYBACK_RATES } from '../audio';
+import { formatTime } from '../audio';
 
 export interface FilageContext {
   player: Player;
@@ -191,31 +191,12 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   seekBar.addEventListener('pointerup', endScrub);
   seekBar.addEventListener('pointercancel', endScrub);
 
-  // --- Vitesse : disponible et modifiable à tout moment ----------------
+  // --- Vitesse : disponible et modifiable à tout moment -----------------
+  //
+  // Widget partagé avec la barre de transport (`renderRateStepper`, `dom.ts`) :
+  // persiste au changement de morceau, comme avant.
 
-  let chosenRate = 1;
-  const rateClass = (on: boolean): string =>
-    `min-h-11 min-w-[3.25rem] rounded-lg border px-3 text-sm font-medium transition ` +
-    (on
-      ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-      : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
-  const rateButtons = PLAYBACK_RATES.map((rate) => {
-    const button = el(
-      'button',
-      { type: 'button', class: rateClass(rate === 1) },
-      `${rate}×`.replace('.', ','),
-    );
-    button.addEventListener('click', () => {
-      chosenRate = player.setRate(rate);
-      paintRates(chosenRate);
-    });
-    return button;
-  });
-  function paintRates(active: number): void {
-    rateButtons.forEach((button, i) => {
-      button.className = rateClass(PLAYBACK_RATES[i] === active);
-    });
-  }
+  const rateStepper = renderRateStepper(player);
 
   // --- Bande : original ↔ playback, à tout moment ----------------------
 
@@ -561,7 +542,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
             'div',
             { class: 'flex flex-wrap items-center gap-2' },
             el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Vitesse'),
-            ...rateButtons,
+            rateStepper.minus,
+            rateStepper.value,
+            rateStepper.plus,
             el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
             el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Bande'),
             ...audioButtons,
