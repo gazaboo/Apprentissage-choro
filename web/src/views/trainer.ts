@@ -918,6 +918,7 @@ export function renderTrainer(
       grille = data;
       grilleView.setGrille(grille);
       paintDisplayToggle();
+      paintContrechantToggle();
       if (display === 'grille') {
         drawScore();
         paintFullpage();
