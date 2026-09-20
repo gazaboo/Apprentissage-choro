@@ -437,20 +437,11 @@ export function renderTrainer(
     fpMiniTime.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
   });
 
-  /**
-   * Ouverture libre seulement : le choix du défi, visible d'emblée au lieu de
-   * rester relégué dans les réglages dépliables (#8). Rempli plus bas, une
-   * fois les boutons de mode construits ; vide (donc invisible) en séance, où
-   * le mode reste celui des réglages et son sélecteur vit dans « Réglages ».
-   */
-  const modeSelectorSlot = el('div', { class: 'flex flex-col gap-2' });
-
   /** Là où partition et grille vivent hors du plein écran, avec leur en-tête. */
   const scoreHome = el(
     'div',
     { class: 'flex flex-col gap-3' },
     scoreHeaderRow,
-    modeSelectorSlot,
     scoreContainer,
     grilleContainer,
   );
@@ -646,12 +637,8 @@ export function renderTrainer(
   function setMode(next: StudyMode): void {
     if (next === mode) return;
     mode = next;
-    // Hors séance, le choix ne vaut que pour ce morceau-ci : l'écraser dans
-    // les réglages globaux changerait le défi d'entrée de tous les autres (#8).
-    if (context.session) {
-      progress.settings.studyMode = next;
-      saveProgress(progress);
-    }
+    progress.settings.studyMode = next;
+    saveProgress(progress);
     hints = 0;
     eclipses.reset();
     if (mode === 'eclipses') eclipses.start();
@@ -670,13 +657,6 @@ export function renderTrainer(
     );
     button.addEventListener('click', () => setMode(value));
     modeButtons.set(value, button);
-  }
-
-  if (!context.session) {
-    modeSelectorSlot.append(
-      el('div', { class: 'flex flex-wrap gap-2' }, ...modeButtons.values()),
-      modeHint,
-    );
   }
 
   for (const level of MASK_LEVELS) {
@@ -724,11 +704,8 @@ export function renderTrainer(
     body: el(
       'div',
       { class: 'flex flex-col gap-3' },
-      // En ouverture libre, le sélecteur de mode vit déjà en tête d'écran
-      // (modeSelectorSlot) : pas la peine de le dupliquer ici (#8).
-      ...(context.session
-        ? [el('div', { class: 'grid grid-cols-2 gap-2' }, ...modeButtons.values()), modeHint]
-        : []),
+      el('div', { class: 'grid grid-cols-2 gap-2' }, ...modeButtons.values()),
+      modeHint,
       maskPanel,
       intensityPanel,
       countersLabel,
@@ -900,9 +877,7 @@ export function renderTrainer(
     'p',
     { class: `${ui.card} hidden text-sm text-zinc-400` },
     'Sans partition : le morceau se travaille à l’oreille et de mémoire. ' +
-      (context.session
-        ? 'Choisissez un autre mode dans les réglages pour la faire réapparaître.'
-        : 'Choisissez un autre mode ci-dessus pour la faire réapparaître.'),
+      'Choisissez un autre mode dans les réglages pour la faire réapparaître.',
   );
   function paintNoScore(): void {
     noScore.classList.toggle('hidden', mode !== 'sans');
