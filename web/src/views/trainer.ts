@@ -774,11 +774,7 @@ export function renderTrainer(
     }
   }
 
-  const nextLabel = context.session
-    ? context.session.kind === 'deep'
-      ? 'Passer au morceau suivant'
-      : 'Passer au bloc suivant'
-    : 'Terminer et évaluer';
+  const nextLabel = context.session ? 'Passer au morceau suivant' : 'Terminer et évaluer';
   const finishButton = el('button', { type: 'button', class: ui.primary }, nextLabel);
   finishButton.addEventListener('click', () => void finish());
 
