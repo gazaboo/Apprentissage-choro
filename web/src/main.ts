@@ -399,7 +399,7 @@ function render(): void {
     const position = session.index + 1;
     const label =
       session.kind === 'urgent'
-        ? `Révision des urgences · ${session.setlistName} — bloc ${position} sur ${session.blocks.length}`
+        ? `Révision des urgences · ${session.setlistName} — morceau ${position} sur ${session.blocks.length}`
         : `Travail de fond · ${session.setlistName} — morceau ${position} sur ${session.order.length}`;
     teardown = renderTrainer(root!, ordered, {
       progress,
