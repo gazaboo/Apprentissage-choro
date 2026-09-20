@@ -66,6 +66,21 @@ npx netlify dev      # app + fonction en local (store Blobs sandboxé)
 npx netlify deploy   # déploiement
 ```
 
+### 4. Mesure d'audience (Umami)
+
+Analytics cookieless via [Umami](https://umami.is) (`web/src/analytics.ts`,
+issue #113) : script chargé uniquement en production, et seulement si un
+identifiant de site est configuré — les builds locaux et les
+déploiements de prévisualisation ne polluent donc pas les statistiques.
+
+Variables d'environnement de build Netlify (Site settings → Environment
+variables) :
+
+- `VITE_UMAMI_WEBSITE_ID` : identifiant de site fourni par Umami Cloud
+  (absent → analytics désactivées).
+- `VITE_UMAMI_SCRIPT_URL` : optionnel, défaut `https://cloud.umami.is/script.js` ;
+  à renseigner en cas de migration vers un Umami self-hosted.
+
 ---
 
 ## Détection des mesures

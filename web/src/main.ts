@@ -17,6 +17,7 @@
 
 import './style.css';
 
+import { initAnalytics } from './analytics';
 import { el, ui } from './dom';
 import { buildRotation, pickSessionItems } from './session';
 import type { SessionBlock, SessionItem } from './session';
@@ -520,6 +521,8 @@ async function boot(): Promise<void> {
   } catch {
     exercices = [];
   }
+
+  initAnalytics();
 
   // Synchro entre appareils (silencieuse si aucun code n'est renseigné).
   initSync(() => {
