@@ -16,8 +16,8 @@ import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
 import type { AudioKind, Grille, InstrumentId, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS, isGrille } from '../types';
-import type { Player } from '../youtube';
-import { formatTime, PLAYBACK_RATES } from '../youtube';
+import type { Player } from '../audio';
+import { formatTime, PLAYBACK_RATES } from '../audio';
 
 export interface FilageContext {
   player: Player;
@@ -70,17 +70,22 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   let introActive = true;
   let introTimer: number | null = null;
 
-  /** Source audio du morceau selon la bande choisie, avec repli sur l'autre. */
-  function audioId(song: Song): string | null {
+  /** Charge la bande choisie du morceau, avec repli sur l'autre.
+   *
+   * La durée vient du manifeste : la barre de défilement est juste dès le
+   * chargement, sans attendre les métadonnées du fichier.
+   */
+  function loadAudio(song: Song, autoplay: boolean): void {
     const wantReference = audioKind === 'reference';
     const primary = wantReference ? song.audio.reference : song.audio.playback;
     const fallback = wantReference ? song.audio.playback : song.audio.reference;
-    return (primary ?? fallback)?.youtube_id ?? null;
+    const source = primary ?? fallback;
+    if (source) player.load(source.file, autoplay, source.duration);
   }
 
   // --- DOM ---------------------------------------------------------------
 
-  const playerMount = el('div', { class: 'yt-audio-only' });
+  const playerMount = el('div', { class: 'audio-only' });
 
   const scoreContainer = el('div', { class: 'score-surface flex flex-col gap-6' });
   const scoreView = new ScoreView(scoreContainer, { onHintUsed: () => {} });
@@ -231,8 +236,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       audioButtons.forEach((other, i) => {
         other.className = audioClass(audioOptions[i]!.kind === audioKind);
       });
-      const id = audioId(order[index]!);
-      if (id) player.load(id, player.getPlayerState() === 1);
+      loadAudio(order[index]!, player.isPlaying());
     });
     return button;
   });
@@ -315,8 +319,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     window.removeEventListener('keydown', onIntroKey);
     introVeil.classList.add('hidden');
     introVeil.classList.remove('flex');
-    const id = audioId(order[index]!);
-    if (id) player.load(id, true);
+    loadAudio(order[index]!, true);
   }
 
   function onIntroKey(event: KeyboardEvent): void {
@@ -467,8 +470,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     loadGrille(song, instrument);
     paintScoreVisibility();
 
-    const id = audioId(song);
-    if (id) player.load(id, autoplay);
+    loadAudio(song, autoplay);
   }
 
   function startCountdown(): void {
@@ -582,13 +584,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   unsubscribe = player.onTick((tick) => {
     playButton.textContent = tick.playing ? '❚❚' : '▶';
     timeLabel.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
-    if (tick.playing) {
-      hasPlayed = true;
-      // YouTube peut réinitialiser la vitesse au chargement d'un morceau.
-      if (chosenRate !== 1 && Math.abs(player.getRate() - chosenRate) > 0.01) {
-        player.setRate(chosenRate);
-      }
-    }
+    if (tick.playing) hasPlayed = true;
     if (!scrubbing && tick.duration > 0) {
       seekFill.style.width = `${(tick.currentTime / tick.duration) * 100}%`;
       seekBar.setAttribute('aria-valuenow', String(Math.round(tick.currentTime)));
@@ -600,22 +596,24 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       !transitioning &&
       !scrubbing &&
       !tick.playing &&
-      (player.getPlayerState() === 0 ||
+      (player.hasEnded() ||
         (tick.duration > 0 && tick.currentTime >= tick.duration - 0.4));
     if (ended) startCountdown();
   });
 
+  const unsubscribeFailure = player.onFailure((failure) => {
+    scoreNote.textContent =
+      failure === 'geste'
+        ? 'Lecture bloquée par le navigateur — touchez ▶ pour reprendre.'
+        : 'Audio indisponible pour ce morceau — enchaînez à la main.';
+    scoreNote.classList.remove('hidden');
+  });
+
   void (async () => {
-    try {
-      await player.mount(playerMount);
-      // Relance la source du morceau courant maintenant que le lecteur est prêt.
-      // Pendant le décompte d'entrée, on se contente de la mettre en file.
-      const id = audioId(order[index]!);
-      if (id) player.load(id, !introActive);
-    } catch {
-      scoreNote.textContent = 'Lecteur indisponible (connexion ou blocage réseau) — enchaînez à la main.';
-      scoreNote.classList.remove('hidden');
-    }
+    await player.mount(playerMount);
+    // Relance la source du morceau courant maintenant que le lecteur est prêt.
+    // Pendant le décompte d'entrée, on se contente de la mettre en file.
+    loadAudio(order[index]!, !introActive);
   })();
 
   return () => {
@@ -623,8 +621,8 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     if (introTimer !== null) window.clearInterval(introTimer);
     window.removeEventListener('keydown', onIntroKey);
     unsubscribe?.();
+    unsubscribeFailure();
     player.pause();
-    player.clearCountdown();
     scoreView.destroy();
     grilleAbort.abort();
     grilleView.destroy();

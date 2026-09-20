@@ -17,11 +17,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Le lecteur ne sert plus que d'audio : son iframe est sortie du champ de
-   vision, mais reste rendue. `display: none` et `visibility: hidden` coupent
-   le son sur certains navigateurs — c'est pourquoi on la déporte. */
-.yt-audio-only,
-.yt-audio-only iframe {
+/* L'élément `<audio>` est piloté par la barre de transport et n'affiche
+   jamais ses propres commandes : on le sort du champ de vision plutôt que de
+   le retirer du flux. */
+.audio-only {
   position: absolute;
   left: -9999px;
   top: 0;

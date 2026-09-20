@@ -12,24 +12,18 @@ MANIFEST_NAME = "manifest.json"
 
 
 def audio_entry(song: SongFolder, out_dir: Path | None) -> dict:
-    """Fusionne l'URL déclarée et le fichier local produit par `fetch_audio.py`.
+    """Publie les fichiers audio locaux produits par `fetch_audio.py` (#18).
 
-    Les deux coexistent le temps de la migration (#18) : le frontend lit encore
-    `youtube_id`, mais `file` / `duration` / `source_url` sont déjà publiés pour
-    que la bascule du lecteur n'ait plus qu'à changer de champ.
-
-    Le sidecar n'étant pas écrit par cette passe, un morceau sans audio local
-    retombe exactement sur l'ancienne forme.
+    Une URL déclarée dans `url.md` ne suffit plus : depuis la bascule vers un
+    lecteur `<audio>`, seul un fichier réellement encodé constitue une source.
+    Une URL dont le téléchargement a échoué — vidéo supprimée, par exemple —
+    donne donc `null`, et l'interface la traite comme une source absente.
     """
     local = audio_assets.read_sidecar(out_dir, song.song_id) if out_dir else {}
     entries: dict[str, dict | None] = {}
     for kind in audio_assets.KINDS:
-        declared = getattr(song, kind)
         published = audio_assets.published_entry(local.get(kind))
-        if declared is None and not published:
-            entries[kind] = None
-            continue
-        entries[kind] = {**(declared.to_dict() if declared else {}), **published}
+        entries[kind] = published or None
     return entries
 
 
