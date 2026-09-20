@@ -34,7 +34,56 @@ détecte les mesures et écrit le tout dans `web/public/data/`.
 | `--only TEXTE` | ne retraiter que les morceaux correspondants ; le manifeste existant est **complété**, pas écrasé |
 | `--debug` | écrit un `page_N.debug.png` par page, avec portées, barres et boîtes tracées |
 | `--force-raster` | force le pipeline OpenCV (test du repli) |
-| `--clean` | vide le dossier de sortie d'abord (incompatible avec `--only`) |
+| `--clean` | efface les images générées avant de régénérer — `audio/`, `piano/`, `grilles/` et `technique/` sont préservés (incompatible avec `--only`) |
+
+### 1 bis. Audio local (Python + yt-dlp + ffmpeg)
+
+```bash
+python scripts/fetch_audio.py          # incrémental : ne fait que ce qui manque
+python scripts/fetch_audio.py --verify # contrôle sans rien encoder
+```
+
+Le script lit les mêmes `url.md` / `url-playback.md` que le prétraitement,
+télécharge chaque source et la transcode en **Opus mono 48 kbps** dans
+`web/public/data/<morceau>/audio/`. Les métadonnées vont dans un sidecar
+`audio.json` que `preprocess_all.py` reverse ensuite dans le manifeste — le
+sidecar est la source de vérité, régénérer les partitions ne le touche pas.
+
+Les noms portent un hash du contenu (`reference.0252893c.opus`) : remplacer un
+audio produit une URL neuve, ce qui rend honnête l'en-tête `Cache-Control:
+immutable` posé par Netlify.
+
+| Option | Effet |
+|---|---|
+| `--only TEXTE` | ne traiter que les morceaux correspondants |
+| `--source reference\|playback` | ne traiter qu'une bande |
+| `--from-file CHEMIN` | transcoder un fichier local au lieu de télécharger (exige `--only` et `--source`) |
+| `--force` | ré-encoder malgré un sidecar à jour (**refusé sans `--only`**) |
+| `--no-loudnorm` | encoder sans normalisation EBU R128 |
+| `--verify` | vérifier fichiers, sidecars et orphelins |
+
+#### Faire évoluer l'audio
+
+Un passage sans argument ne touche que ce qui manque ou a changé : **ajouter un
+morceau** ne demande donc rien de particulier.
+
+**Remplacer une bande** se fait de deux façons. Corriger l'URL dans
+`url-playback.md` suffit — le script compare le sidecar à l'URL déclarée, voit
+la différence, ré-encode et supprime l'ancien fichier. Pour une meilleure prise
+ou une version recadrée qu'on a déjà sous la main :
+
+```bash
+python scripts/fetch_audio.py --only benzinho --source playback \
+       --from-file ~/benzinho-v2.wav
+```
+
+Chaque Opus est un blob **définitif** dans l'historique git : le format est déjà
+compressé, git n'en tire aucun delta. Un remplacement coûte ~1,3 Mo pour
+toujours, ce qui est négligeable ; un **ré-encodage global** en coûterait plus de
+120, d'où le refus de `--force` sans `--only`. Si changer les paramètres
+d'encodage devient un jour nécessaire, cela passe par une réécriture
+d'historique (`git filter-repo`) ou un commit orphelin — jamais par un simple
+passage du script.
 
 ### 2. Application web
 
@@ -124,15 +173,19 @@ poursuit ; l'interface s'adapte sans jamais planter :
 
 | Manque | Comportement |
 |---|---|
-| `url.md` absent ou vide | `reference: null` → le lecteur se cale sur le playback, l'onglet Référence est grisé « (Non disponible) » |
-| `url-playback.md` absent ou vide | cas symétrique |
+| `url.md` absent, vide, ou source introuvable à l'encodage | `reference: null` → le lecteur se cale sur le playback, l'onglet Référence est grisé « (Non disponible) » |
+| `url-playback.md` absent, vide, ou source introuvable | cas symétrique |
 | aucune des deux URL | bandeau « Aucune vidéo disponible » ; l'entraînement sur partition reste utilisable |
 | une seule partition | le sélecteur de transposition disparaît au profit d'une simple mention |
 | deux PDF pour un même instrument | avertissement listant les fichiers, le mieux nommé est retenu |
 
-État actuel du corpus : `Tico tico no fubá` n'a pas de référence,
-`Naquele Tempo` et `Doce de Coco` n'ont pas de playback, `E do que hà` et
-`Sonoroso` n'ont pas de partie Mi♭.
+État actuel du corpus : 92 sources audio locales sur 95 déclarées.
+`Tico tico no fubá` n'a pas de référence, `Naquele Tempo` et `Doce de Coco`
+n'ont pas de playback, `E do que hà` et `Sonoroso` n'ont pas de partie Mi♭.
+Trois sources sont par ailleurs devenues introuvables sur YouTube avant d'avoir
+pu être transcodées — `Acerta o Passo` (référence, et il n'a pas de playback :
+seul morceau sans aucun audio), `Chorinho na Gafieira` (playback) et
+`Saxofone por que choras` (référence) : il leur faut de nouvelles URL.
 
 ---
 
@@ -143,10 +196,12 @@ utilisateurs de clavier : chaque action a un bouton libellé, visible sans rien
 avoir appris. Tous les contrôles font au moins 44 × 44 px, pour être atteints
 d'une main, l'instrument dans l'autre.
 
-**Lecteur audio seul.** L'iframe YouTube est déportée hors du champ de vision
-(`left: -9999px`, 1 × 1 px — jamais `display: none` ni `visibility: hidden`, qui
-coupent le son sur certains navigateurs) et pilotée par l'API IFrame. La vidéo
-n'apprend rien à qui travaille d'oreille ; seul l'audio compte.
+**Lecteur audio seul.** Les morceaux sont joués depuis des fichiers Opus
+servis par le site lui-même (`data/<morceau>/audio/`), par un `<audio>` déporté
+hors du champ de vision (`left: -9999px`). Pas de tiers, donc pas de publicité
+au milieu d'une séance, pas de vidéo supprimée qui casse un morceau, et le
+hors-ligne devient possible. La vidéo n'apprenait rien à qui travaille
+d'oreille ; seul l'audio compte.
 
 **Barre de transport** — lecture/pause, défilement, **avec ou sans la mélodie**,
 vitesse (0,5× / 0,75× / 1×), et derrière un bouton « Réglages » : comment
@@ -387,21 +442,23 @@ au retour du réseau.
 
 ```text
 scripts/
-  preprocess_all.py           CLI
+  preprocess_all.py           CLI du prétraitement des partitions
+  fetch_audio.py              CLI du téléchargement et transcodage audio
   choro_preprocess/
     scan.py                   arborescence → morceaux, URLs, PDF catégorisés
+    audio_assets.py           convention de stockage des Opus + sidecar
     vector_geometry.py        détection vectorielle (PyMuPDF) — moteur principal
     raster_geometry.py        détection OpenCV (Hough + morphologie) — repli
     measures.py               portées → boîtes composites normalisées
     render.py                 rendu WebP et calques de contrôle
     manifest.py               sérialisation JSON
 web/
-  public/data/                généré (versionné) — images + manifest.json
+  public/data/                généré (versionné) — images, audio + manifest.json
   src/
     main.ts                   routage et orchestration
     store.ts srs.ts session.ts
     sync.ts                   synchro entre appareils + fusion (fonction pure)
-    youtube.ts                lecteur audio seul, ticker, répétition de passage
+    audio.ts                  lecteur <audio> local, ticker, répétition de passage
     transport.ts sheet.ts     barre de transport et panneau de réglages
     eclipse.ts                horloge des éclipses
     metronome.ts              clic Web Audio, programmé à l'avance sur l'horloge audio
@@ -427,10 +484,12 @@ netlify.toml package.json      config de déploiement + dépendance de la foncti
 - **`pdf2image` n'est pas utilisé** : PyMuPDF assure à la fois le rendu et
   l'extraction vectorielle, ce qui retire une dépendance et le besoin de
   poppler. `opencv-python` et `numpy` restent, pour le repli raster.
-- **Vitesses de lecture 0,85× et 1,05× impossibles** : le lecteur YouTube
-  n'accepte que les paliers de `getAvailablePlaybackRates()`. L'interface
-  propose 0,5× / 0,75× / 1×, applique le palier disponible le plus proche et
-  affiche la vitesse réellement obtenue.
+- **Vitesses de lecture : trois paliers par choix, non par contrainte.**
+  Le lecteur YouTube n'acceptait que les paliers de
+  `getAvailablePlaybackRates()` ; depuis le passage à un `<audio>` natif
+  (#18), n'importe quel ratio serait applicable, `preservesPitch` garantissant
+  qu'on ralentit sans transposer. L'interface s'en tient à 0,5× / 0,75× / 1×
+  parce que trois boutons suffisent sur un dock déjà chargé.
 - **Pas de zones tactiles de transport sur la partition** : elles entreraient en
   conflit avec l'indice éphémère, qui occupe déjà le tap sur une mesure masquée.
   Le transport reste entièrement dans sa barre.

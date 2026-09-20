@@ -5,23 +5,40 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from . import audio_assets
 from .scan import SongFolder
 
 MANIFEST_NAME = "manifest.json"
 
 
+def audio_entry(song: SongFolder, out_dir: Path | None) -> dict:
+    """Publie les fichiers audio locaux produits par `fetch_audio.py` (#18).
+
+    Une URL déclarée dans `url.md` ne suffit plus : depuis la bascule vers un
+    lecteur `<audio>`, seul un fichier réellement encodé constitue une source.
+    Une URL dont le téléchargement a échoué — vidéo supprimée, par exemple —
+    donne donc `null`, et l'interface la traite comme une source absente.
+    """
+    local = audio_assets.read_sidecar(out_dir, song.song_id) if out_dir else {}
+    entries: dict[str, dict | None] = {}
+    for kind in audio_assets.KINDS:
+        published = audio_assets.published_entry(local.get(kind))
+        entries[kind] = published or None
+    return entries
+
+
 def song_entry(
-    song: SongFolder, instruments: list[dict], contraponto: dict | None = None
+    song: SongFolder,
+    instruments: list[dict],
+    contraponto: dict | None = None,
+    out_dir: Path | None = None,
 ) -> dict:
     """Assemble l'entrée JSON d'un morceau."""
     return {
         "id": song.song_id,
         "title": song.title,
         "composer": song.composer,
-        "audio": {
-            "reference": song.reference.to_dict() if song.reference else None,
-            "playback": song.playback.to_dict() if song.playback else None,
-        },
+        "audio": audio_entry(song, out_dir),
         "instruments": instruments,
         "contraponto": contraponto,
     }

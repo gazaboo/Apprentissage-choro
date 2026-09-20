@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/um-tom-pra-jobim-sivuca/audio/reference.0f3c1369.opus",
+    "duration": 271.51,
+    "source_url": "https://www.youtube.com/watch?v=1GXQKJsZ3nM",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/um-tom-pra-jobim-sivuca/audio/playback.f0c45344.opus",
+    "duration": 110.81,
+    "source_url": "https://www.youtube.com/watch?v=9JoL8XhGqWI",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

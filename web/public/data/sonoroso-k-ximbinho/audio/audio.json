@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/sonoroso-k-ximbinho/audio/reference.43cc041e.opus",
+    "duration": 168.57,
+    "source_url": "https://www.youtube.com/watch?v=nlALNf7C_mM&list=RDnlALNf7C_mM&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/sonoroso-k-ximbinho/audio/playback.76e3e372.opus",
+    "duration": 135.21,
+    "source_url": "https://www.youtube.com/watch?v=_GS9uk9UmX0&list=RD_GS9uk9UmX0&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

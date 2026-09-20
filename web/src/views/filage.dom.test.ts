@@ -9,7 +9,11 @@ function song(id: string, title = id): Song {
     title,
     composer: 'Compositeur',
     audio: {
-      reference: { url: `https://youtube.com/watch?v=${id}`, youtube_id: id },
+      reference: {
+        file: `data/${id}/audio/reference.abcd1234.opus`,
+        duration: 180,
+        source_url: `https://youtube.com/watch?v=${id}`,
+      },
       playback: null,
     },
     instruments: [{ id: 'c', name: 'Ut', page_count: 0, measure_count: 0, pages: [] }],

@@ -56,8 +56,13 @@ export interface ContrapontoScore {
 }
 
 export interface AudioSource {
-  url: string;
-  youtube_id: string;
+  /** Fichier Opus local, relatif à la racine du site (#18). */
+  file: string;
+  /** Durée en secondes, relevée à l'encodage — évite d'attendre les métadonnées
+   *  du fichier pour afficher une barre de défilement juste. */
+  duration: number;
+  /** URL d'origine du transcodage, conservée pour l'attribution. */
+  source_url: string;
 }
 
 export interface Song {
@@ -65,7 +70,8 @@ export interface Song {
   title: string;
   composer: string;
   audio: {
-    /** `null` quand `url.md` est absent ou vide — l'UI doit le tolérer. */
+    /** `null` quand aucun fichier local n'existe : `url.md` absent ou vide,
+     *  ou source devenue introuvable à l'encodage. L'UI doit le tolérer. */
     reference: AudioSource | null;
     playback: AudioSource | null;
   };
