@@ -347,12 +347,25 @@ export class Player {
   }
 }
 
-/** Vitesses proposées par l'interface.
+/** Bornes et pas du réglage de vitesse dans l'interface.
  *
- * Trois paliers par choix d'ergonomie, non par contrainte : depuis le passage
- * à un lecteur natif, n'importe quelle valeur serait applicable.
+ * Pas de 0,05 pour affiner le ralenti au déchiffrage ; plancher à 0,5 en
+ * deçà duquel le morceau devient inintelligible ; pas d'accéléré au-delà de
+ * 1 (l'usage est de ralentir l'original, pas de le dépasser).
  */
-export const PLAYBACK_RATES = [0.5, 0.75, 1];
+export const RATE_MIN = 0.5;
+export const RATE_MAX = 1;
+export const RATE_STEP = 0.05;
+
+/** Décale une vitesse d'un cran, sans sortir de [RATE_MIN, RATE_MAX].
+ *
+ * Arrondi à 2 décimales : additionner du 0,05 en flottant dérive sinon
+ * (0.9500000000000001), ce qui casserait l'affichage et la comparaison à 1.
+ */
+export function stepRate(current: number, direction: 1 | -1): number {
+  const next = Math.round((current + direction * RATE_STEP) * 100) / 100;
+  return Math.min(RATE_MAX, Math.max(RATE_MIN, next));
+}
 
 /** `123.4` → `2:03`. Les morceaux dépassent rarement l'heure. */
 export function formatTime(seconds: number): string {

@@ -12,9 +12,9 @@
  * fins), que la vue place dans le panneau de réglages.
  */
 
-import { el, ui } from './dom';
+import { el, renderRateStepper, ui } from './dom';
 import type { Player } from './audio';
-import { formatTime, PLAYBACK_RATES } from './audio';
+import { formatTime } from './audio';
 import type { AudioKind, InstrumentId, Song } from './types';
 
 /** Bloc de réglages secondaires, avec son intitulé. */
@@ -211,33 +211,18 @@ export function createTransport(options: TransportOptions): Transport {
 
   // --- Vitesse ----------------------------------------------------------
   //
-  // Un seul bouton, pas trois : la vitesse ralentie sert à déchiffrer un
-  // passage, puis on revient au tempo réel. Chaque appui descend d'un cran
-  // (1× → 0.75× → 0.5×) puis reboucle au plein tempo — le fonctionnement
-  // d'une pédale. Hors 1×, le bouton s'allume pour qu'on n'oublie pas.
-
-  // Du plus lent au plus rapide dans le manifeste ; on veut l'ordre inverse
-  // pour le cycle (partir du plein tempo et ralentir).
-  const RATE_CYCLE = [...PLAYBACK_RATES].sort((a, b) => b - a);
-
-  let rateIndex = 0;
-  const rateButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
-  function paintRate(): void {
-    const rate = RATE_CYCLE[rateIndex]!;
-    // `className` complet à chaque fois : le rang `md:order-4` doit survivre.
-    rateButton.className = `${rate === 1 ? ui.chip : ui.chipActive} gap-1.5 md:order-4`;
-    fillToggle(rateButton, `${rate}×`, '▾');
-    rateButton.setAttribute(
-      'aria-label',
-      `Vitesse ${rate} fois, toucher pour ${rate === 1 ? 'ralentir' : 'changer'}`,
-    );
-  }
-  rateButton.addEventListener('click', () => {
-    rateIndex = (rateIndex + 1) % RATE_CYCLE.length;
-    player.setRate(RATE_CYCLE[rateIndex]!);
-    paintRate();
-  });
-  paintRate();
+  // Un stepper (−, valeur, +) plutôt que des paliers fixes : la vitesse
+  // ralentie sert à déchiffrer un passage, affinée par pas de 0,05, puis on
+  // revient au tempo réel d'un tap sur la valeur. Widget partagé avec
+  // l'écran de filage (`renderRateStepper`, `dom.ts`).
+  const rateStepper = renderRateStepper(player);
+  const rateGroup = el(
+    'div',
+    { class: 'flex shrink-0 items-center gap-1 md:order-4' },
+    rateStepper.minus,
+    rateStepper.value,
+    rateStepper.plus,
+  );
 
   // --- Enregistrement ---------------------------------------------------
   //
@@ -324,7 +309,7 @@ export function createTransport(options: TransportOptions): Transport {
 
   const secondary: HTMLElement[] = [];
   if (sourceCycle.length > 1) secondary.push(sourceButton);
-  secondary.push(rateButton);
+  secondary.push(rateGroup);
   if (song.instruments.length > 1) secondary.push(instrumentButton);
 
   const primary = el(

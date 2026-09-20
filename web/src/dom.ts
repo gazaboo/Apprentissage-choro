@@ -1,5 +1,7 @@
 /** Petites fabriques DOM, pour écrire les vues sans framework. */
 
+import { RATE_MAX, RATE_MIN, stepRate } from './audio';
+
 type Attrs = Record<string, string | number | boolean | undefined>;
 type Child = Node | string | null | undefined | false;
 
@@ -110,4 +112,56 @@ export function segmented<T extends string>(
     return button;
   });
   return el('div', { class: 'flex gap-2' }, ...buttons);
+}
+
+/** `123.4` → `1,25`. Point décimal en virgule, comme partout ailleurs dans l'interface. */
+const formatRate = (rate: number): string => `${rate}×`.replace('.', ',');
+
+/**
+ * Stepper de vitesse `−  0,95×  +` : deux boutons qui déplacent la vitesse
+ * d'un cran (`stepRate`), et la valeur centrale qui revient directement à
+ * vitesse normale au tap. Un seul widget pour la barre de transport
+ * (`transport.ts`) et l'écran de filage (`filage.ts`), qui partagent le même
+ * réglage de vitesse.
+ */
+export function renderRateStepper(player: {
+  setRate(rate: number): number;
+  getRate(): number;
+}): { minus: HTMLButtonElement; value: HTMLButtonElement; plus: HTMLButtonElement } {
+  let rate = player.getRate();
+
+  const minus = el('button', { type: 'button', class: ui.icon }, '−');
+  const plus = el('button', { type: 'button', class: ui.icon }, '+');
+  const value = el('button', { type: 'button', class: ui.chip }, '');
+
+  function paint(): void {
+    minus.disabled = rate <= RATE_MIN;
+    plus.disabled = rate >= RATE_MAX;
+    value.className = rate === RATE_MAX ? ui.chip : ui.chipActive;
+    value.textContent = formatRate(rate);
+    const label = `Vitesse ${formatRate(rate)}`;
+    minus.setAttribute('aria-label', `Ralentir — ${label}`);
+    plus.setAttribute('aria-label', `Accélérer — ${label}`);
+    value.setAttribute(
+      'aria-label',
+      rate === RATE_MAX ? label : `${label}, toucher pour revenir à vitesse normale`,
+    );
+  }
+
+  minus.addEventListener('click', () => {
+    rate = player.setRate(stepRate(rate, -1));
+    paint();
+  });
+  plus.addEventListener('click', () => {
+    rate = player.setRate(stepRate(rate, 1));
+    paint();
+  });
+  value.addEventListener('click', () => {
+    if (rate === RATE_MAX) return;
+    rate = player.setRate(RATE_MAX);
+    paint();
+  });
+
+  paint();
+  return { minus, value, plus };
 }
