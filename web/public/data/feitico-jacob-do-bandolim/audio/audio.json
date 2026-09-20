@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/feitico-jacob-do-bandolim/audio/reference.47c21da6.opus",
+    "duration": 270.51,
+    "source_url": "https://www.youtube.com/watch?v=h5j404FOCKQ",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/feitico-jacob-do-bandolim/audio/playback.a5f66b7a.opus",
+    "duration": 110.41,
+    "source_url": "https://www.youtube.com/watch?v=Gp_h-LxgOrc",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

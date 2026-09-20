@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/e-do-que-ha-luiz-americano/audio/reference.bb6ff981.opus",
+    "duration": 246.91,
+    "source_url": "https://www.youtube.com/watch?v=0rgyCWdrzgA&list=RD0rgyCWdrzgA&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/e-do-que-ha-luiz-americano/audio/playback.c8d3b93a.opus",
+    "duration": 248.11,
+    "source_url": "https://www.youtube.com/watch?v=Wn6U_26YvuI&list=RDWn6U_26YvuI&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/sonhando-k-ximbinho/audio/reference.9d7223b2.opus",
+    "duration": 226.41,
+    "source_url": "https://www.youtube.com/watch?v=CFgYaQfPmO4",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/sonhando-k-ximbinho/audio/playback.429533e2.opus",
+    "duration": 234.81,
+    "source_url": "https://www.youtube.com/watch?v=U6Aqk8d4ZEM",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

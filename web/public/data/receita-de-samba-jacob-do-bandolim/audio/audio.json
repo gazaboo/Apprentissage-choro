@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/receita-de-samba-jacob-do-bandolim/audio/reference.a7cdceee.opus",
+    "duration": 165.31,
+    "source_url": "https://www.youtube.com/watch?v=xIykrXOTLtg&list=RDxIykrXOTLtg&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/receita-de-samba-jacob-do-bandolim/audio/playback.c42af86a.opus",
+    "duration": 208.41,
+    "source_url": "https://www.youtube.com/watch?v=Jmu10RM7gPo&list=RDJmu10RM7gPo&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

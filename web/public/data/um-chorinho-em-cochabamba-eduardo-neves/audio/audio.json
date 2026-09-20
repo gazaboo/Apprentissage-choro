@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/um-chorinho-em-cochabamba-eduardo-neves/audio/reference.8fa12d34.opus",
+    "duration": 243.21,
+    "source_url": "https://www.youtube.com/watch?v=4BxCuR1FhSA&list=RD4BxCuR1FhSA&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/um-chorinho-em-cochabamba-eduardo-neves/audio/playback.c823e9dc.opus",
+    "duration": 317.71,
+    "source_url": "https://www.youtube.com/watch?v=F1Rj9ZM7tAk&list=RDF1Rj9ZM7tAk&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

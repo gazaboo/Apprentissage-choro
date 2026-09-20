@@ -34,7 +34,56 @@ détecte les mesures et écrit le tout dans `web/public/data/`.
 | `--only TEXTE` | ne retraiter que les morceaux correspondants ; le manifeste existant est **complété**, pas écrasé |
 | `--debug` | écrit un `page_N.debug.png` par page, avec portées, barres et boîtes tracées |
 | `--force-raster` | force le pipeline OpenCV (test du repli) |
-| `--clean` | vide le dossier de sortie d'abord (incompatible avec `--only`) |
+| `--clean` | efface les images générées avant de régénérer — `audio/`, `piano/`, `grilles/` et `technique/` sont préservés (incompatible avec `--only`) |
+
+### 1 bis. Audio local (Python + yt-dlp + ffmpeg)
+
+```bash
+python scripts/fetch_audio.py          # incrémental : ne fait que ce qui manque
+python scripts/fetch_audio.py --verify # contrôle sans rien encoder
+```
+
+Le script lit les mêmes `url.md` / `url-playback.md` que le prétraitement,
+télécharge chaque source et la transcode en **Opus mono 48 kbps** dans
+`web/public/data/<morceau>/audio/`. Les métadonnées vont dans un sidecar
+`audio.json` que `preprocess_all.py` reverse ensuite dans le manifeste — le
+sidecar est la source de vérité, régénérer les partitions ne le touche pas.
+
+Les noms portent un hash du contenu (`reference.0252893c.opus`) : remplacer un
+audio produit une URL neuve, ce qui rend honnête l'en-tête `Cache-Control:
+immutable` posé par Netlify.
+
+| Option | Effet |
+|---|---|
+| `--only TEXTE` | ne traiter que les morceaux correspondants |
+| `--source reference\|playback` | ne traiter qu'une bande |
+| `--from-file CHEMIN` | transcoder un fichier local au lieu de télécharger (exige `--only` et `--source`) |
+| `--force` | ré-encoder malgré un sidecar à jour (**refusé sans `--only`**) |
+| `--no-loudnorm` | encoder sans normalisation EBU R128 |
+| `--verify` | vérifier fichiers, sidecars et orphelins |
+
+#### Faire évoluer l'audio
+
+Un passage sans argument ne touche que ce qui manque ou a changé : **ajouter un
+morceau** ne demande donc rien de particulier.
+
+**Remplacer une bande** se fait de deux façons. Corriger l'URL dans
+`url-playback.md` suffit — le script compare le sidecar à l'URL déclarée, voit
+la différence, ré-encode et supprime l'ancien fichier. Pour une meilleure prise
+ou une version recadrée qu'on a déjà sous la main :
+
+```bash
+python scripts/fetch_audio.py --only benzinho --source playback \
+       --from-file ~/benzinho-v2.wav
+```
+
+Chaque Opus est un blob **définitif** dans l'historique git : le format est déjà
+compressé, git n'en tire aucun delta. Un remplacement coûte ~1,3 Mo pour
+toujours, ce qui est négligeable ; un **ré-encodage global** en coûterait plus de
+120, d'où le refus de `--force` sans `--only`. Si changer les paramètres
+d'encodage devient un jour nécessaire, cela passe par une réécriture
+d'historique (`git filter-repo`) ou un commit orphelin — jamais par un simple
+passage du script.
 
 ### 2. Application web
 
@@ -372,16 +421,18 @@ au retour du réseau.
 
 ```text
 scripts/
-  preprocess_all.py           CLI
+  preprocess_all.py           CLI du prétraitement des partitions
+  fetch_audio.py              CLI du téléchargement et transcodage audio
   choro_preprocess/
     scan.py                   arborescence → morceaux, URLs, PDF catégorisés
+    audio_assets.py           convention de stockage des Opus + sidecar
     vector_geometry.py        détection vectorielle (PyMuPDF) — moteur principal
     raster_geometry.py        détection OpenCV (Hough + morphologie) — repli
     measures.py               portées → boîtes composites normalisées
     render.py                 rendu WebP et calques de contrôle
     manifest.py               sérialisation JSON
 web/
-  public/data/                généré (versionné) — images + manifest.json
+  public/data/                généré (versionné) — images, audio + manifest.json
   src/
     main.ts                   routage et orchestration
     store.ts srs.ts session.ts

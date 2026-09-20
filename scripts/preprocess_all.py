@@ -202,7 +202,7 @@ def process_song(
         f"{sum(i['page_count'] for i in instruments)} page(s), {measures} mesures"
         + (" · +contraponto" if contraponto_entry else "")
     )
-    return manifest_mod.song_entry(song, instruments, contraponto_entry)
+    return manifest_mod.song_entry(song, instruments, contraponto_entry, out_dir)
 
 
 # ---------------------------------------------------------------------------
@@ -236,9 +236,34 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--clean",
         action="store_true",
-        help="vider le dossier de sortie avant de générer",
+        help="effacer les images générées avant de régénérer "
+        "(l'audio et les dossiers écrits à la main sont préservés)",
     )
     return parser.parse_args(argv)
+
+
+# Sous-dossiers qu'une passe régénère intégralement. Tout le reste d'un dossier
+# de morceau — `audio/` en particulier — est produit ailleurs et doit survivre.
+REGENERATED_SUBDIRS = (*scan.INSTRUMENT_ORDER, "contraponto")
+
+
+def clean_generated(out_dir: Path) -> None:
+    """Efface ce que la passe va régénérer, et rien d'autre.
+
+    `shutil.rmtree(out_dir)` emportait aussi `audio/` (une centaine de Mo
+    téléchargés et transcodés), `piano/`, `grilles/` et `technique/`, qui ne
+    sortent pas de ce pipeline et qu'aucune passe ne saurait reconstruire.
+    """
+    for song_dir in sorted(out_dir.iterdir()):
+        if not song_dir.is_dir():
+            continue
+        for name in REGENERATED_SUBDIRS:
+            shutil.rmtree(song_dir / name, ignore_errors=True)
+        # Un dossier de morceau vidé de ses partitions et sans audio ne sert
+        # plus à rien : on le retire pour ne pas laisser de coquille.
+        if not any(song_dir.iterdir()):
+            song_dir.rmdir()
+    (out_dir / manifest_mod.MANIFEST_NAME).unlink(missing_ok=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -259,7 +284,7 @@ def main(argv: list[str] | None = None) -> int:
 
     out_dir = (root / args.out).resolve()
     if args.clean and out_dir.exists():
-        shutil.rmtree(out_dir)
+        clean_generated(out_dir)
     # Le manifeste référence les images via ce préfixe, relatif à la racine du site.
     data_prefix = out_dir.name
 

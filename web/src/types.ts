@@ -58,6 +58,14 @@ export interface ContrapontoScore {
 export interface AudioSource {
   url: string;
   youtube_id: string;
+  /** Fichier Opus local, relatif à la racine du site (#18). Optionnel le temps
+   *  de la migration : le lecteur joue encore l'iframe YouTube. */
+  file?: string;
+  /** Durée en secondes, relevée à l'encodage — évite d'attendre les métadonnées
+   *  du fichier pour afficher une barre de défilement juste. */
+  duration?: number;
+  /** URL d'origine du transcodage, conservée pour l'attribution. */
+  source_url?: string;
 }
 
 export interface Song {
