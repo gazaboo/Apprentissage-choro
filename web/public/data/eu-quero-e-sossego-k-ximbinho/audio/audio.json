@@ -4,13 +4,15 @@
     "duration": 198.11,
     "source_url": "https://www.youtube.com/watch?v=n5PXrvtbLI0",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 112.3
   },
   "playback": {
     "file": "data/eu-quero-e-sossego-k-ximbinho/audio/playback.aa0d20b9.opus",
     "duration": 217.01,
     "source_url": "https://www.youtube.com/watch?v=ohFHvnLq_Ys",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 107.7
   }
 }

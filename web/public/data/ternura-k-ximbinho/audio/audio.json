@@ -4,13 +4,15 @@
     "duration": 333.41,
     "source_url": "https://www.youtube.com/watch?v=QDTfstNdOFY",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 101.3
   },
   "playback": {
     "file": "data/ternura-k-ximbinho/audio/playback.4c06f49f.opus",
     "duration": 358.61,
     "source_url": "https://www.youtube.com/watch?v=iUWx7z5AsYg",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 99.4
   }
 }

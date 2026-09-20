@@ -4,13 +4,15 @@
     "duration": 160.51,
     "source_url": "https://www.youtube.com/watch?v=DtdieOgaIPA&list=RDDtdieOgaIPA&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 117.5
   },
   "playback": {
     "file": "data/santa-morena-jacob-do-bandolim/audio/playback.75757c0e.opus",
     "duration": 191.11,
     "source_url": "https://www.youtube.com/watch?v=jlKsVdVNjtE&list=RDjlKsVdVNjtE&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 120.2
   }
 }

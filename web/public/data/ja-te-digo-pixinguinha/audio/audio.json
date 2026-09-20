@@ -4,7 +4,8 @@
     "duration": 251.71,
     "source_url": "https://www.youtube.com/watch?v=RVz1watqTqE&list=RDRVz1watqTqE&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 120.2
   },
   "playback": null
 }

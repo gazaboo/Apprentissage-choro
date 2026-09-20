@@ -4,13 +4,15 @@
     "duration": 191.31,
     "source_url": "https://www.youtube.com/watch?v=Q6qNbJWKzNU&list=RDQ6qNbJWKzNU&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 110.0
   },
   "playback": {
     "file": "data/benzinho-jacob-do-bandolim/audio/playback.12efdad1.opus",
     "duration": 195.11,
     "source_url": "https://www.youtube.com/watch?v=W-UD-nkJjz4&list=RDW-UD-nkJjz4&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 112.3
   }
 }

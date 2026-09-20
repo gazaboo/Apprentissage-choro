@@ -4,13 +4,15 @@
     "duration": 146.81,
     "source_url": "https://www.youtube.com/watch?v=F9gWz59OPmw&list=RDF9gWz59OPmw&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 89.1
   },
   "playback": {
     "file": "data/o-corta-jaca-gaucho-chiquinha-gonzaga/audio/playback.e12fbf99.opus",
     "duration": 199.21,
     "source_url": "https://www.youtube.com/watch?v=cdoN5-4gDBE&list=RDcdoN5-4gDBE&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 89.1
   }
 }

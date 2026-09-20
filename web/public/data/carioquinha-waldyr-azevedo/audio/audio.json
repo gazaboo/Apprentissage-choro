@@ -4,13 +4,15 @@
     "duration": 173.11,
     "source_url": "https://www.youtube.com/watch?v=vSZwmCKfNdo&list=RDvSZwmCKfNdo&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 97.5
   },
   "playback": {
     "file": "data/carioquinha-waldyr-azevedo/audio/playback.f35c6295.opus",
     "duration": 186.51,
     "source_url": "https://www.youtube.com/watch?v=zbXQR9ebNNw&list=RDzbXQR9ebNNw&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 120.2
   }
 }
