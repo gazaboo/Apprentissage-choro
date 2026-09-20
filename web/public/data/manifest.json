@@ -2817,11 +2817,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=X5_3mgt4iYc",
-        "youtube_id": "X5_3mgt4iYc"
+        "youtube_id": "X5_3mgt4iYc",
+        "file": "data/apanhei-te-cavaquinho-ernesto-nazareth/audio/reference.28a0b7f3.opus",
+        "duration": 119.31,
+        "source_url": "https://www.youtube.com/watch?v=X5_3mgt4iYc"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=XNu0oJmsINI",
-        "youtube_id": "XNu0oJmsINI"
+        "youtube_id": "XNu0oJmsINI",
+        "file": "data/apanhei-te-cavaquinho-ernesto-nazareth/audio/playback.e8531d65.opus",
+        "duration": 173.51,
+        "source_url": "https://www.youtube.com/watch?v=XNu0oJmsINI"
       }
     },
     "instruments": [
@@ -3246,11 +3252,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=m1L6q945Elc",
-        "youtube_id": "m1L6q945Elc"
+        "youtube_id": "m1L6q945Elc",
+        "file": "data/araponga-luiz-gonzaga/audio/reference.94570d13.opus",
+        "duration": 171.04,
+        "source_url": "https://www.youtube.com/watch?v=m1L6q945Elc"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=F5hQ7Xr00so",
-        "youtube_id": "F5hQ7Xr00so"
+        "youtube_id": "F5hQ7Xr00so",
+        "file": "data/araponga-luiz-gonzaga/audio/playback.987f1fad.opus",
+        "duration": 188.41,
+        "source_url": "https://www.youtube.com/watch?v=F5hQ7Xr00so"
       }
     },
     "instruments": [
@@ -5433,11 +5445,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=coo3H5RlKG4",
-        "youtube_id": "coo3H5RlKG4"
+        "youtube_id": "coo3H5RlKG4",
+        "file": "data/assim-mesmo-luiz-americano/audio/reference.e911fadc.opus",
+        "duration": 195.11,
+        "source_url": "https://www.youtube.com/watch?v=coo3H5RlKG4"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=RvVfjdpkeBs",
-        "youtube_id": "RvVfjdpkeBs"
+        "youtube_id": "RvVfjdpkeBs",
+        "file": "data/assim-mesmo-luiz-americano/audio/playback.564a45bc.opus",
+        "duration": 181.11,
+        "source_url": "https://www.youtube.com/watch?v=RvVfjdpkeBs"
       }
     },
     "instruments": [
@@ -6927,11 +6945,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=Q6qNbJWKzNU&list=RDQ6qNbJWKzNU&start_radio=1",
-        "youtube_id": "Q6qNbJWKzNU"
+        "youtube_id": "Q6qNbJWKzNU",
+        "file": "data/benzinho-jacob-do-bandolim/audio/reference.0252893c.opus",
+        "duration": 191.31,
+        "source_url": "https://www.youtube.com/watch?v=Q6qNbJWKzNU&list=RDQ6qNbJWKzNU&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=W-UD-nkJjz4&list=RDW-UD-nkJjz4&start_radio=1",
-        "youtube_id": "W-UD-nkJjz4"
+        "youtube_id": "W-UD-nkJjz4",
+        "file": "data/benzinho-jacob-do-bandolim/audio/playback.12efdad1.opus",
+        "duration": 195.11,
+        "source_url": "https://www.youtube.com/watch?v=W-UD-nkJjz4&list=RDW-UD-nkJjz4&start_radio=1"
       }
     },
     "instruments": [
@@ -9685,7 +9709,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=xPPxQfmeoyY",
-        "youtube_id": "xPPxQfmeoyY"
+        "youtube_id": "xPPxQfmeoyY",
+        "file": "data/bionne-chiquinha-gonzaga/audio/reference.feeab4f9.opus",
+        "duration": 152.01,
+        "source_url": "https://www.youtube.com/watch?v=xPPxQfmeoyY"
       },
       "playback": null
     },
@@ -11436,11 +11463,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=lcE6xYMFps8",
-        "youtube_id": "lcE6xYMFps8"
+        "youtube_id": "lcE6xYMFps8",
+        "file": "data/bola-preta-jacob-do-bandolim/audio/reference.043f933f.opus",
+        "duration": 198.81,
+        "source_url": "https://www.youtube.com/watch?v=lcE6xYMFps8"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=5_PuQlUfsOw",
-        "youtube_id": "5_PuQlUfsOw"
+        "youtube_id": "5_PuQlUfsOw",
+        "file": "data/bola-preta-jacob-do-bandolim/audio/playback.4b0520cb.opus",
+        "duration": 203.21,
+        "source_url": "https://www.youtube.com/watch?v=5_PuQlUfsOw"
       }
     },
     "instruments": [
@@ -14301,11 +14334,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=AAQesxN7rB4",
-        "youtube_id": "AAQesxN7rB4"
+        "youtube_id": "AAQesxN7rB4",
+        "file": "data/cadencia-juventino-maciel/audio/reference.d8304051.opus",
+        "duration": 220.91,
+        "source_url": "https://www.youtube.com/watch?v=AAQesxN7rB4"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=iJZNQwNRYzM",
-        "youtube_id": "iJZNQwNRYzM"
+        "youtube_id": "iJZNQwNRYzM",
+        "file": "data/cadencia-juventino-maciel/audio/playback.9e82debc.opus",
+        "duration": 239.31,
+        "source_url": "https://www.youtube.com/watch?v=iJZNQwNRYzM"
       }
     },
     "instruments": [
@@ -14935,11 +14974,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=vSZwmCKfNdo&list=RDvSZwmCKfNdo&start_radio=1",
-        "youtube_id": "vSZwmCKfNdo"
+        "youtube_id": "vSZwmCKfNdo",
+        "file": "data/carioquinha-waldyr-azevedo/audio/reference.a8f874bf.opus",
+        "duration": 173.11,
+        "source_url": "https://www.youtube.com/watch?v=vSZwmCKfNdo&list=RDvSZwmCKfNdo&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=zbXQR9ebNNw&list=RDzbXQR9ebNNw&start_radio=1",
-        "youtube_id": "zbXQR9ebNNw"
+        "youtube_id": "zbXQR9ebNNw",
+        "file": "data/carioquinha-waldyr-azevedo/audio/playback.f35c6295.opus",
+        "duration": 186.51,
+        "source_url": "https://www.youtube.com/watch?v=zbXQR9ebNNw&list=RDzbXQR9ebNNw&start_radio=1"
       }
     },
     "instruments": [
@@ -17656,11 +17701,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=voY9-ROJUP8&list=RDvoY9-ROJUP8&start_radio=1",
-        "youtube_id": "voY9-ROJUP8"
+        "youtube_id": "voY9-ROJUP8",
+        "file": "data/cheguei-pixinguinha/audio/reference.2ca43e2c.opus",
+        "duration": 145.93,
+        "source_url": "https://www.youtube.com/watch?v=voY9-ROJUP8&list=RDvoY9-ROJUP8&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=FEH4Q4uQsUg&list=RDFEH4Q4uQsUg&start_radio=1",
-        "youtube_id": "FEH4Q4uQsUg"
+        "youtube_id": "FEH4Q4uQsUg",
+        "file": "data/cheguei-pixinguinha/audio/playback.3b751426.opus",
+        "duration": 179.21,
+        "source_url": "https://www.youtube.com/watch?v=FEH4Q4uQsUg&list=RDFEH4Q4uQsUg&start_radio=1"
       }
     },
     "instruments": [
@@ -19562,7 +19613,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=EK2XbL_WRaY",
-        "youtube_id": "EK2XbL_WRaY"
+        "youtube_id": "EK2XbL_WRaY",
+        "file": "data/chorinho-na-gafieira-astor-silva/audio/reference.99790565.opus",
+        "duration": 250.61,
+        "source_url": "https://www.youtube.com/watch?v=EK2XbL_WRaY"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=gTSAgJ9a20M",
@@ -21719,7 +21773,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=o9dd7g79xv0",
-        "youtube_id": "o9dd7g79xv0"
+        "youtube_id": "o9dd7g79xv0",
+        "file": "data/cinema-mudo-waldyr-azevedo/audio/reference.1165e178.opus",
+        "duration": 270.29,
+        "source_url": "https://www.youtube.com/watch?v=o9dd7g79xv0"
       },
       "playback": null
     },
@@ -23771,11 +23828,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=DePa_jnvWfE",
-        "youtube_id": "DePa_jnvWfE"
+        "youtube_id": "DePa_jnvWfE",
+        "file": "data/clarinete-melodia-guio-de-morais/audio/reference.9bff914a.opus",
+        "duration": 198.45,
+        "source_url": "https://www.youtube.com/watch?v=DePa_jnvWfE"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=kNqY1VJxZoY",
-        "youtube_id": "kNqY1VJxZoY"
+        "youtube_id": "kNqY1VJxZoY",
+        "file": "data/clarinete-melodia-guio-de-morais/audio/playback.05057e53.opus",
+        "duration": 154.41,
+        "source_url": "https://www.youtube.com/watch?v=kNqY1VJxZoY"
       }
     },
     "instruments": [
@@ -24350,11 +24413,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=woCyMZe2UXQ&list=RDwoCyMZe2UXQ&start_radio=1",
-        "youtube_id": "woCyMZe2UXQ"
+        "youtube_id": "woCyMZe2UXQ",
+        "file": "data/cochichando-pixinguinha/audio/reference.3bdc3cb6.opus",
+        "duration": 168.51,
+        "source_url": "https://www.youtube.com/watch?v=woCyMZe2UXQ&list=RDwoCyMZe2UXQ&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=KWQqPKMpafk&list=RDKWQqPKMpafk&start_radio=1",
-        "youtube_id": "KWQqPKMpafk"
+        "youtube_id": "KWQqPKMpafk",
+        "file": "data/cochichando-pixinguinha/audio/playback.a4a69a89.opus",
+        "duration": 184.91,
+        "source_url": "https://www.youtube.com/watch?v=KWQqPKMpafk&list=RDKWQqPKMpafk&start_radio=1"
       }
     },
     "instruments": [
@@ -27327,11 +27396,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=Sz6CrVpoMHA",
-        "youtube_id": "Sz6CrVpoMHA"
+        "youtube_id": "Sz6CrVpoMHA",
+        "file": "data/comecando-siqueira-lima/audio/reference.92c8c710.opus",
+        "duration": 331.61,
+        "source_url": "https://www.youtube.com/watch?v=Sz6CrVpoMHA"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=Z--RTaVjjJg",
-        "youtube_id": "Z--RTaVjjJg"
+        "youtube_id": "Z--RTaVjjJg",
+        "file": "data/comecando-siqueira-lima/audio/playback.2550fff6.opus",
+        "duration": 245.01,
+        "source_url": "https://www.youtube.com/watch?v=Z--RTaVjjJg"
       }
     },
     "instruments": [
@@ -27855,11 +27930,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=PazvcuwndVs&list=RDPazvcuwndVs&start_radio=1",
-        "youtube_id": "PazvcuwndVs"
+        "youtube_id": "PazvcuwndVs",
+        "file": "data/diabinho-maluco-jacob-do-bandolim/audio/reference.f2d0418b.opus",
+        "duration": 169.51,
+        "source_url": "https://www.youtube.com/watch?v=PazvcuwndVs&list=RDPazvcuwndVs&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=VZXYb-JvCQM&list=RDVZXYb-JvCQM&start_radio=1",
-        "youtube_id": "VZXYb-JvCQM"
+        "youtube_id": "VZXYb-JvCQM",
+        "file": "data/diabinho-maluco-jacob-do-bandolim/audio/playback.206f8869.opus",
+        "duration": 113.61,
+        "source_url": "https://www.youtube.com/watch?v=VZXYb-JvCQM&list=RDVZXYb-JvCQM&start_radio=1"
       }
     },
     "instruments": [
@@ -32260,11 +32341,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=9cOe7W5eXDI",
-        "youtube_id": "9cOe7W5eXDI"
+        "youtube_id": "9cOe7W5eXDI",
+        "file": "data/diplomata-pixinguinha/audio/reference.67e5028f.opus",
+        "duration": 179.41,
+        "source_url": "https://www.youtube.com/watch?v=9cOe7W5eXDI"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=317ED76pv0Q",
-        "youtube_id": "317ED76pv0Q"
+        "youtube_id": "317ED76pv0Q",
+        "file": "data/diplomata-pixinguinha/audio/playback.bbcb3d36.opus",
+        "duration": 192.62,
+        "source_url": "https://www.youtube.com/watch?v=317ED76pv0Q"
       }
     },
     "instruments": [
@@ -32770,7 +32857,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=HaffqSKR_qI&list=RDHaffqSKR_qI&start_radio=1",
-        "youtube_id": "HaffqSKR_qI"
+        "youtube_id": "HaffqSKR_qI",
+        "file": "data/doce-de-coco-jacob-do-bandolim/audio/reference.b377e69d.opus",
+        "duration": 173.81,
+        "source_url": "https://www.youtube.com/watch?v=HaffqSKR_qI&list=RDHaffqSKR_qI&start_radio=1"
       },
       "playback": null
     },
@@ -35928,11 +36018,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=0rgyCWdrzgA&list=RD0rgyCWdrzgA&start_radio=1",
-        "youtube_id": "0rgyCWdrzgA"
+        "youtube_id": "0rgyCWdrzgA",
+        "file": "data/e-do-que-ha-luiz-americano/audio/reference.bb6ff981.opus",
+        "duration": 246.91,
+        "source_url": "https://www.youtube.com/watch?v=0rgyCWdrzgA&list=RD0rgyCWdrzgA&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=Wn6U_26YvuI&list=RDWn6U_26YvuI&start_radio=1",
-        "youtube_id": "Wn6U_26YvuI"
+        "youtube_id": "Wn6U_26YvuI",
+        "file": "data/e-do-que-ha-luiz-americano/audio/playback.c8d3b93a.opus",
+        "duration": 248.11,
+        "source_url": "https://www.youtube.com/watch?v=Wn6U_26YvuI&list=RDWn6U_26YvuI&start_radio=1"
       }
     },
     "instruments": [
@@ -38333,11 +38429,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=n5PXrvtbLI0",
-        "youtube_id": "n5PXrvtbLI0"
+        "youtube_id": "n5PXrvtbLI0",
+        "file": "data/eu-quero-e-sossego-k-ximbinho/audio/reference.f7354476.opus",
+        "duration": 198.11,
+        "source_url": "https://www.youtube.com/watch?v=n5PXrvtbLI0"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=ohFHvnLq_Ys",
-        "youtube_id": "ohFHvnLq_Ys"
+        "youtube_id": "ohFHvnLq_Ys",
+        "file": "data/eu-quero-e-sossego-k-ximbinho/audio/playback.aa0d20b9.opus",
+        "duration": 217.01,
+        "source_url": "https://www.youtube.com/watch?v=ohFHvnLq_Ys"
       }
     },
     "instruments": [
@@ -40101,11 +40203,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=M-38_POSU1M&list=RDM-38_POSU1M&start_radio=1",
-        "youtube_id": "M-38_POSU1M"
+        "youtube_id": "M-38_POSU1M",
+        "file": "data/feira-de-mangaio-sivuca/audio/reference.a760f10f.opus",
+        "duration": 202.89,
+        "source_url": "https://www.youtube.com/watch?v=M-38_POSU1M&list=RDM-38_POSU1M&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=KkxDqZCqttc&list=RDKkxDqZCqttc&start_radio=1",
-        "youtube_id": "KkxDqZCqttc"
+        "youtube_id": "KkxDqZCqttc",
+        "file": "data/feira-de-mangaio-sivuca/audio/playback.4d9b100b.opus",
+        "duration": 170.81,
+        "source_url": "https://www.youtube.com/watch?v=KkxDqZCqttc&list=RDKkxDqZCqttc&start_radio=1"
       }
     },
     "instruments": [
@@ -41028,11 +41136,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=h5j404FOCKQ",
-        "youtube_id": "h5j404FOCKQ"
+        "youtube_id": "h5j404FOCKQ",
+        "file": "data/feitico-jacob-do-bandolim/audio/reference.47c21da6.opus",
+        "duration": 270.51,
+        "source_url": "https://www.youtube.com/watch?v=h5j404FOCKQ"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=Gp_h-LxgOrc",
-        "youtube_id": "Gp_h-LxgOrc"
+        "youtube_id": "Gp_h-LxgOrc",
+        "file": "data/feitico-jacob-do-bandolim/audio/playback.a5f66b7a.opus",
+        "duration": 110.41,
+        "source_url": "https://www.youtube.com/watch?v=Gp_h-LxgOrc"
       }
     },
     "instruments": [
@@ -44650,11 +44764,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=3kMsDK7XneM",
-        "youtube_id": "3kMsDK7XneM"
+        "youtube_id": "3kMsDK7XneM",
+        "file": "data/gostosinho-jacob-do-bandolim/audio/reference.28966996.opus",
+        "duration": 141.71,
+        "source_url": "https://www.youtube.com/watch?v=3kMsDK7XneM"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=wtWr8ZohC7Q",
-        "youtube_id": "wtWr8ZohC7Q"
+        "youtube_id": "wtWr8ZohC7Q",
+        "file": "data/gostosinho-jacob-do-bandolim/audio/playback.a5d1a5eb.opus",
+        "duration": 175.02,
+        "source_url": "https://www.youtube.com/watch?v=wtWr8ZohC7Q"
       }
     },
     "instruments": [
@@ -48358,7 +48478,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=RVz1watqTqE&list=RDRVz1watqTqE&start_radio=1",
-        "youtube_id": "RVz1watqTqE"
+        "youtube_id": "RVz1watqTqE",
+        "file": "data/ja-te-digo-pixinguinha/audio/reference.72aff8b7.opus",
+        "duration": 251.71,
+        "source_url": "https://www.youtube.com/watch?v=RVz1watqTqE&list=RDRVz1watqTqE&start_radio=1"
       },
       "playback": null
     },
@@ -49465,11 +49588,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=tvtIsnxfLrA",
-        "youtube_id": "tvtIsnxfLrA"
+        "youtube_id": "tvtIsnxfLrA",
+        "file": "data/lamentos-pixinguinha/audio/reference.a7b55d26.opus",
+        "duration": 270.51,
+        "source_url": "https://www.youtube.com/watch?v=tvtIsnxfLrA"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=4u6VGoSWqCY",
-        "youtube_id": "4u6VGoSWqCY"
+        "youtube_id": "4u6VGoSWqCY",
+        "file": "data/lamentos-pixinguinha/audio/playback.dae12651.opus",
+        "duration": 282.51,
+        "source_url": "https://www.youtube.com/watch?v=4u6VGoSWqCY"
       }
     },
     "instruments": [
@@ -51926,11 +52055,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=u8M3h16AA30&list=RDu8M3h16AA30&start_radio=1",
-        "youtube_id": "u8M3h16AA30"
+        "youtube_id": "u8M3h16AA30",
+        "file": "data/machucando-adalberto-de-souza/audio/reference.576abf9c.opus",
+        "duration": 125.59,
+        "source_url": "https://www.youtube.com/watch?v=u8M3h16AA30&list=RDu8M3h16AA30&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=jQkHtgeSme0&list=RDjQkHtgeSme0&start_radio=1",
-        "youtube_id": "jQkHtgeSme0"
+        "youtube_id": "jQkHtgeSme0",
+        "file": "data/machucando-adalberto-de-souza/audio/playback.dd306403.opus",
+        "duration": 169.61,
+        "source_url": "https://www.youtube.com/watch?v=jQkHtgeSme0&list=RDjQkHtgeSme0&start_radio=1"
       }
     },
     "instruments": [
@@ -53306,11 +53441,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=Xv3m7JciGVc&list=RDXv3m7JciGVc&start_radio=1",
-        "youtube_id": "Xv3m7JciGVc"
+        "youtube_id": "Xv3m7JciGVc",
+        "file": "data/migalhas-de-amor-jacob-do-bandolim/audio/reference.d606dd3e.opus",
+        "duration": 178.01,
+        "source_url": "https://www.youtube.com/watch?v=Xv3m7JciGVc&list=RDXv3m7JciGVc&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=7LNtZspRojk&list=RD7LNtZspRojk&start_radio=1",
-        "youtube_id": "7LNtZspRojk"
+        "youtube_id": "7LNtZspRojk",
+        "file": "data/migalhas-de-amor-jacob-do-bandolim/audio/playback.35aa1f1a.opus",
+        "duration": 197.11,
+        "source_url": "https://www.youtube.com/watch?v=7LNtZspRojk&list=RD7LNtZspRojk&start_radio=1"
       }
     },
     "instruments": [
@@ -54902,11 +55043,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=VF69EOBz2iQ",
-        "youtube_id": "VF69EOBz2iQ"
+        "youtube_id": "VF69EOBz2iQ",
+        "file": "data/murmurando-fon-fon/audio/reference.12eb9c43.opus",
+        "duration": 289.61,
+        "source_url": "https://www.youtube.com/watch?v=VF69EOBz2iQ"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=MSC8fBzVG9A",
-        "youtube_id": "MSC8fBzVG9A"
+        "youtube_id": "MSC8fBzVG9A",
+        "file": "data/murmurando-fon-fon/audio/playback.49643c3b.opus",
+        "duration": 173.57,
+        "source_url": "https://www.youtube.com/watch?v=MSC8fBzVG9A"
       }
     },
     "instruments": [
@@ -59670,11 +59817,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=-4RIi23Rrrw",
-        "youtube_id": "-4RIi23Rrrw"
+        "youtube_id": "-4RIi23Rrrw",
+        "file": "data/na-gloria-raul-de-barros/audio/reference.3731390f.opus",
+        "duration": 176.29,
+        "source_url": "https://www.youtube.com/watch?v=-4RIi23Rrrw"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=nC8GsHLHo04&list=RDnC8GsHLHo04&start_radio=1",
-        "youtube_id": "nC8GsHLHo04"
+        "youtube_id": "nC8GsHLHo04",
+        "file": "data/na-gloria-raul-de-barros/audio/playback.1eaa5e5a.opus",
+        "duration": 145.51,
+        "source_url": "https://www.youtube.com/watch?v=nC8GsHLHo04&list=RDnC8GsHLHo04&start_radio=1"
       }
     },
     "instruments": [
@@ -61566,11 +61719,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=ofqreoTjPSM",
-        "youtube_id": "ofqreoTjPSM"
+        "youtube_id": "ofqreoTjPSM",
+        "file": "data/nao-me-toques-zequinha-de-abreu/audio/reference.f947b495.opus",
+        "duration": 147.51,
+        "source_url": "https://www.youtube.com/watch?v=ofqreoTjPSM"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=m6Gb4T-UZuk",
-        "youtube_id": "m6Gb4T-UZuk"
+        "youtube_id": "m6Gb4T-UZuk",
+        "file": "data/nao-me-toques-zequinha-de-abreu/audio/playback.4906d79e.opus",
+        "duration": 147.11,
+        "source_url": "https://www.youtube.com/watch?v=m6Gb4T-UZuk"
       }
     },
     "instruments": [
@@ -63757,7 +63916,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=AwryEdYhYGg&start_radio=1",
-        "youtube_id": "AwryEdYhYGg"
+        "youtube_id": "AwryEdYhYGg",
+        "file": "data/naquele-tempo-pixinguinha/audio/reference.add30534.opus",
+        "duration": 193.21,
+        "source_url": "https://www.youtube.com/watch?v=AwryEdYhYGg&start_radio=1"
       },
       "playback": null
     },
@@ -66724,11 +66886,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=GZt79hU5Pig&list=RDGZt79hU5Pig&start_radio=1",
-        "youtube_id": "GZt79hU5Pig"
+        "youtube_id": "GZt79hU5Pig",
+        "file": "data/noites-cariocas-jacob-do-bandolim/audio/reference.f026b9e0.opus",
+        "duration": 172.81,
+        "source_url": "https://www.youtube.com/watch?v=GZt79hU5Pig&list=RDGZt79hU5Pig&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=cGWvWZ9qGLk&list=RDcGWvWZ9qGLk&start_radio=1",
-        "youtube_id": "cGWvWZ9qGLk"
+        "youtube_id": "cGWvWZ9qGLk",
+        "file": "data/noites-cariocas-jacob-do-bandolim/audio/playback.6fa27472.opus",
+        "duration": 225.71,
+        "source_url": "https://www.youtube.com/watch?v=cGWvWZ9qGLk&list=RDcGWvWZ9qGLk&start_radio=1"
       }
     },
     "instruments": [
@@ -69752,11 +69920,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=6Uk8cyyP2Sg&list=RD6Uk8cyyP2Sg&start_radio=1",
-        "youtube_id": "6Uk8cyyP2Sg"
+        "youtube_id": "6Uk8cyyP2Sg",
+        "file": "data/o-bom-filho-a-casa-torna-bonfiglio-de-oliveira/audio/reference.4af942b5.opus",
+        "duration": 234.51,
+        "source_url": "https://www.youtube.com/watch?v=6Uk8cyyP2Sg&list=RD6Uk8cyyP2Sg&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=ISY6gehIlD4&list=RDISY6gehIlD4&start_radio=1",
-        "youtube_id": "ISY6gehIlD4"
+        "youtube_id": "ISY6gehIlD4",
+        "file": "data/o-bom-filho-a-casa-torna-bonfiglio-de-oliveira/audio/playback.8e4ac816.opus",
+        "duration": 197.01,
+        "source_url": "https://www.youtube.com/watch?v=ISY6gehIlD4&list=RDISY6gehIlD4&start_radio=1"
       }
     },
     "instruments": [
@@ -74043,11 +74217,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=F9gWz59OPmw&list=RDF9gWz59OPmw&start_radio=1",
-        "youtube_id": "F9gWz59OPmw"
+        "youtube_id": "F9gWz59OPmw",
+        "file": "data/o-corta-jaca-gaucho-chiquinha-gonzaga/audio/reference.92a3ad0d.opus",
+        "duration": 146.81,
+        "source_url": "https://www.youtube.com/watch?v=F9gWz59OPmw&list=RDF9gWz59OPmw&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=cdoN5-4gDBE&list=RDcdoN5-4gDBE&start_radio=1",
-        "youtube_id": "cdoN5-4gDBE"
+        "youtube_id": "cdoN5-4gDBE",
+        "file": "data/o-corta-jaca-gaucho-chiquinha-gonzaga/audio/playback.e12fbf99.opus",
+        "duration": 199.21,
+        "source_url": "https://www.youtube.com/watch?v=cdoN5-4gDBE&list=RDcdoN5-4gDBE&start_radio=1"
       }
     },
     "instruments": [
@@ -76011,11 +76191,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=i35h-J8KwIQ&list=RDi35h-J8KwIQ&start_radio=1",
-        "youtube_id": "i35h-J8KwIQ"
+        "youtube_id": "i35h-J8KwIQ",
+        "file": "data/os-cinco-companheiros-pixinguinha/audio/reference.8dde4b65.opus",
+        "duration": 170.02,
+        "source_url": "https://www.youtube.com/watch?v=i35h-J8KwIQ&list=RDi35h-J8KwIQ&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=ThJwcl_48h8&list=RDThJwcl_48h8&start_radio=1",
-        "youtube_id": "ThJwcl_48h8"
+        "youtube_id": "ThJwcl_48h8",
+        "file": "data/os-cinco-companheiros-pixinguinha/audio/playback.4bd55c90.opus",
+        "duration": 173.11,
+        "source_url": "https://www.youtube.com/watch?v=ThJwcl_48h8&list=RDThJwcl_48h8&start_radio=1"
       }
     },
     "instruments": [
@@ -79213,11 +79399,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=V0JQ2gwfamQ",
-        "youtube_id": "V0JQ2gwfamQ"
+        "youtube_id": "V0JQ2gwfamQ",
+        "file": "data/proezas-de-solon-pixinguinha/audio/reference.82893dbe.opus",
+        "duration": 183.81,
+        "source_url": "https://www.youtube.com/watch?v=V0JQ2gwfamQ"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=CYjE5nS_c_c",
-        "youtube_id": "CYjE5nS_c_c"
+        "youtube_id": "CYjE5nS_c_c",
+        "file": "data/proezas-de-solon-pixinguinha/audio/playback.acddc896.opus",
+        "duration": 155.11,
+        "source_url": "https://www.youtube.com/watch?v=CYjE5nS_c_c"
       }
     },
     "instruments": [
@@ -81883,11 +82075,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=xIykrXOTLtg&list=RDxIykrXOTLtg&start_radio=1",
-        "youtube_id": "xIykrXOTLtg"
+        "youtube_id": "xIykrXOTLtg",
+        "file": "data/receita-de-samba-jacob-do-bandolim/audio/reference.a7cdceee.opus",
+        "duration": 165.31,
+        "source_url": "https://www.youtube.com/watch?v=xIykrXOTLtg&list=RDxIykrXOTLtg&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=Jmu10RM7gPo&list=RDJmu10RM7gPo&start_radio=1",
-        "youtube_id": "Jmu10RM7gPo"
+        "youtube_id": "Jmu10RM7gPo",
+        "file": "data/receita-de-samba-jacob-do-bandolim/audio/playback.c42af86a.opus",
+        "duration": 208.41,
+        "source_url": "https://www.youtube.com/watch?v=Jmu10RM7gPo&list=RDJmu10RM7gPo&start_radio=1"
       }
     },
     "instruments": [
@@ -86142,11 +86340,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=CtJkhUeEqQY",
-        "youtube_id": "CtJkhUeEqQY"
+        "youtube_id": "CtJkhUeEqQY",
+        "file": "data/rio-antigo-altamiro-carrilho/audio/reference.69fe1768.opus",
+        "duration": 152.28,
+        "source_url": "https://www.youtube.com/watch?v=CtJkhUeEqQY"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=PUXtBJ7Vjgc",
-        "youtube_id": "PUXtBJ7Vjgc"
+        "youtube_id": "PUXtBJ7Vjgc",
+        "file": "data/rio-antigo-altamiro-carrilho/audio/playback.74e70b96.opus",
+        "duration": 157.11,
+        "source_url": "https://www.youtube.com/watch?v=PUXtBJ7Vjgc"
       }
     },
     "instruments": [
@@ -87697,11 +87901,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=zQ2ohMtNLl8",
-        "youtube_id": "zQ2ohMtNLl8"
+        "youtube_id": "zQ2ohMtNLl8",
+        "file": "data/rosa-pixinguinha/audio/reference.edc477ef.opus",
+        "duration": 293.01,
+        "source_url": "https://www.youtube.com/watch?v=zQ2ohMtNLl8"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=GPpcaT7HDw0&list=RDGPpcaT7HDw0&start_radio=1",
-        "youtube_id": "GPpcaT7HDw0"
+        "youtube_id": "GPpcaT7HDw0",
+        "file": "data/rosa-pixinguinha/audio/playback.08a08494.opus",
+        "duration": 226.71,
+        "source_url": "https://www.youtube.com/watch?v=GPpcaT7HDw0&list=RDGPpcaT7HDw0&start_radio=1"
       }
     },
     "instruments": [
@@ -90285,11 +90495,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=DtdieOgaIPA&list=RDDtdieOgaIPA&start_radio=1",
-        "youtube_id": "DtdieOgaIPA"
+        "youtube_id": "DtdieOgaIPA",
+        "file": "data/santa-morena-jacob-do-bandolim/audio/reference.aeefca70.opus",
+        "duration": 160.51,
+        "source_url": "https://www.youtube.com/watch?v=DtdieOgaIPA&list=RDDtdieOgaIPA&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=jlKsVdVNjtE&list=RDjlKsVdVNjtE&start_radio=1",
-        "youtube_id": "jlKsVdVNjtE"
+        "youtube_id": "jlKsVdVNjtE",
+        "file": "data/santa-morena-jacob-do-bandolim/audio/playback.75757c0e.opus",
+        "duration": 191.11,
+        "source_url": "https://www.youtube.com/watch?v=jlKsVdVNjtE&list=RDjlKsVdVNjtE&start_radio=1"
       }
     },
     "instruments": [
@@ -94757,7 +94973,10 @@
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=bWZvX2eOi-s",
-        "youtube_id": "bWZvX2eOi-s"
+        "youtube_id": "bWZvX2eOi-s",
+        "file": "data/saxofone-por-que-choras-ratinho/audio/playback.3c35c38b.opus",
+        "duration": 312.31,
+        "source_url": "https://www.youtube.com/watch?v=bWZvX2eOi-s"
       }
     },
     "instruments": [
@@ -96531,11 +96750,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=CFgYaQfPmO4",
-        "youtube_id": "CFgYaQfPmO4"
+        "youtube_id": "CFgYaQfPmO4",
+        "file": "data/sonhando-k-ximbinho/audio/reference.9d7223b2.opus",
+        "duration": 226.41,
+        "source_url": "https://www.youtube.com/watch?v=CFgYaQfPmO4"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=U6Aqk8d4ZEM",
-        "youtube_id": "U6Aqk8d4ZEM"
+        "youtube_id": "U6Aqk8d4ZEM",
+        "file": "data/sonhando-k-ximbinho/audio/playback.429533e2.opus",
+        "duration": 234.81,
+        "source_url": "https://www.youtube.com/watch?v=U6Aqk8d4ZEM"
       }
     },
     "instruments": [
@@ -98461,11 +98686,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=nlALNf7C_mM&list=RDnlALNf7C_mM&start_radio=1",
-        "youtube_id": "nlALNf7C_mM"
+        "youtube_id": "nlALNf7C_mM",
+        "file": "data/sonoroso-k-ximbinho/audio/reference.43cc041e.opus",
+        "duration": 168.57,
+        "source_url": "https://www.youtube.com/watch?v=nlALNf7C_mM&list=RDnlALNf7C_mM&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=_GS9uk9UmX0&list=RD_GS9uk9UmX0&start_radio=1",
-        "youtube_id": "_GS9uk9UmX0"
+        "youtube_id": "_GS9uk9UmX0",
+        "file": "data/sonoroso-k-ximbinho/audio/playback.76e3e372.opus",
+        "duration": 135.21,
+        "source_url": "https://www.youtube.com/watch?v=_GS9uk9UmX0&list=RD_GS9uk9UmX0&start_radio=1"
       }
     },
     "instruments": [
@@ -99810,7 +100041,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=xAFvJ8W94M8",
-        "youtube_id": "xAFvJ8W94M8"
+        "youtube_id": "xAFvJ8W94M8",
+        "file": "data/tamoyo-chiquinha-gonzaga/audio/reference.323df8d0.opus",
+        "duration": 175.51,
+        "source_url": "https://www.youtube.com/watch?v=xAFvJ8W94M8"
       },
       "playback": null
     },
@@ -101201,11 +101435,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=QDTfstNdOFY",
-        "youtube_id": "QDTfstNdOFY"
+        "youtube_id": "QDTfstNdOFY",
+        "file": "data/ternura-k-ximbinho/audio/reference.62fe3516.opus",
+        "duration": 333.41,
+        "source_url": "https://www.youtube.com/watch?v=QDTfstNdOFY"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=iUWx7z5AsYg",
-        "youtube_id": "iUWx7z5AsYg"
+        "youtube_id": "iUWx7z5AsYg",
+        "file": "data/ternura-k-ximbinho/audio/playback.4c06f49f.opus",
+        "duration": 358.61,
+        "source_url": "https://www.youtube.com/watch?v=iUWx7z5AsYg"
       }
     },
     "instruments": [
@@ -102798,7 +103038,10 @@
       "reference": null,
       "playback": {
         "url": "https://www.youtube.com/watch?v=o54zy7HK-ic",
-        "youtube_id": "o54zy7HK-ic"
+        "youtube_id": "o54zy7HK-ic",
+        "file": "data/tico-tico-no-fuba-zequinha-de-abreu/audio/playback.0a293586.opus",
+        "duration": 133.11,
+        "source_url": "https://www.youtube.com/watch?v=o54zy7HK-ic"
       }
     },
     "instruments": [
@@ -103960,11 +104203,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=LjWBIl6IRBA",
-        "youtube_id": "LjWBIl6IRBA"
+        "youtube_id": "LjWBIl6IRBA",
+        "file": "data/um-a-zero-pixinguinha/audio/reference.ca4defee.opus",
+        "duration": 135.61,
+        "source_url": "https://www.youtube.com/watch?v=LjWBIl6IRBA"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=NPKt_cR4vfM",
-        "youtube_id": "NPKt_cR4vfM"
+        "youtube_id": "NPKt_cR4vfM",
+        "file": "data/um-a-zero-pixinguinha/audio/playback.be0b258e.opus",
+        "duration": 152.51,
+        "source_url": "https://www.youtube.com/watch?v=NPKt_cR4vfM"
       }
     },
     "instruments": [
@@ -108467,11 +108716,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=4BxCuR1FhSA&list=RD4BxCuR1FhSA&start_radio=1",
-        "youtube_id": "4BxCuR1FhSA"
+        "youtube_id": "4BxCuR1FhSA",
+        "file": "data/um-chorinho-em-cochabamba-eduardo-neves/audio/reference.8fa12d34.opus",
+        "duration": 243.21,
+        "source_url": "https://www.youtube.com/watch?v=4BxCuR1FhSA&list=RD4BxCuR1FhSA&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=F1Rj9ZM7tAk&list=RDF1Rj9ZM7tAk&start_radio=1",
-        "youtube_id": "F1Rj9ZM7tAk"
+        "youtube_id": "F1Rj9ZM7tAk",
+        "file": "data/um-chorinho-em-cochabamba-eduardo-neves/audio/playback.c823e9dc.opus",
+        "duration": 317.71,
+        "source_url": "https://www.youtube.com/watch?v=F1Rj9ZM7tAk&list=RDF1Rj9ZM7tAk&start_radio=1"
       }
     },
     "instruments": [
@@ -109820,11 +110075,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=1GXQKJsZ3nM",
-        "youtube_id": "1GXQKJsZ3nM"
+        "youtube_id": "1GXQKJsZ3nM",
+        "file": "data/um-tom-pra-jobim-sivuca/audio/reference.0f3c1369.opus",
+        "duration": 271.51,
+        "source_url": "https://www.youtube.com/watch?v=1GXQKJsZ3nM"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=9JoL8XhGqWI",
-        "youtube_id": "9JoL8XhGqWI"
+        "youtube_id": "9JoL8XhGqWI",
+        "file": "data/um-tom-pra-jobim-sivuca/audio/playback.f0c45344.opus",
+        "duration": 110.81,
+        "source_url": "https://www.youtube.com/watch?v=9JoL8XhGqWI"
       }
     },
     "instruments": [
@@ -112010,11 +112271,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=EzUn9fPk5n4&list=RDEzUn9fPk5n4&start_radio=1",
-        "youtube_id": "EzUn9fPk5n4"
+        "youtube_id": "EzUn9fPk5n4",
+        "file": "data/vibracoes-jacob-do-bandolim/audio/reference.e5465e18.opus",
+        "duration": 262.11,
+        "source_url": "https://www.youtube.com/watch?v=EzUn9fPk5n4&list=RDEzUn9fPk5n4&start_radio=1"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=eMyojG5dUdQ&list=RDeMyojG5dUdQ&start_radio=1",
-        "youtube_id": "eMyojG5dUdQ"
+        "youtube_id": "eMyojG5dUdQ",
+        "file": "data/vibracoes-jacob-do-bandolim/audio/playback.3d180139.opus",
+        "duration": 277.51,
+        "source_url": "https://www.youtube.com/watch?v=eMyojG5dUdQ&list=RDeMyojG5dUdQ&start_radio=1"
       }
     },
     "instruments": [
@@ -115013,7 +115280,10 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=LaAHxjWIDoI",
-        "youtube_id": "LaAHxjWIDoI"
+        "youtube_id": "LaAHxjWIDoI",
+        "file": "data/voluvel-pattapio-silva/audio/reference.934a79c0.opus",
+        "duration": 260.95,
+        "source_url": "https://www.youtube.com/watch?v=LaAHxjWIDoI"
       },
       "playback": null
     },
@@ -115653,11 +115923,17 @@
     "audio": {
       "reference": {
         "url": "https://www.youtube.com/watch?v=EgrCA6DhUdo",
-        "youtube_id": "EgrCA6DhUdo"
+        "youtube_id": "EgrCA6DhUdo",
+        "file": "data/vou-vivendo-pixinguinha/audio/reference.e4d8823a.opus",
+        "duration": 150.61,
+        "source_url": "https://www.youtube.com/watch?v=EgrCA6DhUdo"
       },
       "playback": {
         "url": "https://www.youtube.com/watch?v=dLRMFM_Q-FA",
-        "youtube_id": "dLRMFM_Q-FA"
+        "youtube_id": "dLRMFM_Q-FA",
+        "file": "data/vou-vivendo-pixinguinha/audio/playback.077d1161.opus",
+        "duration": 185.11,
+        "source_url": "https://www.youtube.com/watch?v=dLRMFM_Q-FA"
       }
     },
     "instruments": [

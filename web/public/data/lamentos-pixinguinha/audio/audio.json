@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/lamentos-pixinguinha/audio/reference.a7b55d26.opus",
+    "duration": 270.51,
+    "source_url": "https://www.youtube.com/watch?v=tvtIsnxfLrA",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/lamentos-pixinguinha/audio/playback.dae12651.opus",
+    "duration": 282.51,
+    "source_url": "https://www.youtube.com/watch?v=4u6VGoSWqCY",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

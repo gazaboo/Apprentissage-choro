@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/noites-cariocas-jacob-do-bandolim/audio/reference.f026b9e0.opus",
+    "duration": 172.81,
+    "source_url": "https://www.youtube.com/watch?v=GZt79hU5Pig&list=RDGZt79hU5Pig&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/noites-cariocas-jacob-do-bandolim/audio/playback.6fa27472.opus",
+    "duration": 225.71,
+    "source_url": "https://www.youtube.com/watch?v=cGWvWZ9qGLk&list=RDcGWvWZ9qGLk&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

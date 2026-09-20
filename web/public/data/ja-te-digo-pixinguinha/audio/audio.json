@@ -1,0 +1,10 @@
+{
+  "reference": {
+    "file": "data/ja-te-digo-pixinguinha/audio/reference.72aff8b7.opus",
+    "duration": 251.71,
+    "source_url": "https://www.youtube.com/watch?v=RVz1watqTqE&list=RDRVz1watqTqE&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": null
+}

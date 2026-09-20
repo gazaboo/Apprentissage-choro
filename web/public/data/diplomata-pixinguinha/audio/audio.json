@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/diplomata-pixinguinha/audio/reference.67e5028f.opus",
+    "duration": 179.41,
+    "source_url": "https://www.youtube.com/watch?v=9cOe7W5eXDI",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/diplomata-pixinguinha/audio/playback.bbcb3d36.opus",
+    "duration": 192.62,
+    "source_url": "https://www.youtube.com/watch?v=317ED76pv0Q",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

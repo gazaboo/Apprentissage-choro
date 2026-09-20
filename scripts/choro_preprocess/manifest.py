@@ -5,23 +5,46 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from . import audio_assets
 from .scan import SongFolder
 
 MANIFEST_NAME = "manifest.json"
 
 
+def audio_entry(song: SongFolder, out_dir: Path | None) -> dict:
+    """Fusionne l'URL déclarée et le fichier local produit par `fetch_audio.py`.
+
+    Les deux coexistent le temps de la migration (#18) : le frontend lit encore
+    `youtube_id`, mais `file` / `duration` / `source_url` sont déjà publiés pour
+    que la bascule du lecteur n'ait plus qu'à changer de champ.
+
+    Le sidecar n'étant pas écrit par cette passe, un morceau sans audio local
+    retombe exactement sur l'ancienne forme.
+    """
+    local = audio_assets.read_sidecar(out_dir, song.song_id) if out_dir else {}
+    entries: dict[str, dict | None] = {}
+    for kind in audio_assets.KINDS:
+        declared = getattr(song, kind)
+        published = audio_assets.published_entry(local.get(kind))
+        if declared is None and not published:
+            entries[kind] = None
+            continue
+        entries[kind] = {**(declared.to_dict() if declared else {}), **published}
+    return entries
+
+
 def song_entry(
-    song: SongFolder, instruments: list[dict], contraponto: dict | None = None
+    song: SongFolder,
+    instruments: list[dict],
+    contraponto: dict | None = None,
+    out_dir: Path | None = None,
 ) -> dict:
     """Assemble l'entrée JSON d'un morceau."""
     return {
         "id": song.song_id,
         "title": song.title,
         "composer": song.composer,
-        "audio": {
-            "reference": song.reference.to_dict() if song.reference else None,
-            "playback": song.playback.to_dict() if song.playback else None,
-        },
+        "audio": audio_entry(song, out_dir),
         "instruments": instruments,
         "contraponto": contraponto,
     }

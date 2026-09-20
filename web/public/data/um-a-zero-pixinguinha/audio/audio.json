@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/um-a-zero-pixinguinha/audio/reference.ca4defee.opus",
+    "duration": 135.61,
+    "source_url": "https://www.youtube.com/watch?v=LjWBIl6IRBA",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/um-a-zero-pixinguinha/audio/playback.be0b258e.opus",
+    "duration": 152.51,
+    "source_url": "https://www.youtube.com/watch?v=NPKt_cR4vfM",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}

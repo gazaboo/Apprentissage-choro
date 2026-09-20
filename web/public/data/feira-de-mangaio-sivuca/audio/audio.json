@@ -1,0 +1,16 @@
+{
+  "reference": {
+    "file": "data/feira-de-mangaio-sivuca/audio/reference.a760f10f.opus",
+    "duration": 202.89,
+    "source_url": "https://www.youtube.com/watch?v=M-38_POSU1M&list=RDM-38_POSU1M&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  },
+  "playback": {
+    "file": "data/feira-de-mangaio-sivuca/audio/playback.4d9b100b.opus",
+    "duration": 170.81,
+    "source_url": "https://www.youtube.com/watch?v=KkxDqZCqttc&list=RDKkxDqZCqttc&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20"
+  }
+}
