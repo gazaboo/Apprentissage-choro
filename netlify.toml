@@ -10,3 +10,12 @@
 
 # SPA à routage par fragment : une seule page, pas de réécriture nécessaire.
 # Les fichiers de web/public/data/ sont copiés tels quels dans web/dist/data/.
+
+# L'audio local (#18) porte un hash de contenu dans son nom
+# (`reference.0252893c.opus`) : une URL donnée ne changera jamais de contenu,
+# remplacer une bande en produit une neuve. Le cache peut donc être mis au
+# maximum sans risque de servir un ancien enregistrement pendant un an.
+[[headers]]
+  for = "/data/*/audio/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

@@ -13,8 +13,8 @@
  */
 
 import { el, ui } from './dom';
-import type { Player } from './youtube';
-import { formatTime, PLAYBACK_RATES } from './youtube';
+import type { Player } from './audio';
+import { formatTime, PLAYBACK_RATES } from './audio';
 import type { AudioKind, InstrumentId, Song } from './types';
 
 /** Bloc de réglages secondaires, avec son intitulé. */
@@ -258,7 +258,7 @@ export function createTransport(options: TransportOptions): Transport {
 
   function loadSource(autoplay = false): void {
     const audio = song.audio[source];
-    if (audio) player.load(audio.youtube_id, autoplay);
+    if (audio) player.load(audio.file, autoplay, audio.duration);
     player.clearLoop();
     paintLoop();
   }

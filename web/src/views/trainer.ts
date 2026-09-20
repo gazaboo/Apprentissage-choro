@@ -35,7 +35,7 @@ import {
   STUDY_MODE_LABELS,
   STUDY_MODES,
 } from '../types';
-import { formatTime, Player } from '../youtube';
+import { formatTime, Player } from '../audio';
 import { askSrs } from './srsModal';
 
 export interface TrainerContext {
@@ -711,9 +711,8 @@ export function renderTrainer(
 
   // --- Lecteur et barre de transport --------------------------------------
 
-  // L'iframe reste dans le document mais hors du champ de vision : c'est ce
-  // qui permet de garder l'audio sans jamais montrer la vidéo.
-  const playerMount = el('div', { class: 'yt-audio-only' });
+  // L'élément audio reste dans le document mais hors du champ de vision.
+  const playerMount = el('div', { class: 'audio-only' });
 
   const transport = createTransport({
     song,
@@ -937,20 +936,24 @@ export function renderTrainer(
   })();
 
   // Le lecteur ne peut être monté qu'une fois son conteneur dans le document.
+  let playerNote: HTMLElement | null = null;
+  const unsubscribeFailure = player.onFailure((failure) => {
+    const message =
+      failure === 'geste'
+        ? 'Lecture bloquée par le navigateur — touchez ▶ pour démarrer.'
+        : "Audio indisponible pour ce morceau (fichier manquant ou illisible).";
+    if (playerNote) {
+      playerNote.textContent = message;
+      return;
+    }
+    playerNote = el('p', { class: `${ui.card} text-sm text-zinc-500` }, message);
+    noScore.before(playerNote);
+  });
+
   if (anySource) {
     void (async () => {
-      try {
-        await player.mount(playerMount);
-        transport.loadSource();
-      } catch {
-        noScore.before(
-          el(
-            'p',
-            { class: `${ui.card} text-sm text-zinc-500` },
-            'Lecteur YouTube indisponible (connexion ou blocage réseau).',
-          ),
-        );
-      }
+      await player.mount(playerMount);
+      transport.loadSource();
     })();
   }
 
@@ -958,7 +961,7 @@ export function renderTrainer(
   return () => {
     timer?.stop();
     eclipses.stop();
-    player.clearCountdown();
+    unsubscribeFailure();
     window.removeEventListener('keydown', onFullpageKey);
     window.removeEventListener('resize', onFpViewport);
     fpWide.removeEventListener('change', onFpViewport);

@@ -32,7 +32,7 @@ import {
 import type { ExerciceCarte } from './technique/catalogue';
 import { chargerCatalogue, pickExercices } from './technique/catalogue';
 import type { AudioKind, InstrumentId, Song } from './types';
-import { Player } from './youtube';
+import { Player } from './audio';
 import { renderAbout } from './views/about';
 import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';

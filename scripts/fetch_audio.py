@@ -362,7 +362,7 @@ def verify(songs: list[scan.SongFolder], out_dir: Path) -> int:
             if (
                 expected_url is not None
                 and not recorded.startswith("file://")
-                and recorded != expected_url.url
+                and recorded != expected_url
             ):
                 log(f"  ! {song.song_id}/{kind}: sidecar périmé (URL modifiée)")
                 problems += 1
@@ -476,7 +476,7 @@ def main(argv: list[str] | None = None) -> int:
             # Un fichier local est sa propre provenance : enregistrer l'URL
             # YouTube du morceau laisserait croire que c'est elle qui a été
             # encodée, et `--verify` ne verrait jamais la différence.
-            source_url = f"file://{local_input}" if local_input else declared.url
+            source_url = f"file://{local_input}" if local_input else declared
             if not touched:
                 log(f"  {song.title}")
                 touched = True
