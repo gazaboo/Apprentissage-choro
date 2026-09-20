@@ -302,7 +302,11 @@ function showSessionSummary(): void {
 }
 
 function backHome(): HTMLElement {
-  const button = el('button', { type: 'button', class: ui.primary }, 'Retour au répertoire');
+  const button = el(
+    'button',
+    { type: 'button', class: ui.icon, 'aria-label': 'Retour au répertoire' },
+    '←',
+  );
   button.addEventListener('click', goHome);
   return button;
 }

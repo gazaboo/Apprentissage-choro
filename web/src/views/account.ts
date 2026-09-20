@@ -292,7 +292,11 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
     );
   }
 
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour au répertoire');
+  const backButton = el(
+    'button',
+    { type: 'button', class: `${ui.icon} self-start`, 'aria-label': 'Retour au répertoire' },
+    '←',
+  );
   if (context.navigateHome) backButton.addEventListener('click', context.navigateHome);
 
   root.replaceChildren(

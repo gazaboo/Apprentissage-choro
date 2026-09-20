@@ -317,21 +317,6 @@ export class GrilleView {
     }
     surface.appendChild(parts);
 
-    const remarks = [
-      ...(this.grille.coda_note ? [this.grille.coda_note] : []),
-      ...(this.grille.notes ?? []),
-    ];
-    if (remarks.length > 0) {
-      surface.appendChild(
-        el(
-          'details',
-          { class: 'grille-notes' },
-          el('summary', {}, `À vérifier (${remarks.length})`),
-          el('ul', {}, ...remarks.map((note) => el('li', {}, note))),
-        ),
-      );
-    }
-
     this.container.replaceChildren(surface);
   }
 

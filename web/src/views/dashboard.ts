@@ -114,6 +114,9 @@ export function renderDashboard(
 
   const list = el('div', { class: 'grid gap-2' });
   const subtitle = el('p', { class: 'mt-1 text-sm text-zinc-400' });
+  /** Nom du vivier courant, affiché juste au-dessus de la liste qu'il décrit
+   *  plutôt que dans l'en-tête (redondant avec le sélecteur de setlist). */
+  const listHeading = el('h2', { class: 'text-lg font-semibold text-zinc-100' });
   const sessionSlot = el('section', {
     class: 'rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-5',
   });
@@ -136,9 +139,8 @@ export function renderDashboard(
       (song) => songBadge(song, progress) === 'a-travailler',
     ).length;
     const set = activeSetlist(progress);
-    subtitle.textContent = set
-      ? `Setlist « ${set.name} » · ${scoped.length} morceaux · ${due} à travailler`
-      : `Tout le répertoire · ${scoped.length} morceaux · ${due} à travailler`;
+    subtitle.textContent = `${scoped.length} morceaux · ${due} à travailler`;
+    listHeading.textContent = set ? `Setlist « ${set.name} »` : 'Tout le répertoire';
   }
 
   // --- Sélecteur de setlist + aperçu ------------------------------------
@@ -699,7 +701,7 @@ export function renderDashboard(
       techniqueSlot,
       sessionSlot,
 
-      el('section', { class: 'flex flex-col gap-4' }, list),
+      el('section', { class: 'flex flex-col gap-4' }, listHeading, list),
     ),
   );
 

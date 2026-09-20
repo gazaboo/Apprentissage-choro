@@ -40,8 +40,11 @@ function mount(overrides: Partial<AccountContext> = {}) {
   return { root, context, teardown };
 }
 
+/** Trouve par texte visible, ou par `aria-label` pour un bouton icône seule. */
 function findButton(root: HTMLElement, text: string): HTMLButtonElement {
-  const button = [...root.querySelectorAll('button')].find((b) => b.textContent === text);
+  const button = [...root.querySelectorAll('button')].find(
+    (b) => b.textContent === text || b.getAttribute('aria-label') === text,
+  );
   if (!button) throw new Error(`bouton "${text}" introuvable`);
   return button;
 }

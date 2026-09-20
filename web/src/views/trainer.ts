@@ -332,10 +332,10 @@ export function renderTrainer(
     }
   }
 
-  /** Indépendante de la bascule Partition/Grille : visible dès que le
-   *  contraponto est disponible pour la tonalité courante. */
+  /** Sans effet sur la grille : le contre-chant est un choix de rendu de la
+   *  partition, absent de la grille d'accords (#98). */
   function paintContrechantToggle(): void {
-    const has = contrechantAvailable();
+    const has = contrechantAvailable() && activeDisplay() !== 'grille';
     contrechantToggle.classList.toggle('hidden', !has);
     contrechantToggle.classList.toggle('flex', has);
     fpContrechantToggle.classList.toggle('hidden', !has);
@@ -617,6 +617,7 @@ export function renderTrainer(
     }
     drawScore();
     paintDisplayToggle();
+    paintContrechantToggle();
     paintFullpage();
   }
 
