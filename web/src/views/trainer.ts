@@ -809,43 +809,55 @@ export function renderTrainer(
 
   const status = statusOf(getCard(progress, song.id, instrumentId));
 
-  const sessionBanner = context.session
+  // Pastille de contexte de séance : remplace l'ancien bandeau pleine
+  // largeur (#107) — mêmes infos (libellé + temps restant), en ligne à côté
+  // du titre plutôt que sur une rangée dédiée.
+  const sessionBadge = context.session
     ? el(
-        'div',
+        'span',
         {
           class:
-            'flex flex-wrap items-center justify-between gap-3 rounded-xl border ' +
-            'border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200',
+            'inline-flex min-h-11 items-center gap-2 rounded-lg border ' +
+            'border-amber-400/30 bg-amber-400/10 px-3 text-xs font-medium ' +
+            'text-amber-200',
         },
-        el('p', {}, context.session.label),
-        blockMinutes !== null ? el('p', {}, 'Temps restant : ', blockLabel) : null,
+        el('span', { class: 'max-w-[14rem] truncate sm:max-w-none' }, context.session.label),
+        blockMinutes !== null
+          ? el(
+              'span',
+              { class: 'flex items-center gap-1' },
+              el('span', { class: 'sr-only' }, 'Temps restant : '),
+              blockLabel,
+            )
+          : null,
       )
     : null;
 
   const header = el(
     'header',
-    { class: 'flex flex-wrap items-start justify-between gap-4' },
+    { class: 'flex flex-col gap-1' },
     el(
       'div',
-      { class: 'min-w-0' },
-      el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, song.title),
+      { class: 'flex flex-wrap items-center justify-between gap-3' },
       el(
-        'p',
-        { class: 'text-sm text-zinc-400' },
-        song.composer || 'Compositeur inconnu',
+        'div',
+        { class: 'flex min-w-0 flex-wrap items-center gap-3' },
+        el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, song.title),
+        sessionBadge,
       ),
       el(
-        'p',
-        { class: 'text-xs text-zinc-600' },
-        `${currentInstrument().name} · ${STATUS_LABELS[status]}`,
+        'div',
+        { class: 'flex flex-wrap gap-2' },
+        backButton,
+        stopSessionButton,
+        finishButton,
       ),
     ),
     el(
-      'div',
-      { class: 'flex flex-wrap gap-2' },
-      backButton,
-      stopSessionButton,
-      finishButton,
+      'p',
+      { class: 'text-xs text-zinc-500' },
+      `${song.composer || 'Compositeur inconnu'} · ${currentInstrument().name} · ` +
+        STATUS_LABELS[status],
     ),
   );
 
@@ -874,10 +886,9 @@ export function renderTrainer(
       {
         // La réserve en bas laisse la dernière page atteignable au-dessus de
         // la barre de transport, qui flotte par-dessus le flux.
-        class: 'mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 pb-32 lg:pb-36',
+        class: 'mx-auto flex max-w-5xl flex-col gap-4 px-4 py-6 pb-32 lg:pb-36',
       },
       playerMount,
-      sessionBanner,
       header,
       noAudio,
       noScore,
