@@ -24,10 +24,12 @@ import type { SessionBlock, SessionItem } from './session';
 import {
   activeSetlist,
   activeTechniqueSetlist,
+  isDemoActive,
   lastSession,
   loadProgress,
   recordSession,
   saveProgress,
+  stopDemo,
 } from './store';
 import type { Progress } from './store';
 import {
@@ -44,6 +46,7 @@ import { Player } from './audio';
 import { renderAbout } from './views/about';
 import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';
+import { renderDemo } from './views/demo';
 import { renderFilage } from './views/filage';
 import { renderFilageConfig } from './views/filage-config';
 import { renderOnboarding } from './views/onboarding';
@@ -57,6 +60,42 @@ const MANIFEST_URL = 'data/manifest.json';
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Élément #app introuvable.');
+
+// Bandeau de rappel permanent en mode démonstration (#109, outil de QA,
+// route cachée `#/demo`) — hors de `root` pour survivre à ses
+// `replaceChildren()` et rester visible sur tous les écrans tant que le
+// mode est actif. Sticky plutôt que fixe : aucun conflit de z-index avec les
+// voiles plein écran/éclipses de `trainer.ts`.
+const demoQuitButton = el(
+  'button',
+  { type: 'button', class: 'underline underline-offset-2' },
+  'Quitter',
+);
+const demoBanner = el(
+  'div',
+  {
+    class:
+      'sticky top-0 z-[60] hidden items-center justify-between gap-3 bg-amber-400 ' +
+      'px-4 py-2 text-sm font-medium text-zinc-950',
+  },
+  el(
+    'span',
+    {},
+    '🔧 Mode démonstration — données de test, sans effet sur ta progression réelle.',
+  ),
+  demoQuitButton,
+);
+demoQuitButton.addEventListener('click', () => {
+  stopDemo();
+  progress = loadProgress();
+  navigate('#/');
+});
+document.body.prepend(demoBanner);
+function paintDemoBanner(): void {
+  const active = isDemoActive();
+  demoBanner.classList.toggle('hidden', !active);
+  demoBanner.classList.toggle('flex', active);
+}
 
 const player = new Player();
 let progress: Progress = loadProgress();
@@ -347,6 +386,7 @@ function showError(message: string): void {
 function render(): void {
   teardown?.();
   teardown = null;
+  paintDemoBanner();
 
   const hash = window.location.hash || '#/';
 
@@ -393,6 +433,17 @@ function render(): void {
         navigate('#/');
       },
     });
+    return;
+  }
+
+  if (hash === '#/demo') {
+    teardown = renderDemo(root!, { songs, navigate });
+    // `seedDemoProgress` (dans `renderDemo`) vient d'écrire dans
+    // `sessionStorage` : sans ce rechargement, `progress` garderait la vraie
+    // progression chargée au démarrage, et les écrans suivants (`#/song/:id`)
+    // ne verraient jamais les données de démo.
+    progress = loadProgress();
+    paintDemoBanner();
     return;
   }
 
