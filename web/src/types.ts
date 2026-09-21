@@ -281,6 +281,25 @@ export interface SrsReview {
   placement?: number;
 }
 
+/**
+ * État FSRS d'une carte — cache dérivé de `history`, reconstruit par rejeu
+ * s'il manque (voir `ensureFsrs` dans `srs.ts`). Les dates y sont en ISO
+ * jour (AAAA-MM-JJ), comme partout ailleurs dans `Progress`.
+ */
+export interface FsrsState {
+  stability: number;
+  difficulty: number;
+  /** 0 New, 1 Learning, 2 Review, 3 Relearning (valeurs de `State` de ts-fsrs). */
+  state: 0 | 1 | 2 | 3;
+  reps: number;
+  lapses: number;
+  learningSteps: number;
+  /** Date ISO (AAAA-MM-JJ) de la dernière révision, `null` si aucune encore. */
+  lastReview: string | null;
+  /** Intervalle rendu par FSRS, avant application du facteur d'aisance technique. */
+  scheduledDays: number;
+}
+
 export interface SrsCard {
   ease: number;
   interval: number;
@@ -288,4 +307,6 @@ export interface SrsCard {
   /** Date ISO (AAAA-MM-JJ) de la prochaine révision. */
   due: string;
   history: SrsReview[];
+  /** Absent tant qu'une carte SM-2 antérieure n'a pas été migrée (voir `ensureFsrs`). */
+  fsrs?: FsrsState;
 }
