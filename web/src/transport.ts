@@ -216,9 +216,22 @@ export function createTransport(options: TransportOptions): Transport {
   // revient au tempo réel d'un tap sur la valeur. Widget partagé avec
   // l'écran de filage (`renderRateStepper`, `dom.ts`).
   const rateStepper = renderRateStepper(player);
+  // Tempo détecté automatiquement (#111) — indicatif, absent tant que
+  // `scripts/detect_bpm.py` n'a pas tourné sur la source active. Suit la
+  // bascule Original/Playback : `paintBpm` est aussi appelé au clic de
+  // `sourceButton`, plus bas.
+  const bpmLabel = el('span', { class: 'font-mono text-xs text-zinc-500' }, '');
+  function paintBpm(): void {
+    const bpm = song.audio[source]?.bpm;
+    bpmLabel.textContent = bpm ? `${Math.round(bpm)} BPM` : '';
+    bpmLabel.title = 'Tempo détecté automatiquement, indicatif';
+    bpmLabel.classList.toggle('hidden', !bpm);
+  }
+  paintBpm();
   const rateGroup = el(
     'div',
     { class: 'flex shrink-0 items-center gap-1 md:order-4' },
+    bpmLabel,
     rateStepper.minus,
     rateStepper.value,
     rateStepper.plus,
@@ -263,6 +276,7 @@ export function createTransport(options: TransportOptions): Transport {
     if (sourceCycle.length < 2) return;
     source = sourceCycle[(sourceCycle.indexOf(source) + 1) % sourceCycle.length]!;
     paintSourceButton();
+    paintBpm();
     // On enchaîne si l'on jouait : s'arrêter à chaque bascule casserait le fil.
     loadSource(player.isPlaying());
   });
