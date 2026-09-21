@@ -309,6 +309,18 @@ export function createTransport(options: TransportOptions): Transport {
   instrumentButton.classList.add('md:order-5');
   paintInstrumentButton();
 
+  // --- Frise de tracé, bascule -------------------------------------------
+  //
+  // La frise (tracé du passage à répéter) reste hors champ tant qu'on ne
+  // s'en sert pas : elle prenait de la place en permanence pour un geste
+  // occasionnel (issue #120). Le bouton la révèle ; l'état de la boucle en
+  // cours, lui, reste toujours lisible via `loopBadge`, indépendamment.
+  const loopToggle = el(
+    'button',
+    { type: 'button', class: `${ui.chip} md:order-6`, 'aria-expanded': 'false' },
+    '🔁 Loop',
+  );
+
   // --- Assemblage de la barre principale ---------------------------------
   //
   // Sous 768 px, la piste prend toute la largeur sur une première ligne et
@@ -319,6 +331,7 @@ export function createTransport(options: TransportOptions): Transport {
   if (sourceCycle.length > 1) secondary.push(sourceButton);
   secondary.push(rateGroup);
   if (song.instruments.length > 1) secondary.push(instrumentButton);
+  if (anySource) secondary.push(loopToggle);
 
   const primary = el(
     'div',
@@ -489,6 +502,23 @@ export function createTransport(options: TransportOptions): Transport {
     handleB,
   );
   laneSlotBar.appendChild(lane);
+
+  /** Repliée par défaut : voir le commentaire sur `loopToggle`. */
+  let laneOpen = false;
+  function paintLoopToggle(): void {
+    lane.classList.toggle('hidden', !laneOpen);
+    loopToggle.className = `${laneOpen ? ui.chipActive : ui.chip} md:order-6`;
+    loopToggle.setAttribute('aria-expanded', String(laneOpen));
+    loopToggle.setAttribute(
+      'aria-label',
+      laneOpen ? 'Masquer la frise de répétition' : 'Afficher la frise pour répéter un passage',
+    );
+  }
+  loopToggle.addEventListener('click', () => {
+    laneOpen = !laneOpen;
+    paintLoopToggle();
+  });
+  paintLoopToggle();
 
   type DragMode =
     | { kind: 'create'; anchor: number }
