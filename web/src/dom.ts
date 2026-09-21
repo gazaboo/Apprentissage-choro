@@ -1,6 +1,6 @@
 /** Petites fabriques DOM, pour écrire les vues sans framework. */
 
-import { RATE_MAX, RATE_MIN, stepRate } from './audio';
+import { RATE_MAX, RATE_MIN, stepBpm, stepRate } from './audio';
 
 type Attrs = Record<string, string | number | boolean | undefined>;
 type Child = Node | string | null | undefined | false;
@@ -118,16 +118,29 @@ export function segmented<T extends string>(
 const formatRate = (rate: number): string => `${rate}×`.replace('.', ',');
 
 /**
- * Stepper de vitesse `−  0,95×  +` : deux boutons qui déplacent la vitesse
- * d'un cran (`stepRate`), et la valeur centrale qui revient directement à
- * vitesse normale au tap. Un seul widget pour la barre de transport
- * (`transport.ts`) et l'écran de filage (`filage.ts`), qui partagent le même
- * réglage de vitesse.
+ * Stepper de vitesse : deux boutons qui déplacent la vitesse d'un cran, et
+ * la valeur centrale qui revient directement au tempo d'origine au tap. Un
+ * seul widget pour la barre de transport (`transport.ts`) et l'écran de
+ * filage (`filage.ts`), qui partagent le même réglage de vitesse.
+ *
+ * Quand le tempo d'origine est connu (`getBpm`, #111), l'affichage et les
+ * pas se font en BPM (`115 BPM` → `110 BPM`) : un musicien raisonne en BPM,
+ * pas en pourcentage de la vitesse d'origine. Sans détection disponible
+ * (source sans BPM mesuré), on retombe sur la vitesse relative (`0,95×`).
+ * `getBpm` est relu à chaque appui : la source active peut changer (bascule
+ * Original/Playback, morceau suivant en filage) sans recréer le widget —
+ * `refresh()` le fait repeindre après un tel changement.
  */
-export function renderRateStepper(player: {
-  setRate(rate: number): number;
-  getRate(): number;
-}): { minus: HTMLButtonElement; value: HTMLButtonElement; plus: HTMLButtonElement } {
+export function renderRateStepper(
+  player: { setRate(rate: number): number; getRate(): number },
+  options: { getBpm?: () => number | null } = {},
+): {
+  minus: HTMLButtonElement;
+  value: HTMLButtonElement;
+  plus: HTMLButtonElement;
+  refresh: () => void;
+} {
+  const getBpm = options.getBpm ?? (() => null);
   let rate = player.getRate();
 
   const minus = el('button', { type: 'button', class: ui.icon }, '−');
@@ -137,23 +150,28 @@ export function renderRateStepper(player: {
   function paint(): void {
     minus.disabled = rate <= RATE_MIN;
     plus.disabled = rate >= RATE_MAX;
+    const bpm = getBpm();
+    const targetBpm = bpm ? Math.round(rate * bpm) : null;
     value.className = rate === RATE_MAX ? ui.chip : ui.chipActive;
-    value.textContent = formatRate(rate);
-    const label = `Vitesse ${formatRate(rate)}`;
+    value.textContent = targetBpm !== null ? `${targetBpm} BPM` : formatRate(rate);
+    const label = targetBpm !== null ? `Tempo ${targetBpm} BPM` : `Vitesse ${formatRate(rate)}`;
+    const resetHint = targetBpm !== null ? 'revenir au tempo original' : 'revenir à vitesse normale';
     minus.setAttribute('aria-label', `Ralentir — ${label}`);
     plus.setAttribute('aria-label', `Accélérer — ${label}`);
     value.setAttribute(
       'aria-label',
-      rate === RATE_MAX ? label : `${label}, toucher pour revenir à vitesse normale`,
+      rate === RATE_MAX ? label : `${label}, toucher pour ${resetHint}`,
     );
   }
 
   minus.addEventListener('click', () => {
-    rate = player.setRate(stepRate(rate, -1));
+    const bpm = getBpm();
+    rate = player.setRate(bpm ? stepBpm(rate, bpm, -1) : stepRate(rate, -1));
     paint();
   });
   plus.addEventListener('click', () => {
-    rate = player.setRate(stepRate(rate, 1));
+    const bpm = getBpm();
+    rate = player.setRate(bpm ? stepBpm(rate, bpm, 1) : stepRate(rate, 1));
     paint();
   });
   value.addEventListener('click', () => {
@@ -163,5 +181,5 @@ export function renderRateStepper(player: {
   });
 
   paint();
-  return { minus, value, plus };
+  return { minus, value, plus, refresh: paint };
 }
