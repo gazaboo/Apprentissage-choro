@@ -9,3 +9,7 @@ web/dist/
 
 # Dossier source de travail (partitions brutes non triées)
 library/
+
+# Captures d'un balayage UI (scripts/capture-ui-verification.mjs) : à
+# regénérer localement, jamais à committer.
+docs/qa/
