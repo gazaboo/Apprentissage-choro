@@ -6,7 +6,7 @@
  * déménagement sans qu'on ait à les recâbler.
  *
  * - ≥ 768 px : dock flottant arrondi en bas, centré, **tout sur une ligne**
- *   (lecture, frise, bascules, Réglages). Les réglages s'ouvrent dans un
+ *   (lecture, frise, bascules, Défi). Le panneau Défi s'ouvre dans un
  *   popover étroit et **déplaçable** : la partition reste visible à côté, si
  *   bien qu'on voit l'effet de chaque réglage au moment où on le touche, et
  *   l'on pousse le panneau là où il ne gêne pas. Ce seuil est volontairement
@@ -64,7 +64,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
 
   const closeButton = el(
     'button',
-    { type: 'button', class: ui.icon, 'aria-label': 'Fermer les réglages' },
+    { type: 'button', class: ui.icon, 'aria-label': 'Fermer le défi' },
     '\u2715',
   );
 
@@ -85,7 +85,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
         'rounded-t-2xl bg-zinc-900/95 px-4 py-3 backdrop-blur',
     },
     grip,
-    el('h2', { class: 'flex-1 text-sm font-semibold text-zinc-200' }, 'Réglages'),
+    el('h2', { class: 'flex-1 text-sm font-semibold text-zinc-200' }, 'Défi'),
     closeButton,
   );
 
@@ -96,7 +96,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
         'transport-shell pointer-events-auto flex w-full flex-col overflow-y-auto p-4 pt-0',
       role: 'dialog',
       'aria-modal': 'false',
-      'aria-label': 'Réglages',
+      'aria-label': 'Défi',
     },
     header,
     body,
@@ -118,7 +118,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   const toggle = el(
     'button',
     { type: 'button', class: `${ui.button} shrink-0`, 'aria-expanded': 'false' },
-    '\u2699\uFE0E Réglages',
+    '🎯 Défi',
   );
   // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
   // l'emporterait sur un `hidden` posé sur le bouton lui-même.
@@ -129,10 +129,10 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     {
       type: 'button',
       class: `${ui.icon} shrink-0 md:hidden`,
-      'aria-label': 'Ouvrir les réglages',
+      'aria-label': 'Ouvrir le défi',
       'aria-expanded': 'false',
     },
-    '⚙︎',
+    '🎯',
   );
 
   const dock = el(
@@ -186,7 +186,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     };
   }
 
-  /** Ancrage par défaut : au-dessus du bouton Réglages, à droite. */
+  /** Ancrage par défaut : au-dessus du bouton Défi, à droite. */
   function defaultPosition(): { x: number; y: number } {
     const dockBox = dock.getBoundingClientRect();
     const height = panel.offsetHeight || 320;

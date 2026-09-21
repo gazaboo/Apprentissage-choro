@@ -281,9 +281,13 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     expect(context.progress.settings.studyMode).toBe('eclipses');
   });
 
-  it('le bouton Défi reste joignable en mode \'sans\', contrairement aux autres bascules de l\'en-tête', () => {
+  it('le bouton Défi (dock) reste joignable en mode \'sans\', contrairement aux bascules de l\'en-tête', () => {
     const { root } = mount({}, { progress: masteredProgress() });
-    const defi = [...root.querySelectorAll('button')].find((b) => b.textContent === '🎯 Défi')!;
+    // Le bouton Défi remplace « Réglages » dans le dock (`sheet.ts`) — il n'y
+    // vit plus dans l'en-tête de la partition, masqué comme le reste en mode
+    // « Sans partition » (#109).
+    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    expect(defi).toBeTruthy();
     expect(defi.closest('.hidden')).toBeNull();
     const fullscreen = [...root.querySelectorAll('button')].find((b) => b.textContent === '⛶ Plein écran')!;
     expect(fullscreen.closest('.hidden')).not.toBeNull();
@@ -303,23 +307,42 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     expect(context.progress.settings.maskLevel).toBe(50); // valeur d'origine de baseProgress, inchangée
   });
 
-  it('le bouton « Défi » (choix explicite), lui, persiste bien le mode choisi', () => {
+  it('le bouton « Défi » du dock (choix explicite), lui, persiste bien le mode choisi', () => {
     const progress = masteredProgress();
     progress.settings.studyMode = 'mesures'; // distinct du mode ciblé, pour que la persistance soit probante
     const { root, context } = mount({}, { progress });
-    const defi = [...root.querySelectorAll('button')].find((b) => b.textContent === '🎯 Défi')!;
+    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
     defi.click();
-    // La feuille est le frère DOM du bouton Défi (`defiWrap`) : ses boutons
-    // combinent libellé + astuce dans le texte, distincts de ceux du dock.
-    const sheet = defi.nextElementSibling as HTMLElement;
-    const eclipses = [...sheet.querySelectorAll('button')].find((b) =>
-      b.textContent?.startsWith('Éclipses'),
+    // Le panneau (`sheet.ts`) vit dans `document.body`, pas dans `root`
+    // (`createControlBar` y ajoute son overlay séparément).
+    const panel = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const masque75 = [...panel.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Partition masquée à 75 %',
     )!;
-    eclipses.click();
-    expect(context.progress.settings.studyMode).toBe('eclipses');
+    masque75.click();
+    expect(context.progress.settings.studyMode).toBe('mesures');
+    expect(context.progress.settings.maskLevel).toBe(75);
     const consigne = [...root.querySelectorAll('h2')].find((h) => h.textContent === 'Consigne')!
       .parentElement!;
     expect(consigne.classList.contains('hidden')).toBe(true);
+  });
+
+  it('un choix Défi qui coïncide avec le mode courant (mais pas encore persisté) persiste quand même (relecture #131)', () => {
+    // `baseProgress` persiste `studyMode: 'mesures'`, mais une carte neuve
+    // (aucun historique) fait recommander 'entiere' à l'ouverture : les deux
+    // divergent dès le montage, sans qu'aucun choix n'ait encore été fait.
+    const { root, context } = mount();
+    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    defi.click();
+    const panel = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const entiere = [...panel.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Afficher la partition entière',
+    )!;
+    // Le mode courant en mémoire est déjà 'entiere' : avant #131, la garde
+    // `next === mode` de `setMode` empêchait ce choix, pourtant explicite,
+    // de jamais s'écrire dans `progress.settings.studyMode`.
+    entiere.click();
+    expect(context.progress.settings.studyMode).toBe('entiere');
   });
 
   it('demander de l\'aide plafonne la note présélectionnée à 3 en fin de morceau', async () => {
