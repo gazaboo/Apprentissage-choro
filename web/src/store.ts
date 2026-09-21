@@ -13,6 +13,7 @@ import type {
   Setlist,
   SrsCard,
   StudyMode,
+  TechniqueSetlist,
 } from './types';
 import {
   isDisplayMode,
@@ -33,6 +34,10 @@ export interface Progress {
   setlists: Setlist[];
   /** Setlist active, ou `null` pour travailler tout le répertoire. */
   activeSetlistId: string | null;
+  /** Setlists de technique (gammes, arpèges), indépendantes de celles du répertoire. */
+  techniqueSetlists: TechniqueSetlist[];
+  /** Setlist de technique active, ou `null` pour travailler tout le catalogue. */
+  activeTechniqueSetlistId: string | null;
   /** Historique des séances menées ; ajout seul, jamais modifié. Plafonné à 200. */
   sessions: SessionRun[];
   /**
@@ -91,6 +96,8 @@ const DEFAULT_PROGRESS: Progress = {
   cards: {},
   setlists: [],
   activeSetlistId: null,
+  techniqueSetlists: [],
+  activeTechniqueSetlistId: null,
   sessions: [],
   _rev: 0,
   settings: {
@@ -143,6 +150,22 @@ function sanitizeSetlist(value: unknown): Setlist | null {
       ? raw.createdAt
       : new Date().toISOString();
   return { id: raw.id, name: raw.name, songIds, createdAt };
+}
+
+/** Normalise une entrée de setlist technique lue du stockage, ou `null` si inexploitable. */
+function sanitizeTechniqueSetlist(value: unknown): TechniqueSetlist | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  if (typeof raw.id !== 'string' || raw.id === '') return null;
+  if (typeof raw.name !== 'string') return null;
+  const exerciceIds = Array.isArray(raw.exerciceIds)
+    ? raw.exerciceIds.filter((id): id is string => typeof id === 'string')
+    : [];
+  const createdAt =
+    typeof raw.createdAt === 'string' && raw.createdAt !== ''
+      ? raw.createdAt
+      : new Date().toISOString();
+  return { id: raw.id, name: raw.name, exerciceIds, createdAt };
 }
 
 /** Normalise une séance lue du stockage, ou `null` si inexploitable. */
@@ -207,6 +230,16 @@ export function loadProgress(): Progress {
       setlists.some((entry) => entry.id === parsed.activeSetlistId)
         ? parsed.activeSetlistId
         : null;
+    const techniqueSetlists = Array.isArray(parsed.techniqueSetlists)
+      ? parsed.techniqueSetlists
+          .map(sanitizeTechniqueSetlist)
+          .filter((entry): entry is TechniqueSetlist => entry !== null)
+      : [];
+    const activeTechniqueSetlistId =
+      typeof parsed.activeTechniqueSetlistId === 'string' &&
+      techniqueSetlists.some((entry) => entry.id === parsed.activeTechniqueSetlistId)
+        ? parsed.activeTechniqueSetlistId
+        : null;
     const rev =
       typeof parsed._rev === 'number' && Number.isFinite(parsed._rev)
         ? parsed._rev
@@ -219,7 +252,16 @@ export function loadProgress(): Progress {
           .slice(-200)
       : [];
 
-    return { cards, setlists, activeSetlistId, sessions, _rev: rev, settings };
+    return {
+      cards,
+      setlists,
+      activeSetlistId,
+      techniqueSetlists,
+      activeTechniqueSetlistId,
+      sessions,
+      _rev: rev,
+      settings,
+    };
   } catch {
     return structuredClone(DEFAULT_PROGRESS);
   }
@@ -334,6 +376,40 @@ export function deleteSetlist(progress: Progress, id: string): void {
 export function setActiveSetlist(progress: Progress, id: string | null): void {
   progress.activeSetlistId =
     id && progress.setlists.some((entry) => entry.id === id) ? id : null;
+  saveProgress(progress);
+}
+
+/** Setlist de technique active, ou `null`. */
+export function activeTechniqueSetlist(progress: Progress): TechniqueSetlist | null {
+  if (!progress.activeTechniqueSetlistId) return null;
+  return (
+    progress.techniqueSetlists.find(
+      (entry) => entry.id === progress.activeTechniqueSetlistId,
+    ) ?? null
+  );
+}
+
+/** Crée ou remplace une setlist de technique (identité par `id`), puis enregistre. */
+export function upsertTechniqueSetlist(
+  progress: Progress,
+  setlist: TechniqueSetlist,
+): void {
+  const index = progress.techniqueSetlists.findIndex((entry) => entry.id === setlist.id);
+  if (index === -1) progress.techniqueSetlists.push(setlist);
+  else progress.techniqueSetlists[index] = setlist;
+  saveProgress(progress);
+}
+
+/** Supprime une setlist de technique ; si c'était l'active, on repasse sur tout le catalogue. */
+export function deleteTechniqueSetlist(progress: Progress, id: string): void {
+  progress.techniqueSetlists = progress.techniqueSetlists.filter((entry) => entry.id !== id);
+  if (progress.activeTechniqueSetlistId === id) progress.activeTechniqueSetlistId = null;
+  saveProgress(progress);
+}
+
+export function setActiveTechniqueSetlist(progress: Progress, id: string | null): void {
+  progress.activeTechniqueSetlistId =
+    id && progress.techniqueSetlists.some((entry) => entry.id === id) ? id : null;
   saveProgress(progress);
 }
 

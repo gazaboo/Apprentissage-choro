@@ -21,7 +21,14 @@ import { initAnalytics } from './analytics';
 import { el, ui } from './dom';
 import { buildRotation, pickSessionItems } from './session';
 import type { SessionBlock, SessionItem } from './session';
-import { activeSetlist, lastSession, loadProgress, recordSession, saveProgress } from './store';
+import {
+  activeSetlist,
+  activeTechniqueSetlist,
+  lastSession,
+  loadProgress,
+  recordSession,
+  saveProgress,
+} from './store';
 import type { Progress } from './store';
 import {
   accountMode,
@@ -146,14 +153,16 @@ function recordCurrentRun(): void {
     });
   }
   if (technique && technique.worked.size > 0) {
-    // Les arpèges ne relèvent d'aucune setlist : le champ porte ici le nom de
-    // la section, pour que l'historique reste lisible d'une ligne à l'autre.
+    // La technique a sa propre setlist, distincte de celle du répertoire
+    // (#127) : on y renvoie ici comme pour les autres modes, plutôt que de
+    // coder en dur un libellé de section.
+    const techniqueSet = activeTechniqueSetlist(progress);
     recordSession(progress, {
       date: new Date().toISOString(),
       kind: 'technique',
       instrumentId: null,
-      setlistId: null,
-      setlistName: 'Arpèges et gammes',
+      setlistId: techniqueSet?.id ?? null,
+      setlistName: techniqueSet ? techniqueSet.name : 'Tout le catalogue',
       songCount: technique.worked.size,
     });
   }
@@ -175,6 +184,12 @@ function scopeFromActiveSetlist(): SessionScope {
 function poolForActiveSetlist(): Song[] {
   const set = activeSetlist(progress);
   return set ? songs.filter((song) => set.songIds.includes(song.id)) : songs;
+}
+
+/** Vivier technique courant : la setlist de technique active, ou tout le catalogue. */
+function techniquePoolForActiveSetlist(): ExerciceCarte[] {
+  const set = activeTechniqueSetlist(progress);
+  return set ? exercices.filter((carte) => set.exerciceIds.includes(carte.id)) : exercices;
 }
 
 function startSession(kind: 'deep' | 'urgent'): void {
@@ -217,7 +232,7 @@ function openTechnique(): void {
 
 /** Lance la séance d'arpèges et gammes, dans l'ordre du sélecteur SRS. */
 function startTechnique(): void {
-  const ordre = pickExercices(exercices, progress);
+  const ordre = pickExercices(techniquePoolForActiveSetlist(), progress);
   if (ordre.length === 0) return;
   session = null;
   filage = null;
@@ -494,7 +509,8 @@ function render(): void {
     startSession,
     startFilage,
     openTechnique: exercices.length > 0 ? openTechnique : null,
-    techniqueCount: exercices.length > 0 ? pickExercices(exercices, progress).length : 0,
+    techniqueCount:
+      exercices.length > 0 ? pickExercices(techniquePoolForActiveSetlist(), progress).length : 0,
   });
 }
 

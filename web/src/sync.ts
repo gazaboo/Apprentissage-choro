@@ -292,6 +292,7 @@ export function mergeProgress(local: Progress, remoteRaw: unknown): Progress {
   const takeRemoteMeta =
     remoteRev > local._rev &&
     Array.isArray(remote.setlists) &&
+    Array.isArray(remote.techniqueSetlists) &&
     typeof remote.settings === 'object' &&
     remote.settings !== null;
 
@@ -301,6 +302,12 @@ export function mergeProgress(local: Progress, remoteRaw: unknown): Progress {
     activeSetlistId: takeRemoteMeta
       ? (remote.activeSetlistId ?? null)
       : local.activeSetlistId,
+    techniqueSetlists: takeRemoteMeta
+      ? (remote.techniqueSetlists as Progress['techniqueSetlists'])
+      : local.techniqueSetlists,
+    activeTechniqueSetlistId: takeRemoteMeta
+      ? (remote.activeTechniqueSetlistId ?? null)
+      : local.activeTechniqueSetlistId,
     sessions,
     settings: takeRemoteMeta
       ? { ...local.settings, ...(remote.settings as Progress['settings']) }
@@ -314,6 +321,12 @@ export function mergeProgress(local: Progress, remoteRaw: unknown): Progress {
     !merged.setlists.some((entry) => entry.id === merged.activeSetlistId)
   ) {
     merged.activeSetlistId = null;
+  }
+  if (
+    merged.activeTechniqueSetlistId &&
+    !merged.techniqueSetlists.some((entry) => entry.id === merged.activeTechniqueSetlistId)
+  ) {
+    merged.activeTechniqueSetlistId = null;
   }
 
   return merged;

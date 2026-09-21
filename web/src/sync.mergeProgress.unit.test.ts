@@ -8,6 +8,8 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
     cards: {},
     setlists: [],
     activeSetlistId: null,
+    techniqueSetlists: [],
+    activeTechniqueSetlistId: null,
     sessions: [],
     _rev: 1,
     settings: {
@@ -209,6 +211,14 @@ describe('mergeProgress — réglages et setlists', () => {
   const remoteSetlists: Progress['setlists'] = [
     { id: 's1', name: 'Concert', songIds: ['a', 'b'], createdAt: '2026-09-01T00:00:00Z' },
   ];
+  const remoteTechniqueSetlists: Progress['techniqueSetlists'] = [
+    {
+      id: 't1',
+      name: 'Sans dièse ni bémol',
+      exerciceIds: ['arp-m::C::montant'],
+      createdAt: '2026-09-01T00:00:00Z',
+    },
+  ];
   const remoteSettings: Progress['settings'] = {
     blockMinutes: 10,
     display: 'grille',
@@ -227,35 +237,61 @@ describe('mergeProgress — réglages et setlists', () => {
     const merged = mergeProgress(local, {
       _rev: 2,
       setlists: remoteSetlists,
+      techniqueSetlists: remoteTechniqueSetlists,
       settings: remoteSettings,
     });
     expect(merged.setlists).toEqual(remoteSetlists);
+    expect(merged.techniqueSetlists).toEqual(remoteTechniqueSetlists);
     expect(merged.settings).toEqual(remoteSettings);
     expect(merged._rev).toBe(2);
   });
 
   it('garde le bloc local si `_rev` distant est plus bas, même avec des setlists distantes', () => {
-    const local = baseProgress({ _rev: 5, setlists: [] });
+    const local = baseProgress({ _rev: 5, setlists: [], techniqueSetlists: [] });
     const merged = mergeProgress(local, {
       _rev: 2,
       setlists: remoteSetlists,
+      techniqueSetlists: remoteTechniqueSetlists,
       settings: remoteSettings,
     });
     expect(merged.setlists).toEqual([]);
+    expect(merged.techniqueSetlists).toEqual([]);
     expect(merged._rev).toBe(5);
   });
 
   it('garde le bloc local si `_rev` distant est plus haut mais `setlists` absent (pas un array)', () => {
     const local = baseProgress({ _rev: 1, setlists: [] });
-    const merged = mergeProgress(local, { _rev: 9, settings: remoteSettings });
+    const merged = mergeProgress(local, {
+      _rev: 9,
+      techniqueSetlists: remoteTechniqueSetlists,
+      settings: remoteSettings,
+    });
     expect(merged.setlists).toEqual([]);
     // `_rev` reste le max des deux même si le bloc n'est pas repris.
     expect(merged._rev).toBe(9);
   });
 
+  it(
+    'garde le bloc local si `_rev` distant est plus haut mais `techniqueSetlists` absent (pas un array)',
+    () => {
+      const local = baseProgress({ _rev: 1, techniqueSetlists: [] });
+      const merged = mergeProgress(local, {
+        _rev: 9,
+        setlists: remoteSetlists,
+        settings: remoteSettings,
+      });
+      expect(merged.techniqueSetlists).toEqual([]);
+      expect(merged._rev).toBe(9);
+    },
+  );
+
   it('garde le bloc local si `_rev` distant est plus haut mais `settings` absent (pas un objet)', () => {
     const local = baseProgress({ _rev: 1 });
-    const merged = mergeProgress(local, { _rev: 9, setlists: remoteSetlists });
+    const merged = mergeProgress(local, {
+      _rev: 9,
+      setlists: remoteSetlists,
+      techniqueSetlists: remoteTechniqueSetlists,
+    });
     expect(merged.setlists).toEqual([]);
     expect(merged.settings).toEqual(local.settings);
   });
@@ -271,11 +307,31 @@ describe('mergeProgress — réglages et setlists', () => {
     const merged = mergeProgress(local, {
       _rev: 5,
       setlists: remoteSetlists,
+      techniqueSetlists: remoteTechniqueSetlists,
       settings: remoteSettings,
       activeSetlistId: 'ghost',
     });
     expect(merged.activeSetlistId).toBeNull();
   });
+
+  it(
+    'neutralise `activeTechniqueSetlistId` s\'il pointe une setlist de technique absente après fusion',
+    () => {
+      const local = baseProgress({
+        _rev: 1,
+        activeTechniqueSetlistId: 'ghost',
+        techniqueSetlists: [],
+      });
+      const merged = mergeProgress(local, {
+        _rev: 5,
+        setlists: remoteSetlists,
+        techniqueSetlists: remoteTechniqueSetlists,
+        settings: remoteSettings,
+        activeTechniqueSetlistId: 'ghost',
+      });
+      expect(merged.activeTechniqueSetlistId).toBeNull();
+    },
+  );
 });
 
 describe('mergeProgress — `remoteRaw` dégénéré', () => {

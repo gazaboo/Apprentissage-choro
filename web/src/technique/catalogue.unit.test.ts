@@ -4,7 +4,15 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { Progress } from '../store';
 import type { SrsCard } from '../types';
-import { DEFAULT_ROOTS, expandMotif, pickExercices, type ExerciceCarte, type Sens } from './catalogue';
+import {
+  DEFAULT_ROOTS,
+  expandMotif,
+  parAccord,
+  parMotif,
+  pickExercices,
+  type ExerciceCarte,
+  type Sens,
+} from './catalogue';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -95,6 +103,8 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
     cards: {},
     setlists: [],
     activeSetlistId: null,
+    techniqueSetlists: [],
+    activeTechniqueSetlistId: null,
     sessions: [],
     _rev: 0,
     settings: {
@@ -195,5 +205,50 @@ describe('pickExercices — ordre aléatoire à égalité de retard (#82)', () =
       const order = pickExercices(trois, progress, 5, () => value).map((c) => c.id);
       expect(order).toEqual(['b', 'a', 'c']);
     }
+  });
+});
+
+/** Carte de fixture pour les tests de regroupement, motif/accord/sens réglables. */
+function carteGroupee(overrides: Partial<ExerciceCarte>): ExerciceCarte {
+  return {
+    id: `${overrides.motifId}::${overrides.accord}::${overrides.sens}`,
+    motifId: 'motif',
+    famille: 'famille',
+    nom: 'nom',
+    accord: 'C',
+    sens: 'montant',
+    notes: [],
+    midi: [],
+    noteDeTravail: null,
+    ...overrides,
+  };
+}
+
+// Ces deux groupements alimentent la vue d'ensemble (`technique-liste.ts`) et
+// l'éditeur de setlist de technique (#127) — une pastille par tonalité doit
+// réunir montant et descendant, et rester distincte d'une autre tonalité.
+describe('parMotif / parAccord — regroupement pour l’affichage en pastilles', () => {
+  it('parMotif sépare les cartes par motif, dans l’ordre d’apparition', () => {
+    const cartes = [
+      carteGroupee({ motifId: 'arp-m', accord: 'C', sens: 'montant' }),
+      carteGroupee({ motifId: 'gamme', accord: 'C', sens: 'montant' }),
+      carteGroupee({ motifId: 'arp-m', accord: 'D', sens: 'montant' }),
+    ];
+    const groups = parMotif(cartes);
+    expect([...groups.keys()]).toEqual(['arp-m', 'gamme']);
+    expect(groups.get('arp-m')).toHaveLength(2);
+    expect(groups.get('gamme')).toHaveLength(1);
+  });
+
+  it('parAccord réunit montant et descendant d’une même tonalité dans un seul groupe', () => {
+    const cartes = [
+      carteGroupee({ motifId: 'arp-m', accord: 'C', sens: 'montant' }),
+      carteGroupee({ motifId: 'arp-m', accord: 'C', sens: 'descendant' }),
+      carteGroupee({ motifId: 'arp-m', accord: 'D', sens: 'montant' }),
+    ];
+    const groups = parAccord(cartes);
+    expect([...groups.keys()]).toEqual(['C', 'D']);
+    expect(groups.get('C')).toHaveLength(2);
+    expect(groups.get('D')).toHaveLength(1);
   });
 });

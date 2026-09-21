@@ -19,6 +19,8 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
     cards: {},
     setlists: [],
     activeSetlistId: null,
+    techniqueSetlists: [],
+    activeTechniqueSetlistId: null,
     sessions: [],
     _rev: 0,
     settings: {

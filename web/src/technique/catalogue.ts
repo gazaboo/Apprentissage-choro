@@ -289,3 +289,28 @@ export function parFamille(cartes: ExerciceCarte[]): Map<string, ExerciceCarte[]
   }
   return groups;
 }
+
+/** Regroupe les cartes par motif, dans l'ordre d'apparition du catalogue. */
+export function parMotif(cartes: ExerciceCarte[]): Map<string, ExerciceCarte[]> {
+  const groups = new Map<string, ExerciceCarte[]>();
+  for (const carte of cartes) {
+    const list = groups.get(carte.motifId);
+    if (list) list.push(carte);
+    else groups.set(carte.motifId, [carte]);
+  }
+  return groups;
+}
+
+/**
+ * Regroupe les cartes d'un même motif par tonalité (`accord`) — les sens
+ * montant et descendant d'une même tonalité s'y retrouvent ensemble.
+ */
+export function parAccord(cartes: ExerciceCarte[]): Map<string, ExerciceCarte[]> {
+  const groups = new Map<string, ExerciceCarte[]>();
+  for (const carte of cartes) {
+    const list = groups.get(carte.accord);
+    if (list) list.push(carte);
+    else groups.set(carte.accord, [carte]);
+  }
+  return groups;
+}

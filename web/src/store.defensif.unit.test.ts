@@ -33,6 +33,7 @@ describe('loadProgress — chemins défensifs', () => {
     const progress = loadProgress();
     expect(progress.cards).toEqual({});
     expect(progress.setlists).toEqual([]);
+    expect(progress.techniqueSetlists).toEqual([]);
     expect(progress.sessions).toEqual([]);
     expect(progress._rev).toBe(0);
     expect(progress.settings.display).toBe('partition');
@@ -192,6 +193,29 @@ describe('loadProgress — chemins défensifs', () => {
       }),
     );
     expect(loadProgress().activeSetlistId).toBeNull();
+  });
+
+  it('une setlist de technique malformée (sans `id`) est écartée', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        techniqueSetlists: [{ name: 'sans id' }, { id: 't1', name: 'Sans dièse ni bémol' }],
+      }),
+    );
+    const progress = loadProgress();
+    expect(progress.techniqueSetlists).toHaveLength(1);
+    expect(progress.techniqueSetlists[0]!.id).toBe('t1');
+  });
+
+  it('`activeTechniqueSetlistId` pointant une setlist de technique absente est neutralisé', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        techniqueSetlists: [{ id: 't1', name: 'Sans dièse ni bémol' }],
+        activeTechniqueSetlistId: 'ghost',
+      }),
+    );
+    expect(loadProgress().activeTechniqueSetlistId).toBeNull();
   });
 
   it('les séances sont plafonnées à 200 au chargement', () => {
