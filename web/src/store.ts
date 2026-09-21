@@ -11,6 +11,7 @@ import type {
   MaskLevel,
   SessionRun,
   Setlist,
+  Song,
   SrsCard,
   StudyMode,
   TechniqueSetlist,
@@ -23,9 +24,23 @@ import {
   isSessionKind,
   isStudyMode,
 } from './types';
-import { ensureFsrs } from './srs';
+import { ensureFsrs, review } from './srs';
 
 const STORAGE_KEY = 'choro-srs-v1';
+const DEMO_ACTIVE_KEY = 'choro-demo';
+const DEMO_STORAGE_KEY = 'choro-demo-srs';
+
+/** Mode démonstration (#109, outil de QA) : `sessionStorage` plutôt que
+ *  `localStorage` — fermer l'onglet suffit à tout effacer, y compris si on
+ *  oublie de cliquer « Quitter ». La progression réelle n'est jamais lue ni
+ *  écrite tant que ce drapeau est actif. */
+export function isDemoActive(): boolean {
+  try {
+    return sessionStorage.getItem(DEMO_ACTIVE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
 export interface Progress {
   /** Indexé par `${songId}::${instrumentId}`. */
@@ -195,7 +210,9 @@ function sanitizeSessionRun(value: unknown): SessionRun | null {
 export function loadProgress(): Progress {
   let raw: string | null = null;
   try {
-    raw = localStorage.getItem(STORAGE_KEY);
+    raw = isDemoActive()
+      ? sessionStorage.getItem(DEMO_STORAGE_KEY)
+      : localStorage.getItem(STORAGE_KEY);
   } catch {
     return structuredClone(DEFAULT_PROGRESS);
   }
@@ -327,26 +344,65 @@ function migrateSettings(
 
 export function saveProgress(progress: Progress): void {
   progress._rev = Date.now();
+  const demo = isDemoActive();
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    if (demo) sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(progress));
+    else localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   } catch {
     // Quota plein ou stockage refusé : la session reste utilisable en mémoire.
     console.warn('Progression non enregistrée (localStorage indisponible).');
   }
-  afterSave(progress);
+  // La démo ne doit jamais déclencher de synchro : elle pousserait des
+  // données de test vers le stockage réel du compte (#109, mode démo).
+  if (!demo) afterSave(progress);
 }
 
 /**
  * Écrit sans toucher à `_rev` ni notifier la synchro. Réservé au module de
  * synchro lui-même, quand il enregistre le résultat d'une fusion : il ne faut
- * pas qu'un `pull` déclenche aussitôt un `push`.
+ * pas qu'un `pull` déclenche aussitôt un `push`. Jamais atteint en mode démo
+ * (la synchro y est coupée dans `saveProgress`), mais routé par cohérence.
  */
 export function persistMerged(progress: Progress): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    if (isDemoActive()) sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(progress));
+    else localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   } catch {
     console.warn('Progression non enregistrée (localStorage indisponible).');
   }
+}
+
+/**
+ * Amorce un parcours de démonstration (#109, outil de QA) : un morceau par
+ * branche de `recommendedMode`, construit via `review()` comme une vraie
+ * séance l'aurait fait. Active le drapeau **avant** d'écrire, pour que les
+ * `putCard`/`saveProgress` qui suivent routent déjà vers `DEMO_STORAGE_KEY`
+ * et ne touchent jamais la progression réelle.
+ */
+export function seedDemoProgress(songs: Song[]): void {
+  sessionStorage.setItem(DEMO_ACTIVE_KEY, '1');
+  const progress = structuredClone(DEFAULT_PROGRESS);
+  const scenarios: number[][] = [
+    [], // nouveau morceau -> 'entiere'
+    [5], // un seul Good/Easy -> 'entiere'
+    [5, 5], // deux Good/Easy, nombre pair -> 'sans' (Consigne)
+    [5, 5, 5], // trois Good/Easy, nombre impair -> 'entiere' (alternance)
+    [5, 5, 1], // Again récent malgré l'historique -> 'entiere'
+  ];
+  scenarios.forEach((grades, i) => {
+    const song = songs[i];
+    if (!song || grades.length === 0) return;
+    const instrumentId = song.instruments[0]!.id;
+    let card: SrsCard | undefined;
+    for (const grade of grades) card = review(card, grade, 'fluide', 0);
+    putCard(progress, song.id, instrumentId, card!);
+  });
+}
+
+/** Quitte le mode démonstration : efface le drapeau et les données de test. */
+export function stopDemo(): void {
+  sessionStorage.removeItem(DEMO_ACTIVE_KEY);
+  sessionStorage.removeItem(DEMO_STORAGE_KEY);
 }
 
 /** Setlist active, ou `null`. */

@@ -452,6 +452,22 @@ programme un envoi différé de 3 s. **Aucun bouton de synchro** : tout est
 automatique. Hors ligne, l'app reste pleinement utilisable et la synchro reprend
 au retour du réseau.
 
+### Mode démonstration (outil de QA, route cachée)
+
+`#/demo` amorce un parcours pré-écrit — un morceau par branche du mode
+recommandé (#109) — pour vérifier visuellement l'écran Consigne sans attendre
+d'avoir vraiment accumulé de vraies bonnes notes sur un morceau réel. Aucun
+bouton nulle part dans l'interface normale : c'est une URL à taper. Un bandeau
+« 🔧 Mode démonstration » reste visible sur tous les écrans tant que ce mode
+est actif, avec un lien « Quitter ».
+
+**Isolation totale avec la vraie progression** : les données de démo vivent
+dans `sessionStorage` (jamais `localStorage`), sous une clé dédiée —
+`loadProgress`/`saveProgress` y basculent automatiquement tant que le drapeau
+`choro-demo` est posé, et la synchro cloud est coupée pendant ce temps (une
+sauvegarde de démo ne doit jamais pousser vers le compte réel). Fermer
+l'onglet suffit à tout effacer, même si on oublie de cliquer « Quitter ».
+
 ---
 
 ## Structure
