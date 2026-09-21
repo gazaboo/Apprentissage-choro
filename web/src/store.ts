@@ -22,6 +22,7 @@ import {
   isSessionKind,
   isStudyMode,
 } from './types';
+import { ensureFsrs } from './srs';
 
 const STORAGE_KEY = 'choro-srs-v1';
 
@@ -182,7 +183,11 @@ export function loadProgress(): Progress {
     const cards: Record<string, SrsCard> = {};
     for (const [key, value] of Object.entries(parsed.cards ?? {})) {
       if (isCard(value)) {
-        cards[key] = { ...value, history: Array.isArray(value.history) ? value.history : [] };
+        const withHistory = { ...value, history: Array.isArray(value.history) ? value.history : [] };
+        // Migre une carte SM-2 héritée, ou reconstruit un état FSRS perdu à
+        // la synchro (voir `normalizeCard` dans `sync.ts`) — sans effet sur
+        // une carte déjà migrée.
+        cards[key] = ensureFsrs(withHistory);
       }
     }
     const stored = (parsed.settings ?? {}) as Record<string, unknown>;

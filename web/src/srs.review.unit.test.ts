@@ -22,6 +22,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+/** Avance l'horloge simulée : une révision réaliste arrive à échéance, pas
+ *  le jour même (FSRS traite les révisions same-day à part). */
+function advance(days: number): void {
+  vi.setSystemTime(new Date(Date.now() + days * 86_400_000));
+}
+
 describe('isoDate / addDays', () => {
   it('formate en AAAA-MM-JJ avec zéros de tête', () => {
     expect(isoDate(new Date(2026, 0, 5))).toBe('2026-01-05');
@@ -36,13 +42,15 @@ describe('isoDate / addDays', () => {
 describe('newCard', () => {
   it('démarre avec une aisance neutre, aucune répétition, échue aujourd\'hui', () => {
     const card = newCard();
-    expect(card).toEqual({
+    expect(card).toMatchObject({
       ease: 2.5,
       interval: 0,
       repetitions: 0,
       due: '2026-09-14',
       history: [],
     });
+    // L'état FSRS lui-même est vérifié dans `srs.fsrs.unit.test.ts`.
+    expect(card.fsrs).toBeDefined();
   });
 });
 
@@ -54,63 +62,13 @@ describe('review', () => {
     expect(passing.history.at(-1)!.grade).toBe(5);
   });
 
-  it('un échec (note < 3) repart de zéro : repetitions=0, intervalle=1 jour', () => {
-    const card: SrsCard = { ease: 2.5, interval: 30, repetitions: 4, due: '2026-09-01', history: [] };
-    const result = review(card, 1, 'fluide', 3);
-    expect(result.repetitions).toBe(0);
-    expect(result.interval).toBe(1);
-    expect(result.due).toBe('2026-09-15');
-  });
-
-  it('progression d\'intervalle sur réussites successives : rep1=1j, rep2=6j, rep3=arrondi(interval*ease)', () => {
-    let card: SrsCard | undefined = undefined;
-    card = review(card, 5, 'fluide', 0);
-    expect(card.repetitions).toBe(1);
-    expect(card.interval).toBe(1);
-
-    card = review(card, 5, 'fluide', 0);
-    expect(card.repetitions).toBe(2);
-    expect(card.interval).toBe(6);
-
-    const easeBeforeThird = card.ease;
-    card = review(card, 5, 'fluide', 0);
-    expect(card.repetitions).toBe(3);
-    expect(card.interval).toBe(Math.round(6 * easeBeforeThird));
-  });
-
-  it('le plancher d\'ease (1.3) n\'est jamais franchi même après des notes basses répétées', () => {
-    let card: SrsCard | undefined = undefined;
-    for (let i = 0; i < 10; i += 1) {
-      card = review(card, 0, 'fluide', 0);
-    }
-    expect(card!.ease).toBeCloseTo(1.3, 5);
-  });
-
-  it('le facteur tempo réduit l\'intervalle (sous-tempo < crispé < fluide) sans jamais tomber sous 1 jour', () => {
-    const card: SrsCard = { ease: 2.5, interval: 1, repetitions: 2, due: '2026-09-01', history: [] };
-    const sousTempo = review(card, 5, 'sous-tempo', 0);
-    const crispe = review(card, 5, 'crispe', 0);
-    const fluide = review(card, 5, 'fluide', 0);
-    expect(sousTempo.interval).toBeLessThanOrEqual(crispe.interval);
-    expect(crispe.interval).toBeLessThanOrEqual(fluide.interval);
-    expect(sousTempo.interval).toBeGreaterThanOrEqual(1);
-  });
-
   it('`hints` et `mesures` sont tracés dans `history` sans influencer le calcul d\'intervalle', () => {
-    const card: SrsCard = { ease: 2.5, interval: 6, repetitions: 2, due: '2026-09-01', history: [] };
+    const card = review(undefined, 4, 'fluide', 0);
     const withoutMesures = review(card, 4, 'fluide', 2);
     const withMesures = review(card, 4, 'fluide', 2, { bpm: 120, justesse: 0.9, placement: 0.8 });
     expect(withoutMesures.interval).toBe(withMesures.interval);
-    expect(withoutMesures.ease).toBe(withMesures.ease);
+    expect(withoutMesures.fsrs).toEqual(withMesures.fsrs);
     expect(withMesures.history.at(-1)).toMatchObject({ bpm: 120, justesse: 0.9, placement: 0.8, hints: 2 });
-  });
-
-  it('`history` est plafonné à 50 entrées, les plus anciennes tombent en premier', () => {
-    let card: SrsCard = { ease: 2.5, interval: 1, repetitions: 0, due: '2026-09-01', history: [] };
-    for (let i = 0; i < 60; i += 1) {
-      card = review(card, 5, 'fluide', 0);
-    }
-    expect(card.history).toHaveLength(50);
   });
 });
 
@@ -146,7 +104,7 @@ describe('statusOf', () => {
     expect(statusOf(card)).toBe('a-reviser');
   });
 
-  it('"a-jour" si pas encore due, même si `repetitions` a été remis à zéro par un échec récent', () => {
+  it('"a-jour" si pas encore due, même après un échec récent', () => {
     const card: SrsCard = {
       ease: 1.3,
       interval: 1,
@@ -164,38 +122,44 @@ describe('masteryLevel', () => {
     expect(masteryLevel({ ease: 2.5, interval: 0, repetitions: 0, due: '2026-09-14', history: [] })).toBe(0);
   });
 
-  it('monte de 1 à 5 sur des réussites successives (note 4, ease constant à 2.5)', () => {
-    // Note 4 laisse `ease` inchangé (delta nul dans la formule SM-2), donc
-    // l'intervalle suit exactement 1, 6, 15, 38, 95 — un cas propre pour
-    // vérifier les seuils sans dérive d'`ease`.
+  it('monte de façon non décroissante sur des réussites espacées, jusqu\'au niveau maximal', () => {
     let card: SrsCard | undefined = undefined;
-    const levels: number[] = [];
-    for (let i = 0; i < 5; i += 1) {
+    let previous = 0;
+    for (let i = 0; i < 6; i += 1) {
+      if (card) advance(Math.max(1, card.interval));
       card = review(card, 4, 'fluide', 0);
-      levels.push(masteryLevel(card));
+      const level = masteryLevel(card);
+      expect(level).toBeGreaterThanOrEqual(previous);
+      previous = level;
     }
-    expect(levels).toEqual([1, 2, 3, 4, 5]);
+    expect(previous).toBe(5);
   });
 
-  it('monte plus vite avec des notes parfaites (ease croît à chaque révision)', () => {
-    let card: SrsCard | undefined = undefined;
-    const levels: number[] = [];
+  it('des notes parfaites (Easy) font monter la jauge au moins aussi vite que des notes correctes (Good)', () => {
+    // Les deux cartes sont révisées aux mêmes instants (l'horloge n'avance
+    // qu'une fois par tour) : seule la note diffère, ce qui isole son effet.
+    let good: SrsCard | undefined = undefined;
+    let easy: SrsCard | undefined = undefined;
     for (let i = 0; i < 5; i += 1) {
-      card = review(card, 5, 'fluide', 0);
-      levels.push(masteryLevel(card));
+      if (good) advance(Math.max(1, good.interval));
+      good = review(good, 4, 'fluide', 0);
+      easy = review(easy, 5, 'fluide', 0);
+      expect(masteryLevel(easy)).toBeGreaterThanOrEqual(masteryLevel(good));
     }
-    expect(levels).toEqual([1, 2, 4, 5, 5]);
   });
 
-  it('un échec après plusieurs réussites retombe à 1, jamais à 0', () => {
+  it('un échec après plusieurs réussites ne retombe jamais à 0 et ne dépasse jamais le niveau qui précédait', () => {
     let card: SrsCard | undefined = undefined;
     for (let i = 0; i < 4; i += 1) {
+      if (card) advance(Math.max(1, card.interval));
       card = review(card, 5, 'fluide', 0);
     }
-    expect(masteryLevel(card)).toBeGreaterThan(1);
+    const before = masteryLevel(card);
+    expect(before).toBeGreaterThan(1);
     const afterFailure = review(card, 1, 'fluide', 3);
-    expect(afterFailure.interval).toBe(1);
-    expect(masteryLevel(afterFailure)).toBe(1);
+    const after = masteryLevel(afterFailure);
+    expect(after).toBeGreaterThanOrEqual(1);
+    expect(after).toBeLessThanOrEqual(before);
   });
 });
 
