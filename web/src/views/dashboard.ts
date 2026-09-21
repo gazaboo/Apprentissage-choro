@@ -53,10 +53,9 @@ function runSummary(run: SessionRun): string {
 }
 
 /**
- * Résumé d'une séance technique, sans nom de setlist : contrairement au
- * répertoire, les arpèges et gammes n'appartiennent à aucune setlist — le
- * champ `setlistName` n'y vaut qu'un libellé générique (« Arpèges et
- * gammes ») redondant avec le titre de la carte.
+ * Résumé d'une séance technique, sans nom de setlist : la technique a sa
+ * propre setlist (#127), distincte de celle du répertoire et gérée sur sa
+ * page dédiée — l'afficher ici ferait doublon avec le titre de la carte.
  */
 function techniqueRunSummary(run: SessionRun): string {
   return `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`;
@@ -577,9 +576,10 @@ export function renderDashboard(
   let techniqueSessionsExpanded = false;
 
   /**
-   * Section à part : contrairement au travail de répertoire, la technique ne
-   * dépend d'aucune setlist et n'apparaît pas dans son historique (issue #52 —
-   * les deux étaient entrelacées dans une même carte « Session du jour »).
+   * Section à part : la technique n'apparaît pas dans l'historique du
+   * répertoire (issue #52 — les deux étaient entrelacées dans une même carte
+   * « Session du jour »). Sa propre setlist (#127) se gère sur sa page dédiée,
+   * pas ici — cette carte reste un simple point d'entrée/résumé.
    */
   function paintTechniqueCard(): void {
     if (!context.openTechnique) {

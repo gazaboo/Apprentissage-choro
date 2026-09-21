@@ -232,6 +232,21 @@ export interface Setlist {
 }
 
 /**
+ * Sélection prioritaire d'exercices de technique (gammes, arpèges) — distincte
+ * de la `Setlist` du répertoire. Sert à restreindre le vivier sur lequel
+ * `pickExercices` choisit quoi travailler, sans imposer d'ordre : contrairement
+ * au filage, la technique n'a pas de notion de « passage » séquencé.
+ */
+export interface TechniqueSetlist {
+  id: string;
+  name: string;
+  /** Références `ExerciceCarte.id` (une carte par tonalité et par sens). */
+  exerciceIds: string[];
+  /** Date ISO de création, pour trier la liste. */
+  createdAt: string;
+}
+
+/**
  * Mode d'une séance :
  * - `'deep'`   : toute la setlist dans l'ordre SRS, sans minuteur ;
  * - `'urgent'` : les 3 plus en retard, entrelacé (blocs de 5 min) ;
