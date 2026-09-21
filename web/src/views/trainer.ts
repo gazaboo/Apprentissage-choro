@@ -11,14 +11,13 @@ import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
 import { BlockTimer, formatCountdown } from '../session';
 import { createControlBar } from '../sheet';
-import { review, statusOf, STATUS_LABELS } from '../srs';
+import { recommendedMode, review, statusOf, STATUS_LABELS } from '../srs';
 import type { Progress } from '../store';
 import { getCard, putCard, saveProgress } from '../store';
 import { createTransport } from '../transport';
 import type { Section } from '../transport';
 import type {
   DisplayMode,
-  EclipseIntensity,
   Grille,
   Instrument,
   InstrumentId,
@@ -27,14 +26,7 @@ import type {
   StudyMode,
 } from '../types';
 import { isGrille } from '../types';
-import {
-  ECLIPSE_INTENSITIES,
-  ECLIPSE_LABELS,
-  MASK_LEVELS,
-  STUDY_MODE_HINTS,
-  STUDY_MODE_LABELS,
-  STUDY_MODES,
-} from '../types';
+import { MASK_LEVELS, STUDY_MODE_HINTS } from '../types';
 import { formatTime, Player } from '../audio';
 import { askSrs } from './srsModal';
 
@@ -68,10 +60,16 @@ export function renderTrainer(
     song.instruments.find((i) => i.id === progress.settings.instrumentDefault)?.id ??
     song.instruments[0]!.id;
   let hints = 0;
-  /** Ouverture libre (hors séance) : toujours la partition entière, jamais le
-   *  dernier défi réglé ailleurs — sinon on peut arriver en plein « défi » sans
-   *  l'avoir demandé pour ce morceau-là (#8). */
-  let mode: StudyMode = context.session ? progress.settings.studyMode : 'entiere';
+  /** Nombre de fois où l'écran Consigne a été sollicité pour révéler la
+   *  partition (mode « Sans partition » recommandé) — jamais compté comme un
+   *  indice classique, mais plafonne la note suggérée en fin de morceau. */
+  let aides = 0;
+  /** Mode recommandé d'après l'historique du morceau (#109) : la partition ne
+   *  se cache que si elle a déjà été maîtrisée plusieurs fois de suite, jamais
+   *  sur un morceau nouveau ou juste après un échec. L'écran Consigne explique
+   *  ce choix et reste réversible d'un clic — ce qui répond à la crainte de #8
+   *  (arriver en plein défi sans comprendre pourquoi ni comment en sortir). */
+  let mode: StudyMode = recommendedMode(getCard(progress, song.id, instrumentId));
   let maskLevel: MaskLevel = progress.settings.maskLevel;
   /** Zone d'étude voulue ; la grille n'est servie qu'une fois chargée. */
   let display: DisplayMode = progress.settings.display;
@@ -278,9 +276,12 @@ export function renderTrainer(
     ...contrechantButtons.values(),
   );
 
-  const scoreHeaderRow = el(
+  // Regroupe les bascules à masquer en mode « Sans partition » — le bouton
+  // Défi vit désormais dans le dock (`sheet.ts`), pas ici, et reste donc
+  // joignable même quand ce groupe disparaît (#109).
+  const scoreHeaderToggles = el(
     'div',
-    { class: 'flex flex-wrap items-center justify-between gap-2' },
+    { class: 'flex flex-wrap items-center gap-2' },
     displayToggle,
     contrechantToggle,
     fullpageEnter,
@@ -445,7 +446,7 @@ export function renderTrainer(
   const scoreHome = el(
     'div',
     { class: 'flex flex-col gap-3' },
-    scoreHeaderRow,
+    scoreHeaderToggles,
     scoreContainer,
     grilleContainer,
   );
@@ -559,53 +560,30 @@ export function renderTrainer(
   fpWide.addEventListener('change', onFpViewport);
   window.addEventListener('resize', onFpViewport);
 
-  /** Rien à afficher en « Sans partition » : l'en-tête disparaît. */
+  /** En « Sans partition », les bascules d'en-tête n'ont plus de sens — le
+   *  bouton Défi, lui, vit dans le dock (`sheet.ts`) et reste toujours
+   *  joignable, quel que soit le mode (#109). */
   function paintFullpage(): void {
-    scoreHeaderRow.classList.toggle('hidden', mode === 'sans');
+    scoreHeaderToggles.classList.toggle('hidden', mode === 'sans');
     if (mode === 'sans') setFullpage(false);
     onFpViewport();
     applyFpPlayer();
   }
 
-  // --- Comment travailler --------------------------------------------------
+  // --- Défi -----------------------------------------------------------------
 
-  const modeButtons = new Map<StudyMode, HTMLButtonElement>();
-  const maskButtons = new Map<MaskLevel, HTMLButtonElement>();
-  const intensityButtons = new Map<EclipseIntensity, HTMLButtonElement>();
+  const defiButtons = new Map<MaskLevel | 'entiere', HTMLButtonElement>();
+  const defiHint = el('p', { class: 'text-xs leading-snug text-zinc-500' });
 
-  const maskRow = el('div', { class: 'flex flex-wrap items-center gap-2' });
-  const intensityRow = el('div', { class: 'flex flex-wrap gap-2' });
-  const modeHint = el('p', { class: 'text-xs leading-snug text-zinc-500' });
-
-  /** Réglage fin d'un mode : caché tant que ce mode n'est pas retenu. */
-  const subPanel = (label: string, row: HTMLElement): HTMLElement =>
-    el(
-      'div',
-      { class: 'flex hidden flex-col gap-2 rounded-lg bg-zinc-800/40 p-3' },
-      el('p', { class: 'text-[11px] font-medium uppercase tracking-wide text-zinc-500' }, label),
-      row,
-    );
-  const maskPanel = subPanel('Proportion de mesures cachées', maskRow);
-  const intensityPanel = subPanel('Fréquence des éclipses', intensityRow);
-
-  /**
-   * N'affiche que le réglage du mode retenu. C'est ce qui allège le plus le
-   * panneau : on ne voit jamais les commandes d'un mode qu'on n'utilise pas.
-   */
+  /** Reflète le niveau retenu dans la liste, et n'affiche « Mélanger » que
+   *  pour le mode qu'il concerne. */
   function paintMode(): void {
-    for (const [value, button] of modeButtons) {
-      button.className = `${value === mode ? ui.buttonActive : ui.button} w-full`;
+    for (const [level, button] of defiButtons) {
+      const active = level === 'entiere' ? mode === 'entiere' : mode === 'mesures' && level === maskLevel;
+      button.className = `${active ? ui.buttonActive : ui.button} w-full justify-start`;
     }
-    for (const [level, button] of maskButtons) {
-      button.className = level === maskLevel ? ui.buttonActive : ui.button;
-    }
-    for (const [value, button] of intensityButtons) {
-      button.className =
-        value === progress.settings.eclipseIntensity ? ui.buttonActive : ui.button;
-    }
-    maskPanel.classList.toggle('hidden', mode !== 'mesures');
-    intensityPanel.classList.toggle('hidden', mode !== 'eclipses');
-    modeHint.textContent = STUDY_MODE_HINTS[mode];
+    shuffleSlot.classList.toggle('hidden', mode !== 'mesures');
+    defiHint.textContent = STUDY_MODE_HINTS[mode];
     paintCounters();
   }
 
@@ -616,6 +594,7 @@ export function renderTrainer(
     progress.settings.display = next;
     saveProgress(progress);
     hints = 0;
+    aides = 0;
     if (fullpage) {
       // Le plein écran ne contient qu'un conteneur : on y place le nouvel
       // actif et on rend l'autre à `scoreHome`.
@@ -639,48 +618,100 @@ export function renderTrainer(
     progress.settings.contrechant = next;
     saveProgress(progress);
     hints = 0;
+    aides = 0;
     drawScore();
     paintContrechantToggle();
   }
 
-  function setMode(next: StudyMode): void {
-    if (next === mode) return;
+  /**
+   * `persist: false` (boutons d'aide de l'écran Consigne, feuille refermée
+   * automatiquement) laisse `progress.settings.studyMode` intact : un coup
+   * d'œil à la partition ne doit pas redéfinir la préférence par défaut de
+   * l'application. Le bouton « Défi » (choix explicite) persiste, lui.
+   *
+   * La persistance est indépendante du early-return sur l'état local
+   * (`mode` déjà en mémoire) : un choix explicite doit s'écrire même quand
+   * il coïncide avec le mode courant *non encore persisté* (ex. mode
+   * recommandé 'sans' au chargement, réglage persisté encore 'entiere') —
+   * sinon un clic Défi qui « ne change rien à l'écran » resterait
+   * silencieusement non enregistré (relecture #131).
+   */
+  function setMode(next: StudyMode, options: { persist?: boolean } = {}): void {
+    const changed = next !== mode;
     mode = next;
-    progress.settings.studyMode = next;
-    saveProgress(progress);
+    if (options.persist !== false) {
+      progress.settings.studyMode = next;
+      saveProgress(progress);
+      // Un choix délibéré (dock, bouton Défi) repart de zéro ; une demande
+      // d'aide (persist: false) ne doit pas s'effacer elle-même.
+      aides = 0;
+    }
+    if (!changed) return;
     hints = 0;
     eclipses.reset();
     if (mode === 'eclipses') eclipses.start();
     else eclipses.stop();
     drawScore();
     paintMode();
-    paintNoScore();
+    paintConsigne();
     paintFullpage();
   }
 
-  for (const value of STUDY_MODES) {
-    const button = el(
-      'button',
-      { type: 'button', class: `${ui.button} w-full` },
-      STUDY_MODE_LABELS[value],
-    );
-    button.addEventListener('click', () => setMode(value));
-    modeButtons.set(value, button);
+  /**
+   * Échelle d'aide de l'écran Consigne : ne modifie jamais les réglages
+   * persistés (`maskLevel`/`studyMode`), seulement l'état local de cet écran.
+   * `aides` plafonne ensuite la note suggérée en fin de morceau (#109).
+   */
+  function applyAide(level: MaskLevel | 'entiere'): void {
+    if (level === 'entiere') {
+      setMode('entiere', { persist: false });
+    } else {
+      maskLevel = level;
+      setMode('mesures', { persist: false });
+      activeView().setLevel(level, currentInstrument());
+    }
+    aides += 1;
+    paintCounters();
   }
 
-  for (const level of MASK_LEVELS) {
-    const button = el('button', { type: 'button', class: ui.button }, `${level} %`);
-    button.addEventListener('click', () => {
-      if (level === maskLevel) return;
+  /**
+   * Même échelle que `applyAide`, mais choix explicite du dock : persiste
+   * `studyMode`/`maskLevel` (#109). Les deux fonctions n'écrivent jamais
+   * dans la même variable partagée (`maskLevel`) sous une garde qui
+   * comparerait à l'état local — chacune la met à jour sans condition, ce
+   * qui évite l'interaction croisée relevée en relecture (#131).
+   */
+  function applyDefi(level: MaskLevel | 'entiere'): void {
+    if (level === 'entiere') {
+      setMode('entiere', { persist: true });
+    } else {
       maskLevel = level;
       progress.settings.maskLevel = level;
-      saveProgress(progress);
-      paintMode();
+      setMode('mesures', { persist: true });
       activeView().setLevel(level, currentInstrument());
-      paintCounters();
-    });
-    maskButtons.set(level, button);
+    }
+    paintMode();
   }
+
+  // Même échelle, du palier le plus soutenu au plus exigeant, que les
+  // boutons d'aide de l'écran Consigne (`aideButtons` ci-dessous) — mêmes
+  // libellés, choix persistant plutôt que passager.
+  for (const level of [...MASK_LEVELS].sort((a, b) => b - a)) {
+    const button = el(
+      'button',
+      { type: 'button', class: ui.button },
+      `Partition masquée à ${level} %`,
+    );
+    button.addEventListener('click', () => applyDefi(level));
+    defiButtons.set(level, button);
+  }
+  const defiEntiereButton = el(
+    'button',
+    { type: 'button', class: ui.button },
+    'Afficher la partition entière',
+  );
+  defiEntiereButton.addEventListener('click', () => applyDefi('entiere'));
+  defiButtons.set('entiere', defiEntiereButton);
 
   const shuffleButton = el(
     'button',
@@ -693,30 +724,20 @@ export function renderTrainer(
     activeView().reshuffle(maskSeed(), currentInstrument());
     paintCounters();
   });
-  maskRow.append(...maskButtons.values(), shuffleButton);
+  // Enveloppe dédiée au masquage : `ui.button` impose `inline-flex`, qui
+  // l'emporterait sur un `hidden` posé directement sur le bouton (même piège
+  // que `toggleSlot` dans `sheet.ts`).
+  const shuffleSlot = el('div', { class: 'hidden' }, shuffleButton);
 
-  for (const value of ECLIPSE_INTENSITIES) {
-    const button = el('button', { type: 'button', class: ui.button }, ECLIPSE_LABELS[value]);
-    button.addEventListener('click', () => {
-      progress.settings.eclipseIntensity = value;
-      saveProgress(progress);
-      eclipses.setIntensity(value);
-      paintMode();
-    });
-    intensityButtons.set(value, button);
-  }
-  intensityRow.append(...intensityButtons.values());
-
-  const maskSection: Section = {
-    title: 'Comment travailler',
-    hint: 'Quatre paliers, du plus soutenu au plus exigeant.',
+  const defiSection: Section = {
+    title: 'Défi',
+    hint: 'Choix explicite : remplace votre réglage par défaut pour ce morceau.',
     body: el(
       'div',
       { class: 'flex flex-col gap-3' },
-      el('div', { class: 'grid grid-cols-2 gap-2' }, ...modeButtons.values()),
-      modeHint,
-      maskPanel,
-      intensityPanel,
+      el('div', { class: 'flex flex-col gap-2' }, ...defiButtons.values()),
+      shuffleSlot,
+      defiHint,
       countersLabel,
     ),
   };
@@ -741,7 +762,7 @@ export function renderTrainer(
     primary: transport.primary,
     // « Comment travailler » vient en tête : c'est le choix qui structure la
     // séance, et le panneau défile — relégué en bas, il était hors d'atteinte.
-    sections: [maskSection, ...transport.sections],
+    sections: [defiSection, ...transport.sections],
     panelPosition: progress.settings.panel,
     onPanelMoved: (panel) => {
       progress.settings.panel = panel;
@@ -764,7 +785,17 @@ export function renderTrainer(
         : mode === 'sans'
           ? [0, activeView().measureCount]
           : [hints, activeView().maskedCount];
-    const answer = await askSrs(song.title, instrument.name, used, total);
+    // Une partition rouverte via l'écran Consigne n'a pas valu un Again : on
+    // plafonne juste la présélection, la note reste au choix de l'utilisateur.
+    const answer = await askSrs(
+      song.title,
+      instrument.name,
+      used,
+      total,
+      undefined,
+      undefined,
+      aides > 0 ? 3 : undefined,
+    );
     // Annulation : ni note, ni changement de bloc/séance — on reste sur le morceau.
     if (answer === 'cancelled') return;
     if (answer) {
@@ -777,6 +808,7 @@ export function renderTrainer(
       putCard(progress, song.id, instrumentId, card);
     }
     hints = 0;
+    aides = 0;
     eclipses.reset();
     paintCounters();
     if (context.session) {
@@ -879,14 +911,71 @@ export function renderTrainer(
       )
     : null;
 
-  const noScore = el(
-    'p',
-    { class: `${ui.card} hidden text-sm text-zinc-400` },
-    'Sans partition : le morceau se travaille à l’oreille et de mémoire. ' +
-      'Choisissez un autre mode dans les réglages pour la faire réapparaître.',
+  // Grands boutons tactiles : en « Sans partition », l'écran Consigne est le
+  // seul contenu affiché (la partition et la grille restent masquées, cf.
+  // `drawScore`) — autant lui donner tout l'espace laissé libre plutôt que de
+  // le réduire à une petite carte. Utile en particulier instrument en main :
+  // grandes cibles, peu de précision requise.
+  const consigneButtonClass =
+    'flex min-h-16 flex-1 basis-full items-center justify-center rounded-xl border ' +
+    'border-zinc-700 bg-zinc-800 px-5 py-4 text-center text-base font-medium ' +
+    'text-zinc-100 transition hover:border-amber-400/60 hover:bg-zinc-700 ' +
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'sm:basis-[calc(50%-0.375rem)] sm:text-lg';
+
+  // Échelle d'aide, du plus petit pas au plus grand — 75 % masqué est l'aide
+  // *minimale* (une bonne part de la partition reste cachée), pas l'inverse.
+  const aideButtons: HTMLButtonElement[] = [...MASK_LEVELS]
+    .sort((a, b) => b - a)
+    .map((level) => {
+      const button = el(
+        'button',
+        { type: 'button', class: consigneButtonClass },
+        `Partition masquée à ${level} %`,
+      );
+      button.addEventListener('click', () => applyAide(level));
+      return button;
+    });
+  const aideEntiereButton = el(
+    'button',
+    { type: 'button', class: consigneButtonClass },
+    'Afficher la partition entière',
   );
-  function paintNoScore(): void {
-    noScore.classList.toggle('hidden', mode !== 'sans');
+  aideEntiereButton.addEventListener('click', () => applyAide('entiere'));
+  aideButtons.push(aideEntiereButton);
+
+  const consigneHint = el('p', { class: 'max-w-xl text-base text-zinc-300 sm:text-lg' });
+  // Padding propre (pas `ui.card`, dont le `p-4` fixe entrerait en
+  // concurrence avec la respiration verticale voulue ici) : rond, bordé,
+  // mais avec toute la place que laisse le mode « Sans partition » (aucune
+  // partition ni grille à afficher, cf. `drawScore`).
+  const consigne = el(
+    'div',
+    {
+      class:
+        'hidden min-h-[60vh] flex-1 flex-col items-center justify-center gap-5 ' +
+        'rounded-xl border border-zinc-800 bg-zinc-900/60 px-6 py-10 text-center',
+    },
+    el('h2', { class: 'text-2xl font-semibold text-zinc-100 sm:text-3xl' }, 'Consigne'),
+    consigneHint,
+    el(
+      'p',
+      { class: 'text-xs text-zinc-500' },
+      'Ce défi est réversible : touchez « 🎯 Défi » dans la barre du bas pour ' +
+        'changer de mode à tout moment.',
+    ),
+    el(
+      'p',
+      { class: 'text-sm font-medium text-zinc-300 sm:text-base' },
+      'Besoin d’aide ?',
+    ),
+    el('div', { class: 'flex w-full max-w-xl flex-wrap gap-3' }, ...aideButtons),
+  );
+  function paintConsigne(): void {
+    const shown = mode === 'sans';
+    consigne.classList.toggle('hidden', !shown);
+    consigne.classList.toggle('flex', shown);
+    consigneHint.textContent = STUDY_MODE_HINTS[mode];
   }
 
   root.replaceChildren(
@@ -900,7 +989,7 @@ export function renderTrainer(
       playerMount,
       header,
       noAudio,
-      noScore,
+      consigne,
       scoreHome,
     ),
     controlBar.root,
@@ -911,7 +1000,7 @@ export function renderTrainer(
 
   drawScore();
   paintMode();
-  paintNoScore();
+  paintConsigne();
   paintDisplayToggle();
   paintContrechantToggle();
   paintFullpage();
@@ -957,7 +1046,7 @@ export function renderTrainer(
       return;
     }
     playerNote = el('p', { class: `${ui.card} text-sm text-zinc-500` }, message);
-    noScore.before(playerNote);
+    consigne.before(playerNote);
   });
 
   if (anySource) {

@@ -93,4 +93,22 @@ describe('askSrs', () => {
     expect(dialog.querySelector('.max-h-40')).toBeNull();
     expect(dialog.textContent).toContain('1 indice déclenché sur 10 mesures masquées.');
   });
+
+  it('`maxSuggested` plafonne la présélection sans retirer les autres notes (#109)', async () => {
+    // 0 indice sur 10 mesures masquées suggérerait normalement 5 (voir test
+    // ci-dessus) : la partition rouverte via l'écran Consigne ne doit pas
+    // pousser vers cette note-là.
+    const promise = askSrs('Carinhoso', 'Ut', 0, 10, undefined, undefined, 3);
+    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
+    expect(three?.className).toContain('bg-amber-400/15');
+    const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
+    expect(five.className).not.toContain('bg-amber-400/15');
+
+    // Le plafond ne bloque que la présélection : l'utilisateur choisit encore 5 à la main.
+    five.click();
+    const validate = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Enregistrer')!;
+    validate.click();
+    await expect(promise).resolves.toMatchObject({ grade: 5 });
+  });
 });

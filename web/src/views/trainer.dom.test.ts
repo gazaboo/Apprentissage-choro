@@ -248,3 +248,123 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
     expect(context.navigateHome).not.toHaveBeenCalled();
   });
 });
+
+describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
+  /** Deux Good/Easy, nombre pair de révisions : `recommendedMode` → 'sans'.
+   *  `studyMode: 'eclipses'` (distinct de 'sans'/'mesures') pour que les
+   *  assertions « rien n'a été persisté » soient probantes. */
+  function masteredProgress(): Progress {
+    return baseProgress({
+      settings: { ...baseProgress().settings, studyMode: 'eclipses' },
+      cards: {
+        'choro-a::c': {
+          ease: 2.5,
+          interval: 6,
+          repetitions: 2,
+          due: '2026-09-21',
+          history: [
+            { date: '2026-09-01', grade: 5, tempo: 'fluide', hints: 0 },
+            { date: '2026-09-10', grade: 5, tempo: 'fluide', hints: 0 },
+          ],
+        },
+      },
+    });
+  }
+
+  it('s\'affiche par défaut quand le mode recommandé est \'sans\', sans toucher au réglage persisté', () => {
+    const { root, context } = mount({}, { progress: masteredProgress() });
+    expect(root.textContent).toContain('Consigne');
+    expect(root.textContent).toContain('Ce défi est réversible');
+    expect(
+      [...root.querySelectorAll('button')].find((b) => b.textContent === 'Partition masquée à 75 %'),
+    ).toBeTruthy();
+    expect(context.progress.settings.studyMode).toBe('eclipses');
+  });
+
+  it('le bouton Défi (dock) reste joignable en mode \'sans\', contrairement aux bascules de l\'en-tête', () => {
+    const { root } = mount({}, { progress: masteredProgress() });
+    // Le bouton Défi remplace « Réglages » dans le dock (`sheet.ts`) — il n'y
+    // vit plus dans l'en-tête de la partition, masqué comme le reste en mode
+    // « Sans partition » (#109).
+    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    expect(defi).toBeTruthy();
+    expect(defi.closest('.hidden')).toBeNull();
+    const fullscreen = [...root.querySelectorAll('button')].find((b) => b.textContent === '⛶ Plein écran')!;
+    expect(fullscreen.closest('.hidden')).not.toBeNull();
+  });
+
+  it('un bouton d\'aide sort du mode \'sans\' sans écrire studyMode ni maskLevel dans les réglages', () => {
+    const { root, context } = mount({}, { progress: masteredProgress() });
+    const aide75 = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Partition masquée à 75 %',
+    )!;
+    aide75.click();
+
+    const consigne = [...root.querySelectorAll('h2')].find((h) => h.textContent === 'Consigne')!
+      .parentElement!;
+    expect(consigne.classList.contains('hidden')).toBe(true);
+    expect(context.progress.settings.studyMode).toBe('eclipses');
+    expect(context.progress.settings.maskLevel).toBe(50); // valeur d'origine de baseProgress, inchangée
+  });
+
+  it('le bouton « Défi » du dock (choix explicite), lui, persiste bien le mode choisi', () => {
+    const progress = masteredProgress();
+    progress.settings.studyMode = 'mesures'; // distinct du mode ciblé, pour que la persistance soit probante
+    const { root, context } = mount({}, { progress });
+    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    defi.click();
+    // Le panneau (`sheet.ts`) vit dans `document.body`, pas dans `root`
+    // (`createControlBar` y ajoute son overlay séparément).
+    const panel = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const masque75 = [...panel.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Partition masquée à 75 %',
+    )!;
+    masque75.click();
+    expect(context.progress.settings.studyMode).toBe('mesures');
+    expect(context.progress.settings.maskLevel).toBe(75);
+    const consigne = [...root.querySelectorAll('h2')].find((h) => h.textContent === 'Consigne')!
+      .parentElement!;
+    expect(consigne.classList.contains('hidden')).toBe(true);
+  });
+
+  it('un choix Défi qui coïncide avec le mode courant (mais pas encore persisté) persiste quand même (relecture #131)', () => {
+    // `baseProgress` persiste `studyMode: 'mesures'`, mais une carte neuve
+    // (aucun historique) fait recommander 'entiere' à l'ouverture : les deux
+    // divergent dès le montage, sans qu'aucun choix n'ait encore été fait.
+    const { root, context } = mount();
+    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    defi.click();
+    const panel = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const entiere = [...panel.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Afficher la partition entière',
+    )!;
+    // Le mode courant en mémoire est déjà 'entiere' : avant #131, la garde
+    // `next === mode` de `setMode` empêchait ce choix, pourtant explicite,
+    // de jamais s'écrire dans `progress.settings.studyMode`.
+    entiere.click();
+    expect(context.progress.settings.studyMode).toBe('entiere');
+  });
+
+  it('demander de l\'aide plafonne la note présélectionnée à 3 en fin de morceau', async () => {
+    const { root, context } = mount({}, { progress: masteredProgress() });
+    const aideEntiere = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Afficher la partition entière',
+    )!;
+    aideEntiere.click();
+
+    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    finish.click();
+    await Promise.resolve();
+
+    const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
+    const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
+    expect(three?.className).toContain('bg-amber-400/15');
+    const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
+    expect(five.className).not.toContain('bg-amber-400/15');
+
+    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
+    skip.click();
+    await Promise.resolve();
+    expect(context.navigateHome).toHaveBeenCalledOnce();
+  });
+});

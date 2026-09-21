@@ -4,17 +4,21 @@ import {
   cardKey,
   deleteSetlist,
   getCard,
+  isDemoActive,
   loadProgress,
   persistMerged,
   putCard,
   recordSession,
   saveProgress,
+  seedDemoProgress,
   setActiveSetlist,
   setAfterSave,
+  stopDemo,
   upsertSetlist,
   type Progress,
 } from './store';
-import type { SessionRun, Setlist, SrsCard } from './types';
+import { recommendedMode } from './srs';
+import type { SessionRun, Setlist, Song, SrsCard } from './types';
 
 function baseProgress(overrides: Partial<Progress> = {}): Progress {
   return {
@@ -66,6 +70,17 @@ function card(overrides: Partial<SrsCard> = {}): SrsCard {
   };
 }
 
+function demoSong(id: string): Song {
+  return {
+    id,
+    title: id,
+    composer: '',
+    audio: { reference: null, playback: null },
+    instruments: [{ id: 'c', name: 'Ut', page_count: 0, measure_count: 0, pages: [] }],
+    contraponto: null,
+  };
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date(2026, 8, 14, 12, 0, 0));
@@ -74,6 +89,9 @@ beforeEach(() => {
 afterEach(() => {
   setAfterSave(() => {});
   vi.useRealTimers();
+  // Filet de sécurité : un test de démo qui oublierait de nettoyer ne doit
+  // jamais faire router les tests suivants vers `sessionStorage` (#109).
+  stopDemo();
 });
 
 describe('saveProgress', () => {
@@ -168,5 +186,60 @@ describe('activeSetlist', () => {
     expect(
       activeSetlist(baseProgress({ setlists: [setlist], activeSetlistId: 's1' })),
     ).toEqual(setlist);
+  });
+});
+
+describe('mode démonstration (#109, outil de QA)', () => {
+  it('seedDemoProgress construit un morceau par branche de `recommendedMode`', () => {
+    const songs = ['nouveau', 'un-succes', 'deux-succes', 'trois-succes', 'again-recent'].map(
+      demoSong,
+    );
+    seedDemoProgress(songs);
+    expect(isDemoActive()).toBe(true);
+
+    const progress = loadProgress();
+    const modeOf = (id: string) => recommendedMode(getCard(progress, id, 'c'));
+    expect(modeOf('nouveau')).toBe('entiere');
+    expect(modeOf('un-succes')).toBe('entiere');
+    expect(modeOf('deux-succes')).toBe('sans');
+    expect(modeOf('trois-succes')).toBe('entiere');
+    expect(modeOf('again-recent')).toBe('entiere');
+  });
+
+  it('ne touche jamais la vraie progression : `saveProgress` en démo laisse `localStorage` intact', () => {
+    // Vraie progression, écrite avant toute démo.
+    const real = baseProgress({ cards: { 'song-a::c': card() } });
+    saveProgress(real);
+    expect(loadProgress().cards['song-a::c']).toEqual(card());
+
+    seedDemoProgress([demoSong('demo-song')]);
+    // Une écriture pendant la démo (ex. un `finish()` de trainer) ne doit
+    // apparaître que dans le stockage de démo.
+    const demoProgress = loadProgress();
+    demoProgress.cards['intrus'] = card();
+    saveProgress(demoProgress);
+    expect(loadProgress().cards['intrus']).toBeDefined();
+
+    stopDemo();
+    // La vraie progression n'a jamais bougé, et la démo ne persiste pas.
+    const restored = loadProgress();
+    expect(restored.cards['song-a::c']).toEqual(card());
+    expect(restored.cards['intrus']).toBeUndefined();
+  });
+
+  it('`saveProgress` en démo ne déclenche jamais le hook de synchro', () => {
+    const hook = vi.fn();
+    setAfterSave(hook);
+    seedDemoProgress([demoSong('demo-song')]);
+    saveProgress(loadProgress());
+    expect(hook).not.toHaveBeenCalled();
+  });
+
+  it('stopDemo efface le drapeau et les données de test', () => {
+    seedDemoProgress([demoSong('demo-song')]);
+    expect(isDemoActive()).toBe(true);
+    stopDemo();
+    expect(isDemoActive()).toBe(false);
+    expect(loadProgress().cards).toEqual({});
   });
 });
