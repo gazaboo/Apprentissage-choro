@@ -4,13 +4,15 @@
     "duration": 169.51,
     "source_url": "https://www.youtube.com/watch?v=PazvcuwndVs&list=RDPazvcuwndVs&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 126.0
   },
   "playback": {
     "file": "data/diabinho-maluco-jacob-do-bandolim/audio/playback.206f8869.opus",
     "duration": 113.61,
     "source_url": "https://www.youtube.com/watch?v=VZXYb-JvCQM&list=RDVZXYb-JvCQM&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 110.0
   }
 }

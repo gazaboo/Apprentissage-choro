@@ -367,6 +367,28 @@ export function stepRate(current: number, direction: 1 | -1): number {
   return Math.min(RATE_MAX, Math.max(RATE_MIN, next));
 }
 
+/** Pas d'ajustement en BPM quand le tempo original est connu (#111) : un
+ * musicien raisonne en BPM, pas en pourcentage de la vitesse d'origine — le
+ * stepper affiche et décale alors une cible en BPM ("115 BPM" → "110 BPM")
+ * plutôt qu'une vitesse relative ("0,95×" → "0,90×").
+ */
+export const BPM_STEP = 5;
+
+/** Décale la vitesse d'un cran de `BPM_STEP` BPM, calculé sur le tempo
+ * d'origine `originalBpm`, sans sortir de [RATE_MIN, RATE_MAX]. Les bornes
+ * sont comparées en BPM arrondi (et non en vitesse) pour rejoindre
+ * exactement RATE_MIN/RATE_MAX sans dérive flottante à l'affichage.
+ */
+export function stepBpm(currentRate: number, originalBpm: number, direction: 1 | -1): number {
+  const minBpm = Math.round(originalBpm * RATE_MIN);
+  const maxBpm = Math.round(originalBpm * RATE_MAX);
+  const currentBpm = Math.round(currentRate * originalBpm);
+  const nextBpm = Math.min(maxBpm, Math.max(minBpm, currentBpm + direction * BPM_STEP));
+  if (nextBpm >= maxBpm) return RATE_MAX;
+  if (nextBpm <= minBpm) return RATE_MIN;
+  return nextBpm / originalBpm;
+}
+
 /** `123.4` → `2:03`. Les morceaux dépassent rarement l'heure. */
 export function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';

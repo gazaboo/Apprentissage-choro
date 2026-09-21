@@ -194,9 +194,13 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   // --- Vitesse : disponible et modifiable à tout moment -----------------
   //
   // Widget partagé avec la barre de transport (`renderRateStepper`, `dom.ts`) :
-  // persiste au changement de morceau, comme avant.
+  // persiste au changement de morceau, comme avant. Affiche une cible en
+  // BPM quand le tempo du morceau/bande courant est connu (#111) — suit le
+  // morceau et la bascule Original/Playback via `rateStepper.refresh()`.
 
-  const rateStepper = renderRateStepper(player);
+  const rateStepper = renderRateStepper(player, {
+    getBpm: () => order[index]?.audio[audioKind]?.bpm ?? null,
+  });
 
   // --- Bande : original ↔ playback, à tout moment ----------------------
 
@@ -217,6 +221,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       audioButtons.forEach((other, i) => {
         other.className = audioClass(audioOptions[i]!.kind === audioKind);
       });
+      rateStepper.refresh();
       loadAudio(order[index]!, player.isPlaying());
     });
     return button;
@@ -450,6 +455,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     }
     loadGrille(song, instrument);
     paintScoreVisibility();
+    rateStepper.refresh();
 
     loadAudio(song, autoplay);
   }

@@ -4,13 +4,15 @@
     "duration": 198.81,
     "source_url": "https://www.youtube.com/watch?v=lcE6xYMFps8",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 123.0
   },
   "playback": {
     "file": "data/bola-preta-jacob-do-bandolim/audio/playback.4b0520cb.opus",
     "duration": 203.21,
     "source_url": "https://www.youtube.com/watch?v=5_PuQlUfsOw",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 126.0
   }
 }

@@ -5,3 +5,6 @@ Pillow>=10.2
 # Téléchargement des sources audio (fetch_audio.py).
 # ffmpeg/ffprobe sont attendus dans le PATH, eux ne s'installent pas par pip.
 yt-dlp>=2024.1
+
+# Détection du tempo des bandes audio (detect_bpm.py, #111).
+librosa>=0.10

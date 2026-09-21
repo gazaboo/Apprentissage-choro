@@ -63,6 +63,9 @@ export interface AudioSource {
   duration: number;
   /** URL d'origine du transcodage, conservée pour l'attribution. */
   source_url: string;
+  /** Tempo détecté automatiquement (#111), indicatif — absent tant que
+   *  `scripts/detect_bpm.py` n'a pas tourné sur cette source. */
+  bpm?: number;
 }
 
 export interface Song {

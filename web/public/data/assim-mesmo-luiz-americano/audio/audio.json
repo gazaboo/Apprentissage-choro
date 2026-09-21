@@ -4,13 +4,15 @@
     "duration": 195.11,
     "source_url": "https://www.youtube.com/watch?v=coo3H5RlKG4",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 101.3
   },
   "playback": {
     "file": "data/assim-mesmo-luiz-americano/audio/playback.564a45bc.opus",
     "duration": 181.11,
     "source_url": "https://www.youtube.com/watch?v=RvVfjdpkeBs",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 101.3
   }
 }

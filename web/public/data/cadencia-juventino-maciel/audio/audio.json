@@ -4,13 +4,15 @@
     "duration": 220.91,
     "source_url": "https://www.youtube.com/watch?v=AAQesxN7rB4",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 90.7
   },
   "playback": {
     "file": "data/cadencia-juventino-maciel/audio/playback.9e82debc.opus",
     "duration": 239.31,
     "source_url": "https://www.youtube.com/watch?v=iJZNQwNRYzM",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
-    "encoded_on": "2026-09-20"
+    "encoded_on": "2026-09-20",
+    "bpm": 87.6
   }
 }
