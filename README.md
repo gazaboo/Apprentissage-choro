@@ -303,6 +303,22 @@ anthracite lit comme un défaut d'impression, alors qu'un calque à peine teint�
 lit comme une feuille posée sur la page. Un filet d'encre pâle et une ombre
 courte le décollent du papier.
 
+**Mode recommandé et écran Consigne** (#109) — le défi cesse d'être une option
+oubliée dans les réglages : à l'ouverture d'un morceau, `recommendedMode()`
+choisit le mode d'après l'historique seul (`SrsCard.history`, rien de nouveau
+n'est persisté). La partition ne se cache (**Sans partition**) que si le
+morceau vient d'enchaîner au moins deux notes Bon/Parfait (`grade >= 4`) et
+qu'une révision sur deux le confirme ; le moindre `Again` récent (`grade < 3`)
+la ramène immédiatement. Quand elle est cachée, un panneau **Consigne**
+explique pourquoi et propose une échelle d'aide réversible — **75 % masqué →
+50 % → 25 % → partition entière** — sans jamais réécrire le réglage global
+`studyMode`/`maskLevel` (`setMode(next, { persist: false })`). Un bouton
+**Défi**, lui, reste joignable même en *Sans partition* et permet de changer
+de mode à tout moment ; ce choix-là est explicite et persiste. Demander de
+l'aide n'est jamais compté comme un échec : la note *présélectionnée* en fin
+de morceau est simplement plafonnée à 3 (`askSrs(..., maxSuggested)`), sans
+empêcher l'utilisateur de choisir une note plus haute.
+
 **Note suggérée** : quel que soit le mode, le questionnaire compare le nombre de
 fois où l'on a eu besoin de la partition au nombre de fois où elle était
 dérobée — mesures révélées sur mesures cachées, ou éclipses interrompues sur

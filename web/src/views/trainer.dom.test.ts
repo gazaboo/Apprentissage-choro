@@ -248,3 +248,100 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
     expect(context.navigateHome).not.toHaveBeenCalled();
   });
 });
+
+describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
+  /** Deux Good/Easy, nombre pair de révisions : `recommendedMode` → 'sans'.
+   *  `studyMode: 'eclipses'` (distinct de 'sans'/'mesures') pour que les
+   *  assertions « rien n'a été persisté » soient probantes. */
+  function masteredProgress(): Progress {
+    return baseProgress({
+      settings: { ...baseProgress().settings, studyMode: 'eclipses' },
+      cards: {
+        'choro-a::c': {
+          ease: 2.5,
+          interval: 6,
+          repetitions: 2,
+          due: '2026-09-21',
+          history: [
+            { date: '2026-09-01', grade: 5, tempo: 'fluide', hints: 0 },
+            { date: '2026-09-10', grade: 5, tempo: 'fluide', hints: 0 },
+          ],
+        },
+      },
+    });
+  }
+
+  it('s\'affiche par défaut quand le mode recommandé est \'sans\', sans toucher au réglage persisté', () => {
+    const { root, context } = mount({}, { progress: masteredProgress() });
+    expect(root.textContent).toContain('Consigne');
+    expect(root.textContent).toContain('Ce défi est réversible');
+    expect(
+      [...root.querySelectorAll('button')].find((b) => b.textContent === 'Partition masquée à 75 %'),
+    ).toBeTruthy();
+    expect(context.progress.settings.studyMode).toBe('eclipses');
+  });
+
+  it('le bouton Défi reste joignable en mode \'sans\', contrairement aux autres bascules de l\'en-tête', () => {
+    const { root } = mount({}, { progress: masteredProgress() });
+    const defi = [...root.querySelectorAll('button')].find((b) => b.textContent === '🎯 Défi')!;
+    expect(defi.closest('.hidden')).toBeNull();
+    const fullscreen = [...root.querySelectorAll('button')].find((b) => b.textContent === '⛶ Plein écran')!;
+    expect(fullscreen.closest('.hidden')).not.toBeNull();
+  });
+
+  it('un bouton d\'aide sort du mode \'sans\' sans écrire studyMode ni maskLevel dans les réglages', () => {
+    const { root, context } = mount({}, { progress: masteredProgress() });
+    const aide75 = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Partition masquée à 75 %',
+    )!;
+    aide75.click();
+
+    const consigne = [...root.querySelectorAll('h2')].find((h) => h.textContent === 'Consigne')!
+      .parentElement!;
+    expect(consigne.classList.contains('hidden')).toBe(true);
+    expect(context.progress.settings.studyMode).toBe('eclipses');
+    expect(context.progress.settings.maskLevel).toBe(50); // valeur d'origine de baseProgress, inchangée
+  });
+
+  it('le bouton « Défi » (choix explicite), lui, persiste bien le mode choisi', () => {
+    const progress = masteredProgress();
+    progress.settings.studyMode = 'mesures'; // distinct du mode ciblé, pour que la persistance soit probante
+    const { root, context } = mount({}, { progress });
+    const defi = [...root.querySelectorAll('button')].find((b) => b.textContent === '🎯 Défi')!;
+    defi.click();
+    // La feuille est le frère DOM du bouton Défi (`defiWrap`) : ses boutons
+    // combinent libellé + astuce dans le texte, distincts de ceux du dock.
+    const sheet = defi.nextElementSibling as HTMLElement;
+    const eclipses = [...sheet.querySelectorAll('button')].find((b) =>
+      b.textContent?.startsWith('Éclipses'),
+    )!;
+    eclipses.click();
+    expect(context.progress.settings.studyMode).toBe('eclipses');
+    const consigne = [...root.querySelectorAll('h2')].find((h) => h.textContent === 'Consigne')!
+      .parentElement!;
+    expect(consigne.classList.contains('hidden')).toBe(true);
+  });
+
+  it('demander de l\'aide plafonne la note présélectionnée à 3 en fin de morceau', async () => {
+    const { root, context } = mount({}, { progress: masteredProgress() });
+    const aideEntiere = [...root.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Afficher la partition entière',
+    )!;
+    aideEntiere.click();
+
+    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    finish.click();
+    await Promise.resolve();
+
+    const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
+    const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
+    expect(three?.className).toContain('bg-amber-400/15');
+    const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
+    expect(five.className).not.toContain('bg-amber-400/15');
+
+    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
+    skip.click();
+    await Promise.resolve();
+    expect(context.navigateHome).toHaveBeenCalledOnce();
+  });
+});

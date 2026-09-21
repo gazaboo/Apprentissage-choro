@@ -15,7 +15,7 @@
  */
 
 import { createEmptyCard, fsrs, Rating, type Card as FsrsLibCard, type Grade } from 'ts-fsrs';
-import type { FsrsState, SrsCard, Tempo } from './types';
+import type { FsrsState, SrsCard, StudyMode, Tempo } from './types';
 
 const DEFAULT_EASE = 2.5;
 const PASSING_GRADE = 3;
@@ -269,6 +269,20 @@ export function masteryLevel(card: SrsCard | undefined): number {
   if (interval <= 15) return 3;
   if (interval <= 40) return 4;
   return 5;
+}
+
+/**
+ * Mode recommandé à l'ouverture d'un morceau, d'après son historique seul.
+ * Un `Again` récent (grade < `PASSING_GRADE`) ramène toujours la partition,
+ * sans attendre la prochaine alternance — la #109 ne veut jamais insister sur
+ * un défi qui vient d'échouer.
+ */
+export function recommendedMode(card: SrsCard | undefined): StudyMode {
+  if (!card || card.history.length === 0) return 'entiere';
+  if (card.history.at(-1)!.grade < PASSING_GRADE) return 'entiere';
+  const goodCount = card.history.filter((h) => h.grade >= 4).length;
+  if (goodCount < 2) return 'entiere';
+  return card.history.length % 2 === 0 ? 'sans' : 'entiere';
 }
 
 /** Note suggérée dans le questionnaire, d'après les indices déclenchés. */

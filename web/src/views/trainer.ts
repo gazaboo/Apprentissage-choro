@@ -11,7 +11,7 @@ import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
 import { BlockTimer, formatCountdown } from '../session';
 import { createControlBar } from '../sheet';
-import { review, statusOf, STATUS_LABELS } from '../srs';
+import { recommendedMode, review, statusOf, STATUS_LABELS } from '../srs';
 import type { Progress } from '../store';
 import { getCard, putCard, saveProgress } from '../store';
 import { createTransport } from '../transport';
@@ -68,10 +68,16 @@ export function renderTrainer(
     song.instruments.find((i) => i.id === progress.settings.instrumentDefault)?.id ??
     song.instruments[0]!.id;
   let hints = 0;
-  /** Ouverture libre (hors séance) : toujours la partition entière, jamais le
-   *  dernier défi réglé ailleurs — sinon on peut arriver en plein « défi » sans
-   *  l'avoir demandé pour ce morceau-là (#8). */
-  let mode: StudyMode = context.session ? progress.settings.studyMode : 'entiere';
+  /** Nombre de fois où l'écran Consigne a été sollicité pour révéler la
+   *  partition (mode « Sans partition » recommandé) — jamais compté comme un
+   *  indice classique, mais plafonne la note suggérée en fin de morceau. */
+  let aides = 0;
+  /** Mode recommandé d'après l'historique du morceau (#109) : la partition ne
+   *  se cache que si elle a déjà été maîtrisée plusieurs fois de suite, jamais
+   *  sur un morceau nouveau ou juste après un échec. L'écran Consigne explique
+   *  ce choix et reste réversible d'un clic — ce qui répond à la crainte de #8
+   *  (arriver en plein défi sans comprendre pourquoi ni comment en sortir). */
+  let mode: StudyMode = recommendedMode(getCard(progress, song.id, instrumentId));
   let maskLevel: MaskLevel = progress.settings.maskLevel;
   /** Zone d'étude voulue ; la grille n'est servie qu'une fois chargée. */
   let display: DisplayMode = progress.settings.display;
@@ -278,12 +284,53 @@ export function renderTrainer(
     ...contrechantButtons.values(),
   );
 
-  const scoreHeaderRow = el(
+  // Regroupe les bascules à masquer en mode « Sans partition » — le bouton
+  // Défi, lui, doit rester joignable dans ce mode (#109).
+  const scoreHeaderToggles = el(
     'div',
-    { class: 'flex flex-wrap items-center justify-between gap-2' },
+    { class: 'flex flex-wrap items-center gap-2' },
     displayToggle,
     contrechantToggle,
     fullpageEnter,
+  );
+
+  // Feuille de choix de mode : nœuds DOM distincts de `modeButtons` (dock des
+  // réglages) — un même bouton ne peut pas vivre à deux endroits du DOM.
+  const defiModeButtons = new Map<StudyMode, HTMLButtonElement>();
+  for (const value of STUDY_MODES) {
+    const button = el(
+      'button',
+      { type: 'button', class: `${ui.button} flex w-full flex-col items-start gap-0.5 text-left` },
+      el('span', {}, STUDY_MODE_LABELS[value]),
+      el('span', { class: 'text-xs font-normal text-zinc-400' }, STUDY_MODE_HINTS[value]),
+    );
+    button.addEventListener('click', () => {
+      setMode(value, { persist: true });
+      defiSheet.classList.add('hidden');
+    });
+    defiModeButtons.set(value, button);
+  }
+  // `right-0` (pas `left-0`) : le bouton Défi vit à droite de `scoreHeaderRow`
+  // (`justify-between`) — ancrer la feuille à gauche la ferait déborder de
+  // l'écran.
+  const defiSheet = el(
+    'div',
+    { class: `${ui.card} hidden absolute right-0 z-10 mt-2 flex w-72 flex-col gap-2` },
+    ...defiModeButtons.values(),
+  );
+  const defiButton = el(
+    'button',
+    { type: 'button', class: ui.button },
+    '🎯 Défi',
+  );
+  defiButton.addEventListener('click', () => defiSheet.classList.toggle('hidden'));
+  const defiWrap = el('div', { class: 'relative' }, defiButton, defiSheet);
+
+  const scoreHeaderRow = el(
+    'div',
+    { class: 'flex flex-wrap items-center justify-between gap-2' },
+    scoreHeaderToggles,
+    defiWrap,
   );
 
   // Même bascule, format compact, pour la barre du plein écran.
@@ -559,10 +606,13 @@ export function renderTrainer(
   fpWide.addEventListener('change', onFpViewport);
   window.addEventListener('resize', onFpViewport);
 
-  /** Rien à afficher en « Sans partition » : l'en-tête disparaît. */
+  /** En « Sans partition », seul le bouton Défi reste joignable (#109). */
   function paintFullpage(): void {
-    scoreHeaderRow.classList.toggle('hidden', mode === 'sans');
-    if (mode === 'sans') setFullpage(false);
+    scoreHeaderToggles.classList.toggle('hidden', mode === 'sans');
+    if (mode === 'sans') {
+      setFullpage(false);
+      defiSheet.classList.add('hidden');
+    }
     onFpViewport();
     applyFpPlayer();
   }
@@ -616,6 +666,7 @@ export function renderTrainer(
     progress.settings.display = next;
     saveProgress(progress);
     hints = 0;
+    aides = 0;
     if (fullpage) {
       // Le plein écran ne contient qu'un conteneur : on y place le nouvel
       // actif et on rend l'autre à `scoreHome`.
@@ -639,23 +690,52 @@ export function renderTrainer(
     progress.settings.contrechant = next;
     saveProgress(progress);
     hints = 0;
+    aides = 0;
     drawScore();
     paintContrechantToggle();
   }
 
-  function setMode(next: StudyMode): void {
+  /**
+   * `persist: false` (boutons d'aide de l'écran Consigne, feuille refermée
+   * automatiquement) laisse `progress.settings.studyMode` intact : un coup
+   * d'œil à la partition ne doit pas redéfinir la préférence par défaut de
+   * l'application. Le bouton « Défi » (choix explicite) persiste, lui.
+   */
+  function setMode(next: StudyMode, options: { persist?: boolean } = {}): void {
     if (next === mode) return;
     mode = next;
-    progress.settings.studyMode = next;
-    saveProgress(progress);
+    if (options.persist !== false) {
+      progress.settings.studyMode = next;
+      saveProgress(progress);
+      // Un choix délibéré (dock, bouton Défi) repart de zéro ; une demande
+      // d'aide (persist: false) ne doit pas s'effacer elle-même.
+      aides = 0;
+    }
     hints = 0;
     eclipses.reset();
     if (mode === 'eclipses') eclipses.start();
     else eclipses.stop();
     drawScore();
     paintMode();
-    paintNoScore();
+    paintConsigne();
     paintFullpage();
+  }
+
+  /**
+   * Échelle d'aide de l'écran Consigne : ne modifie jamais les réglages
+   * persistés (`maskLevel`/`studyMode`), seulement l'état local de cet écran.
+   * `aides` plafonne ensuite la note suggérée en fin de morceau (#109).
+   */
+  function applyAide(level: MaskLevel | 'entiere'): void {
+    if (level === 'entiere') {
+      setMode('entiere', { persist: false });
+    } else {
+      maskLevel = level;
+      setMode('mesures', { persist: false });
+      activeView().setLevel(level, currentInstrument());
+    }
+    aides += 1;
+    paintCounters();
   }
 
   for (const value of STUDY_MODES) {
@@ -764,7 +844,17 @@ export function renderTrainer(
         : mode === 'sans'
           ? [0, activeView().measureCount]
           : [hints, activeView().maskedCount];
-    const answer = await askSrs(song.title, instrument.name, used, total);
+    // Une partition rouverte via l'écran Consigne n'a pas valu un Again : on
+    // plafonne juste la présélection, la note reste au choix de l'utilisateur.
+    const answer = await askSrs(
+      song.title,
+      instrument.name,
+      used,
+      total,
+      undefined,
+      undefined,
+      aides > 0 ? 3 : undefined,
+    );
     // Annulation : ni note, ni changement de bloc/séance — on reste sur le morceau.
     if (answer === 'cancelled') return;
     if (answer) {
@@ -777,6 +867,7 @@ export function renderTrainer(
       putCard(progress, song.id, instrumentId, card);
     }
     hints = 0;
+    aides = 0;
     eclipses.reset();
     paintCounters();
     if (context.session) {
@@ -879,14 +970,44 @@ export function renderTrainer(
       )
     : null;
 
-  const noScore = el(
-    'p',
-    { class: `${ui.card} hidden text-sm text-zinc-400` },
-    'Sans partition : le morceau se travaille à l’oreille et de mémoire. ' +
-      'Choisissez un autre mode dans les réglages pour la faire réapparaître.',
+  // Échelle d'aide, du plus petit pas au plus grand — 75 % masqué est l'aide
+  // *minimale* (une bonne part de la partition reste cachée), pas l'inverse.
+  const aideButtons: HTMLButtonElement[] = [...MASK_LEVELS]
+    .sort((a, b) => b - a)
+    .map((level) => {
+      const button = el(
+        'button',
+        { type: 'button', class: ui.button },
+        `Partition masquée à ${level} %`,
+      );
+      button.addEventListener('click', () => applyAide(level));
+      return button;
+    });
+  const aideEntiereButton = el(
+    'button',
+    { type: 'button', class: ui.button },
+    'Afficher la partition entière',
   );
-  function paintNoScore(): void {
-    noScore.classList.toggle('hidden', mode !== 'sans');
+  aideEntiereButton.addEventListener('click', () => applyAide('entiere'));
+  aideButtons.push(aideEntiereButton);
+
+  const consigneHint = el('p', { class: 'text-sm text-zinc-300' });
+  const consigne = el(
+    'div',
+    { class: `${ui.card} hidden flex flex-col gap-3` },
+    el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Consigne'),
+    consigneHint,
+    el(
+      'p',
+      { class: 'text-xs text-zinc-500' },
+      'Ce défi est réversible : le bouton « Défi » en haut change de mode à tout moment.',
+    ),
+    el('p', { class: 'text-sm font-medium text-zinc-300' }, 'Besoin d’aide ?'),
+    el('div', { class: 'flex flex-wrap gap-2' }, ...aideButtons),
+  );
+  function paintConsigne(): void {
+    consigne.classList.toggle('hidden', mode !== 'sans');
+    consigneHint.textContent = STUDY_MODE_HINTS[mode];
   }
 
   root.replaceChildren(
@@ -900,7 +1021,7 @@ export function renderTrainer(
       playerMount,
       header,
       noAudio,
-      noScore,
+      consigne,
       scoreHome,
     ),
     controlBar.root,
@@ -911,7 +1032,7 @@ export function renderTrainer(
 
   drawScore();
   paintMode();
-  paintNoScore();
+  paintConsigne();
   paintDisplayToggle();
   paintContrechantToggle();
   paintFullpage();
@@ -957,7 +1078,7 @@ export function renderTrainer(
       return;
     }
     playerNote = el('p', { class: `${ui.card} text-sm text-zinc-500` }, message);
-    noScore.before(playerNote);
+    consigne.before(playerNote);
   });
 
   if (anySource) {
