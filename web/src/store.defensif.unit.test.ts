@@ -70,6 +70,51 @@ describe('loadProgress — chemins défensifs', () => {
     expect(loadProgress().cards.a!.history).toEqual([]);
   });
 
+  it('carte SM-2 héritée (sans `fsrs`, avec historique) est migrée au chargement', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        cards: {
+          a: {
+            ease: 2.1,
+            interval: 12,
+            repetitions: 3,
+            due: '2026-09-10',
+            history: [
+              { date: '2026-08-01', grade: 4, tempo: 'fluide', hints: 0 },
+              { date: '2026-08-12', grade: 4, tempo: 'fluide', hints: 0 },
+            ],
+          },
+        },
+      }),
+    );
+    const card = loadProgress().cards.a!;
+    expect(card.fsrs).toBeDefined();
+    expect(card.fsrs!.reps).toBe(2);
+    expect(card.fsrs!.lastReview).toBe('2026-08-12');
+  });
+
+  it('un état `fsrs` corrompu est reconstruit par rejeu plutôt que gardé tel quel', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        cards: {
+          a: {
+            ease: 2.5,
+            interval: 6,
+            repetitions: 2,
+            due: '2026-09-10',
+            history: [{ date: '2026-08-01', grade: 4, tempo: 'fluide', hints: 0 }],
+            fsrs: { stability: 'pas-un-nombre' },
+          },
+        },
+      }),
+    );
+    const card = loadProgress().cards.a!;
+    expect(typeof card.fsrs!.stability).toBe('number');
+    expect(card.fsrs!.reps).toBe(1);
+  });
+
   it('migre un ancien réglage `maskLevel: 0` en `studyMode: "entiere"`', () => {
     storage.setItem(
       'choro-srs-v1',

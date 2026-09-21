@@ -119,6 +119,38 @@ describe('mergeProgress — cartes', () => {
     expect(merged.cards.x).toEqual(card());
     expect(merged.cards.y).toBeUndefined();
   });
+
+  it("l'état FSRS d'une carte distante survit à la fusion (non-régression de `normalizeCard`)", () => {
+    const fsrs = {
+      stability: 8.3,
+      difficulty: 2.1,
+      state: 2 as const,
+      reps: 3,
+      lapses: 0,
+      learningSteps: 0,
+      lastReview: '2026-09-08',
+      scheduledDays: 10,
+    };
+    const local = baseProgress();
+    const remoteCard = card({ due: '2026-09-20', fsrs });
+    const merged = mergeProgress(local, { cards: { x: remoteCard } });
+    expect(merged.cards.x!.fsrs).toEqual(fsrs);
+  });
+
+  it('un `fsrs` distant de forme invalide est omis plutôt que propagé', () => {
+    const local = baseProgress();
+    const remoteCard = { ...card({ due: '2026-09-20' }), fsrs: { stability: 'pas-un-nombre' } };
+    const merged = mergeProgress(local, { cards: { x: remoteCard } });
+    expect(merged.cards.x!.fsrs).toBeUndefined();
+  });
+
+  it('une carte distante sans `fsrs` (appareil non migré) est acceptée telle quelle', () => {
+    const local = baseProgress();
+    const remoteCard = card({ due: '2026-09-20' }); // pas de champ `fsrs`
+    const merged = mergeProgress(local, { cards: { x: remoteCard } });
+    expect(merged.cards.x!.fsrs).toBeUndefined();
+    expect(merged.cards.x).toEqual(remoteCard);
+  });
 });
 
 describe('mergeProgress — sessions', () => {

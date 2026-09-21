@@ -39,8 +39,29 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
   };
 }
 
+/** Carte déjà migrée (avec `fsrs` valide) : le round-trip localStorage doit
+ *  préserver la carte telle quelle, sans passer par le rejeu de `ensureFsrs`
+ *  (qui recalculerait `interval`/`due`/`repetitions` à partir de `history` —
+ *  hors de propos ici, cette suite teste la plomberie de stockage). */
 function card(overrides: Partial<SrsCard> = {}): SrsCard {
-  return { ease: 2.5, interval: 6, repetitions: 2, due: '2026-09-10', history: [], ...overrides };
+  return {
+    ease: 2.5,
+    interval: 6,
+    repetitions: 2,
+    due: '2026-09-10',
+    history: [],
+    fsrs: {
+      stability: 6,
+      difficulty: 5,
+      state: 2,
+      reps: 2,
+      lapses: 0,
+      learningSteps: 0,
+      lastReview: '2026-09-04',
+      scheduledDays: 6,
+    },
+    ...overrides,
+  };
 }
 
 beforeEach(() => {

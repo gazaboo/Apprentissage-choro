@@ -12,6 +12,7 @@
 
 import type { Progress } from './store';
 import { loadProgress, persistMerged, setAfterSave } from './store';
+import { isFsrsState } from './srs';
 import type { SrsCard, SrsReview } from './types';
 
 const CODE_KEY = 'choro-sync-code';
@@ -212,6 +213,11 @@ function normalizeCard(value: Record<string, unknown>): SrsCard {
     repetitions: Number(value.repetitions),
     due: String(value.due),
     history,
+    // Un `fsrs` de forme invalide (appareil resté sur une version antérieure
+    // à la migration FSRS, ou champ corrompu) est simplement omis plutôt que
+    // propagé : `ensureFsrs` le reconstruira par rejeu au chargement suivant
+    // (voir `store.ts`), sans corrompre la progression.
+    ...(isFsrsState(value.fsrs) ? { fsrs: value.fsrs } : {}),
   };
 }
 
