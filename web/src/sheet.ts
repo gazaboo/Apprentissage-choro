@@ -33,6 +33,8 @@ export interface ControlBarOptions {
   panelPosition: { x: number; y: number } | null;
   /** Appelé quand l'utilisateur a fini de déplacer le popover. */
   onPanelMoved: (position: { x: number; y: number }) => void;
+  /** Bouton optionnel pour replier le dock en mini-lecteur (issue #120). */
+  foldButton?: HTMLElement;
 }
 
 export interface ControlBar {
@@ -146,6 +148,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
       // de bascules ; sur grand écran, tout est sur une ligne.
       { class: 'flex w-full items-end gap-2 md:items-center md:gap-3' },
       el('div', { class: 'min-w-0 flex-1' }, options.primary),
+      options.foldButton ?? null,
       miniToggle,
       toggleSlot,
     ),

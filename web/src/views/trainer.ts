@@ -370,6 +370,10 @@ export function renderTrainer(
 
   const fpPlayerToggle = fpIconButton('▾', 'Réduire le lecteur');
   if (!anySource) fpPlayerToggle.classList.add('hidden');
+  // Même bascule, pour le dock hors plein écran : le repli du lecteur
+  // (issue #120) ne doit pas dépendre du mode plein écran.
+  const dockFoldButton = fpIconButton('▾', 'Réduire le lecteur');
+  if (!anySource) dockFoldButton.classList.add('hidden');
 
   const fullpageBar = el(
     'div',
@@ -488,18 +492,22 @@ export function renderTrainer(
   });
 
   function applyFpPlayer(): void {
-    const mini = fullpage && fpPlayerHidden;
+    // Le repli du lecteur vaut aussi bien en plein écran que hors plein écran
+    // (issue #120) : le dock est le même nœud fixé en bas dans les deux cas.
+    const mini = fpPlayerHidden;
     controlBar.root.classList.toggle('hidden', mini);
     fpMiniBar.classList.toggle('hidden', !mini);
     fpMiniBar.classList.toggle('flex', mini);
-    fpPlayerToggle.textContent = fpPlayerHidden ? '▴' : '▾';
-    fpPlayerToggle.className = `${fpPlayerHidden ? ui.iconActive : ui.icon}${
-      anySource ? '' : ' hidden'
-    }`;
-    fpPlayerToggle.setAttribute(
-      'aria-label',
-      fpPlayerHidden ? 'Rouvrir le lecteur complet' : 'Réduire le lecteur',
-    );
+    for (const button of [fpPlayerToggle, dockFoldButton]) {
+      button.textContent = fpPlayerHidden ? '▴' : '▾';
+      button.className = `${fpPlayerHidden ? ui.iconActive : ui.icon}${
+        anySource ? '' : ' hidden'
+      }`;
+      button.setAttribute(
+        'aria-label',
+        fpPlayerHidden ? 'Rouvrir le lecteur complet' : 'Réduire le lecteur',
+      );
+    }
   }
   function setFpPlayer(shown: boolean): void {
     fpPlayerHidden = anySource && !shown;
@@ -507,6 +515,7 @@ export function renderTrainer(
     saveFp();
   }
   fpPlayerToggle.addEventListener('click', () => setFpPlayer(fpPlayerHidden));
+  dockFoldButton.addEventListener('click', () => setFpPlayer(fpPlayerHidden));
   fpMiniExpand.addEventListener('click', () => setFpPlayer(true));
 
   function setFullpage(on: boolean): void {
@@ -738,6 +747,7 @@ export function renderTrainer(
       progress.settings.panel = panel;
       saveProgress(progress);
     },
+    foldButton: dockFoldButton,
   });
 
   // --- Évaluation ---------------------------------------------------------
