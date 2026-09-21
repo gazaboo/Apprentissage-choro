@@ -68,7 +68,10 @@ export function renderTrainer(
     song.instruments.find((i) => i.id === progress.settings.instrumentDefault)?.id ??
     song.instruments[0]!.id;
   let hints = 0;
-  let mode: StudyMode = progress.settings.studyMode;
+  /** Ouverture libre (hors séance) : toujours la partition entière, jamais le
+   *  dernier défi réglé ailleurs — sinon on peut arriver en plein « défi » sans
+   *  l'avoir demandé pour ce morceau-là (#8). */
+  let mode: StudyMode = context.session ? progress.settings.studyMode : 'entiere';
   let maskLevel: MaskLevel = progress.settings.maskLevel;
   /** Zone d'étude voulue ; la grille n'est servie qu'une fois chargée. */
   let display: DisplayMode = progress.settings.display;
@@ -774,11 +777,7 @@ export function renderTrainer(
     }
   }
 
-  const nextLabel = context.session
-    ? context.session.kind === 'deep'
-      ? 'Passer au morceau suivant'
-      : 'Passer au bloc suivant'
-    : 'Terminer et évaluer';
+  const nextLabel = context.session ? 'Passer au morceau suivant' : 'Terminer et évaluer';
   const finishButton = el('button', { type: 'button', class: ui.primary }, nextLabel);
   finishButton.addEventListener('click', () => void finish());
 
@@ -922,6 +921,7 @@ export function renderTrainer(
       grille = data;
       grilleView.setGrille(grille);
       paintDisplayToggle();
+      paintContrechantToggle();
       if (display === 'grille') {
         drawScore();
         paintFullpage();
