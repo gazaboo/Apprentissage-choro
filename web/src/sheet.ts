@@ -41,8 +41,14 @@ export interface ControlBarOptions {
 }
 
 export interface ControlBar {
-  /** À insérer dans le document ; se positionne lui-même en `fixed`. */
+  /** À insérer dans le document ; `sticky`, dernier de sa colonne. */
   root: HTMLElement;
+  /**
+   * Bouton qui ouvre le panneau, à placer où la vue veut. Il vivait dans le
+   * dock ; la barre du haut le regroupe désormais avec les autres contrôles
+   * de séance (#137). Le panneau, lui, ne bouge pas.
+   */
+  opener: HTMLElement;
   destroy: () => void;
 }
 
@@ -115,28 +121,22 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   let isOpen = false;
   document.body.appendChild(overlay);
 
-  // Un seul bouton d'ouverture, deux tailles : libellé complet sur grand
-  // écran, icône seule dans le coin de la barre sur petit écran. Les deux
-  // vivent dans la barre — plus de bouton flottant qui se cogne au reste.
+  // Ouvreur unique, rendu à la vue plutôt que posé dans le dock. Le libellé
+  // reste écrit : dans la barre du haut la place ne manque plus, et « 🎯 »
+  // seul ne dit pas ce qu'on va ouvrir.
   const toggle = el(
     'button',
-    { type: 'button', class: `${ui.button} shrink-0`, 'aria-expanded': 'false' },
+    {
+      type: 'button',
+      class: `${ui.button} shrink-0`,
+      'aria-label': 'Ouvrir le défi',
+      'aria-expanded': 'false',
+    },
     '🎯 Défi',
   );
   // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
   // l'emporterait sur un `hidden` posé sur le bouton lui-même.
-  const toggleSlot = el('div', { class: 'hidden shrink-0 md:block' }, toggle);
-
-  const miniToggle = el(
-    'button',
-    {
-      type: 'button',
-      class: `${ui.icon} shrink-0 md:hidden`,
-      'aria-label': 'Ouvrir le défi',
-      'aria-expanded': 'false',
-    },
-    '🎯',
-  );
+  const toggleSlot = el('div', { class: 'shrink-0' }, toggle);
 
   const dock = el(
     'div',
@@ -151,8 +151,6 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
       // de bascules ; sur grand écran, tout est sur une ligne.
       { class: 'flex w-full items-end gap-2 md:items-center' },
       el('div', { class: 'min-w-0 flex-1' }, options.primary),
-      miniToggle,
-      toggleSlot,
     ),
   );
 
@@ -246,18 +244,10 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     overlay.style.display = open ? (query.matches ? 'block' : 'flex') : 'none';
     toggle.setAttribute('aria-expanded', String(open));
     paintToggle(toggle, open, 'button', 'shrink-0');
-    miniToggle.setAttribute('aria-expanded', String(open));
-    paintToggle(
-      miniToggle,
-      open,
-      'icon',
-      'shrink-0 md:hidden' + (blocks.length === 0 ? ' hidden' : ''),
-    );
     if (open) placePanel();
   }
 
   toggle.addEventListener('click', () => setOpen(!isOpen));
-  miniToggle.addEventListener('click', () => setOpen(!isOpen));
   closeButton.addEventListener('click', () => setOpen(false));
   // Un tap hors du panneau referme, mais seulement sur petit écran : sur
   // grand écran l'enveloppe ne couvre rien, et cliquer la partition pour
@@ -271,7 +261,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   function layout(): void {
     const empty = blocks.length === 0;
     body.append(...blocks);
-    toggleSlot.classList.toggle('md:hidden', empty);
+    toggleSlot.classList.toggle('hidden', empty);
     if (query.matches) {
       overlay.className = 'fixed inset-0 z-40 pointer-events-none';
       panel.classList.add('rounded-2xl', 'fixed', 'max-h-[70vh]');
@@ -303,6 +293,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
 
   return {
     root,
+    opener: toggleSlot,
     destroy: () => {
       query.removeEventListener('change', layout);
       window.removeEventListener('resize', onResize);

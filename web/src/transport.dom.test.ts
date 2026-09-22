@@ -54,10 +54,9 @@ function pointer(type: string, clientX: number, target?: EventTarget): PointerEv
 
 function mount(overrides: Partial<Song> = {}) {
   const player = createFakePlayer();
-  const onInstrument = vi.fn();
-  const transport = createTransport({ song: song(overrides), player, onInstrument });
+  const transport = createTransport({ song: song(overrides), player });
   const { primary } = transport;
-  return { transport, primary, player, onInstrument };
+  return { transport, primary, player };
 }
 
 const playButton = (root: HTMLElement) =>
@@ -152,34 +151,6 @@ describe('createTransport — bascule de bande', () => {
     const load = vi.spyOn(player, 'load');
     chipByLabel(primary, 'Enregistrement original').click();
     expect(load).toHaveBeenCalledWith('playback.opus', false, 180);
-  });
-});
-
-describe('createTransport — tonalité', () => {
-  const threeKeys = {
-    instruments: [instrument('c', 'Concert'), instrument('bb', 'Si bémol'), instrument('eb', 'Mi bémol')],
-  };
-
-  it('n\'expose la pastille que si le morceau a plusieurs transpositions', () => {
-    const { primary } = mount();
-    expect(chipByLabel(primary, 'Transposition')).toBeUndefined();
-  });
-
-  it('parcourt les transpositions en cycle et prévient la vue', () => {
-    const { primary, onInstrument } = mount(threeKeys);
-    const chip = chipByLabel(primary, 'Transposition');
-    expect(chip.textContent).toContain('Ut');
-
-    chip.click();
-    expect(onInstrument).toHaveBeenLastCalledWith('bb');
-    expect(chip.textContent).toContain('Si♭');
-
-    chip.click();
-    expect(onInstrument).toHaveBeenLastCalledWith('eb');
-
-    chip.click();
-    expect(onInstrument).toHaveBeenLastCalledWith('c');
-    expect(chip.textContent).toContain('Ut');
   });
 });
 

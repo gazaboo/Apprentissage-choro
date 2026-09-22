@@ -13,6 +13,20 @@ export const INSTRUMENT_SHORT_LABELS: Record<InstrumentId, string> = {
   eb: 'Mi♭',
 };
 
+/** Libellés compacts de tonalité pour la pastille du dock et de la barre du
+ *  haut : le nom de la tonalité seul, assez court pour tenir dans un bouton.
+ *
+ *  Il existe bien trois tables, et ce n'est pas un oubli : elles disent trois
+ *  choses différentes. `INSTRUMENT_SHORT_LABELS` nomme le *rôle* tenu pendant
+ *  un filage (« accompagnateur »), `INSTRUMENT_KEY_LABELS` la tonalité en
+ *  entier pour un écran de choix (« Ut / C »), celle-ci la tonalité abrégée
+ *  pour un contrôle étroit (« Ut »). */
+export const INSTRUMENT_CHIP_LABELS: Record<InstrumentId, string> = {
+  c: 'Ut',
+  bb: 'Si♭',
+  eb: 'Mi♭',
+};
+
 /** Libellés « tonalité » pour le choix de partition (écran de préparation du filage). */
 export const INSTRUMENT_KEY_LABELS: Record<InstrumentId, string> = {
   c: 'Ut / C',

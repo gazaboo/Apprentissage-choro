@@ -116,9 +116,11 @@ describe('renderTrainer — bascule contre-chant (#80)', () => {
   it('le morceau sans contraponto ne montre pas la bascule', () => {
     const { root } = mount({ contraponto: null });
     const button = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Mélodie et contre-chant',
+      (b) => b.textContent === '+ contre-chant',
     )!;
-    expect(button.parentElement?.classList.contains('hidden')).toBe(true);
+    // Les sous-options sont repliées, non retirées : c'est `is-open` qui dit
+    // si elles sont déployées (#137).
+    expect(button.closest('.reveal-inline')?.classList.contains('is-open')).toBe(false);
   });
 
   it('le morceau avec contraponto bascule le rendu et enregistre le choix', () => {
@@ -162,7 +164,7 @@ describe('renderTrainer — bascule contre-chant (#80)', () => {
     expect(root.querySelectorAll('img')).toHaveLength(1);
 
     const avec = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Mélodie et contre-chant',
+      (b) => b.textContent === '+ contre-chant',
     )!;
     avec.click();
     const images = [...root.querySelectorAll('img')];
@@ -171,7 +173,7 @@ describe('renderTrainer — bascule contre-chant (#80)', () => {
     expect(context.progress.settings.contrechant).toBe('avec');
 
     const seul = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Mélodie seule',
+      (b) => b.textContent === 'Mélodie',
     )!;
     seul.click();
     expect(root.querySelectorAll('img')).toHaveLength(1);

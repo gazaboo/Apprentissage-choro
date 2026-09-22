@@ -1,6 +1,7 @@
 /** Petites fabriques DOM, pour écrire les vues sans framework. */
 
 import { RATE_MAX, RATE_MIN, stepBpm, stepRate } from './audio';
+import { INSTRUMENT_CHIP_LABELS, type InstrumentId } from './types';
 
 type Attrs = Record<string, string | number | boolean | undefined>;
 type Child = Node | string | null | undefined | false;
@@ -128,6 +129,107 @@ export function paintToggle(
   const base = on ? ui[`${variant}Active` as const] : ui[variant];
   element.className = extra ? `${base} ${extra}` : base;
   setState(element, on);
+}
+
+/** Groupe à choix unique, repeint seul, dont la vue pilote la valeur. */
+export interface Segmented<T extends string> {
+  root: HTMLElement;
+  /** Repositionne la sélection **sans** rappeler `onPick`. */
+  set(value: T): void;
+  /** Affiche ou masque le groupe entier (bascule indisponible pour ce morceau). */
+  setVisible(visible: boolean): void;
+}
+
+/**
+ * Groupe de bascules à choix unique, façon segmented control.
+ *
+ * Diffère de `segmented()` plus bas, qui garde sa valeur pour lui : ici la
+ * vue reste seule source de vérité (elle peut refuser un choix, ou en imposer
+ * un), et `set()` lui permet de repeindre après coup. C'est ce qu'il faut dès
+ * que la même bascule existe en double — barre du haut et barre de plein
+ * écran montrent le même choix d'affichage (#137).
+ */
+export function createSegmented<T extends string>(
+  options: { value: T; label: string }[],
+  onPick: (value: T) => void,
+  { variant = 'button', extra = '' }: { variant?: ToggleVariant; extra?: string } = {},
+): Segmented<T> {
+  const buttons = options.map((option) => {
+    const button = el('button', { type: 'button' }, option.label);
+    button.addEventListener('click', () => onPick(option.value));
+    return button;
+  });
+  const root = el('div', { class: 'flex items-center gap-1' }, ...buttons);
+  return {
+    root,
+    set(value) {
+      options.forEach((option, i) => paintToggle(buttons[i]!, option.value === value, variant, extra));
+    },
+    setVisible(visible) {
+      root.classList.toggle('hidden', !visible);
+      root.classList.toggle('flex', visible);
+    },
+  };
+}
+
+/**
+ * Pastille de transposition : « Ut ▾ », un appui pour passer à la suivante.
+ *
+ * Quand le morceau n'a qu'une tonalité, elle reste affichée mais inerte —
+ * l'information « cette partition est en Ut » vaut d'être lue même lorsqu'il
+ * n'y a rien à choisir, et c'est elle qui remplace la mention « Concert
+ * (Ut / C) » retirée du sous-titre (#137).
+ */
+export function createInstrumentChip(options: {
+  instruments: { id: InstrumentId; name: string }[];
+  current: InstrumentId;
+  onPick: (id: InstrumentId) => void;
+  extra?: string;
+}): { root: HTMLButtonElement; set(id: InstrumentId): void } {
+  const ids = options.instruments.map((instrument) => instrument.id);
+  const nameOf = (id: InstrumentId): string =>
+    options.instruments.find((instrument) => instrument.id === id)?.name ?? id;
+  const cycles = ids.length > 1;
+
+  const root = el('button', {
+    type: 'button',
+    class: `${ui.chip} gap-1.5${options.extra ? ` ${options.extra}` : ''}`,
+    disabled: !cycles,
+  });
+  let current = options.current;
+
+  function paint(): void {
+    const label = el('span', { class: 'font-semibold' }, INSTRUMENT_CHIP_LABELS[current] ?? current);
+    // Le chevron dit « ça se change » : sans tonalité alternative, il mentirait.
+    root.replaceChildren(
+      ...(cycles
+        ? [label, el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, '▾')]
+        : [label]),
+    );
+    root.title = nameOf(current);
+    root.setAttribute(
+      'aria-label',
+      cycles
+        ? `Transposition ${nameOf(current)} — toucher pour changer`
+        : `Transposition ${nameOf(current)}`,
+    );
+  }
+
+  root.addEventListener('click', () => {
+    if (!cycles) return;
+    current = ids[(ids.indexOf(current) + 1) % ids.length]!;
+    paint();
+    options.onPick(current);
+  });
+
+  paint();
+  return {
+    root,
+    set(id) {
+      current = id;
+      paint();
+    },
+  };
 }
 
 const segClass = (on: boolean): string =>
