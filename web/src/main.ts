@@ -55,11 +55,16 @@ import { renderOnboarding } from './views/onboarding';
 import { renderTechnique } from './views/technique';
 import { renderTechniqueListe } from './views/technique-liste';
 import { renderTrainer } from './views/trainer';
+import { initPwaInstallCapture } from './pwaInstall';
 
 const MANIFEST_URL = 'data/manifest.json';
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Élément #app introuvable.');
+
+// Au plus tôt : `beforeinstallprompt` peut survenir avant que `#/compte`
+// (qui en a besoin) ne soit jamais monté.
+initPwaInstallCapture();
 
 // Bandeau de rappel permanent en mode démonstration (#109, outil de QA,
 // route cachée `#/demo`) — hors de `root` pour survivre à ses

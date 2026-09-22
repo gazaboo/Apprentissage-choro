@@ -1,7 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderAccount, type AccountContext } from './account';
 import { accountMode, getSyncCode } from '../sync';
+import { clearInstallPrompt, initPwaInstallCapture } from '../pwaInstall';
 import type { Progress } from '../store';
+
+initPwaInstallCapture();
+
+/** Simule l'événement que le navigateur envoie quand il juge l'app installable. */
+function fireBeforeInstallPrompt(outcome: 'accepted' | 'dismissed' = 'accepted') {
+  const event = new Event('beforeinstallprompt', { cancelable: true }) as Event & {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: string }>;
+  };
+  event.prompt = vi.fn().mockResolvedValue(undefined);
+  event.userChoice = Promise.resolve({ outcome });
+  window.dispatchEvent(event);
+  return event;
+}
 
 function baseProgress(overrides: Partial<Progress['settings']> = {}): Progress {
   return {
@@ -53,6 +68,7 @@ function findButton(root: HTMLElement, text: string): HTMLButtonElement {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  clearInstallPrompt();
 });
 
 describe('renderAccount — passerelle (gate: true)', () => {
@@ -151,5 +167,32 @@ describe('renderAccount — page compte (gate: false)', () => {
     expect(progress.settings.instrumentDefault).toBe('bb');
     findButton(root, 'Grille d’accords').click();
     expect(progress.settings.display).toBe('grille');
+  });
+});
+
+describe('renderAccount — carte d’installation PWA', () => {
+  it('aucune carte sans invite du navigateur', () => {
+    const { root } = mount({ gate: false });
+    expect(root.textContent).not.toContain('Installer');
+  });
+
+  it('avec l’invite captée : bouton visible, déclenche `prompt()` et disparaît ensuite', async () => {
+    const event = fireBeforeInstallPrompt('accepted');
+    const { root } = mount({ gate: false });
+    expect(root.textContent).toContain('Installer');
+
+    findButton(root, 'Installer').click();
+    expect(event.prompt).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(root.textContent).not.toContain('Installer'));
+  });
+
+  it('masquée si l’app tourne déjà en fenêtre autonome (installée)', () => {
+    fireBeforeInstallPrompt();
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({ matches: true, addEventListener: () => {}, removeEventListener: () => {} }),
+    );
+    const { root } = mount({ gate: false });
+    expect(root.textContent).not.toContain('Installer');
   });
 });
