@@ -95,10 +95,12 @@ describe('createControlBar — structure', () => {
     expect(bar.root.textContent).not.toContain('À quoi sert Défi');
   });
 
-  it('place le bouton de repli optionnel dans le dock', () => {
-    const foldButton = el('button', { 'data-fold': '' }, '▾');
-    const { bar } = mount({ foldButton });
-    expect(bar.root.contains(foldButton)).toBe(true);
+  it('reste dans le flux plutôt que de flotter par-dessus la partition', () => {
+    const { bar } = mount();
+    // `sticky` et non `fixed` : c'est ce qui garantit que le dock pousse le
+    // contenu au lieu de le recouvrir (#9, #137).
+    expect(bar.root.classList.contains('sticky')).toBe(true);
+    expect(bar.root.classList.contains('fixed')).toBe(false);
   });
 });
 

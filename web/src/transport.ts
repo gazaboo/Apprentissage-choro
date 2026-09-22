@@ -71,13 +71,13 @@ export function createTransport(options: TransportOptions): Transport {
 
   // --- Lecture ------------------------------------------------------------
 
-  const playIcon = el('span', { class: 'text-2xl leading-none' }, '▶');
+  const playIcon = el('span', { class: 'text-xl leading-none' }, '▶');
   const playButton = el(
     'button',
     {
       type: 'button',
       class:
-        'inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full ' +
+        'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
         'bg-amber-400 pl-1 text-zinc-950 shadow-lg shadow-amber-400/20 ' +
         'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
         'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
@@ -122,8 +122,8 @@ export function createTransport(options: TransportOptions): Transport {
     tickA,
     tickB,
   );
-  const currentLabel = el('span', { class: 'font-mono text-xs text-zinc-400' }, '0:00');
-  const durationLabel = el('span', { class: 'font-mono text-xs text-zinc-500' }, '0:00');
+  const currentLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-400' }, '0:00');
+  const durationLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-500' }, '0:00');
 
   const seekBar = el(
     'div',
@@ -180,7 +180,7 @@ export function createTransport(options: TransportOptions): Transport {
   const loopBadge = el('button', {
     type: 'button',
     class:
-      'hidden min-w-0 shrink truncate rounded px-1.5 text-[11px] font-medium ' +
+      'hidden min-w-0 shrink self-center truncate rounded px-1.5 text-[11px] font-medium ' +
       'text-amber-300 transition hover:text-amber-200 focus:outline-none ' +
       'focus-visible:ring-2 focus-visible:ring-amber-400',
     'aria-label': 'Arrêter de répéter le passage',
@@ -195,18 +195,22 @@ export function createTransport(options: TransportOptions): Transport {
   /** Reçoit la frise de tracé, juste sous la piste. */
   const laneSlotBar = el('div', { class: 'mt-0.5' });
 
+  // Les temps encadrent la piste au lieu d'occuper une ligne à eux seuls :
+  // une ligne de moins dans un dock qui en avait trois (#9, #137). Le résumé
+  // de boucle ne descend en dessous que lorsqu'il y a une boucle à résumer —
+  // masqué, il n'est pas un élément de la colonne et n'y ajoute aucun espace.
   const seekRow = el(
     'div',
     { class: 'order-1 flex min-w-0 flex-1 flex-col gap-0.5 md:order-2' },
-    seekBar,
-    laneSlotBar,
     el(
       'div',
-      { class: 'flex items-center justify-between gap-2' },
+      { class: 'flex w-full items-center gap-2' },
       currentLabel,
-      loopBadge,
+      el('div', { class: 'min-w-0 flex-1' }, seekBar),
       durationLabel,
     ),
+    laneSlotBar,
+    loopBadge,
   );
 
   // --- Vitesse ----------------------------------------------------------

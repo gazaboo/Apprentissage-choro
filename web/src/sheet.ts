@@ -5,8 +5,13 @@
  * d'en rendre deux copies. Les écouteurs et l'état visuel suivent donc le
  * déménagement sans qu'on ait à les recâbler.
  *
- * - ≥ 768 px : dock flottant arrondi en bas, centré, **tout sur une ligne**
- *   (lecture, frise, bascules, Défi). Le panneau Défi s'ouvre dans un
+ * Le dock est `sticky` **dans le flux**, non `fixed` par-dessus : il pousse le
+ * contenu plutôt que de le recouvrir, si bien que la partition n'est jamais
+ * masquée et qu'aucune vue n'a de réserve de hauteur à maintenir à la main
+ * (#9, #137). C'est la disposition qu'employait déjà l'écran de filage.
+ *
+ * - ≥ 768 px : dock arrondi, centré, **tout sur une ligne** (lecture, frise,
+ *   bascules, Défi). Le panneau Défi s'ouvre dans un
  *   popover étroit et **déplaçable** : la partition reste visible à côté, si
  *   bien qu'on voit l'effet de chaque réglage au moment où on le touche, et
  *   l'on pousse le panneau là où il ne gêne pas. Ce seuil est volontairement
@@ -33,8 +38,6 @@ export interface ControlBarOptions {
   panelPosition: { x: number; y: number } | null;
   /** Appelé quand l'utilisateur a fini de déplacer le popover. */
   onPanelMoved: (position: { x: number; y: number }) => void;
-  /** Bouton optionnel pour replier le dock en mini-lecteur (issue #120). */
-  foldButton?: HTMLElement;
 }
 
 export interface ControlBar {
@@ -140,27 +143,31 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     {
       class:
         'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
-        'flex-col gap-3 p-2 md:p-3',
+        'flex-col gap-2 p-2',
     },
     el(
       'div',
       // Sur petit écran, l'engrenage s'aligne en bas, au niveau de la rangée
       // de bascules ; sur grand écran, tout est sur une ligne.
-      { class: 'flex w-full items-end gap-2 md:items-center md:gap-3' },
+      { class: 'flex w-full items-end gap-2 md:items-center' },
       el('div', { class: 'min-w-0 flex-1' }, options.primary),
-      options.foldButton ?? null,
       miniToggle,
       toggleSlot,
     ),
   );
 
+  // `sticky` et non `fixed` : le dock appartient au flux, il pousse le
+  // contenu au lieu de flotter par-dessus. C'est la disposition qu'emploie
+  // déjà l'écran de filage, et elle supprime d'un coup le recouvrement de la
+  // partition *et* la réserve de hauteur codée en dur que la vue devait
+  // maintenir à la main (`pb-32 lg:pb-36`, #9/#137). `mt-auto` le colle au
+  // bas de la fenêtre tant que le contenu est plus court qu'elle.
   const root = el(
     'div',
     {
       class:
-        'pointer-events-none fixed inset-x-0 bottom-0 z-30 px-2 md:px-4 ' +
-        '[padding-bottom:calc(env(safe-area-inset-bottom)+0.5rem)] ' +
-        'md:[padding-bottom:calc(env(safe-area-inset-bottom)+1.5rem)]',
+        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 ' +
+        '[padding-bottom:env(safe-area-inset-bottom)]',
     },
     dock,
   );
