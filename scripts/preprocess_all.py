@@ -86,7 +86,7 @@ def process_pdf(
 
             if geometry is None:
                 # Repli OpenCV : redressement puis morphologie.
-                geometry, straight, angle = raster_geometry.analyse(
+                geometry, straight, correction_px = raster_geometry.analyse(
                     render.to_grayscale_array(image)
                 )
                 # On enregistre l'image redressée : les boîtes s'y réfèrent.
@@ -94,7 +94,7 @@ def process_pdf(
                 report.raster_pages += 1
                 report.warnings.append(
                     f"{song_id}/{score.instrument_id} p{page_number}: "
-                    f"repli raster (deskew {angle:+.2f}deg, "
+                    f"repli raster (redressement {correction_px:.1f}px, "
                     f"{len(geometry.staves)} portees)"
                 )
 
