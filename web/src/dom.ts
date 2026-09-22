@@ -33,6 +33,24 @@ export function clear(node: HTMLElement): void {
  * Tous les contrôles font au moins 44 × 44 px (`min-h-11 min-w-11`) : la
  * cible tactile minimale pour qu'on les atteigne d'une main, l'instrument
  * dans l'autre.
+ *
+ * ## Ce que dit l'ambre (#137)
+ *
+ * L'accent ambre s'était posé partout : sur l'action principale, sur chaque
+ * bascule active, sur le bouton de lecture. Trois choses sans rapport, une
+ * seule couleur — elle ne signalait donc plus rien. Le vocabulaire tient
+ * désormais en trois règles :
+ *
+ * - **Ambre plein** (`primary`) : l'action principale de l'écran. *Une seule
+ *   à la fois.* Sur l'écran d'entraînement, c'est le bouton de lecture.
+ * - **Ambre vivant** : ce qui tourne en ce moment — la lecture en cours, la
+ *   boucle active. Un état transitoire, jamais un réglage.
+ * - **Sélection** (`*Active`) : gris relevé, jamais ambre. Trois canaux à la
+ *   fois — bordure plus claire, surface remontée d'un cran, texte plus gras —
+ *   pour rester identifiable sans dépendre de la couleur seule.
+ *
+ * L'anneau de focus reste ambre : il dit « le clavier est ici », ce qui est
+ * une quatrième question, orthogonale aux trois autres.
  */
 export const ui = {
   button:
@@ -43,9 +61,9 @@ export const ui = {
     'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-zinc-800',
   buttonActive:
     'inline-flex min-h-11 items-center justify-center rounded-lg border ' +
-    'border-amber-400/60 bg-amber-400/15 px-4 text-sm font-medium ' +
-    'text-amber-200 transition focus:outline-none focus-visible:ring-2 ' +
-    'focus-visible:ring-amber-400',
+    'border-zinc-300/70 bg-zinc-700 px-4 text-sm font-semibold ' +
+    'text-white transition hover:bg-zinc-600 focus:outline-none ' +
+    'focus-visible:ring-2 focus-visible:ring-amber-400',
   primary:
     'inline-flex min-h-11 items-center justify-center rounded-lg bg-amber-400 ' +
     'px-5 text-sm font-semibold text-zinc-950 transition hover:bg-amber-300 ' +
@@ -65,9 +83,9 @@ export const ui = {
     'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-zinc-800',
   chipActive:
     'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg ' +
-    'border border-amber-400/60 bg-amber-400/15 px-3 text-xs font-semibold ' +
-    'text-amber-200 transition focus:outline-none focus-visible:ring-2 ' +
-    'focus-visible:ring-amber-400',
+    'border border-zinc-300/70 bg-zinc-700 px-3 text-xs font-semibold ' +
+    'text-white transition hover:bg-zinc-600 focus:outline-none ' +
+    'focus-visible:ring-2 focus-visible:ring-amber-400',
   /** Contrôle carré et compact (icône seule) de la barre de transport. */
   icon:
     'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ' +
@@ -77,17 +95,46 @@ export const ui = {
     'disabled:cursor-not-allowed disabled:opacity-40',
   iconActive:
     'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ' +
-    'border border-amber-400/60 bg-amber-400/15 text-base text-amber-200 ' +
-    'transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
+    'border border-zinc-300/70 bg-zinc-700 text-base font-semibold text-white ' +
+    'transition hover:bg-zinc-600 focus:outline-none focus-visible:ring-2 ' +
+    'focus-visible:ring-amber-400',
   card: 'rounded-xl border border-zinc-800 bg-zinc-900/60 p-4',
   label: 'text-xs font-semibold uppercase tracking-wider text-zinc-500',
 };
 
+/** Les trois gabarits de contrôle à bascule de `ui`. */
+export type ToggleVariant = 'button' | 'chip' | 'icon';
+
+/**
+ * Dit l'état d'un contrôle **hors du style** : `data-state="on" | "off"`.
+ *
+ * Sans lui, le seul témoin de « ce bouton est actif » est sa classe
+ * utilitaire, si bien qu'un test qui vérifie un état doit affirmer une
+ * couleur (`bg-amber-400/15`) et se casse au premier changement de palette.
+ * Le marqueur sépare les deux questions : `data-state` porte l'état,
+ * les classes portent son apparence.
+ */
+export function setState(element: HTMLElement, on: boolean): void {
+  element.dataset.state = on ? 'on' : 'off';
+}
+
+/** Peint un contrôle à bascule : le gabarit correspondant à l'état, et `data-state`. */
+export function paintToggle(
+  element: HTMLElement,
+  on: boolean,
+  variant: ToggleVariant = 'button',
+  extra = '',
+): void {
+  const base = on ? ui[`${variant}Active` as const] : ui[variant];
+  element.className = extra ? `${base} ${extra}` : base;
+  setState(element, on);
+}
+
 const segClass = (on: boolean): string =>
-  'min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium transition ' +
+  'min-h-11 flex-1 rounded-lg border px-3 text-sm transition ' +
   (on
-    ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
+    ? 'border-zinc-300/70 bg-zinc-700 font-semibold text-white hover:bg-zinc-600'
+    : 'border-zinc-700 bg-zinc-800 font-medium text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
 
 /** Groupe de boutons à choix unique, largeur égale. Rappelle `onPick` et se repeint seul. */
 export function segmented<T extends string>(
@@ -102,10 +149,13 @@ export function segmented<T extends string>(
       { type: 'button', class: segClass(option.value === current) },
       option.label,
     );
+    setState(button, option.value === current);
     button.addEventListener('click', () => {
       current = option.value;
       buttons.forEach((other, i) => {
-        other.className = segClass(options[i]!.value === current);
+        const on = options[i]!.value === current;
+        other.className = segClass(on);
+        setState(other, on);
       });
       onPick(current);
     });
@@ -152,7 +202,9 @@ export function renderRateStepper(
     plus.disabled = rate >= RATE_MAX;
     const bpm = getBpm();
     const targetBpm = bpm ? Math.round(rate * bpm) : null;
-    value.className = rate === RATE_MAX ? ui.chip : ui.chipActive;
+    // Le cran « vitesse d'origine » est l'état neutre : c'est tout écart qui
+    // s'annonce comme actif.
+    paintToggle(value, rate !== RATE_MAX, 'chip');
     value.textContent = targetBpm !== null ? `${targetBpm} BPM` : formatRate(rate);
     const label = targetBpm !== null ? `Tempo ${targetBpm} BPM` : `Vitesse ${formatRate(rate)}`;
     const resetHint = targetBpm !== null ? 'revenir au tempo original' : 'revenir à vitesse normale';

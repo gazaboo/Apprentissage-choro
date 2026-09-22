@@ -14,7 +14,9 @@ describe('askSrs', () => {
     expect(dialog.textContent).toContain('Carinhoso');
     // 0 indice sur 10 mesures masquées → note suggérée 5 (voir suggestGrade).
     const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]');
-    expect(five?.className).toContain('amber');
+    // `data-state` plutôt que la couleur : « contient amber » matcherait de
+    // toute façon l'anneau de focus, que portent aussi les boutons inactifs.
+    expect(five?.getAttribute('data-state')).toBe('on');
 
     const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
     skip.click();
@@ -100,10 +102,12 @@ describe('askSrs', () => {
     // pousser vers cette note-là.
     const promise = askSrs('Carinhoso', 'Ut', 0, 10, undefined, undefined, 3);
     const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    // `data-state` et non la classe de couleur : c'est la présélection qu'on
+    // vérifie, pas la palette qui l'exprime (#137).
     const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
-    expect(three?.className).toContain('bg-amber-400/15');
+    expect(three?.getAttribute('data-state')).toBe('on');
     const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
-    expect(five.className).not.toContain('bg-amber-400/15');
+    expect(five.dataset.state).toBe('off');
 
     // Le plafond ne bloque que la présélection : l'utilisateur choisit encore 5 à la main.
     five.click();

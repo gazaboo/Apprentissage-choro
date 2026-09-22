@@ -14,7 +14,7 @@
  * du son.
  */
 
-import { el, ui } from '../dom';
+import { el, paintToggle, setState, ui } from '../dom';
 import { Metronome, MAX_BPM, MIN_BPM, clampBpm, cycleOf } from '../metronome';
 import { SequencePlayer } from '../player';
 import type { Onset } from '../pitch';
@@ -363,7 +363,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       : micTesting
         ? 'Arrêter le test'
         : 'Tester le micro';
-    testMicButton.className = micTesting ? ui.buttonActive : ui.button;
+    paintToggle(testMicButton, micTesting);
     // Même micro physique, même règle d'exclusion que Play/Micro depuis #49 :
     // on ne teste pas pendant qu'une écoute ou une lecture tourne.
     testMicButton.disabled =
@@ -390,19 +390,20 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // lancé, il s'efface au profit de « Terminer », qui devient la suite.
     playButton.textContent = playRunning ? 'Arrêter le métronome' : 'Démarrer le métronome';
     playButton.className = playRunning ? ui.buttonActive : ui.primary;
-    revealButton.className = revealed ? ui.buttonActive : ui.button;
+    setState(playButton, playRunning);
+    paintToggle(revealButton, revealed);
 
     // Écoute et métronome partagent le même surlignage : les lancer ensemble
     // brouillerait la pastille allumée, donc l'un exclut l'autre.
     const ecouteEnCours = player?.playing ?? false;
     ecouterButton.textContent = ecouteEnCours ? '❚❚ Arrêter l’écoute' : '▶ Écouter';
-    ecouterButton.className = ecouteEnCours ? ui.buttonActive : ui.button;
+    paintToggle(ecouterButton, ecouteEnCours);
     // `evaluating` en plus de `metronome.running` : entre le dernier clic et
     // la notation, le métronome est déjà arrêté (voir `onBeat`) alors que
     // l'évaluation, elle, court toujours.
     ecouterButton.disabled = metronome.running || evaluating || micTesting || micTestActivating;
     playButton.disabled = ecouteEnCours || evaluating || micTesting || micTestActivating;
-    boucleButton.className = bouclerEcoute ? ui.chipActive : ui.chip;
+    paintToggle(boucleButton, bouclerEcoute, 'chip');
 
     // L'évaluation se note elle-même après ses 3 passes : « Terminer et
     // évaluer » n'a de sens que pour la pratique libre. `style.display`,
@@ -420,7 +421,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         : 'Évaluation au micro';
     // `ui.buttonActive` n'a pas de style désactivé : le réserver à l'écoute
     // effective garde le bouton visiblement grisé pendant l'activation.
-    micButton.className = listening ? ui.buttonActive : ui.button;
+    paintToggle(micButton, listening);
     // Le métronome libre tourne déjà : le micro attend qu'il s'arrête plutôt
     // que de faire démarrer un second métronome par-dessus.
     micButton.disabled =

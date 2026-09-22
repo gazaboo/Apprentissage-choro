@@ -5,7 +5,7 @@
  * déclenchés. Tout se fait au doigt, il n'y a rien à taper.
  */
 
-import { el, ui } from '../dom';
+import { el, paintToggle, ui } from '../dom';
 import { GRADE_LABELS, TEMPO_LABELS, suggestGrade } from '../srs';
 import type { Tempo } from '../types';
 
@@ -58,10 +58,10 @@ export function askSrs(
 
     const paint = (): void => {
       gradeButtons.forEach((button, index) => {
-        button.className = index === grade ? ui.buttonActive : ui.button;
+        paintToggle(button, index === grade);
       });
       tempoButtons.forEach((button, index) => {
-        button.className = TEMPOS[index] === tempo ? ui.buttonActive : ui.button;
+        paintToggle(button, TEMPOS[index] === tempo);
       });
       gradeCaption.textContent = GRADE_LABELS[grade] ?? '';
     };

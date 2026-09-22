@@ -5,7 +5,7 @@
  * aucun raccourci clavier, et aucune action n'est cachée.
  */
 
-import { el, ui } from '../dom';
+import { el, paintToggle, ui } from '../dom';
 import { EclipseRunner } from '../eclipse';
 import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
@@ -329,10 +329,10 @@ export function renderTrainer(
     fpDisplayToggle.classList.toggle('flex', has);
     const active = activeDisplay();
     for (const [value, button] of displayButtons) {
-      button.className = value === active ? ui.buttonActive : ui.button;
+      paintToggle(button, value === active);
     }
     for (const [value, button] of fpDisplayButtons) {
-      button.className = value === active ? ui.chipActive : ui.chip;
+      paintToggle(button, value === active, 'chip');
     }
   }
 
@@ -345,10 +345,10 @@ export function renderTrainer(
     fpContrechantToggle.classList.toggle('hidden', !has);
     fpContrechantToggle.classList.toggle('flex', has);
     for (const [value, button] of contrechantButtons) {
-      button.className = value === contrechant ? ui.buttonActive : ui.button;
+      paintToggle(button, value === contrechant);
     }
     for (const [value, button] of fpContrechantButtons) {
-      button.className = value === contrechant ? ui.chipActive : ui.chip;
+      paintToggle(button, value === contrechant, 'chip');
     }
   }
 
@@ -468,7 +468,7 @@ export function renderTrainer(
     fpZoomLabel.textContent = `${Math.round(fpZoom * 100)} %`;
     fpZoomOut.disabled = fpZoom <= FP_ZOOM_MIN + 1e-6;
     fpZoomIn.disabled = fpZoom >= FP_ZOOM_MAX - 1e-6;
-    fpColumns.className = cols === 2 ? ui.iconActive : ui.icon;
+    paintToggle(fpColumns, cols === 2, 'icon');
   }
 
   function saveFp(): void {
@@ -501,9 +501,7 @@ export function renderTrainer(
     fpMiniBar.classList.toggle('flex', mini);
     for (const button of [fpPlayerToggle, dockFoldButton]) {
       button.textContent = fpPlayerHidden ? '▴' : '▾';
-      button.className = `${fpPlayerHidden ? ui.iconActive : ui.icon}${
-        anySource ? '' : ' hidden'
-      }`;
+      paintToggle(button, fpPlayerHidden, 'icon', anySource ? '' : 'hidden');
       button.setAttribute(
         'aria-label',
         fpPlayerHidden ? 'Rouvrir le lecteur complet' : 'Réduire le lecteur',
@@ -580,7 +578,7 @@ export function renderTrainer(
   function paintMode(): void {
     for (const [level, button] of defiButtons) {
       const active = level === 'entiere' ? mode === 'entiere' : mode === 'mesures' && level === maskLevel;
-      button.className = `${active ? ui.buttonActive : ui.button} w-full justify-start`;
+      paintToggle(button, active, 'button', 'w-full justify-start');
     }
     shuffleSlot.classList.toggle('hidden', mode !== 'mesures');
     defiHint.textContent = STUDY_MODE_HINTS[mode];
@@ -820,7 +818,11 @@ export function renderTrainer(
   }
 
   const nextLabel = context.session ? 'Passer au morceau suivant' : 'Terminer et évaluer';
-  const finishButton = el('button', { type: 'button', class: ui.primary }, nextLabel);
+  // Bouton ordinaire, et non `ui.primary` : sur cet écran l'action principale
+  // est la lecture (le rond ambre du dock). Remplir « Terminer » en ambre en
+  // faisait l'élément le plus voyant de la page, alors qu'on ne le touche
+  // qu'une fois, à la fin (#137).
+  const finishButton = el('button', { type: 'button', class: ui.button }, nextLabel);
   finishButton.addEventListener('click', () => void finish());
 
   const stopSessionButton = context.session
