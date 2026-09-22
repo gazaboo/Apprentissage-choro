@@ -24,7 +24,7 @@
  *   où le mettre.
  */
 
-import { el, paintToggle, ui } from './dom';
+import { el, iconLabel, paintToggle, ui } from './dom';
 import type { Section } from './transport';
 
 const DESKTOP = '(min-width: 768px)';
@@ -157,8 +157,9 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   document.body.appendChild(overlay);
 
   // Ouvreur unique, rendu à la vue plutôt que posé dans le dock. Le libellé
-  // reste écrit : dans la barre du haut la place ne manque plus, et « 🎯 »
-  // seul ne dit pas ce qu'on va ouvrir.
+  // reste écrit en desktop, où la place ne manque pas ; sur mobile, où la
+  // barre du haut est contrainte, il se réduit à l'icône seule — « 🎯 » seul
+  // ne dit pas ce qu'on va ouvrir, d'où l'`aria-label` (#150).
   const toggle = el(
     'button',
     {
@@ -167,7 +168,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
       'aria-label': 'Ouvrir le défi',
       'aria-expanded': 'false',
     },
-    '🎯 Défi',
+    iconLabel('🎯', 'Défi'),
   );
   // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
   // l'emporterait sur un `hidden` posé sur le bouton lui-même.

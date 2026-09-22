@@ -17,6 +17,7 @@ import {
   createSeekBar,
   createSourceToggle,
   el,
+  iconLabel,
   paintToggle,
   renderRateStepper,
   ui,
@@ -202,7 +203,7 @@ export function createTransport(options: TransportOptions): Transport {
   const loopToggle = el(
     'button',
     { type: 'button', class: `${ui.chip} md:order-6`, 'aria-expanded': 'false' },
-    '🔁 Loop',
+    iconLabel('🔁', 'Loop'),
   );
 
   // --- Assemblage de la barre principale ---------------------------------
@@ -218,7 +219,10 @@ export function createTransport(options: TransportOptions): Transport {
 
   const primary = el(
     'div',
-    { class: 'flex w-full flex-col gap-1 md:flex-row md:items-center md:gap-3' },
+    // `dense-bar` réduit la hauteur peinte des boutons descendants sous
+    // pointeur grossier aussi depuis #150 — la ligne de bascules a plus de
+    // chances de tenir sur une seule ligne à 375px sans grandir le dock.
+    { class: 'dense-bar flex w-full flex-col gap-1 md:flex-row md:items-center md:gap-3' },
     seekRow,
     el(
       'div',

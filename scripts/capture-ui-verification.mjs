@@ -323,7 +323,7 @@ async function run() {
     // (seuls les paliers de masquage et « partition entière » le sont :
     // capture sautée) ; Sans partition est déjà couvert par l'écran Consigne
     // capturé plus haut via le mode démonstration.
-    await clickByText(session, 'button', ['🎯 Défi']);
+    await clickAriaLabel(session, 'Ouvrir le défi');
     await capture(session, 'song-defi-panel', 'Entraînement — panneau Défi');
     await clickByText(session, 'button', ['Partition masquée à 50 %']);
     await clickAriaLabel(session, 'Fermer le défi');

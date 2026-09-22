@@ -107,6 +107,22 @@ export const ui = {
 export type ToggleVariant = 'button' | 'chip' | 'icon';
 
 /**
+ * Contenu icône + libellé d'un bouton : l'icône reste visible en permanence,
+ * le libellé se masque sous `max-md:hidden`. Le bouton se lit en icône seule
+ * sur mobile — l'appelant doit alors poser un `aria-label` sur le bouton
+ * lui-même, faute de quoi son nom accessible disparaît avec le texte masqué —
+ * et en icône + texte complet au-delà, sans rien changer au desktop (#150).
+ */
+export function iconLabel(icon: string, label: string): HTMLElement {
+  return el(
+    'span',
+    { class: 'inline-flex items-center gap-1.5' },
+    el('span', { 'aria-hidden': 'true' }, icon),
+    el('span', { class: 'max-md:hidden' }, label),
+  );
+}
+
+/**
  * Dit l'état d'un contrôle **hors du style** : `data-state="on" | "off"`.
  *
  * Sans lui, le seul témoin de « ce bouton est actif » est sa classe
@@ -344,14 +360,23 @@ export interface Segmented<T extends string> {
  * un), et `set()` lui permet de repeindre après coup. C'est ce qu'il faut dès
  * que la même bascule existe en double — barre du haut et barre de plein
  * écran montrent le même choix d'affichage (#137).
+ *
+ * `icon`, s'il est fourni, bascule le rendu du bouton en icône + libellé
+ * (`iconLabel`) : icône seule sur mobile, icône + texte au-delà — plutôt que
+ * le texte abrégé de la barre de plein écran ("Mél."), jugé incompréhensible
+ * (#150).
  */
 export function createSegmented<T extends string>(
-  options: { value: T; label: string }[],
+  options: { value: T; label: string; icon?: string }[],
   onPick: (value: T) => void,
   { variant = 'button', extra = '' }: { variant?: ToggleVariant; extra?: string } = {},
 ): Segmented<T> {
   const buttons = options.map((option) => {
-    const button = el('button', { type: 'button' }, option.label);
+    const button = el(
+      'button',
+      { type: 'button', 'aria-label': option.icon ? option.label : undefined },
+      option.icon ? iconLabel(option.icon, option.label) : option.label,
+    );
     button.addEventListener('click', () => onPick(option.value));
     return button;
   });

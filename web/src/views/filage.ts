@@ -17,6 +17,7 @@ import {
   createSeekBar,
   createSourceToggle,
   el,
+  iconLabel,
   renderRateStepper,
   ui,
 } from '../dom';
@@ -55,6 +56,12 @@ const NEXT_VIEW_LABELS: Record<FilageView, string> = {
   partition: 'Voir la partition',
   grille: 'Voir la grille',
   scene: 'Masquer la partition',
+};
+/** Icône associée à chaque libellé ci-dessus, pour l'affichage mobile compact (#150). */
+const NEXT_VIEW_ICONS: Record<FilageView, string> = {
+  partition: '♪',
+  grille: '▦',
+  scene: '⊘',
 };
 
 export function renderFilage(root: HTMLElement, context: FilageContext): () => void {
@@ -101,9 +108,11 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const grilleContainer = el('div', { class: 'hidden' });
   const grilleView = new GrilleView(grilleContainer, { onHintUsed: () => {} });
 
-  // En-tête : contexte discret + sortie.
+  // En-tête : contexte discret + sortie. `truncate` absorbe l'espace variable
+  // à la place du texte concaténé qui débordait sur 2 lignes sur mobile
+  // (#150) — même principe que le titre de la barre de plein écran.
   const positionLabel = el('p', {
-    class: 'text-xs font-semibold uppercase tracking-wider text-zinc-500',
+    class: 'min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-zinc-500',
   });
 
   // Scène (partition masquée) : le morceau en cours, en grand, et la suite.
@@ -141,7 +150,11 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const play = createPlayButton({ onToggle: () => player.togglePlay() });
   const playButton = play.root;
 
-  const nextButton = el('button', { type: 'button', class: ui.button }, '⏭  Passer au suivant');
+  const nextButton = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-label': 'Passer au morceau suivant' },
+    iconLabel('⏭', 'Passer au suivant'),
+  );
   nextButton.addEventListener('click', () => startCountdown());
 
   // --- Barre de lecture : on revient où l'on veut à tout moment ---------
@@ -184,7 +197,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     },
   });
 
-  const scoreToggle = el('button', { type: 'button', class: ui.button }, 'Voir la grille');
+  const scoreToggle = el('button', { type: 'button', class: ui.button });
   scoreToggle.addEventListener('click', () => {
     view = nextView();
     paintScoreVisibility();
@@ -192,8 +205,13 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
 
   // Bouton ordinaire, comme « Terminer et évaluer » à l'entraînement : sur cet
   // écran l'action principale est la lecture, et une seule action porte
-  // l'ambre plein (#137).
-  const finishButton = el('button', { type: 'button', class: ui.button }, 'Terminer le filage');
+  // l'ambre plein (#137). Icône seule sur mobile : action de fin de parcours,
+  // peu consultée en continu (#150).
+  const finishButton = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-label': 'Terminer le filage' },
+    iconLabel('⏹', 'Terminer le filage'),
+  );
   finishButton.addEventListener('click', () => context.onFinish());
 
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
@@ -330,7 +348,9 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     const noScore = !available('partition');
     scoreNote.classList.toggle('hidden', !(view === 'scene' && noScore));
 
-    scoreToggle.textContent = NEXT_VIEW_LABELS[nextView()];
+    const next = nextView();
+    scoreToggle.replaceChildren(iconLabel(NEXT_VIEW_ICONS[next], NEXT_VIEW_LABELS[next]));
+    scoreToggle.setAttribute('aria-label', NEXT_VIEW_LABELS[next]);
   }
 
   // --- Déroulé ---------------------------------------------------------
@@ -465,10 +485,10 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
         'header',
         {
           class:
-            'flex shrink-0 flex-wrap items-center justify-between gap-3 py-4',
+            'dense-bar flex shrink-0 items-center gap-3 py-4 max-md:py-2',
         },
         positionLabel,
-        el('div', { class: 'flex flex-wrap gap-2' }, backButton, finishButton),
+        el('div', { class: 'flex shrink-0 gap-1.5 md:gap-2' }, backButton, finishButton),
       ),
 
       // Zone principale : la scène, ou la partition.
@@ -498,19 +518,35 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
           seekBar,
           timeLabel,
         ),
+        // Deux groupes fixes plutôt qu'un `flex-wrap` unique à 8+ éléments :
+        // garantit visuellement une seule ligne sur mobile au lieu de
+        // compter sur le repli pour « juste tenir » (#150). Les libellés
+        // « Vitesse »/« Bande » se masquent sur mobile — les contrôles
+        // adjacents restent compréhensibles par leur forme, et portent leur
+        // propre `aria-label`.
         el(
           'div',
-          { class: 'flex flex-wrap items-center gap-2' },
-          el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Vitesse'),
-          rateStepper.minus,
-          rateStepper.value,
-          rateStepper.plus,
-          el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
-          el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Bande'),
-          sourceToggle.root,
-          el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
-          nextButton,
-          scoreToggle,
+          { class: 'dense-bar flex flex-wrap items-center justify-between gap-2' },
+          el(
+            'div',
+            { class: 'flex flex-wrap items-center gap-2' },
+            el(
+              'span',
+              { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
+              'Vitesse',
+            ),
+            rateStepper.minus,
+            rateStepper.value,
+            rateStepper.plus,
+            el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
+            el(
+              'span',
+              { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
+              'Bande',
+            ),
+            sourceToggle.root,
+          ),
+          el('div', { class: 'flex flex-wrap items-center gap-2' }, nextButton, scoreToggle),
         ),
       ),
     ),

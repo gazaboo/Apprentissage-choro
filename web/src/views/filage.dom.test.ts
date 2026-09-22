@@ -98,7 +98,7 @@ describe('renderFilage — dock de transport', () => {
 
   it('« Terminer le filage » appelle onFinish()', () => {
     const { root, context } = mount([song('a')]);
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer le filage')!;
+    const finish = root.querySelector('button[aria-label="Terminer le filage"]') as HTMLButtonElement;
     finish.click();
     expect(context.onFinish).toHaveBeenCalledOnce();
   });

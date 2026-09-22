@@ -115,9 +115,7 @@ describe('renderTrainer — retour et navigation', () => {
 describe('renderTrainer — bascule contre-chant (#80)', () => {
   it('le morceau sans contraponto ne montre pas la bascule', () => {
     const { root } = mount({ contraponto: null });
-    const button = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === '+ contre-chant',
-    )!;
+    const button = root.querySelector('button[aria-label="+ contre-chant"]') as HTMLButtonElement;
     // Les sous-options sont repliées, non retirées : c'est `is-open` qui dit
     // si elles sont déployées (#137).
     expect(button.closest('.reveal-inline')?.classList.contains('is-open')).toBe(false);
@@ -163,18 +161,14 @@ describe('renderTrainer — bascule contre-chant (#80)', () => {
 
     expect(root.querySelectorAll('img')).toHaveLength(1);
 
-    const avec = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === '+ contre-chant',
-    )!;
+    const avec = root.querySelector('button[aria-label="+ contre-chant"]') as HTMLButtonElement;
     avec.click();
     const images = [...root.querySelectorAll('img')];
     expect(images).toHaveLength(2);
     expect(images[0]!.src).toContain('/contraponto/');
     expect(context.progress.settings.contrechant).toBe('avec');
 
-    const seul = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Mélodie',
-    )!;
+    const seul = root.querySelector('button[aria-label="Mélodie"]') as HTMLButtonElement;
     seul.click();
     expect(root.querySelectorAll('img')).toHaveLength(1);
     expect(context.progress.settings.contrechant).toBe('sans');
@@ -184,7 +178,7 @@ describe('renderTrainer — bascule contre-chant (#80)', () => {
 describe('renderTrainer — évaluation de fin (askSrs)', () => {
   it('« Terminer et évaluer » ouvre la modale, « Passer » n\'enregistre rien et revient à l\'accueil', async () => {
     const { root, context } = mount();
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
 
@@ -202,7 +196,7 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
 
   it('« Enregistrer » dans la modale écrit la carte SRS puis revient à l\'accueil', async () => {
     const { root, context } = mount();
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
 
@@ -234,9 +228,9 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
         },
       },
     );
-    const finish = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Passer au morceau suivant',
-    )!;
+    const finish = root.querySelector(
+      'button[aria-label="Passer au morceau suivant"]',
+    ) as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
     // `controlBar` (réglages, sheet.ts) porte aussi `role="dialog"` en
@@ -291,7 +285,9 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
     expect(defi).toBeTruthy();
     expect(defi.closest('.hidden')).toBeNull();
-    const fullscreen = [...root.querySelectorAll('button')].find((b) => b.textContent === '⛶ Plein écran')!;
+    const fullscreen = root.querySelector(
+      'button[aria-label="Passer en plein écran"]',
+    ) as HTMLButtonElement;
     expect(fullscreen.closest('.hidden')).not.toBeNull();
   });
 
@@ -354,7 +350,7 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     )!;
     aideEntiere.click();
 
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
 
