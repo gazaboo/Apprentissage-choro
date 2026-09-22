@@ -11,7 +11,15 @@
  * pour le morceau courant est sauté : inutile de proposer une grille absente.
  */
 
-import { el, renderRateStepper, ui } from '../dom';
+import { dockShell } from '../sheet';
+import {
+  createPlayButton,
+  createSeekBar,
+  createSourceToggle,
+  el,
+  renderRateStepper,
+  ui,
+} from '../dom';
 import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
 import type { AudioKind, Grille, InstrumentId, Song } from '../types';
@@ -56,7 +64,6 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   let index = 0;
   let transitioning = false;
   let hasPlayed = false;
-  let scrubbing = false;
   let countdownTimer: number | null = null;
   /** Ce que montre la zone principale. Voir le commentaire de tête. */
   let view: FilageView = 'partition';
@@ -131,65 +138,21 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const timeLabel = el('span', {
     class: 'shrink-0 font-mono text-sm text-zinc-400 tabular-nums',
   }, '0:00 / 0:00');
-  const playButton = el(
-    'button',
-    {
-      type: 'button',
-      class:
-        'flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber-400 ' +
-        'text-2xl text-zinc-950 shadow-lg shadow-amber-400/20 transition hover:bg-amber-300 ' +
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
-        'focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
-      'aria-label': 'Lecture ou pause',
-    },
-    '▶',
-  );
-  playButton.addEventListener('click', () => player.togglePlay());
+  const play = createPlayButton({ onToggle: () => player.togglePlay() });
+  const playButton = play.root;
 
   const nextButton = el('button', { type: 'button', class: ui.button }, '⏭  Passer au suivant');
   nextButton.addEventListener('click', () => startCountdown());
 
   // --- Barre de lecture : on revient où l'on veut à tout moment ---------
 
-  const seekFill = el('div', {
-    class: 'absolute inset-y-0 left-0 rounded-full bg-amber-400',
-  });
-  const seekBarInner = el(
-    'div',
-    { class: 'relative h-2.5 w-full rounded-full bg-zinc-700' },
-    seekFill,
-  );
-  const seekBar = el(
-    'div',
-    {
-      class: 'flex h-14 w-full flex-1 cursor-pointer items-center',
-      role: 'slider',
-      'aria-label': 'Position dans le morceau',
-      'aria-valuemin': 0,
-      'aria-valuenow': 0,
-    },
-    seekBarInner,
-  );
-  function seekFromEvent(event: PointerEvent): void {
-    const rect = seekBarInner.getBoundingClientRect();
-    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-    seekFill.style.width = `${ratio * 100}%`;
-    const duration = player.getDuration();
-    if (duration > 0) player.seekTo(ratio * duration);
-  }
-  seekBar.addEventListener('pointerdown', (event) => {
-    scrubbing = true;
-    seekBar.setPointerCapture(event.pointerId);
-    seekFromEvent(event);
-  });
-  seekBar.addEventListener('pointermove', (event) => {
-    if (scrubbing) seekFromEvent(event);
-  });
-  const endScrub = (): void => {
-    scrubbing = false;
-  };
-  seekBar.addEventListener('pointerup', endScrub);
-  seekBar.addEventListener('pointercancel', endScrub);
+  // Géométrie et geste partagés avec la barre de transport (`createSeekBar`,
+  // `dom.ts`). Le filage déplaçait auparavant le lecteur à *chaque* mouvement
+  // du doigt ; il suit désormais l'entraînement et n'agit qu'au relâchement —
+  // sur un fichier long, relancer le décodage à chaque pixel hache la
+  // lecture (#137).
+  const seek = createSeekBar({ onSeek: (seconds) => player.seekTo(seconds) });
+  const seekBar = seek.root;
 
   // --- Vitesse : disponible et modifiable à tout moment -----------------
   //
@@ -204,27 +167,21 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
 
   // --- Bande : original ↔ playback, à tout moment ----------------------
 
-  const audioClass = (on: boolean): string =>
-    'min-h-11 rounded-lg border px-3 text-sm font-medium transition ' +
-    (on
-      ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-      : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
-  const audioOptions: { kind: AudioKind; label: string }[] = [
-    { kind: 'reference', label: 'Original' },
-    { kind: 'playback', label: 'Playback' },
-  ];
-  const audioButtons = audioOptions.map(({ kind, label }) => {
-    const button = el('button', { type: 'button', class: audioClass(kind === audioKind) }, label);
-    button.addEventListener('click', () => {
-      if (kind === audioKind || transitioning) return;
+  // Une pastille cyclique, comme dans le dock d'entraînement, au lieu des
+  // deux boutons segmentés qui vivaient ici avec leur propre classe ambre —
+  // restée hors du vocabulaire de couleur unifié (#137).
+  const sourceToggle = createSourceToggle({
+    available: ['reference', 'playback'],
+    current: audioKind,
+    onPick: (kind) => {
+      if (transitioning) {
+        sourceToggle.set(audioKind);
+        return;
+      }
       audioKind = kind;
-      audioButtons.forEach((other, i) => {
-        other.className = audioClass(audioOptions[i]!.kind === audioKind);
-      });
       rateStepper.refresh();
       loadAudio(order[index]!, player.isPlaying());
-    });
-    return button;
+    },
   });
 
   const scoreToggle = el('button', { type: 'button', class: ui.button }, 'Voir la grille');
@@ -233,7 +190,10 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     paintScoreVisibility();
   });
 
-  const finishButton = el('button', { type: 'button', class: ui.primary }, 'Terminer le filage');
+  // Bouton ordinaire, comme « Terminer et évaluer » à l'entraînement : sur cet
+  // écran l'action principale est la lecture, et une seule action porte
+  // l'ambre plein (#137).
+  const finishButton = el('button', { type: 'button', class: ui.button }, 'Terminer le filage');
   finishButton.addEventListener('click', () => context.onFinish());
 
   const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
@@ -440,7 +400,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     const song = order[i]!;
     context.markReached(song.id);
     hasPlayed = false;
-    seekFill.style.width = '0%';
+    seek.set(0, 0);
 
     positionLabel.textContent =
       `Filage ${INSTRUMENT_SHORT_LABELS[instrumentId]} · ${context.setlistName} · ${i + 1} / ${order.length}`;
@@ -498,14 +458,14 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   root.replaceChildren(
     el(
       'div',
-      { class: 'flex min-h-dvh flex-col' },
+      { class: 'flex h-dvh flex-col px-4 pb-0 sm:px-6' },
       playerMount,
 
       el(
         'header',
         {
           class:
-            'flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6',
+            'flex shrink-0 flex-wrap items-center justify-between gap-3 py-4',
         },
         positionLabel,
         el('div', { class: 'flex flex-wrap gap-2' }, backButton, finishButton),
@@ -514,7 +474,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       // Zone principale : la scène, ou la partition.
       el(
         'main',
-        { class: 'flex flex-1 flex-col overflow-y-auto px-4 pb-4 sm:px-6' },
+        { class: 'flex min-h-0 flex-1 flex-col overflow-y-auto pb-4' },
         stagePanel,
         el(
           'div',
@@ -526,38 +486,31 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
         ),
       ),
 
-      // Dock de contrôle, toujours visible en bas.
-      el(
-        'div',
-        {
-          class:
-            'sticky bottom-0 border-t border-zinc-800 bg-zinc-950/95 px-4 py-4 backdrop-blur ' +
-            'pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:px-6',
-        },
+      // Dock de contrôle : la coquille commune à l'entraînement (`dockShell`,
+      // `sheet.ts`). Les commandes diffèrent — le filage n'a ni boucle, ni
+      // tonalité, ni Défi, mais a « Passer au suivant » et le cycle de vue —
+      // seule l'enveloppe visuelle est partagée (#137).
+      dockShell(
         el(
           'div',
-          { class: 'mx-auto flex w-full max-w-4xl flex-col gap-4' },
-          el(
-            'div',
-            { class: 'flex items-center gap-4' },
-            playButton,
-            seekBar,
-            timeLabel,
-          ),
-          el(
-            'div',
-            { class: 'flex flex-wrap items-center gap-2' },
-            el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Vitesse'),
-            rateStepper.minus,
-            rateStepper.value,
-            rateStepper.plus,
-            el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
-            el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Bande'),
-            ...audioButtons,
-            el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
-            nextButton,
-            scoreToggle,
-          ),
+          { class: 'flex w-full items-center gap-2' },
+          playButton,
+          seekBar,
+          timeLabel,
+        ),
+        el(
+          'div',
+          { class: 'flex flex-wrap items-center gap-2' },
+          el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Vitesse'),
+          rateStepper.minus,
+          rateStepper.value,
+          rateStepper.plus,
+          el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
+          el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Bande'),
+          sourceToggle.root,
+          el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
+          nextButton,
+          scoreToggle,
         ),
       ),
     ),
@@ -571,19 +524,15 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   startIntro();
 
   unsubscribe = player.onTick((tick) => {
-    playButton.textContent = tick.playing ? '❚❚' : '▶';
+    play.set(tick.playing);
     timeLabel.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
     if (tick.playing) hasPlayed = true;
-    if (!scrubbing && tick.duration > 0) {
-      seekFill.style.width = `${(tick.currentTime / tick.duration) * 100}%`;
-      seekBar.setAttribute('aria-valuenow', String(Math.round(tick.currentTime)));
-      seekBar.setAttribute('aria-valuemax', String(Math.round(tick.duration)));
-    }
+    seek.set(tick.currentTime, tick.duration);
 
     const ended =
       hasPlayed &&
       !transitioning &&
-      !scrubbing &&
+      !seek.isScrubbing() &&
       !tick.playing &&
       (player.hasEnded() ||
         (tick.duration > 0 && tick.currentTime >= tick.duration - 0.4));

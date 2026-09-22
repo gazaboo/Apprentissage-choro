@@ -12,7 +12,15 @@
  * fins), que la vue place dans le panneau de réglages.
  */
 
-import { el, paintToggle, renderRateStepper, ui } from './dom';
+import {
+  createPlayButton,
+  createSeekBar,
+  createSourceToggle,
+  el,
+  paintToggle,
+  renderRateStepper,
+  ui,
+} from './dom';
 import type { Player } from './audio';
 import { formatTime } from './audio';
 import type { AudioKind, Song } from './types';
@@ -38,26 +46,10 @@ export interface Transport {
   destroy: () => void;
 }
 
-/**
- * Remplit une bascule du dock : valeur courante en gras, glyphe d'action en
- * fin (`⇄` pour un aller-retour à deux états, `▾` pour un cycle à plusieurs
- * crans). Sans le glyphe, les pastilles se liraient comme de simples
- * étiquettes d'état, pas comme des boutons (issue #10) ; le micro-libellé de
- * la dimension (« Bande », « Vitesse », « Ton ») a été retiré pour ne pas
- * surcharger visuellement le dock — `aria-label`/`title` portent l'info.
- */
-function fillToggle(button: HTMLButtonElement, value: string, glyph: string): void {
-  button.replaceChildren(
-    el('span', { class: 'font-semibold' }, value),
-    el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, glyph),
-  );
-}
-
 export function createTransport(options: TransportOptions): Transport {
   const { song, player } = options;
 
   let source: AudioKind = song.audio.reference ? 'reference' : 'playback';
-  let scrubbing = false;
   let duration = 0;
 
   const hasSource = (kind: AudioKind): boolean => song.audio[kind] !== null;
@@ -68,30 +60,14 @@ export function createTransport(options: TransportOptions): Transport {
 
   // --- Lecture ------------------------------------------------------------
 
-  const playIcon = el('span', { class: 'text-xl leading-none' }, '▶');
-  const playButton = el(
-    'button',
-    {
-      type: 'button',
-      class:
-        'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
-        'bg-amber-400 pl-1 text-zinc-950 shadow-lg shadow-amber-400/20 ' +
-        'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
-        'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
-        'focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed ' +
-        'disabled:opacity-40',
-      'aria-label': 'Lecture ou pause',
-      disabled: !anySource,
-    },
-    playIcon,
-  );
-  playButton.addEventListener('click', () => player.togglePlay());
+  const play = createPlayButton({
+    onToggle: () => player.togglePlay(),
+    disabled: !anySource,
+  });
+  const playButton = play.root;
 
   // --- Défilement ---------------------------------------------------------
 
-  const progress = el('div', {
-    class: 'absolute inset-y-0 left-0 rounded-full bg-amber-400',
-  });
   // Hors boucle, la piste est assombrie : le passage travaillé est le seul
   // endroit éclairé, ce qui rend le bouclage lisible d'un coup d'œil.
   const scrimBefore = el('div', {
@@ -109,66 +85,22 @@ export function createTransport(options: TransportOptions): Transport {
     });
   const tickA = loopTick();
   const tickB = loopTick();
-  const track = el(
-    'div',
-    { class: 'seek-track relative w-full rounded-full bg-zinc-700' },
-    loopBand,
-    progress,
-    scrimBefore,
-    scrimAfter,
-    tickA,
-    tickB,
-  );
+
   const currentLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-400' }, '0:00');
   const durationLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-500' }, '0:00');
 
-  const seekBar = el(
-    'div',
-    {
-      // La zone cliquable fait 44 px de haut, même si la piste n'en fait que 4.
-      class: 'seek-bar flex h-11 w-full cursor-pointer items-center',
-      role: 'slider',
-      'aria-label': 'Position dans le morceau',
-      'aria-valuemin': 0,
-      'aria-valuenow': 0,
+  // Géométrie et geste viennent de `dom.ts`, partagés avec le filage ; les
+  // décorations de boucle restent propres à l'entraînement et se rangent
+  // dans la piste que la primitive expose (#137).
+  const seek = createSeekBar({
+    onSeek: (seconds) => player.seekTo(seconds),
+    onPaint: (ratio, seconds) => {
+      currentLabel.textContent = formatTime(seconds);
+      lanePlayhead.style.left = `${ratio * 100}%`;
     },
-    track,
-  );
-
-  function ratioFromEvent(event: PointerEvent): number {
-    const rect = track.getBoundingClientRect();
-    if (rect.width === 0) return 0;
-    return Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-  }
-
-  function paintProgress(ratio: number, current: number): void {
-    progress.style.width = `${ratio * 100}%`;
-    currentLabel.textContent = formatTime(current);
-    seekBar.setAttribute('aria-valuenow', String(Math.round(current)));
-    seekBar.setAttribute('aria-valuetext', formatTime(current));
-  }
-
-  seekBar.addEventListener('pointerdown', (event) => {
-    if (!duration) return;
-    scrubbing = true;
-    seekBar.classList.add('is-dragging');
-    seekBar.setPointerCapture(event.pointerId);
-    const ratio = ratioFromEvent(event);
-    paintProgress(ratio, ratio * duration);
+    decorations: [loopBand, scrimBefore, scrimAfter, tickA, tickB],
   });
-  seekBar.addEventListener('pointermove', (event) => {
-    if (!scrubbing || !duration) return;
-    const ratio = ratioFromEvent(event);
-    paintProgress(ratio, ratio * duration);
-  });
-  const endScrub = (event: PointerEvent): void => {
-    if (!scrubbing) return;
-    scrubbing = false;
-    seekBar.classList.remove('is-dragging');
-    if (duration) player.seekTo(ratioFromEvent(event) * duration);
-  };
-  seekBar.addEventListener('pointerup', endScrub);
-  seekBar.addEventListener('pointercancel', endScrub);
+  const seekBar = seek.root;
 
   /**
    * Résumé de la boucle en cours, entre position et durée. C'est aussi le
@@ -239,14 +171,6 @@ export function createTransport(options: TransportOptions): Transport {
   // l'accompagnement seul, mais revient au thème pour se le remettre en tête.
   // Une seule bascule, à portée immédiate.
 
-  const SOURCE_LABELS: Record<AudioKind, string> = {
-    reference: 'Original',
-    playback: 'Playback',
-  };
-  const SOURCE_HINTS: Record<AudioKind, string> = {
-    reference: 'Enregistrement original, thème compris',
-    playback: 'Accompagnement seul, sans le thème',
-  };
   const sourceCycle = (['reference', 'playback'] as AudioKind[]).filter(hasSource);
 
   function loadSource(autoplay = false): void {
@@ -256,27 +180,18 @@ export function createTransport(options: TransportOptions): Transport {
     paintLoop();
   }
 
-  const sourceButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
-  function paintSourceButton(): void {
-    fillToggle(sourceButton, SOURCE_LABELS[source], '⇄');
-    sourceButton.title = SOURCE_HINTS[source];
-    sourceButton.setAttribute(
-      'aria-label',
-      sourceCycle.length > 1
-        ? `${SOURCE_HINTS[source]} — toucher pour changer`
-        : SOURCE_HINTS[source],
-    );
-  }
-  sourceButton.addEventListener('click', () => {
-    if (sourceCycle.length < 2) return;
-    source = sourceCycle[(sourceCycle.indexOf(source) + 1) % sourceCycle.length]!;
-    paintSourceButton();
-    rateStepper.refresh();
-    // On enchaîne si l'on jouait : s'arrêter à chaque bascule casserait le fil.
-    loadSource(player.isPlaying());
+  const sourceToggle = createSourceToggle({
+    available: sourceCycle,
+    current: source,
+    onPick: (kind) => {
+      source = kind;
+      rateStepper.refresh();
+      // On enchaîne si l'on jouait : s'arrêter à chaque bascule casserait le fil.
+      loadSource(player.isPlaying());
+    },
+    extra: 'md:order-3',
   });
-  sourceButton.classList.add('md:order-3');
-  paintSourceButton();
+  const sourceButton = sourceToggle.root;
 
   // --- Frise de tracé, bascule -------------------------------------------
   //
@@ -583,14 +498,10 @@ export function createTransport(options: TransportOptions): Transport {
   const unsubscribe = player.onTick((tick) => {
     duration = tick.duration;
     durationLabel.textContent = formatTime(duration);
-    seekBar.setAttribute('aria-valuemax', String(Math.round(duration)));
-    playIcon.textContent = tick.playing ? '❚❚' : '▶';
-    playButton.classList.toggle('pl-1', !tick.playing);
-    if (!scrubbing) {
-      const ratio = duration ? tick.currentTime / duration : 0;
-      paintProgress(ratio, tick.currentTime);
-      lanePlayhead.style.left = `${ratio * 100}%`;
-    }
+    play.set(tick.playing);
+    // `seek.set` ne peint pas pendant un glissement — le doigt prime — et
+    // c'est `onPaint` qui tient le libellé et la tête de lecture à jour.
+    seek.set(tick.currentTime, duration);
     laps = tick.laps;
     paintLoop();
     // Éclair bref au moment exact du retour en A : c'est là que l'utilisateur

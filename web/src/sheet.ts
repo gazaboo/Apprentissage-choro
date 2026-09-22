@@ -52,6 +52,41 @@ export interface ControlBar {
   destroy: () => void;
 }
 
+/**
+ * Coquille visuelle du dock : hauteur, fond, arrondi, marge de sécurité, et
+ * sa place dans le flux. Elle **ignore** les commandes qu'on y range.
+ *
+ * C'est elle, le « modèle unique de dock » que demande #137. Plutôt qu'un
+ * composant configurable couvrant à la fois l'entraînement (boucle A-B,
+ * tonalité, sections Défi) et le filage (morceau suivant, cycle de vue,
+ * décompte), qui aurait fini en soupe d'options, chaque page compose ses
+ * propres commandes dans une coquille commune — même démarche que
+ * `renderRateStepper`, partagé entre les deux depuis longtemps.
+ *
+ * `sticky` et non `fixed` : le dock appartient au flux et pousse le contenu
+ * au lieu de flotter par-dessus (#9, #137).
+ */
+export function dockShell(...rows: (HTMLElement | null)[]): HTMLElement {
+  const dock = el(
+    'div',
+    {
+      class:
+        'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
+        'flex-col gap-2 p-2',
+    },
+    ...rows.filter((row): row is HTMLElement => row !== null),
+  );
+  return el(
+    'div',
+    {
+      class:
+        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 ' +
+        '[padding-bottom:env(safe-area-inset-bottom)]',
+    },
+    dock,
+  );
+}
+
 function sectionBlock(section: Section): HTMLElement {
   return el(
     'section',
@@ -138,38 +173,14 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   // l'emporterait sur un `hidden` posé sur le bouton lui-même.
   const toggleSlot = el('div', { class: 'shrink-0' }, toggle);
 
-  const dock = el(
-    'div',
-    {
-      class:
-        'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
-        'flex-col gap-2 p-2',
-    },
+  const root = dockShell(
     el(
       'div',
-      // Sur petit écran, l'engrenage s'aligne en bas, au niveau de la rangée
-      // de bascules ; sur grand écran, tout est sur une ligne.
       { class: 'flex w-full items-end gap-2 md:items-center' },
       el('div', { class: 'min-w-0 flex-1' }, options.primary),
     ),
   );
-
-  // `sticky` et non `fixed` : le dock appartient au flux, il pousse le
-  // contenu au lieu de flotter par-dessus. C'est la disposition qu'emploie
-  // déjà l'écran de filage, et elle supprime d'un coup le recouvrement de la
-  // partition *et* la réserve de hauteur codée en dur que la vue devait
-  // maintenir à la main (`pb-32 lg:pb-36`, #9/#137). `mt-auto` le colle au
-  // bas de la fenêtre tant que le contenu est plus court qu'elle.
-  const root = el(
-    'div',
-    {
-      class:
-        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 ' +
-        '[padding-bottom:env(safe-area-inset-bottom)]',
-    },
-    dock,
-  );
-
+  const dock = root.firstElementChild as HTMLElement;
 
   const query = window.matchMedia(DESKTOP);
 
