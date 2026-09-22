@@ -57,14 +57,15 @@ function mount(overrides: Partial<ControlBarOptions> = {}) {
     ...overrides,
   });
   document.body.appendChild(bar.root);
+  // L'ouvreur n'est plus dans le dock : la vue le place où elle veut (#137),
+  // ici directement dans le document.
+  document.body.appendChild(bar.opener);
   return { bar, onPanelMoved };
 }
 
 const panel = () => document.body.querySelector('[role="dialog"]') as HTMLElement;
 const overlay = () => panel().parentElement as HTMLElement;
-const openerLarge = () =>
-  [...document.body.querySelectorAll('button')].find((b) => b.textContent?.includes('Défi'))!;
-const openerSmall = () =>
+const opener = () =>
   document.body.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
 
 function pointer(type: string, clientX: number, clientY: number): PointerEvent {
@@ -108,20 +109,20 @@ describe('createControlBar — ouverture du Défi', () => {
   it('part fermé et s\'ouvre au clic, `aria-expanded` suivant l\'état', () => {
     mount();
     expect(overlay().style.display).toBe('none');
-    expect(openerSmall().getAttribute('aria-expanded')).toBe('false');
+    expect(opener().getAttribute('aria-expanded')).toBe('false');
 
-    openerSmall().click();
+    opener().click();
     expect(overlay().style.display).not.toBe('none');
-    expect(openerSmall().getAttribute('aria-expanded')).toBe('true');
+    expect(opener().getAttribute('aria-expanded')).toBe('true');
 
-    openerSmall().click();
+    opener().click();
     expect(overlay().style.display).toBe('none');
-    expect(openerSmall().getAttribute('aria-expanded')).toBe('false');
+    expect(opener().getAttribute('aria-expanded')).toBe('false');
   });
 
   it('referme par le bouton de fermeture du panneau', () => {
     mount();
-    openerSmall().click();
+    opener().click();
     const close = panel().querySelector(
       'button[aria-label="Fermer le défi"]',
     ) as HTMLButtonElement;
@@ -130,20 +131,17 @@ describe('createControlBar — ouverture du Défi', () => {
   });
 
   it('masque l\'ouvreur quand il n\'y a aucun réglage à montrer', () => {
-    mount({ sections: [] });
-    // `classList.contains` et non `className.toContain` : la classe
-    // `md:hidden` que l'ouvreur porte en permanence contient le mot
-    // « hidden », et rendrait l'assertion toujours vraie.
-    expect(openerSmall().classList.contains('hidden')).toBe(true);
-    const slot = openerLarge().parentElement as HTMLElement;
-    expect(slot.classList.contains('md:hidden')).toBe(true);
+    // Le masquage porte sur l'enveloppe rendue à la vue, pas sur le bouton :
+    // `ui.button` impose `inline-flex`, qui l'emporterait sur `hidden`.
+    const { bar } = mount({ sections: [] });
+    expect((bar.opener as HTMLElement).classList.contains('hidden')).toBe(true);
   });
 });
 
 describe('createControlBar — petit écran (< 768 px)', () => {
   it('assombrit le fond et colle le panneau en bas', () => {
     mount();
-    openerSmall().click();
+    opener().click();
     expect(overlay().style.display).toBe('flex');
     expect(overlay().className).toContain('bg-zinc-950/70');
     expect(panel().className).toContain('rounded-b-none');
@@ -152,14 +150,14 @@ describe('createControlBar — petit écran (< 768 px)', () => {
 
   it('referme quand on touche à côté du panneau', () => {
     mount();
-    openerSmall().click();
+    opener().click();
     overlay().dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(overlay().style.display).toBe('none');
   });
 
   it('ne déplace pas le panneau : il n\'y a nulle part où le mettre', () => {
     const { onPanelMoved } = mount();
-    openerSmall().click();
+    opener().click();
     const header = panel().querySelector('.panel-header') as HTMLElement;
     header.dispatchEvent(pointer('pointerdown', 100, 100));
     header.dispatchEvent(pointer('pointermove', 300, 250));
@@ -172,7 +170,7 @@ describe('createControlBar — grand écran (≥ 768 px)', () => {
   it('ouvre un popover flottant qui laisse la partition visible', () => {
     stubMatchMedia(true);
     mount();
-    openerLarge().click();
+    opener().click();
     expect(overlay().style.display).toBe('block');
     expect(overlay().className).toContain('pointer-events-none');
     expect(panel().className).toContain('fixed');
@@ -182,7 +180,7 @@ describe('createControlBar — grand écran (≥ 768 px)', () => {
   it('ne referme pas sur un clic hors panneau : la partition est cliquable', () => {
     stubMatchMedia(true);
     mount();
-    openerLarge().click();
+    opener().click();
     overlay().dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(overlay().style.display).toBe('block');
   });
@@ -190,7 +188,7 @@ describe('createControlBar — grand écran (≥ 768 px)', () => {
   it('mémorise la position après un déplacement du popover', () => {
     stubMatchMedia(true);
     const { onPanelMoved } = mount();
-    openerLarge().click();
+    opener().click();
     const header = panel().querySelector('.panel-header') as HTMLElement;
 
     header.dispatchEvent(pointer('pointerdown', 100, 100));
@@ -204,7 +202,7 @@ describe('createControlBar — grand écran (≥ 768 px)', () => {
   it('ramène dans la fenêtre une position héritée d\'un plus grand écran', () => {
     stubMatchMedia(true);
     mount({ panelPosition: { x: 9000, y: 9000 } });
-    openerLarge().click();
+    opener().click();
     // `clamp` borne à `innerWidth - 360 - 8` et `innerHeight - hauteur - 8`.
     expect(parseInt(panel().style.left, 10)).toBeLessThanOrEqual(window.innerWidth - 360);
     expect(parseInt(panel().style.top, 10)).toBeLessThanOrEqual(window.innerHeight);
@@ -215,7 +213,7 @@ describe('createControlBar — franchissement du point de rupture', () => {
   it('redistribue les mêmes nœuds et referme le panneau', () => {
     const media = stubMatchMedia(false);
     mount();
-    openerSmall().click();
+    opener().click();
     const before = panel();
     expect(overlay().style.display).toBe('flex');
 

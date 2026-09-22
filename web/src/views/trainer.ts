@@ -5,7 +5,7 @@
  * aucun raccourci clavier, et aucune action n'est cachée.
  */
 
-import { el, paintToggle, ui } from '../dom';
+import { createInstrumentChip, createSegmented, el, paintToggle, ui } from '../dom';
 import { EclipseRunner } from '../eclipse';
 import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
@@ -245,111 +245,88 @@ export function renderTrainer(
     '⛶ Plein écran',
   );
 
-  // Bascule Partition / Grille : masquée tant que le morceau n'a pas de grille.
-  const displayButtons = new Map<DisplayMode, HTMLButtonElement>();
-  for (const value of ['partition', 'grille'] as DisplayMode[]) {
-    const button = el(
-      'button',
-      { type: 'button', class: ui.button },
-      value === 'partition' ? 'Partition' : 'Grille',
-    );
-    button.addEventListener('click', () => setDisplay(value));
-    displayButtons.set(value, button);
-  }
-  const displayToggle = el('div', { class: 'hidden gap-1' }, ...displayButtons.values());
-
-  // Bascule Mélodie seule / Mélodie et contre-chant : masquée hors Ut et pour
-  // tout morceau sans contraponto (#80).
-  const contrechantButtons = new Map<'sans' | 'avec', HTMLButtonElement>();
-  for (const value of ['sans', 'avec'] as const) {
-    const button = el(
-      'button',
-      { type: 'button', class: ui.button },
-      value === 'sans' ? 'Mélodie seule' : 'Mélodie et contre-chant',
-    );
-    button.addEventListener('click', () => setContrechant(value));
-    contrechantButtons.set(value, button);
-  }
-  const contrechantToggle = el(
-    'div',
-    { class: 'hidden gap-1' },
-    ...contrechantButtons.values(),
+  // Sélecteur d'affichage : un seul groupe Partition / Grille, et les
+  // sous-options Mélodie qui se révèlent à côté quand Partition est choisie —
+  // elles n'ont de sens que là (#137). Le même choix existe en double, ici et
+  // dans la barre de plein écran ; `createSegmented` laisse la vue seule
+  // source de vérité, si bien que les deux se repeignent depuis le même état.
+  const displaySelector = createSegmented<DisplayMode>(
+    [
+      { value: 'partition', label: '♪ Partition' },
+      { value: 'grille', label: '▦ Grille' },
+    ],
+    (value) => setDisplay(value),
+  );
+  const fpDisplaySelector = createSegmented<DisplayMode>(
+    [
+      { value: 'partition', label: 'Part.' },
+      { value: 'grille', label: 'Grille' },
+    ],
+    (value) => setDisplay(value),
+    { variant: 'chip' },
   );
 
-  // Regroupe les bascules à masquer en mode « Sans partition » — le bouton
-  // Défi vit désormais dans le dock (`sheet.ts`), pas ici, et reste donc
-  // joignable même quand ce groupe disparaît (#109).
-  const scoreHeaderToggles = el(
+  const contrechantSelector = createSegmented<'sans' | 'avec'>(
+    [
+      { value: 'sans', label: 'Mélodie' },
+      { value: 'avec', label: '+ contre-chant' },
+    ],
+    (value) => setContrechant(value),
+  );
+  const fpContrechantSelector = createSegmented<'sans' | 'avec'>(
+    [
+      { value: 'sans', label: 'Mél.' },
+      { value: 'avec', label: 'Mél.+CC' },
+    ],
+    (value) => setContrechant(value),
+    { variant: 'chip' },
+  );
+
+  // Les sous-options poussent depuis la bascule principale au lieu
+  // d'apparaître d'un coup : l'animation dit qu'elles en dépendent. Elle est
+  // courte et neutralisée sous `prefers-reduced-motion` (voir `style.css`).
+  const contrechantReveal = el('div', { class: 'reveal-inline' }, contrechantSelector.root);
+  const fpContrechantReveal = el('div', { class: 'reveal-inline' }, fpContrechantSelector.root);
+
+  const instrumentChip = createInstrumentChip({
+    instruments: song.instruments,
+    current: instrumentId,
+    onPick: (id) => {
+      instrumentId = id;
+      hints = 0;
+      drawScore();
+      paintContrechantToggle();
+    },
+  });
+
+  // Contrôles qui n'ont pas de sens sans partition à l'écran : ils
+  // disparaissent en mode « Sans partition », alors que la pastille de
+  // tonalité et l'ouvreur du Défi restent joignables (#109).
+  const scoreControls = el(
     'div',
-    { class: 'flex flex-wrap items-center gap-2' },
-    displayToggle,
-    contrechantToggle,
+    { class: 'flex shrink-0 items-center gap-2' },
+    displaySelector.root,
+    contrechantReveal,
     fullpageEnter,
-  );
-
-  // Même bascule, format compact, pour la barre du plein écran.
-  const fpDisplayButtons = new Map<DisplayMode, HTMLButtonElement>();
-  for (const value of ['partition', 'grille'] as DisplayMode[]) {
-    const button = el(
-      'button',
-      { type: 'button', class: ui.chip },
-      value === 'partition' ? 'Part.' : 'Grille',
-    );
-    button.addEventListener('click', () => setDisplay(value));
-    fpDisplayButtons.set(value, button);
-  }
-  const fpDisplayToggle = el(
-    'div',
-    { class: 'hidden items-center gap-1' },
-    ...fpDisplayButtons.values(),
-  );
-
-  // Même bascule contre-chant, format compact, pour la barre du plein écran.
-  const fpContrechantButtons = new Map<'sans' | 'avec', HTMLButtonElement>();
-  for (const value of ['sans', 'avec'] as const) {
-    const button = el(
-      'button',
-      { type: 'button', class: ui.chip },
-      value === 'sans' ? 'Mél.' : 'Mél.+CC',
-    );
-    button.addEventListener('click', () => setContrechant(value));
-    fpContrechantButtons.set(value, button);
-  }
-  const fpContrechantToggle = el(
-    'div',
-    { class: 'hidden items-center gap-1' },
-    ...fpContrechantButtons.values(),
   );
 
   function paintDisplayToggle(): void {
     const has = grilleReady();
-    displayToggle.classList.toggle('hidden', !has);
-    displayToggle.classList.toggle('flex', has);
-    fpDisplayToggle.classList.toggle('hidden', !has);
-    fpDisplayToggle.classList.toggle('flex', has);
+    displaySelector.setVisible(has);
+    fpDisplaySelector.setVisible(has);
     const active = activeDisplay();
-    for (const [value, button] of displayButtons) {
-      paintToggle(button, value === active);
-    }
-    for (const [value, button] of fpDisplayButtons) {
-      paintToggle(button, value === active, 'chip');
-    }
+    displaySelector.set(active);
+    fpDisplaySelector.set(active);
   }
 
   /** Sans effet sur la grille : le contre-chant est un choix de rendu de la
    *  partition, absent de la grille d'accords (#98). */
   function paintContrechantToggle(): void {
     const has = contrechantAvailable() && activeDisplay() !== 'grille';
-    contrechantToggle.classList.toggle('hidden', !has);
-    contrechantToggle.classList.toggle('flex', has);
-    fpContrechantToggle.classList.toggle('hidden', !has);
-    fpContrechantToggle.classList.toggle('flex', has);
-    for (const [value, button] of contrechantButtons) {
-      paintToggle(button, value === contrechant);
-    }
-    for (const [value, button] of fpContrechantButtons) {
-      paintToggle(button, value === contrechant, 'chip');
-    }
+    contrechantReveal.classList.toggle('is-open', has);
+    fpContrechantReveal.classList.toggle('is-open', has);
+    contrechantSelector.set(contrechant);
+    fpContrechantSelector.set(contrechant);
   }
 
   const fullpageExit = el('button', { type: 'button', class: ui.button }, '✕ Fermer');
@@ -385,8 +362,8 @@ export function renderTrainer(
     },
     fullpageExit,
     el('span', { class: 'min-w-0 flex-1 truncate text-sm text-zinc-500' }, song.title),
-    fpDisplayToggle,
-    fpContrechantToggle,
+    fpDisplaySelector.root,
+    fpContrechantReveal,
     fpZoomOut,
     fpZoomLabel,
     fpZoomIn,
@@ -446,7 +423,6 @@ export function renderTrainer(
   const scoreHome = el(
     'div',
     { class: 'flex flex-col gap-3' },
-    scoreHeaderToggles,
     scoreContainer,
     grilleContainer,
   );
@@ -566,7 +542,8 @@ export function renderTrainer(
    *  bouton Défi, lui, vit dans le dock (`sheet.ts`) et reste toujours
    *  joignable, quel que soit le mode (#109). */
   function paintFullpage(): void {
-    scoreHeaderToggles.classList.toggle('hidden', mode === 'sans');
+    scoreControls.classList.toggle('hidden', mode === 'sans');
+    scoreControls.classList.toggle('flex', mode !== 'sans');
     if (mode === 'sans') setFullpage(false);
     onFpViewport();
     applyFpPlayer();
@@ -749,16 +726,7 @@ export function renderTrainer(
   // L'élément audio reste dans le document mais hors du champ de vision.
   const playerMount = el('div', { class: 'audio-only' });
 
-  const transport = createTransport({
-    song,
-    player,
-    onInstrument: (id) => {
-      instrumentId = id;
-      hints = 0;
-      drawScore();
-      paintContrechantToggle();
-    },
-  });
+  const transport = createTransport({ song, player });
 
   const controlBar = createControlBar({
     primary: transport.primary,
@@ -879,32 +847,67 @@ export function renderTrainer(
       )
     : null;
 
+  // L'état SRS devient une pastille collée au titre plutôt qu'un mot en
+  // toutes lettres au même rang que lui : c'est une information de contexte,
+  // pas un élément de la ligne principale (#137).
+  const statusDot = el('span', {
+    class:
+      'h-2 w-2 shrink-0 rounded-full ' +
+      (status === 'a-reviser'
+        ? 'bg-amber-400'
+        : status === 'jamais'
+          ? 'bg-zinc-600'
+          : 'bg-emerald-500'),
+    title: STATUS_LABELS[status],
+    'aria-label': STATUS_LABELS[status],
+    role: 'img',
+  });
+
+  // La tonalité de référence ne figure plus dans le sous-titre : la pastille
+  // de transposition, remontée du dock, *est* l'affichage de cette
+  // information — et, contrairement au texte qu'elle remplace, elle se met à
+  // jour quand on change de tonalité.
+  const identity = el(
+    'div',
+    { class: 'flex min-w-0 flex-1 items-center gap-2' },
+    el(
+      'h1',
+      {
+        class: 'min-w-0 truncate text-lg font-semibold text-zinc-100',
+        // Le compositeur passe en infobulle plutôt que sur la ligne : il est
+        // déjà imprimé sur la partition juste en dessous, et la place de
+        // cette ligne revient aux contrôles (#137).
+        title: `${song.title} — ${song.composer || 'compositeur inconnu'}`,
+      },
+      song.title,
+    ),
+    statusDot,
+    sessionBadge,
+  );
+
+  // Les contrôles d'affichage et de séance tiennent sur la même ligne que le
+  // titre tant que la place le permet, et basculent sur une seconde ligne à
+  // défilement horizontal dès qu'elle manque — `flex-wrap` s'en charge seul,
+  // sans point de rupture à maintenir.
+  const headerControls = el(
+    'div',
+    {
+      class:
+        'flex shrink-0 items-center gap-2 max-md:w-full ' +
+        'max-md:overflow-x-auto max-md:pb-1',
+    },
+    scoreControls,
+    instrumentChip.root,
+    controlBar.opener,
+  );
+
   const header = el(
     'header',
-    { class: 'flex flex-col gap-1' },
-    el(
-      'div',
-      { class: 'flex flex-wrap items-center justify-between gap-3' },
-      el(
-        'div',
-        { class: 'flex min-w-0 flex-wrap items-center gap-3' },
-        el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, song.title),
-        sessionBadge,
-      ),
-      el(
-        'div',
-        { class: 'flex flex-wrap gap-2' },
-        backButton,
-        stopSessionButton,
-        finishButton,
-      ),
-    ),
-    el(
-      'p',
-      { class: 'text-xs text-zinc-500' },
-      `${song.composer || 'Compositeur inconnu'} · ${currentInstrument().name} · ` +
-        STATUS_LABELS[status],
-    ),
+    { class: 'dense-bar flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2' },
+    backButton,
+    identity,
+    headerControls,
+    el('div', { class: 'flex shrink-0 gap-2' }, stopSessionButton, finishButton),
   );
 
   const noAudio = !anySource

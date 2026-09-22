@@ -15,7 +15,7 @@
 import { el, paintToggle, renderRateStepper, ui } from './dom';
 import type { Player } from './audio';
 import { formatTime } from './audio';
-import type { AudioKind, InstrumentId, Song } from './types';
+import type { AudioKind, Song } from './types';
 
 /** Bloc de réglages secondaires, avec son intitulé. */
 export interface Section {
@@ -28,8 +28,6 @@ export interface Section {
 export interface TransportOptions {
   song: Song;
   player: Player;
-  /** Appelé quand l'utilisateur change de transposition. */
-  onInstrument: (id: InstrumentId) => void;
 }
 
 export interface Transport {
@@ -59,7 +57,6 @@ export function createTransport(options: TransportOptions): Transport {
   const { song, player } = options;
 
   let source: AudioKind = song.audio.reference ? 'reference' : 'playback';
-  let instrumentId: InstrumentId = song.instruments[0]!.id;
   let scrubbing = false;
   let duration = 0;
 
@@ -281,38 +278,6 @@ export function createTransport(options: TransportOptions): Transport {
   sourceButton.classList.add('md:order-3');
   paintSourceButton();
 
-  // --- Transposition --------------------------------------------------------
-  //
-  // Une bascule de plus, du même moule : on passe d'une tonalité à l'autre au
-  // tap, sans quitter la partition des yeux.
-
-  const INSTRUMENT_CHIP: Record<InstrumentId, string> = {
-    c: 'Ut',
-    bb: 'Si♭',
-    eb: 'Mi♭',
-  };
-  const instrumentIds = song.instruments.map((instrument) => instrument.id);
-  const instrumentName = (id: InstrumentId): string =>
-    song.instruments.find((instrument) => instrument.id === id)?.name ?? id;
-
-  const instrumentButton = el('button', { type: 'button', class: `${ui.chip} gap-1.5` }, '');
-  function paintInstrumentButton(): void {
-    fillToggle(instrumentButton, INSTRUMENT_CHIP[instrumentId] ?? instrumentId, '▾');
-    instrumentButton.title = instrumentName(instrumentId);
-    instrumentButton.setAttribute(
-      'aria-label',
-      `Transposition ${instrumentName(instrumentId)} — toucher pour changer`,
-    );
-  }
-  instrumentButton.addEventListener('click', () => {
-    const i = instrumentIds.indexOf(instrumentId);
-    instrumentId = instrumentIds[(i + 1) % instrumentIds.length]!;
-    paintInstrumentButton();
-    options.onInstrument(instrumentId);
-  });
-  instrumentButton.classList.add('md:order-5');
-  paintInstrumentButton();
-
   // --- Frise de tracé, bascule -------------------------------------------
   //
   // La frise (tracé du passage à répéter) reste hors champ tant qu'on ne
@@ -334,7 +299,6 @@ export function createTransport(options: TransportOptions): Transport {
   const secondary: HTMLElement[] = [];
   if (sourceCycle.length > 1) secondary.push(sourceButton);
   secondary.push(rateGroup);
-  if (song.instruments.length > 1) secondary.push(instrumentButton);
   if (anySource) secondary.push(loopToggle);
 
   const primary = el(
