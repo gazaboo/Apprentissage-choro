@@ -369,12 +369,12 @@ export function renderTrainer(
   const fpColumns = fpIconButton('▥', 'Une ou deux colonnes');
   const fpColumnsSlot = el('div', { class: 'hidden' }, fpColumns);
 
+  // Repli du lecteur : réservé au plein écran, où gagner de la hauteur sur la
+  // partition est tout l'objet du mode. Hors plein écran le dock est dans le
+  // flux et ne recouvre plus rien — le replier n'apporte plus assez pour
+  // justifier un contrôle de plus à comprendre (#132).
   const fpPlayerToggle = fpIconButton('▾', 'Réduire le lecteur');
   if (!anySource) fpPlayerToggle.classList.add('hidden');
-  // Même bascule, pour le dock hors plein écran : le repli du lecteur
-  // (issue #120) ne doit pas dépendre du mode plein écran.
-  const dockFoldButton = fpIconButton('▾', 'Réduire le lecteur');
-  if (!anySource) dockFoldButton.classList.add('hidden');
 
   const fullpageBar = el(
     'div',
@@ -394,7 +394,7 @@ export function renderTrainer(
     fpPlayerToggle,
   );
 
-  const fullpageSlot = el('div', { class: 'fp-slot p-2 pb-40 sm:p-4' });
+  const fullpageSlot = el('div', { class: 'fp-slot p-2 sm:p-4' });
   const fullpageScroll = el(
     'div',
     { class: 'flex-1 overflow-auto overscroll-contain' },
@@ -499,14 +499,12 @@ export function renderTrainer(
     controlBar.root.classList.toggle('hidden', mini);
     fpMiniBar.classList.toggle('hidden', !mini);
     fpMiniBar.classList.toggle('flex', mini);
-    for (const button of [fpPlayerToggle, dockFoldButton]) {
-      button.textContent = fpPlayerHidden ? '▴' : '▾';
-      paintToggle(button, fpPlayerHidden, 'icon', anySource ? '' : 'hidden');
-      button.setAttribute(
-        'aria-label',
-        fpPlayerHidden ? 'Rouvrir le lecteur complet' : 'Réduire le lecteur',
-      );
-    }
+    fpPlayerToggle.textContent = fpPlayerHidden ? '▴' : '▾';
+    paintToggle(fpPlayerToggle, fpPlayerHidden, 'icon', anySource ? '' : 'hidden');
+    fpPlayerToggle.setAttribute(
+      'aria-label',
+      fpPlayerHidden ? 'Rouvrir le lecteur complet' : 'Réduire le lecteur',
+    );
   }
   function setFpPlayer(shown: boolean): void {
     fpPlayerHidden = anySource && !shown;
@@ -514,7 +512,6 @@ export function renderTrainer(
     saveFp();
   }
   fpPlayerToggle.addEventListener('click', () => setFpPlayer(fpPlayerHidden));
-  dockFoldButton.addEventListener('click', () => setFpPlayer(fpPlayerHidden));
   fpMiniExpand.addEventListener('click', () => setFpPlayer(true));
 
   function setFullpage(on: boolean): void {
@@ -527,6 +524,12 @@ export function renderTrainer(
     fullpageOverlay.classList.toggle('flex', on);
     if (on) {
       fullpageSlot.replaceChildren(activeContainer());
+      // Le dock n'est plus `fixed` : il ne flotte donc plus au-dessus de
+      // l'overlay par z-index, il faut l'y déménager — comme on déménage déjà
+      // le conteneur de partition. L'overlay étant `flex-col` avec
+      // `fullpageScroll` en `flex-1`, il se pose au bas, dans le flux, sans
+      // rien recouvrir là non plus.
+      fullpageOverlay.append(controlBar.root);
       applyFpLayout();
       // Le conteneur vient d'apparaître : sa largeur n'est fiable qu'une fois
       // la mise en page passée. On recalcule à la frame suivante.
@@ -537,6 +540,7 @@ export function renderTrainer(
       // On rend les deux conteneurs à `scoreHome` sans les redessiner, et l'on
       // remet les classes `hidden` selon la vue active.
       scoreHome.append(scoreContainer, grilleContainer);
+      page.append(controlBar.root);
       const onGrille = activeDisplay() === 'grille';
       scoreContainer.classList.toggle('hidden', onGrille);
       grilleContainer.classList.toggle('hidden', !onGrille);
@@ -766,7 +770,6 @@ export function renderTrainer(
       progress.settings.panel = panel;
       saveProgress(progress);
     },
-    foldButton: dockFoldButton,
   });
 
   // --- Évaluation ---------------------------------------------------------
@@ -980,25 +983,33 @@ export function renderTrainer(
     consigneHint.textContent = STUDY_MODE_HINTS[mode];
   }
 
-  root.replaceChildren(
-    el(
-      'div',
-      {
-        // La réserve en bas laisse la dernière page atteignable au-dessus de
-        // la barre de transport, qui flotte par-dessus le flux.
-        class: 'mx-auto flex max-w-5xl flex-col gap-4 px-4 py-6 pb-32 lg:pb-36',
-      },
-      playerMount,
-      header,
-      noAudio,
-      consigne,
-      scoreHome,
-    ),
-    controlBar.root,
-    fullpageOverlay,
-    fpMiniBar,
-    eclipseVeil,
+  // Coquille à trois bandes — barre du haut, zone de partition, dock — plutôt
+  // qu'une page qui défile d'un bloc sous un dock flottant. C'est la seule
+  // disposition où le dock ne recouvre *jamais* la partition : celle-ci
+  // défile dans sa propre boîte (`flex-1 overflow-y-auto`), dimensionnée sur
+  // ce qui reste. Un `sticky bottom-0` ne suffisait pas — il réserve bien la
+  // place en fin de page, mais reste posé par-dessus pendant le défilement
+  // (#9, #137).
+  //
+  // `min-h-0` est indispensable : sans lui, un enfant de flex refuse de
+  // devenir plus court que son contenu et la boîte ne défile jamais.
+  const scoreScroll = el(
+    'div',
+    { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto' },
+    noAudio,
+    consigne,
+    scoreHome,
   );
+  const page = el(
+    'div',
+    { class: 'mx-auto flex h-dvh max-w-5xl flex-col gap-4 px-4 py-6' },
+    playerMount,
+    header,
+    scoreScroll,
+    controlBar.root,
+  );
+
+  root.replaceChildren(page, fullpageOverlay, fpMiniBar, eclipseVeil);
 
   drawScore();
   paintMode();

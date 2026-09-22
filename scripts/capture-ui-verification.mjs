@@ -285,19 +285,6 @@ async function run() {
     await capture(session, 'song-plein-ecran', 'Entraînement — plein écran');
 
     await goto(session, songUrl);
-    // Repli du lecteur : bouton présent seulement si le morceau a de l'audio.
-    const foldExists = await evaluate(
-      session,
-      `!!document.querySelector('[aria-label="Réduire le lecteur"]')`,
-    );
-    if (foldExists) {
-      await clickAriaLabel(session, 'Réduire le lecteur');
-      await capture(session, 'song-dock-replie', 'Entraînement — dock de transport replié');
-    } else {
-      console.warn('⚠ pas de bouton « Réduire le lecteur » (morceau sans audio) — capture sautée.');
-    }
-
-    await goto(session, songUrl);
     await setViewport(session, MOBILE.width, MOBILE.height);
     await capture(session, 'song-dock', 'Entraînement — dock de transport (mobile)', { viewport: MOBILE });
     await setViewport(session, DESKTOP.width, DESKTOP.height);
