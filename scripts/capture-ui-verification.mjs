@@ -14,9 +14,10 @@
  *   node scripts/capture-ui-verification.mjs [--base-url http://localhost:5173] [--out-dir chemin]
  *
  * Limites connues (documentées plutôt que contournées à tout prix) :
- * - L'écran « Consigne » et le mode démo (#109) n'existent pas encore sur
- *   `main` au moment de l'écriture de ce script — à ajouter à la checklist
- *   une fois cette fonctionnalité mergée.
+ * - L'écran Consigne (#109) est capturé via la route cachée `#/demo`
+ *   (scénario « Deux succès », cf. `views/demo.ts`) plutôt qu'en accumulant
+ *   de vraies bonnes notes sur un morceau réel — même mécanisme que le
+ *   README documente pour la QA manuelle.
  * - Le résumé de fin de séance « normal » est capturé via un filage (plus
  *   simple à driver qu'une séance de répertoire, qui ouvrirait la modale SRS
  *   à chaque morceau) — le contenu du résumé ne dépend pas du chemin pris.
@@ -264,21 +265,58 @@ async function run() {
 
     await clearProgress(session);
 
-    // --- 5. Entraînement libre sur un morceau (#/song/:id) ----------------
+    // --- 5. Mode démonstration & écran Consigne (#109) ---------------------
+    // Route cachée `#/demo` (aucun bouton dans l'UI normale, cf. README) :
+    // amorce un morceau par branche de `recommendedMode()` dans un
+    // `sessionStorage` dédié, isolé de la vraie progression (déjà nettoyée
+    // juste au-dessus). Le scénario « Deux succès » est le seul des cinq à
+    // retomber en mode « Sans partition », qui affiche la Consigne.
+    await goto(session, `${BASE_URL}/#/demo`);
+    await capture(session, 'demo-accueil', 'Mode démonstration — accueil des scénarios');
+
+    const deuxSuccesRect = await evaluate(
+      session,
+      `(() => {
+        const sections = Array.from(document.querySelectorAll('section'));
+        const section = sections.find(
+          (s) => s.querySelector('h2')?.textContent?.trim() === 'Deux succès',
+        );
+        const btn = section?.querySelector('button');
+        if (!btn) return null;
+        btn.scrollIntoView({ block: 'center' });
+        const r = btn.getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      })()`,
+    );
+    if (!deuxSuccesRect) {
+      throw new Error('Bouton du scénario « Deux succès » introuvable en mode démo.');
+    }
+    await dispatchClick(session, deuxSuccesRect.x, deuxSuccesRect.y);
+    await settle();
+    await capture(session, 'consigne', 'Écran Consigne — mode recommandé « Sans partition »');
+
+    // Quitte le mode démo (bandeau du haut) avant de poursuivre : tant que le
+    // drapeau reste posé, `loadProgress()` lit le `sessionStorage` de démo au
+    // lieu du `localStorage` que les étapes suivantes seedent.
+    await clickByText(session, 'button', ['Quitter']);
+
+    // --- 6. Entraînement libre sur un morceau (#/song/:id) ----------------
     const songUrl = `${BASE_URL}/#/song/${songId}`;
 
     await goto(session, songUrl);
     await capture(session, 'song-mode-entiere', 'Entraînement — mode Partition entière');
 
-    async function setStudyModeAndCapture(label, slug) {
-      await clickByText(session, 'button', ['Réglages']);
-      await clickByText(session, 'button', [label]);
-      await clickAriaLabel(session, 'Fermer les réglages');
-      await capture(session, slug, `Entraînement — mode ${label}`);
-    }
-    await setStudyModeAndCapture('Mesures cachées', 'song-mode-mesures');
-    await setStudyModeAndCapture('Éclipses', 'song-mode-eclipses');
-    await setStudyModeAndCapture('Sans partition', 'song-mode-sans');
+    // L'ancien bouton « Réglages » a été remplacé par le panneau « Défi »
+    // (#109, cf. `sheet.ts`) — seul point d'entrée restant pour changer de
+    // mode de lecture depuis cette vue. Éclipses n'y a plus de bouton dédié
+    // (seuls les paliers de masquage et « partition entière » le sont :
+    // capture sautée) ; Sans partition est déjà couvert par l'écran Consigne
+    // capturé plus haut via le mode démonstration.
+    await clickByText(session, 'button', ['🎯 Défi']);
+    await capture(session, 'song-defi-panel', 'Entraînement — panneau Défi');
+    await clickByText(session, 'button', ['Partition masquée à 50 %']);
+    await clickAriaLabel(session, 'Fermer le défi');
+    await capture(session, 'song-mode-mesures', 'Entraînement — mode Mesures cachées (50 %)');
 
     await goto(session, songUrl);
     await clickByText(session, 'button', ['Plein écran']);
@@ -293,7 +331,7 @@ async function run() {
     await clickByText(session, 'button', ['Terminer et évaluer']);
     await capture(session, 'srs-modal', "Modale d'auto-évaluation (fin de morceau)");
 
-    // --- 6. Séance de répertoire (#/session) -------------------------------
+    // --- 7. Séance de répertoire (#/session) -------------------------------
     await goto(session, `${BASE_URL}/#/`);
     const urgentClicked = await clickByText(session, 'button', ['Réviser'], { optional: true });
     if (urgentClicked) {
@@ -305,7 +343,7 @@ async function run() {
       console.warn('⚠ bouton de révision introuvable (répertoire vide ?) — captures de séance sautées.');
     }
 
-    // --- 7. Filage : config, 3 états, résumés ------------------------------
+    // --- 8. Filage : config, 3 états, résumés ------------------------------
     await goto(session, `${BASE_URL}/#/`);
     await clickByText(session, 'button', ['Préparer un concert']);
     await capture(session, 'filage-config', 'Filage — configuration (partition + bande)');
@@ -332,7 +370,7 @@ async function run() {
     await clickByText(session, 'button', ['Terminer le filage']);
     await capture(session, 'resume-normal', 'Résumé de fin de séance — normal');
 
-    // --- 8. Technique (arpèges/gammes), si le catalogue est présent -------
+    // --- 9. Technique (arpèges/gammes), si le catalogue est présent -------
     await goto(session, `${BASE_URL}/#/`);
     const techniqueAvailable = await elementExists(session, 'h2', 'Technique instrumentale');
     if (techniqueAvailable) {
@@ -377,14 +415,14 @@ async function run() {
       console.warn('⚠ catalogue technique absent de cet environnement — bloc technique sauté.');
     }
 
-    // --- 9. Modale d'édition de setlist répertoire -------------------------
+    // --- 10. Modale d'édition de setlist répertoire -------------------------
     await goto(session, `${BASE_URL}/#/`);
     await clickAriaLabel(session, 'Nouvelle setlist');
     await capture(session, 'setlist-modal', 'Modale d’édition de setlist (répertoire)');
 
     session.close();
 
-    // --- 10. Écran d'erreur : manifeste inatteignable ----------------------
+    // --- 11. Écran d'erreur : manifeste inatteignable ----------------------
     // Dans un onglet séparé : le script injecté doit précéder le chargement
     // du bundle de l'app, impossible à garantir sur l'onglet déjà navigué.
     const errorTab = await openTab(chromium.port, 'about:blank');
