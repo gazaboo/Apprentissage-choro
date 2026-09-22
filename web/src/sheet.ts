@@ -19,7 +19,7 @@
  *   où le mettre.
  */
 
-import { el, ui } from './dom';
+import { el, paintToggle, ui } from './dom';
 import type { Section } from './transport';
 
 const DESKTOP = '(min-width: 768px)';
@@ -238,11 +238,14 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     isOpen = open;
     overlay.style.display = open ? (query.matches ? 'block' : 'flex') : 'none';
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.className = `${open ? ui.buttonActive : ui.button} shrink-0`;
+    paintToggle(toggle, open, 'button', 'shrink-0');
     miniToggle.setAttribute('aria-expanded', String(open));
-    miniToggle.className =
-      `${open ? ui.iconActive : ui.icon} shrink-0 md:hidden` +
-      (blocks.length === 0 ? ' hidden' : '');
+    paintToggle(
+      miniToggle,
+      open,
+      'icon',
+      'shrink-0 md:hidden' + (blocks.length === 0 ? ' hidden' : ''),
+    );
     if (open) placePanel();
   }
 

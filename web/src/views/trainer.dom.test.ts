@@ -357,10 +357,12 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     await Promise.resolve();
 
     const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
+    // `data-state` et non la classe de couleur : l'état présélectionné est ce
+    // qu'on vérifie ici, pas la palette qui l'exprime (#137).
     const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
-    expect(three?.className).toContain('bg-amber-400/15');
+    expect(three?.getAttribute('data-state')).toBe('on');
     const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
-    expect(five.className).not.toContain('bg-amber-400/15');
+    expect(five.dataset.state).toBe('off');
 
     const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
     skip.click();

@@ -83,6 +83,34 @@ export const ui = {
   label: 'text-xs font-semibold uppercase tracking-wider text-zinc-500',
 };
 
+/** Les trois gabarits de contrôle à bascule de `ui`. */
+export type ToggleVariant = 'button' | 'chip' | 'icon';
+
+/**
+ * Dit l'état d'un contrôle **hors du style** : `data-state="on" | "off"`.
+ *
+ * Sans lui, le seul témoin de « ce bouton est actif » est sa classe
+ * utilitaire, si bien qu'un test qui vérifie un état doit affirmer une
+ * couleur (`bg-amber-400/15`) et se casse au premier changement de palette.
+ * Le marqueur sépare les deux questions : `data-state` porte l'état,
+ * les classes portent son apparence.
+ */
+export function setState(element: HTMLElement, on: boolean): void {
+  element.dataset.state = on ? 'on' : 'off';
+}
+
+/** Peint un contrôle à bascule : le gabarit correspondant à l'état, et `data-state`. */
+export function paintToggle(
+  element: HTMLElement,
+  on: boolean,
+  variant: ToggleVariant = 'button',
+  extra = '',
+): void {
+  const base = on ? ui[`${variant}Active` as const] : ui[variant];
+  element.className = extra ? `${base} ${extra}` : base;
+  setState(element, on);
+}
+
 const segClass = (on: boolean): string =>
   'min-h-11 flex-1 rounded-lg border px-3 text-sm font-medium transition ' +
   (on
@@ -102,10 +130,13 @@ export function segmented<T extends string>(
       { type: 'button', class: segClass(option.value === current) },
       option.label,
     );
+    setState(button, option.value === current);
     button.addEventListener('click', () => {
       current = option.value;
       buttons.forEach((other, i) => {
-        other.className = segClass(options[i]!.value === current);
+        const on = options[i]!.value === current;
+        other.className = segClass(on);
+        setState(other, on);
       });
       onPick(current);
     });
@@ -152,7 +183,9 @@ export function renderRateStepper(
     plus.disabled = rate >= RATE_MAX;
     const bpm = getBpm();
     const targetBpm = bpm ? Math.round(rate * bpm) : null;
-    value.className = rate === RATE_MAX ? ui.chip : ui.chipActive;
+    // Le cran « vitesse d'origine » est l'état neutre : c'est tout écart qui
+    // s'annonce comme actif.
+    paintToggle(value, rate !== RATE_MAX, 'chip');
     value.textContent = targetBpm !== null ? `${targetBpm} BPM` : formatRate(rate);
     const label = targetBpm !== null ? `Tempo ${targetBpm} BPM` : `Vitesse ${formatRate(rate)}`;
     const resetHint = targetBpm !== null ? 'revenir au tempo original' : 'revenir à vitesse normale';

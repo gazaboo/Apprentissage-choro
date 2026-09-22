@@ -12,7 +12,7 @@
  * fins), que la vue place dans le panneau de réglages.
  */
 
-import { el, renderRateStepper, ui } from './dom';
+import { el, paintToggle, renderRateStepper, ui } from './dom';
 import type { Player } from './audio';
 import { formatTime } from './audio';
 import type { AudioKind, InstrumentId, Song } from './types';
@@ -507,7 +507,7 @@ export function createTransport(options: TransportOptions): Transport {
   let laneOpen = false;
   function paintLoopToggle(): void {
     lane.classList.toggle('hidden', !laneOpen);
-    loopToggle.className = `${laneOpen ? ui.chipActive : ui.chip} md:order-6`;
+    paintToggle(loopToggle, laneOpen, 'chip', 'md:order-6');
     loopToggle.setAttribute('aria-expanded', String(laneOpen));
     loopToggle.setAttribute(
       'aria-label',
