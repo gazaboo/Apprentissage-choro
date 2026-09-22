@@ -11,7 +11,12 @@
  * `--base-url` ne répond pas, plutôt que de produire des captures vides.
  *
  * Usage :
- *   node scripts/capture-ui-verification.mjs [--base-url http://localhost:5173] [--out-dir chemin]
+ *   node scripts/capture-ui-verification.mjs [--base-url http://localhost:5173] [--out-dir chemin] [--mobile]
+ *
+ * `--mobile` : balaie l'intégralité des captures en viewport mobile
+ * (375×800) au lieu du desktop (1400×1000) — les quelques captures déjà
+ * dédiées au mobile (dock, séance, filage, technique) restent en 375px
+ * dans les deux modes, sans effet visible.
  *
  * Limites connues (documentées plutôt que contournées à tout prix) :
  * - L'écran Consigne (#109) est capturé via la route cachée `#/demo`
@@ -55,11 +60,17 @@ function flag(name, fallback) {
 }
 
 const BASE_URL = (flag('base-url', 'http://localhost:5173') ?? '').replace(/\/$/, '');
+const MOBILE_ONLY = args.includes('--mobile');
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const OUT_DIR = flag('out-dir', join('docs', 'qa', 'ui-verification', timestamp));
+const OUT_DIR = flag('out-dir', join('docs', 'qa', 'ui-verification', `${timestamp}${MOBILE_ONLY ? '-mobile' : ''}`));
 
 const DESKTOP = { width: 1400, height: 1000 };
 const MOBILE = { width: 375, height: 800 };
+// Viewport par défaut du balayage : mobile si --mobile, desktop sinon. Les
+// captures qui basculent explicitement vers MOBILE puis reviennent à ce
+// niveau ("dock de transport (mobile)" etc.) redeviennent des no-ops en
+// mode --mobile plutôt que de repasser en desktop.
+const PRIMARY = MOBILE_ONLY ? MOBILE : DESKTOP;
 
 mkdirSync(OUT_DIR, { recursive: true });
 
@@ -67,7 +78,7 @@ mkdirSync(OUT_DIR, { recursive: true });
 const shots = [];
 let counter = 0;
 
-async function capture(session, slug, label, { viewport = DESKTOP } = {}) {
+async function capture(session, slug, label, { viewport = PRIMARY } = {}) {
   counter += 1;
   const suffix = viewport === MOBILE ? '-mobile' : '';
   const file = `${String(counter).padStart(2, '0')}-${slug}${suffix}.png`;
@@ -200,7 +211,7 @@ async function run() {
     await waitForCdp(chromium.port);
     const tab = await openTab(chromium.port, 'about:blank');
     const session = await connect(tab.webSocketDebuggerUrl);
-    await setViewport(session, DESKTOP.width, DESKTOP.height);
+    await setViewport(session, PRIMARY.width, PRIMARY.height);
 
     // --- 1. Passerelle d'accueil (profil neuf, rien en localStorage) -----
     await goto(session, `${BASE_URL}/#/`);
@@ -325,7 +336,7 @@ async function run() {
     await goto(session, songUrl);
     await setViewport(session, MOBILE.width, MOBILE.height);
     await capture(session, 'song-dock', 'Entraînement — dock de transport (mobile)', { viewport: MOBILE });
-    await setViewport(session, DESKTOP.width, DESKTOP.height);
+    await setViewport(session, PRIMARY.width, PRIMARY.height);
 
     await goto(session, songUrl);
     await clickByText(session, 'button', ['Terminer et évaluer']);
@@ -338,7 +349,7 @@ async function run() {
       await capture(session, 'session-urgente', "Séance — révision des urgences");
       await setViewport(session, MOBILE.width, MOBILE.height);
       await capture(session, 'session', 'Séance — dock de transport (mobile)', { viewport: MOBILE });
-      await setViewport(session, DESKTOP.width, DESKTOP.height);
+      await setViewport(session, PRIMARY.width, PRIMARY.height);
     } else {
       console.warn('⚠ bouton de révision introuvable (répertoire vide ?) — captures de séance sautées.');
     }
@@ -358,7 +369,7 @@ async function run() {
     await clickByText(session, 'button', ['Commencer le filage']);
     await setViewport(session, MOBILE.width, MOBILE.height);
     await capture(session, 'filage', 'Filage — lecteur (mobile)', { viewport: MOBILE });
-    await setViewport(session, DESKTOP.width, DESKTOP.height);
+    await setViewport(session, PRIMARY.width, PRIMARY.height);
     // L'ordre exact des 3 candidats dépend de la disponibilité d'une grille
     // pour ce morceau (sautée si absente) — on les propose tous, `optional`
     // pour ne pas interrompre tout le run si le cycle diffère de l'attendu.
@@ -402,7 +413,7 @@ async function run() {
           await capture(session, 'technique-run-masque', 'Technique — séance (notes masquées)');
           await setViewport(session, MOBILE.width, MOBILE.height);
           await capture(session, 'technique-run', 'Technique — séance (mobile)', { viewport: MOBILE });
-          await setViewport(session, DESKTOP.width, DESKTOP.height);
+          await setViewport(session, PRIMARY.width, PRIMARY.height);
           await clickByText(session, 'button', ['Voir les notes']);
           await capture(session, 'technique-run-revele', 'Technique — séance (notes révélées)');
         } else {
@@ -427,7 +438,7 @@ async function run() {
     // du bundle de l'app, impossible à garantir sur l'onglet déjà navigué.
     const errorTab = await openTab(chromium.port, 'about:blank');
     const errorSession = await connect(errorTab.webSocketDebuggerUrl);
-    await setViewport(errorSession, DESKTOP.width, DESKTOP.height);
+    await setViewport(errorSession, PRIMARY.width, PRIMARY.height);
     await addInitScript(
       errorSession,
       `(() => {
@@ -463,11 +474,12 @@ function writeIndex() {
     )
     .join('\n');
 
+  const titreMode = MOBILE_ONLY ? 'Vérification UI — mobile' : 'Vérification UI générale';
   const html = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Vérification UI — ${escapeHtml(timestamp)}</title>
+<title>${escapeHtml(titreMode)} — ${escapeHtml(timestamp)}</title>
 <style>
   body { margin: 0; padding: 2rem; background: #18181b; color: #e4e4e7; font: 15px/1.4 system-ui, sans-serif; }
   h1 { font-size: 1.2rem; font-weight: 600; }
@@ -480,9 +492,9 @@ function writeIndex() {
 </style>
 </head>
 <body>
-  <h1>Vérification UI générale — ${shots.length} captures</h1>
+  <h1>${escapeHtml(titreMode)} — ${shots.length} captures</h1>
   <p class="meta">Généré le ${escapeHtml(new Date().toLocaleString('fr-FR'))} — regénérer avec
-    <code>node scripts/capture-ui-verification.mjs</code>.</p>
+    <code>node scripts/capture-ui-verification.mjs${MOBILE_ONLY ? ' --mobile' : ''}</code>.</p>
   <div class="grid">${cards}</div>
 </body>
 </html>`;
