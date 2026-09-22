@@ -164,6 +164,7 @@ export function createPlayButton(options: {
       type: 'button',
       class:
         'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
+        'max-md:h-10 max-md:w-10 ' +
         'bg-amber-400 pl-1 text-zinc-950 shadow-lg shadow-amber-400/20 ' +
         'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
         'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
@@ -300,6 +301,10 @@ export function createSourceToggle(options: {
   extra?: string;
 }): { root: HTMLButtonElement; set(kind: AudioKind): void } {
   const LABELS: Record<AudioKind, string> = { reference: 'Original', playback: 'Playback' };
+  // Icônes mobiles : 🎙 pour l'enregistrement original (thème compris), 🎧
+  // pour l'accompagnement seul — la barre du bas doit tenir sur une seule
+  // ligne (#150), le texte se masque sous `max-md:hidden`.
+  const ICONS: Record<AudioKind, string> = { reference: '🎙', playback: '🎧' };
   const HINTS: Record<AudioKind, string> = {
     reference: 'Enregistrement original, thème compris',
     playback: 'Accompagnement seul, sans le thème',
@@ -309,14 +314,23 @@ export function createSourceToggle(options: {
 
   const root = el('button', {
     type: 'button',
-    class: `${ui.chip} gap-1.5${options.extra ? ` ${options.extra}` : ''}`,
+    class:
+      `${ui.chip} gap-1.5 max-md:min-h-8 max-md:min-w-0 max-md:px-2` +
+      `${options.extra ? ` ${options.extra}` : ''}`,
   });
 
   function paint(): void {
     root.replaceChildren(
-      el('span', { class: 'font-semibold' }, LABELS[current]),
+      el('span', { 'aria-hidden': 'true' }, ICONS[current]),
+      el('span', { class: 'max-md:hidden font-semibold' }, LABELS[current]),
       ...(cycles
-        ? [el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, '⇄')]
+        ? [
+            el(
+              'span',
+              { class: 'max-md:hidden text-sm leading-none opacity-60', 'aria-hidden': 'true' },
+              '⇄',
+            ),
+          ]
         : []),
     );
     root.title = HINTS[current];
@@ -516,8 +530,13 @@ export function renderRateStepper(
   const getBpm = options.getBpm ?? (() => null);
   let rate = player.getRate();
 
-  const minus = el('button', { type: 'button', class: ui.icon }, '−');
-  const plus = el('button', { type: 'button', class: ui.icon }, '+');
+  // Sur mobile, le dock doit tenir sur une seule ligne (#150) : le stepper
+  // rétrécit sous les tailles tactiles standard plutôt que de forcer une
+  // 2e ligne — desktop inchangé.
+  const MOBILE_ICON = 'max-md:h-8 max-md:w-8';
+  const MOBILE_CHIP = 'max-md:min-h-8 max-md:min-w-0 max-md:px-1.5 max-md:text-[10px]';
+  const minus = el('button', { type: 'button', class: `${ui.icon} ${MOBILE_ICON}` }, '−');
+  const plus = el('button', { type: 'button', class: `${ui.icon} ${MOBILE_ICON}` }, '+');
   const value = el('button', { type: 'button', class: ui.chip }, '');
 
   function paint(): void {
@@ -527,7 +546,7 @@ export function renderRateStepper(
     const targetBpm = bpm ? Math.round(rate * bpm) : null;
     // Le cran « vitesse d'origine » est l'état neutre : c'est tout écart qui
     // s'annonce comme actif.
-    paintToggle(value, rate !== RATE_MAX, 'chip');
+    paintToggle(value, rate !== RATE_MAX, 'chip', MOBILE_CHIP);
     value.textContent = targetBpm !== null ? `${targetBpm} BPM` : formatRate(rate);
     const label = targetBpm !== null ? `Tempo ${targetBpm} BPM` : `Vitesse ${formatRate(rate)}`;
     const resetHint = targetBpm !== null ? 'revenir au tempo original' : 'revenir à vitesse normale';

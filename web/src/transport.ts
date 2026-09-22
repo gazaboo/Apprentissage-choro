@@ -87,8 +87,18 @@ export function createTransport(options: TransportOptions): Transport {
   const tickA = loopTick();
   const tickB = loopTick();
 
-  const currentLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-400' }, '0:00');
-  const durationLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-500' }, '0:00');
+  // Masqués sur mobile : le dock doit tenir sur une seule ligne (#150), et
+  // la position se lit déjà au doigt sur la piste elle-même.
+  const currentLabel = el(
+    'span',
+    { class: 'max-md:hidden shrink-0 font-mono text-xs text-zinc-400' },
+    '0:00',
+  );
+  const durationLabel = el(
+    'span',
+    { class: 'max-md:hidden shrink-0 font-mono text-xs text-zinc-500' },
+    '0:00',
+  );
 
   // Géométrie et geste viennent de `dom.ts`, partagés avec le filage ; les
   // décorations de boucle restent propres à l'entraînement et se rangent
@@ -131,7 +141,7 @@ export function createTransport(options: TransportOptions): Transport {
   // masqué, il n'est pas un élément de la colonne et n'y ajoute aucun espace.
   const seekRow = el(
     'div',
-    { class: 'order-1 flex min-w-0 flex-1 flex-col gap-0.5 md:order-2' },
+    { class: 'flex min-w-0 flex-1 flex-col gap-0.5' },
     el(
       'div',
       { class: 'flex w-full items-center gap-2' },
@@ -159,7 +169,7 @@ export function createTransport(options: TransportOptions): Transport {
   const rateStepper = renderRateStepper(player, { getBpm: () => song.audio[source]?.bpm ?? null });
   const rateGroup = el(
     'div',
-    { class: 'flex shrink-0 items-center gap-1 md:order-4' },
+    { class: 'flex shrink-0 items-center gap-1' },
     rateStepper.minus,
     rateStepper.value,
     rateStepper.plus,
@@ -190,7 +200,6 @@ export function createTransport(options: TransportOptions): Transport {
       // On enchaîne si l'on jouait : s'arrêter à chaque bascule casserait le fil.
       loadSource(player.isPlaying());
     },
-    extra: 'md:order-3',
   });
   const sourceButton = sourceToggle.root;
 
@@ -202,15 +211,18 @@ export function createTransport(options: TransportOptions): Transport {
   // cours, lui, reste toujours lisible via `loopBadge`, indépendamment.
   const loopToggle = el(
     'button',
-    { type: 'button', class: `${ui.chip} md:order-6`, 'aria-expanded': 'false' },
+    { type: 'button', class: `${ui.chip} max-md:min-h-8 max-md:min-w-0 max-md:px-2`, 'aria-expanded': 'false' },
     iconLabel('🔁', 'Loop'),
   );
 
   // --- Assemblage de la barre principale ---------------------------------
   //
-  // Sous 768 px, la piste prend toute la largeur sur une première ligne et
-  // les bascules se rangent dessous ; `flex-wrap` évite tout débordement si
-  // l'écran est vraiment étroit.
+  // Une seule ligne, y compris sur mobile (#150) : chaque contrôle secondaire
+  // est réduit à une taille icône (voir `dense-bar` et les tailles `max-md:`
+  // ci-dessus), et les temps de la piste se masquent sous 768 px pour
+  // laisser la place. Avant #150, la barre passait en colonne sous 768 px
+  // (piste sur une ligne, bascules sur une seconde) ; ce n'est plus
+  // nécessaire une fois tout compacté.
 
   const secondary: HTMLElement[] = [];
   if (sourceCycle.length > 1) secondary.push(sourceButton);
@@ -222,18 +234,11 @@ export function createTransport(options: TransportOptions): Transport {
     // `dense-bar` réduit la hauteur peinte des boutons descendants sous
     // pointeur grossier aussi depuis #150 — la ligne de bascules a plus de
     // chances de tenir sur une seule ligne à 375px sans grandir le dock.
-    { class: 'dense-bar flex w-full flex-col gap-1 md:flex-row md:items-center md:gap-3' },
+    { class: 'dense-bar flex w-full items-center gap-1.5 md:gap-3' },
+    playButton,
     seekRow,
-    el(
-      'div',
-      // `md:contents` efface cette enveloppe sur grand écran : ses enfants
-      // redeviennent alors des éléments de la rangée et suivent leur `order`.
-      { class: 'order-2 flex flex-wrap items-center gap-2 md:contents' },
-      playButton,
-      ...secondary,
-    ),
+    ...secondary,
   );
-  playButton.classList.add('md:order-1');
 
   // --- Répéter un passage : tracé sur la frise ---------------------------
   //
@@ -394,7 +399,7 @@ export function createTransport(options: TransportOptions): Transport {
   let laneOpen = false;
   function paintLoopToggle(): void {
     lane.classList.toggle('hidden', !laneOpen);
-    paintToggle(loopToggle, laneOpen, 'chip', 'md:order-6');
+    paintToggle(loopToggle, laneOpen, 'chip', 'max-md:min-h-8 max-md:min-w-0 max-md:px-2');
     loopToggle.setAttribute('aria-expanded', String(laneOpen));
     loopToggle.setAttribute(
       'aria-label',
