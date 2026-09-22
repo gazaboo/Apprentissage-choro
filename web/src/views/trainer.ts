@@ -818,7 +818,11 @@ export function renderTrainer(
   }
 
   const nextLabel = context.session ? 'Passer au morceau suivant' : 'Terminer et évaluer';
-  const finishButton = el('button', { type: 'button', class: ui.primary }, nextLabel);
+  // Bouton ordinaire, et non `ui.primary` : sur cet écran l'action principale
+  // est la lecture (le rond ambre du dock). Remplir « Terminer » en ambre en
+  // faisait l'élément le plus voyant de la page, alors qu'on ne le touche
+  // qu'une fois, à la fin (#137).
+  const finishButton = el('button', { type: 'button', class: ui.button }, nextLabel);
   finishButton.addEventListener('click', () => void finish());
 
   const stopSessionButton = context.session
