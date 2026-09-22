@@ -1,7 +1,7 @@
 /** Petites fabriques DOM, pour écrire les vues sans framework. */
 
-import { RATE_MAX, RATE_MIN, stepBpm, stepRate } from './audio';
-import { INSTRUMENT_CHIP_LABELS, type InstrumentId } from './types';
+import { formatTime, RATE_MAX, RATE_MIN, stepBpm, stepRate } from './audio';
+import { INSTRUMENT_CHIP_LABELS, type AudioKind, type InstrumentId } from './types';
 
 type Attrs = Record<string, string | number | boolean | undefined>;
 type Child = Node | string | null | undefined | false;
@@ -129,6 +129,202 @@ export function paintToggle(
   const base = on ? ui[`${variant}Active` as const] : ui[variant];
   element.className = extra ? `${base} ${extra}` : base;
   setState(element, on);
+}
+
+/**
+ * Bouton de lecture rond du dock, commun à l'entraînement et au filage.
+ *
+ * Les deux écrans en avaient chacun le leur, à deux tailles différentes
+ * (56 px et 64 px) et avec deux façons d'écrire l'icône (#137).
+ */
+export function createPlayButton(options: {
+  onToggle: () => void;
+  disabled?: boolean;
+}): { root: HTMLButtonElement; set(playing: boolean): void } {
+  const icon = el('span', { class: 'text-xl leading-none' }, '▶');
+  const root = el(
+    'button',
+    {
+      type: 'button',
+      class:
+        'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
+        'bg-amber-400 pl-1 text-zinc-950 shadow-lg shadow-amber-400/20 ' +
+        'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
+        'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
+        'focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed ' +
+        'disabled:opacity-40',
+      'aria-label': 'Lecture ou pause',
+      disabled: options.disabled ?? false,
+    },
+    icon,
+  );
+  root.addEventListener('click', options.onToggle);
+  return {
+    root,
+    set(playing) {
+      icon.textContent = playing ? '❚❚' : '▶';
+      // Le triangle n'est pas centré optiquement ; la pause l'est.
+      root.classList.toggle('pl-1', !playing);
+    },
+  };
+}
+
+/** Barre de défilement du dock : la piste, le geste, et rien d'autre. */
+export interface SeekBar {
+  root: HTMLElement;
+  /** La piste elle-même, où poser des décorations (bande de boucle, repères). */
+  track: HTMLElement;
+  /** Repeint la position. Sans effet pendant un glissement : le doigt prime. */
+  set(currentTime: number, duration: number): void;
+  /** Vrai tant que le doigt est posé. Le filage s'en sert pour ne pas prendre
+   *  un glissement vers la fin du morceau pour la fin du morceau. */
+  isScrubbing(): boolean;
+}
+
+/**
+ * Barre de défilement partagée entre l'entraînement et le filage.
+ *
+ * Les deux en avaient une, et elles ne se comportaient pas pareil : le filage
+ * déplaçait le lecteur à *chaque* mouvement du doigt, l'entraînement
+ * seulement au relâchement. On retient le second — sur un fichier long,
+ * relancer le décodage à chaque pixel hache la lecture (#137).
+ */
+export function createSeekBar(options: {
+  /** Appelé au relâchement seulement, en secondes. */
+  onSeek: (seconds: number) => void;
+  /** Appelé à chaque repeinte — battement du lecteur comme glissement du
+   *  doigt — pour que l'appelant place ses propres décorations. */
+  onPaint?: (ratio: number, seconds: number) => void;
+  decorations?: HTMLElement[];
+}): SeekBar {
+  const fill = el('div', { class: 'absolute inset-y-0 left-0 rounded-full bg-amber-400' });
+  const track = el(
+    'div',
+    { class: 'seek-track relative w-full rounded-full bg-zinc-700' },
+    ...(options.decorations ?? []),
+    fill,
+  );
+  const root = el(
+    'div',
+    {
+      // La zone de saisie fait 44 px de haut, même si la piste n'en fait que 4.
+      class: 'seek-bar flex h-11 w-full min-w-0 flex-1 cursor-pointer items-center',
+      role: 'slider',
+      'aria-label': 'Position dans le morceau',
+      'aria-valuemin': 0,
+      'aria-valuenow': 0,
+    },
+    track,
+  );
+
+  let scrubbing = false;
+  let duration = 0;
+
+  const ratioFrom = (event: PointerEvent): number => {
+    const rect = track.getBoundingClientRect();
+    if (rect.width === 0) return 0;
+    return Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+  };
+
+  function paint(ratio: number, current: number): void {
+    fill.style.width = `${ratio * 100}%`;
+    root.setAttribute('aria-valuenow', String(Math.round(current)));
+    root.setAttribute('aria-valuetext', formatTime(current));
+    options.onPaint?.(ratio, current);
+  }
+
+  root.addEventListener('pointerdown', (event) => {
+    if (!duration) return;
+    scrubbing = true;
+    root.classList.add('is-dragging');
+    root.setPointerCapture(event.pointerId);
+    const ratio = ratioFrom(event);
+    paint(ratio, ratio * duration);
+  });
+  root.addEventListener('pointermove', (event) => {
+    if (!scrubbing || !duration) return;
+    const ratio = ratioFrom(event);
+    paint(ratio, ratio * duration);
+  });
+  const endScrub = (event: PointerEvent): void => {
+    if (!scrubbing) return;
+    scrubbing = false;
+    root.classList.remove('is-dragging');
+    if (duration) options.onSeek(ratioFrom(event) * duration);
+  };
+  root.addEventListener('pointerup', endScrub);
+  root.addEventListener('pointercancel', endScrub);
+
+  return {
+    root,
+    track,
+    isScrubbing: () => scrubbing,
+    set(currentTime, total) {
+      duration = total;
+      root.setAttribute('aria-valuemax', String(Math.round(total)));
+      if (scrubbing) return;
+      paint(total ? currentTime / total : 0, currentTime);
+    },
+  };
+}
+
+/**
+ * Bascule Original ⇄ Playback, un aller-retour constant plutôt qu'un réglage
+ * qu'on pose une fois : l'accompagnateur travaille sur l'enregistrement
+ * complet, le soliste sur l'accompagnement seul, mais revient au thème.
+ *
+ * Le filage en avait une version à deux boutons segmentés, avec sa propre
+ * classe ambre — restée en dehors du vocabulaire de couleur unifié. Une seule
+ * pastille cyclique désormais : le dock est contraint en largeur (#137).
+ */
+export function createSourceToggle(options: {
+  available: AudioKind[];
+  current: AudioKind;
+  onPick: (kind: AudioKind) => void;
+  extra?: string;
+}): { root: HTMLButtonElement; set(kind: AudioKind): void } {
+  const LABELS: Record<AudioKind, string> = { reference: 'Original', playback: 'Playback' };
+  const HINTS: Record<AudioKind, string> = {
+    reference: 'Enregistrement original, thème compris',
+    playback: 'Accompagnement seul, sans le thème',
+  };
+  const cycles = options.available.length > 1;
+  let current = options.current;
+
+  const root = el('button', {
+    type: 'button',
+    class: `${ui.chip} gap-1.5${options.extra ? ` ${options.extra}` : ''}`,
+  });
+
+  function paint(): void {
+    root.replaceChildren(
+      el('span', { class: 'font-semibold' }, LABELS[current]),
+      ...(cycles
+        ? [el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, '⇄')]
+        : []),
+    );
+    root.title = HINTS[current];
+    root.setAttribute(
+      'aria-label',
+      cycles ? `${HINTS[current]} — toucher pour changer` : HINTS[current],
+    );
+  }
+
+  root.addEventListener('click', () => {
+    if (!cycles) return;
+    current = options.available[(options.available.indexOf(current) + 1) % options.available.length]!;
+    paint();
+    options.onPick(current);
+  });
+
+  paint();
+  return {
+    root,
+    set(kind) {
+      current = kind;
+      paint();
+    },
+  };
 }
 
 /** Groupe à choix unique, repeint seul, dont la vue pilote la valeur. */
