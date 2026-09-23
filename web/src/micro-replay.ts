@@ -74,6 +74,8 @@ export interface NoteVerite {
   /** Instant de l'attaque, en secondes depuis le début de la prise. */
   t: number;
   midi: number;
+  /** Ce qui a été joué n'est pas établi avec certitude : ni juste ni faux au score. */
+  incertain?: boolean;
 }
 
 export interface ScorePrise {
@@ -101,7 +103,7 @@ export function noterPrise(
 ): ScorePrise {
   const prises = new Set<number>();
   const score: ScorePrise = {
-    notes: verite.length,
+    notes: verite.filter((n) => !n.incertain).length,
     justes: 0,
     octave: 0,
     fausses: 0,
@@ -119,6 +121,11 @@ export function noterPrise(
       }
     });
     const d = detections[meilleure];
+    if (note.incertain) {
+      // Consommée pour ne pas compter « en trop », mais pas notée.
+      if (d) prises.add(meilleure);
+      continue;
+    }
     if (!d) {
       score.manquees += 1;
       continue;

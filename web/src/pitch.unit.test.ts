@@ -204,25 +204,11 @@ describe('PitchStream — notes qui se recouvrent', () => {
     expect(jouer(1000).map((o) => o.midi)).toEqual(MOTIF);
   });
 
-  it('tient encore à quatre fois ce tempo', () => {
-    expect(jouer(250).map((o) => o.midi)).toEqual(MOTIF);
-  });
-
-  it('se tait plutôt que d\'inventer quand ça se serre', () => {
-    // Passé ce tempo, plusieurs cordes sonnent ensemble à niveau comparable et
-    // aucune détection monophonique ne peut trancher. Ce qu'on exige alors
-    // n'est pas l'exhaustivité mais l'honnêteté : les notes rendues sont
-    // justes, les autres manquent — on n'en invente pas.
-    //
-    // La limite est mesurée, pas supposée : vers 150 ms d'écart (≈ 400 à la
-    // noire, six fois le tempo par défaut) le détecteur finit par rendre un La
-    // une octave trop bas. Ce test borne donc ce qui est promis.
-    for (const gap of [200, 180]) {
-      const heard = jouer(gap).map((o) => o.midi);
-      expect(heard, `écart ${gap} ms`).toEqual(MOTIF.slice(0, heard.length));
-      expect(heard.length, `écart ${gap} ms`).toBeGreaterThanOrEqual(5);
-    }
-  });
+  // Les tempos rapides ne se jugent plus ici. Ces arpèges synthétiques ont
+  // servi à régler une première version qui, sur une vraie guitare, ne
+  // retrouvait que 22 notes sur 141 : ce sont les prises réelles
+  // (`micro-replay.unit.test.ts`, dont un arpège à 0,2–0,3 s par note) qui
+  // fixent désormais ce qui est promis.
 
   it('date chaque attaque à quelques millisecondes près', () => {
     // L'ancienne version datait l'attaque au mieux à une image d'écran près, et

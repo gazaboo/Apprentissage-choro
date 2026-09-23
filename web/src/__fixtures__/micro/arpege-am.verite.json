@@ -98,5 +98,6 @@
    "nom": "A2"
   }
  ],
- "sature": true
+ "sature": true,
+ "justesMin": 15
 }

@@ -30,10 +30,11 @@ describe('rejeu hors ligne', () => {
     for (let i = 0; i < note.length; i += 1) signal[sr / 4 + i] = (note[i] ?? 0) * 0.3 * Math.exp(-i / sr);
     const [onset] = rejouer(signal, sr);
     expect(onset && nameFromMidi(onset.midi)).toBe('A3');
-    // Fenêtre de hauteur (2048) + au plus un lot de 512 après l'attaque.
+    // 100 ms d'attente + la plus longue des fenêtres (3072, celle de
+    // l'octave), + au plus un lot de 512 et un pas d'analyse d'attaque.
     const delai = (onset?.emisA ?? 0) - (onset?.audioTime ?? 0);
-    expect(delai).toBeGreaterThan(2048 / sr - 0.001);
-    expect(delai).toBeLessThan((2048 + 512 + 256) / sr);
+    expect(delai).toBeGreaterThan(0.1 + 3072 / sr - 0.001);
+    expect(delai).toBeLessThan(0.1 + (3072 + 512 + 256) / sr);
   });
 });
 
@@ -98,7 +99,8 @@ describe.skipIf(prises.length === 0)('prises réelles', () => {
     if (existsSync(cheminVerite)) {
       const verite = JSON.parse(readFileSync(cheminVerite, 'utf8')) as {
         sature?: boolean;
-        notes: { t: number; midi: number }[];
+        justesMin?: number;
+        notes: { t: number; midi: number; incertain?: boolean }[];
       };
       const s = noterPrise(onsets, verite.notes);
       sections.splice(
@@ -107,6 +109,14 @@ describe.skipIf(prises.length === 0)('prises réelles', () => {
         `score : ${s.justes}/${s.notes} justes, ${s.octave} octave, ${s.fausses} fausses, `
           + `${s.manquees} manquées, ${s.enTrop} en trop, rendu médian ${s.renduMedianMs} ms`,
       );
+
+      // Plancher : ce que la détection retrouve aujourd'hui sur cette prise.
+      // Il ne doit que monter — c'est la garde contre un réglage qui
+      // arrangerait des signaux synthétiques au détriment du vrai jeu.
+      if (verite.justesMin !== undefined) {
+        expect(s.justes, `notes justes (${s.octave} octave, ${s.fausses} fausses, ${s.manquees} manquées)`)
+          .toBeGreaterThanOrEqual(verite.justesMin);
+      }
 
       // L'alerte de saturation doit dire vrai sur chaque prise étiquetée.
       const detecteur = new DetecteurSaturation(sampleRate);

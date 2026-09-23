@@ -1,0 +1,153 @@
+{
+ "description": "gamme-majeure::C::montant en mode évaluation à 84 bpm, métronome au haut-parleur (le micro entend les clics du décompte). Firefox, micro baissé.",
+ "methode": "attaques par flux spectral ; chaque battue est appariée à l’attaque la plus proche de battue + 90 ms ; notes données par le motif de l’exercice. Notes marquées « incertain » : le spectre contredit le motif sans pouvoir trancher (octave, ou corde grave qui résonne encore en jeu rapide) — ni justes ni fausses au score.",
+ "sature": false,
+ "notes": [
+  {
+   "t": 3.045,
+   "midi": 36,
+   "nom": "C2",
+   "battue": 0
+  },
+  {
+   "t": 3.755,
+   "midi": 38,
+   "nom": "D2",
+   "battue": 1
+  },
+  {
+   "t": 4.443,
+   "midi": 40,
+   "nom": "E2",
+   "battue": 2
+  },
+  {
+   "t": 5.12,
+   "midi": 41,
+   "nom": "F2",
+   "battue": 3
+  },
+  {
+   "t": 5.808,
+   "midi": 43,
+   "nom": "G2",
+   "battue": 4
+  },
+  {
+   "t": 6.507,
+   "midi": 45,
+   "nom": "A2",
+   "battue": 5
+  },
+  {
+   "t": 7.349,
+   "midi": 47,
+   "nom": "B2",
+   "battue": 6
+  },
+  {
+   "t": 8.016,
+   "midi": 48,
+   "nom": "C3",
+   "battue": 7
+  },
+  {
+   "t": 8.747,
+   "midi": 50,
+   "nom": "D3",
+   "battue": 8
+  },
+  {
+   "t": 9.472,
+   "midi": 52,
+   "nom": "E3",
+   "battue": 9
+  },
+  {
+   "t": 10.208,
+   "midi": 53,
+   "nom": "F3",
+   "battue": 10
+  },
+  {
+   "t": 10.891,
+   "midi": 55,
+   "nom": "G3",
+   "battue": 11
+  },
+  {
+   "t": 11.579,
+   "midi": 57,
+   "nom": "A3",
+   "battue": 12
+  },
+  {
+   "t": 12.352,
+   "midi": 59,
+   "nom": "B3",
+   "battue": 13
+  },
+  {
+   "t": 13.013,
+   "midi": 60,
+   "nom": "C4",
+   "battue": 14
+  },
+  {
+   "t": 13.76,
+   "midi": 36,
+   "nom": "C2",
+   "battue": 15
+  },
+  {
+   "t": 14.475,
+   "midi": 38,
+   "nom": "D2",
+   "battue": 16
+  },
+  {
+   "t": 15.184,
+   "midi": 40,
+   "nom": "E2",
+   "battue": 17
+  },
+  {
+   "t": 15.867,
+   "midi": 41,
+   "nom": "F2",
+   "battue": 18
+  },
+  {
+   "t": 16.603,
+   "midi": 43,
+   "nom": "G2",
+   "battue": 19
+  },
+  {
+   "t": 17.285,
+   "midi": 45,
+   "nom": "A2",
+   "battue": 20
+  },
+  {
+   "t": 18.075,
+   "midi": 47,
+   "nom": "B2",
+   "battue": 21
+  },
+  {
+   "t": 18.757,
+   "midi": 48,
+   "nom": "C3",
+   "battue": 22
+  },
+  {
+   "t": 19.461,
+   "midi": 50,
+   "nom": "D3",
+   "battue": 23,
+   "incertain": true
+  }
+ ],
+ "justesMin": 18
+}

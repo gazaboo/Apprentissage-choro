@@ -83,5 +83,6 @@
    "nom": "C4"
   }
  ],
- "sature": true
+ "sature": true,
+ "justesMin": 13
 }

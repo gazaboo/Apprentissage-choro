@@ -1,0 +1,160 @@
+{
+ "description": "Gamme de do C2 → C4, une montée à ~0,35 s par note puis une à ~0,25 s. Firefox, micro baissé (0,28 % ≥ 0,9). Attaques douteuses écartées : 0,97 / 6,09 / 6,46 / 7,89 / 11,51 / 12,92 s.",
+ "methode": "attaques par flux spectral (trames 1024, pas 256), notes données par le motif joué, contrôlées par produit spectral harmonique sur les passages lents. Notes marquées « incertain » : le spectre contredit le motif sans pouvoir trancher (octave, ou corde grave qui résonne encore en jeu rapide) — ni justes ni fausses au score.",
+ "sature": false,
+ "notes": [
+  {
+   "t": 1.79,
+   "midi": 36,
+   "nom": "C2"
+  },
+  {
+   "t": 2.13,
+   "midi": 38,
+   "nom": "D2"
+  },
+  {
+   "t": 2.49,
+   "midi": 40,
+   "nom": "E2"
+  },
+  {
+   "t": 2.81,
+   "midi": 41,
+   "nom": "F2"
+  },
+  {
+   "t": 3.14,
+   "midi": 43,
+   "nom": "G2"
+  },
+  {
+   "t": 3.52,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 3.86,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 4.22,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 4.53,
+   "midi": 50,
+   "nom": "D3",
+   "incertain": true
+  },
+  {
+   "t": 4.87,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 5.14,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 5.49,
+   "midi": 55,
+   "nom": "G3"
+  },
+  {
+   "t": 5.8,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 6.18,
+   "midi": 59,
+   "nom": "B3"
+  },
+  {
+   "t": 6.58,
+   "midi": 60,
+   "nom": "C4"
+  },
+  {
+   "t": 7.15,
+   "midi": 36,
+   "nom": "C2"
+  },
+  {
+   "t": 7.37,
+   "midi": 38,
+   "nom": "D2"
+  },
+  {
+   "t": 7.67,
+   "midi": 40,
+   "nom": "E2"
+  },
+  {
+   "t": 8.0,
+   "midi": 41,
+   "nom": "F2"
+  },
+  {
+   "t": 8.17,
+   "midi": 43,
+   "nom": "G2"
+  },
+  {
+   "t": 8.46,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 8.66,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 8.92,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 9.24,
+   "midi": 50,
+   "nom": "D3"
+  },
+  {
+   "t": 9.43,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 9.74,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 10.01,
+   "midi": 55,
+   "nom": "G3"
+  },
+  {
+   "t": 10.22,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 10.47,
+   "midi": 59,
+   "nom": "B3",
+   "incertain": true
+  },
+  {
+   "t": 10.75,
+   "midi": 60,
+   "nom": "C4"
+  }
+ ],
+ "justesMin": 20
+}

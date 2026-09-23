@@ -144,17 +144,50 @@ export interface PitchReglages {
   attaque: 'rms' | 'derivee';
   /** Nombre de fenêtres successives (décalées d'une demi-fenêtre) qui votent. */
   votes: number;
+  /** Note la plus grave cherchée (MIDI). */
+  minMidi: number;
+  /**
+   * Vérification spectrale de l'octave, sur `fenetreOctave` échantillons :
+   * `bas` est le rapport au-delà duquel on descend d'une octave (les partiels
+   * impairs de f/2 sont là), `haut` celui en deçà duquel on monte (les
+   * partiels impairs de f manquent). `null` : pas de vérification.
+   */
+  octave: { bas: number; haut: number } | null;
+  fenetreOctave: number;
 }
 
+/**
+ * Réglages retenus au banc d'essai sur six prises réelles (guitare 7 cordes,
+ * `src/__fixtures__/micro/`, 141 notes établies) : 110 justes contre 22 avec
+ * la version précédente, réglée sur des cordes synthétiques. Ce qui compte,
+ * par ordre d'effet :
+ *
+ * - **mesurer 100 ms après l'attaque**, pas dessus : le médiator, et plus
+ *   encore un micro un peu fort, déforment les premières dizaines de
+ *   millisecondes — c'est là que la hauteur sortait à l'octave ou pas du tout ;
+ * - **vérifier l'octave sur le spectre** (`corrigerOctave`) : l'autocorrélation
+ *   seule rendait les si et les mi graves à l'octave au-dessus ;
+ * - repérer l'attaque sur la **dérivée**, qui fait ressortir le coup de
+ *   médiator même quand d'autres cordes sonnent encore ;
+ * - s'arrêter à B1 : rien ne sonne plus bas sur une 7 cordes accordée en do,
+ *   et chercher plus bas laissait prendre un sous-multiple pour une note.
+ *
+ * Le prix est le délai d'affichage : ~175 ms entre l'attaque et la note
+ * rendue. Il ne fausse pas le placement rythmique, l'attaque restant datée à
+ * l'instant où la corde a été touchée.
+ */
 export const REGLAGES_DEFAUT: PitchReglages = {
   fenetre: PITCH_WINDOW,
-  delaiMs: 0,
+  delaiMs: 100,
   montee: RISE_FACTOR,
   relache: RELEASE,
-  clarteMin: MIN_CLARITY,
-  seuilPic: 0.9,
-  attaque: 'rms',
+  clarteMin: 0.5,
+  seuilPic: 0.95,
+  attaque: 'derivee',
   votes: 1,
+  minMidi: 35,
+  octave: { bas: 0.35, haut: 0.1 },
+  fenetreOctave: 3072,
 };
 
 /**
@@ -172,10 +205,14 @@ export class DetecteurSaturation {
   /** Au-delà, un échantillon est compté comme touchant le plafond. Mesuré
    *  après les coupe-bandes, qui arrondissent un peu les plateaux écrêtés. */
   static readonly PLAFOND = 0.9;
-  /** Part d'échantillons au plafond qui déclenche l'alerte… */
-  static readonly DECLENCHE = 0.005;
+  /** Part d'échantillons au plafond qui déclenche l'alerte…
+   *
+   *  Mesurée sur 1,5 s de prises réelles : 20 à 29 % au pire quand le micro
+   *  sature, au plus 1,1 % une fois le gain baissé — une attaque un peu forte
+   *  touche le plafond sans rien gâcher. 3 % se tient loin des deux. */
+  static readonly DECLENCHE = 0.03;
   /** …et celle sous laquelle elle retombe. */
-  static readonly RETOMBE = 0.0005;
+  static readonly RETOMBE = 0.005;
 
   private readonly capacite: number;
   private lots: { total: number; ecretes: number }[] = [];
@@ -265,8 +302,10 @@ export class PitchStream {
     this.reglages = { ...REGLAGES_DEFAUT, ...reglages };
     this.saturation = new DetecteurSaturation(sampleRate);
     this.delai = Math.round((this.reglages.delaiMs / 1000) * sampleRate);
-    this.etendue =
-      this.delai + this.reglages.fenetre + ((this.reglages.votes - 1) * this.reglages.fenetre) / 2;
+    this.etendue = Math.max(
+      this.delai + this.reglages.fenetre + ((this.reglages.votes - 1) * this.reglages.fenetre) / 2,
+      this.reglages.octave ? this.delai + this.reglages.fenetreOctave : 0,
+    );
     // Une seconde de mémoire : très au-delà de ce qu'on relit (70 ms), mais de
     // quoi encaisser un fil principal momentanément occupé.
     this.ring = new Float32Array(Math.max(sampleRate, this.etendue * 4));
@@ -382,18 +421,27 @@ export class PitchStream {
     if (ready.length === 0) return;
     this.pending = this.pending.filter((attack) => attack + this.etendue > this.written);
 
-    const { fenetre, votes, seuilPic, clarteMin } = this.reglages;
+    const { fenetre, votes, seuilPic, clarteMin, minMidi, octave, fenetreOctave } = this.reglages;
     for (const attack of ready) {
       const trouves: { frequency: number; clarity: number }[] = [];
       for (let v = 0; v < votes; v += 1) {
         const debut = attack + this.delai + (v * fenetre) / 2;
         const window = new Float32Array(fenetre);
         for (let i = 0; i < fenetre; i += 1) window[i] = this.sample(debut + i);
-        const trouve = detectPitch(window, this.sampleRate, { seuilPic, clarteMin });
+        const trouve = detectPitch(window, this.sampleRate, { seuilPic, clarteMin, minMidi });
         if (trouve) trouves.push(trouve);
       }
-      const found = voter(trouves);
-      if (!found) continue;
+      const vote = voter(trouves);
+      if (!vote) continue;
+      let found = vote;
+      if (octave) {
+        const segment = new Float32Array(fenetreOctave);
+        for (let i = 0; i < fenetreOctave; i += 1) segment[i] = this.sample(attack + this.delai + i);
+        found = {
+          ...vote,
+          frequency: corrigerOctave(segment, this.sampleRate, vote.frequency, octave, minMidi),
+        };
+      }
 
       const exact = midiFromFrequency(found.frequency);
       const midi = Math.round(exact);
@@ -558,12 +606,16 @@ function rootMeanSquare(buffer: Float32Array): number {
 export function detectPitch(
   buffer: Float32Array,
   sampleRate: number,
-  { seuilPic = 0.9, clarteMin = MIN_CLARITY }: { seuilPic?: number; clarteMin?: number } = {},
+  {
+    seuilPic = 0.9,
+    clarteMin = MIN_CLARITY,
+    minMidi = MIN_MIDI,
+  }: { seuilPic?: number; clarteMin?: number; minMidi?: number } = {},
 ): { frequency: number; clarity: number } | null {
   const minTau = Math.max(2, Math.floor(sampleRate / frequencyFromMidi(MAX_MIDI)));
   const maxTau = Math.min(
     buffer.length - 1,
-    Math.ceil(sampleRate / frequencyFromMidi(MIN_MIDI)),
+    Math.ceil(sampleRate / frequencyFromMidi(minMidi)),
   );
   if (maxTau <= minTau) return null;
 
@@ -616,6 +668,56 @@ export function detectPitch(
   const shift = divisor === 0 ? 0 : (right - left) / divisor;
 
   return { frequency: sampleRate / (chosen + shift), clarity: middle };
+}
+
+/** Amplitude de la composante `frequency` d'un segment (Goertzel, fenêtre de Hann). */
+function amplitude(segment: Float32Array, sampleRate: number, frequency: number): number {
+  const w = (2 * Math.PI * frequency) / sampleRate;
+  const coeff = 2 * Math.cos(w);
+  let s1 = 0;
+  let s2 = 0;
+  const n = segment.length;
+  for (let i = 0; i < n; i += 1) {
+    const hann = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (n - 1));
+    const s0 = (segment[i] ?? 0) * hann + coeff * s1 - s2;
+    s2 = s1;
+    s1 = s0;
+  }
+  return Math.sqrt(Math.max(0, s1 * s1 + s2 * s2 - coeff * s1 * s2));
+}
+
+/**
+ * Tranche l'octave par le spectre, là où l'autocorrélation hésite.
+ *
+ * Une note de fondamentale f a des partiels à f, 2f, 3f… ; la même note une
+ * octave plus bas en ajoute à f/2, 3f/2, 5f/2. On regarde donc ces partiels
+ * « impairs » : présents sous f, c'est que la vraie note est f/2 (le cas du si
+ * grave dont la fondamentale est faible, que l'autocorrélation rend une octave
+ * trop haut) ; absents à f, 3f, 5f alors que 2f et 4f sonnent, c'est que la
+ * vraie note est 2f (une corde grave qui résonne par sympathie sous un mi).
+ */
+export function corrigerOctave(
+  segment: Float32Array,
+  sampleRate: number,
+  frequency: number,
+  { bas, haut }: { bas: number; haut: number },
+  minMidi: number = MIN_MIDI,
+): number {
+  const A = (f: number): number => (f < sampleRate / 2 ? amplitude(segment, sampleRate, f) : 0);
+  const moyenne = (fs: number[]): number => fs.reduce((s, f) => s + A(f), 0) / fs.length;
+
+  const f = frequency;
+  if (f / 2 >= frequencyFromMidi(minMidi - 0.5)) {
+    const impairsDessous = moyenne([f / 2, (3 * f) / 2, (5 * f) / 2]);
+    const partiels = moyenne([f, 2 * f, 3 * f]);
+    if (partiels > 0 && impairsDessous / partiels > bas) return f / 2;
+  }
+  if (2 * f <= frequencyFromMidi(MAX_MIDI)) {
+    const impairs = moyenne([f, 3 * f, 5 * f]);
+    const pairs = moyenne([2 * f, 4 * f]);
+    if (pairs > 0 && impairs / pairs < haut) return 2 * f;
+  }
+  return f;
 }
 
 /**
