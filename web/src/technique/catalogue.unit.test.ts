@@ -6,10 +6,12 @@ import type { Progress } from '../store';
 import type { SrsCard } from '../types';
 import {
   DEFAULT_ROOTS,
+  estAccordNaturel,
   expandMotif,
   parAccord,
   parMotif,
   pickExercices,
+  presetsTechnique,
   type ExerciceCarte,
   type Sens,
 } from './catalogue';
@@ -105,6 +107,7 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
     activeSetlistId: null,
     techniqueSetlists: [],
     activeTechniqueSetlistId: null,
+    techniquePresetsSeeded: false,
     sessions: [],
     _rev: 0,
     settings: {
@@ -250,5 +253,52 @@ describe('parMotif / parAccord — regroupement pour l’affichage en pastilles'
     expect([...groups.keys()]).toEqual(['C', 'D']);
     expect(groups.get('C')).toHaveLength(2);
     expect(groups.get('D')).toHaveLength(1);
+  });
+});
+
+describe('estAccordNaturel', () => {
+  it.each([
+    ['C', true],
+    ['Dm7', true],
+    ['Bdim7', true],
+    ['C#', false],
+    ['C#m7', false],
+    ['Eb', false],
+    ['Bm7b5', true],
+    ['F#dim7', false],
+  ])('%s → %s', (accord, attendu) => {
+    expect(estAccordNaturel(accord)).toBe(attendu);
+  });
+});
+
+// Setlists de technique suggérées par défaut (#158) : elles alimentent le
+// seeding fait une seule fois au démarrage (`main.ts` boot). Vérifie le
+// filtrage plutôt que la seule tonalité de référence — voir CLAUDE.md.
+describe('presetsTechnique', () => {
+  it('regroupe les arpèges et les gammes courantes, tonalités sans dièse ni bémol seulement', () => {
+    const cartes = [
+      carteGroupee({ id: 'arp-c', motifId: 'arp-maj', famille: 'Arpèges', accord: 'C' }),
+      carteGroupee({ id: 'arp-cs', motifId: 'arp-maj', famille: 'Arpèges', accord: 'C#' }),
+      carteGroupee({ id: 'gamme-maj-d', motifId: 'gamme-majeure', famille: 'Gammes', accord: 'D' }),
+      carteGroupee({
+        id: 'gamme-harm-d',
+        motifId: 'gamme-mineure-harmonique',
+        famille: 'Gammes',
+        accord: 'D',
+      }),
+      carteGroupee({ id: 'gamme-min-eb', motifId: 'gamme-mineure', famille: 'Gammes', accord: 'Eb' }),
+    ];
+
+    const presets = presetsTechnique(cartes);
+    const arpeges = presets.find((preset) => preset.id === 'preset-arpeges-naturels');
+    const gammes = presets.find((preset) => preset.id === 'preset-gammes-naturelles');
+
+    expect(arpeges?.exerciceIds).toEqual(['arp-c']);
+    expect(gammes?.exerciceIds).toEqual(['gamme-maj-d']);
+  });
+
+  it('omet une setlist sans aucune carte correspondante plutôt que de la proposer vide', () => {
+    const cartes = [carteGroupee({ id: 'x', motifId: 'gamme-mineure-melodique', famille: 'Gammes' })];
+    expect(presetsTechnique(cartes)).toEqual([]);
   });
 });

@@ -30,6 +30,7 @@ import {
   recordSession,
   saveProgress,
   stopDemo,
+  upsertTechniqueSetlist,
 } from './store';
 import type { Progress } from './store';
 import {
@@ -40,7 +41,7 @@ import {
   syncNow,
 } from './sync';
 import type { ExerciceCarte } from './technique/catalogue';
-import { chargerCatalogue, pickExercices } from './technique/catalogue';
+import { chargerCatalogue, pickExercices, presetsTechnique } from './technique/catalogue';
 import type { AudioKind, InstrumentId, Song } from './types';
 import { Player } from './audio';
 import { renderAbout } from './views/about';
@@ -598,6 +599,23 @@ async function boot(): Promise<void> {
     exercices = await chargerCatalogue(new AbortController().signal);
   } catch {
     exercices = [];
+  }
+
+  // Setlists de technique suggérées par défaut (#158) : proposées une seule
+  // fois, pour que l'utilisateur puisse ensuite les supprimer sans les voir
+  // revenir. Sans effet si le catalogue n'a pas pu être chargé cette fois-ci
+  // — retenté au prochain démarrage.
+  if (!progress.techniquePresetsSeeded && exercices.length > 0) {
+    progress.techniquePresetsSeeded = true;
+    for (const preset of presetsTechnique(exercices)) {
+      upsertTechniqueSetlist(progress, {
+        id: preset.id,
+        name: preset.name,
+        exerciceIds: preset.exerciceIds,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    saveProgress(progress);
   }
 
   initAnalytics();

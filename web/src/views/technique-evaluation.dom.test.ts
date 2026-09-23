@@ -71,6 +71,7 @@ function baseProgress(): Progress {
     activeSetlistId: null,
     techniqueSetlists: [],
     activeTechniqueSetlistId: null,
+    techniquePresetsSeeded: false,
     sessions: [],
     _rev: 0,
     settings: {
