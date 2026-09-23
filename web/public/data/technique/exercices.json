@@ -34,6 +34,26 @@
       "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
     {
+      "id": "arp-m7b5",
+      "famille": "Arpèges",
+      "nom": "Arpège demi-diminué",
+      "reference": "Bm7b5",
+      "notes": ["B", "D", "F", "A"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
+      "sens": ["aller-retour"],
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+    },
+    {
+      "id": "arp-dim7",
+      "famille": "Arpèges",
+      "nom": "Arpège diminué",
+      "reference": "Bdim7",
+      "notes": ["B", "D", "F", "Ab"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
+      "sens": ["aller-retour"],
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+    },
+    {
       "id": "gamme-majeure",
       "famille": "Gammes",
       "nom": "Gamme majeure",
