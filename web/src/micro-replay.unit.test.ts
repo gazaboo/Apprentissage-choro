@@ -2,7 +2,8 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { decodeWav16 } from './diagnostic-micro';
-import { notch, rejouer } from './micro-replay';
+import { chaineEntree, noterPrise, notch, rejouer } from './micro-replay';
+import { DetecteurSaturation } from './pitch';
 import { nameFromMidi } from './technique/theorie';
 
 function sine(frequency: number, sampleRate: number, length: number): Float32Array {
@@ -92,6 +93,29 @@ describe.skipIf(prises.length === 0)('prises réelles', () => {
           ...journal.battues.map((b) => `${(b.time - debut).toFixed(3).padStart(8)} s  temps ${b.index}`),
         );
       }
+    }
+    const cheminVerite = join(FIXTURES, fichier.replace(/\.wav$/, '.verite.json'));
+    if (existsSync(cheminVerite)) {
+      const verite = JSON.parse(readFileSync(cheminVerite, 'utf8')) as {
+        sature?: boolean;
+        notes: { t: number; midi: number }[];
+      };
+      const s = noterPrise(onsets, verite.notes);
+      sections.splice(
+        2,
+        0,
+        `score : ${s.justes}/${s.notes} justes, ${s.octave} octave, ${s.fausses} fausses, `
+          + `${s.manquees} manquées, ${s.enTrop} en trop, rendu médian ${s.renduMedianMs} ms`,
+      );
+
+      // L'alerte de saturation doit dire vrai sur chaque prise étiquetée.
+      const detecteur = new DetecteurSaturation(sampleRate);
+      const filtre = chaineEntree(samples, sampleRate);
+      let alerte = false;
+      for (let i = 0; i + 512 <= filtre.length; i += 512) {
+        alerte = detecteur.push(filtre.slice(i, i + 512)) || alerte;
+      }
+      expect(alerte, 'alerte de saturation').toBe(verite.sature ?? false);
     }
     writeFileSync(join(FIXTURES, fichier.replace(/\.wav$/, '.rapport.txt')), `${sections.join('\n')}\n`);
     expect(samples.length).toBeGreaterThan(0);

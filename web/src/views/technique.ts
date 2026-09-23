@@ -416,6 +416,44 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micLevelTrack,
   );
 
+  // Micro qui sature : mesuré sur des prises réelles, c'est ce qui fait sortir
+  // les notes à l'octave au-dessus ou pas du tout. Le seul vrai remède est
+  // côté matériel, d'où un message qui dit quoi faire plutôt qu'un chiffre.
+  let sature = false;
+  const saturationAlert = el(
+    'p',
+    {
+      class:
+        'hidden max-w-sm self-center rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 ' +
+        'text-center text-xs text-rose-200',
+      role: 'status',
+      'aria-live': 'polite',
+      'data-saturation-micro': '',
+    },
+    'Le micro sature : le son est trop fort pour reconnaître les notes. Éloignez la guitare '
+      + 'du micro ou baissez le gain d’entrée dans les réglages son de l’appareil.',
+  );
+
+  function paintSaturation(): void {
+    const actif = sature && (Boolean(tracker?.listening) || micTesting);
+    saturationAlert.classList.toggle('hidden', !actif);
+    // Le VU-mètre passe au rouge : on remplace sa couleur plutôt que d'en
+    // empiler deux, dont l'ordre dans la feuille de style déciderait.
+    for (const [fill, couleur] of [
+      [micLevelFill, 'bg-amber-400'],
+      [testLevelFill, 'bg-emerald-400'],
+    ] as const) {
+      fill.classList.toggle('bg-rose-500', actif);
+      fill.classList.toggle(couleur, !actif);
+    }
+  }
+
+  function handleSaturation(etat: boolean): void {
+    if (etat === sature) return;
+    sature = etat;
+    paintSaturation();
+  }
+
   // Test du micro : hors évaluation, pour lever le doute sur le matériel
   // (micro, distance, bruit ambiant) avant de s'engager dans 3 passes
   // chronométrées — sans quoi un mauvais score reste indécidable entre une
@@ -644,6 +682,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micStatusRow.classList.toggle('hidden', !listening);
     micStatusRow.classList.toggle('flex', listening);
     if (!listening) micLevelFill.style.width = '0%';
+    if (!listening && !micTesting) sature = false;
+    paintSaturation();
 
     // L'explication de l'évaluation vit dans l'infobulle du bouton : l'écran
     // ne parle que quand il y a quelque chose à dire.
@@ -822,8 +862,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     paintNotes();
   }
 
-  function handleLevel(level: number): void {
+  function handleLevel(level: number, etatSaturation: boolean): void {
     micLevelFill.style.width = `${Math.round(level * 100)}%`;
+    handleSaturation(etatSaturation);
   }
 
   function clearSilenceTimer(): void {
@@ -923,8 +964,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           testHeard = [onset, ...testHeard].slice(0, 5);
           paintMicTest();
         },
-        (level) => {
+        (level, etatSaturation) => {
           testLevelFill.style.width = `${Math.round(level * 100)}%`;
+          handleSaturation(etatSaturation);
         },
       );
       journaliser(testTracker, 'test');
@@ -1199,6 +1241,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           ),
           micStatusRow,
           micHint,
+          saturationAlert,
           testRow,
           diagnosticButton,
         ),

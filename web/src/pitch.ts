@@ -118,6 +118,97 @@ export const CLICK_HZ = [600, 800, 1000];
 /** Étroitesse des cloches : assez fines pour ne mordre que sur le clic. */
 export const CLICK_Q = 20;
 
+/**
+ * Réglages de la détection, regroupés pour pouvoir les comparer au banc
+ * d'essai sur des prises réelles (`micro-replay.unit.test.ts`). La page
+ * n'utilise que `REGLAGES_DEFAUT`.
+ */
+export interface PitchReglages {
+  /** Longueur de la fenêtre de hauteur, en échantillons. */
+  fenetre: number;
+  /** Retard du début de la fenêtre de hauteur sur l'attaque, en ms. */
+  delaiMs: number;
+  /** Rapport niveau/enveloppe qui fait une attaque. */
+  montee: number;
+  /** Vitesse de redescente de l'enveloppe, par pas de `HOP`. */
+  relache: number;
+  /** Clarté minimale pour appeler une note. */
+  clarteMin: number;
+  /** Seuil relatif du premier pic retenu (règle de McLeod). */
+  seuilPic: number;
+  /**
+   * Grandeur suivie pour repérer les attaques : le niveau (`rms`), ou le
+   * niveau de la dérivée (`derivee`), qui fait ressortir le transitoire de
+   * l'attaque même quand le signal plafonne.
+   */
+  attaque: 'rms' | 'derivee';
+  /** Nombre de fenêtres successives (décalées d'une demi-fenêtre) qui votent. */
+  votes: number;
+}
+
+export const REGLAGES_DEFAUT: PitchReglages = {
+  fenetre: PITCH_WINDOW,
+  delaiMs: 0,
+  montee: RISE_FACTOR,
+  relache: RELEASE,
+  clarteMin: MIN_CLARITY,
+  seuilPic: 0.9,
+  attaque: 'rms',
+  votes: 1,
+};
+
+/**
+ * Repère un micro qui sature.
+ *
+ * Mesuré sur des prises réelles : un gain d'entrée trop fort écrêtait jusqu'à
+ * 78 % des échantillons d'une attaque — un signal presque carré, où la hauteur
+ * sort à l'octave au-dessus ou pas du tout (2 notes justes sur 15). Aucun
+ * réglage de la détection ne rattrape ça aussi bien que baisser le micro : il
+ * faut donc le dire. On compte la part d'échantillons proches du plafond sur
+ * une fenêtre glissante, avec une hystérésis pour que l'alerte ne clignote pas
+ * d'une note à l'autre.
+ */
+export class DetecteurSaturation {
+  /** Au-delà, un échantillon est compté comme touchant le plafond. Mesuré
+   *  après les coupe-bandes, qui arrondissent un peu les plateaux écrêtés. */
+  static readonly PLAFOND = 0.9;
+  /** Part d'échantillons au plafond qui déclenche l'alerte… */
+  static readonly DECLENCHE = 0.005;
+  /** …et celle sous laquelle elle retombe. */
+  static readonly RETOMBE = 0.0005;
+
+  private readonly capacite: number;
+  private lots: { total: number; ecretes: number }[] = [];
+  private total = 0;
+  private ecretes = 0;
+  sature = false;
+
+  /** `dureeS` : longueur de la fenêtre glissante. */
+  constructor(sampleRate: number, dureeS = 1.5) {
+    this.capacite = Math.round(sampleRate * dureeS);
+  }
+
+  /** Ajoute un lot et rend l'état courant. */
+  push(samples: Float32Array): boolean {
+    let ecretes = 0;
+    for (let i = 0; i < samples.length; i += 1) {
+      if (Math.abs(samples[i] ?? 0) >= DetecteurSaturation.PLAFOND) ecretes += 1;
+    }
+    this.lots.push({ total: samples.length, ecretes });
+    this.total += samples.length;
+    this.ecretes += ecretes;
+    while (this.total - (this.lots[0]?.total ?? 0) >= this.capacite && this.lots.length > 1) {
+      const ancien = this.lots.shift()!;
+      this.total -= ancien.total;
+      this.ecretes -= ancien.ecretes;
+    }
+    const part = this.ecretes / Math.max(1, this.total);
+    if (part >= DetecteurSaturation.DECLENCHE) this.sature = true;
+    else if (part < DetecteurSaturation.RETOMBE) this.sature = false;
+    return this.sature;
+  }
+}
+
 export interface Onset {
   /** Instant `AudioContext.currentTime` de l'attaque. */
   audioTime: number;
@@ -141,9 +232,14 @@ export interface Onset {
 export class PitchStream {
   private readonly sampleRate: number;
   private readonly onOnset: (onset: Onset) => void;
-  private readonly onLevel?: (level: number) => void;
+  private readonly onLevel?: (level: number, sature: boolean) => void;
+  private readonly saturation: DetecteurSaturation;
   private readonly ring: Float32Array;
   private readonly minGapFrames: number;
+  private readonly reglages: PitchReglages;
+  private readonly delai: number;
+  /** Fin de la dernière fenêtre de vote, depuis l'attaque. */
+  private readonly etendue: number;
 
   /** Index absolu du premier échantillon jamais reçu. */
   private origin = -1;
@@ -160,14 +256,20 @@ export class PitchStream {
   constructor(
     sampleRate: number,
     onOnset: (onset: Onset) => void,
-    onLevel?: (level: number) => void,
+    onLevel?: (level: number, sature: boolean) => void,
+    reglages: Partial<PitchReglages> = {},
   ) {
     this.sampleRate = sampleRate;
     this.onOnset = onOnset;
     this.onLevel = onLevel;
+    this.reglages = { ...REGLAGES_DEFAUT, ...reglages };
+    this.saturation = new DetecteurSaturation(sampleRate);
+    this.delai = Math.round((this.reglages.delaiMs / 1000) * sampleRate);
+    this.etendue =
+      this.delai + this.reglages.fenetre + ((this.reglages.votes - 1) * this.reglages.fenetre) / 2;
     // Une seconde de mémoire : très au-delà de ce qu'on relit (70 ms), mais de
     // quoi encaisser un fil principal momentanément occupé.
-    this.ring = new Float32Array(Math.max(sampleRate, PITCH_WINDOW * 4));
+    this.ring = new Float32Array(Math.max(sampleRate, this.etendue * 4));
     this.minGapFrames = Math.round(MIN_GAP_S * sampleRate);
   }
 
@@ -190,7 +292,8 @@ export class PitchStream {
     }
     this.written += samples.length;
 
-    this.onLevel?.(Math.min(1, rootMeanSquare(samples) / LOUD_RMS));
+    const sature = this.saturation.push(samples);
+    this.onLevel?.(Math.min(1, rootMeanSquare(samples) / LOUD_RMS), sature);
     this.scanOnsets();
     this.measureReady();
   }
@@ -215,6 +318,16 @@ export class PitchStream {
     return Math.sqrt(sum / Math.max(1, to - from));
   }
 
+  /** Niveau efficace de la dérivée première sur `[from, to)`. */
+  private rmsDerivee(from: number, to: number): number {
+    let sum = 0;
+    for (let f = from; f < to; f += 1) {
+      const d = this.sample(f) - this.sample(f - 1);
+      sum += d * d;
+    }
+    return Math.sqrt(sum / Math.max(1, to - from));
+  }
+
   private sample(frame: number): number {
     return this.ring[((frame % this.ring.length) + this.ring.length) % this.ring.length] ?? 0;
   }
@@ -225,19 +338,22 @@ export class PitchStream {
     let p = Math.max(this.scanned, this.origin + FAST);
     for (; p <= this.written; p += HOP) {
       const level = this.rms(p - FAST, p);
+      const suivi = this.reglages.attaque === 'derivee' ? this.rmsDerivee(p - FAST, p) : level;
       const reference = this.envelope;
 
       // L'enveloppe suit le sommet immédiatement et ne lâche qu'ensuite : le
       // test se fait donc toujours contre le niveau d'avant, jamais contre
       // celui que l'attaque vient elle-même d'établir.
       this.envelope =
-        level > this.envelope ? level : this.envelope + (level - this.envelope) * RELEASE;
+        suivi > this.envelope
+          ? suivi
+          : this.envelope + (suivi - this.envelope) * this.reglages.relache;
 
       if (level <= SILENCE_RMS) continue;
-      if (level <= reference * RISE_FACTOR) continue;
+      if (suivi <= reference * this.reglages.montee) continue;
       if (p - this.lastOnsetFrame < this.minGapFrames) continue;
 
-      const attack = this.locateAttack(p, reference);
+      const attack = this.locateAttack(p, this.reglages.attaque === 'rms' ? reference : 0);
       this.lastOnsetFrame = attack;
       this.pending.push(attack);
     }
@@ -262,15 +378,21 @@ export class PitchStream {
 
   /** Mesure la hauteur des attaques dont la fenêtre est enfin complète. */
   private measureReady(): void {
-    const ready = this.pending.filter((attack) => attack + PITCH_WINDOW <= this.written);
+    const ready = this.pending.filter((attack) => attack + this.etendue <= this.written);
     if (ready.length === 0) return;
-    this.pending = this.pending.filter((attack) => attack + PITCH_WINDOW > this.written);
+    this.pending = this.pending.filter((attack) => attack + this.etendue > this.written);
 
+    const { fenetre, votes, seuilPic, clarteMin } = this.reglages;
     for (const attack of ready) {
-      const window = new Float32Array(PITCH_WINDOW);
-      for (let i = 0; i < PITCH_WINDOW; i += 1) window[i] = this.sample(attack + i);
-
-      const found = detectPitch(window, this.sampleRate);
+      const trouves: { frequency: number; clarity: number }[] = [];
+      for (let v = 0; v < votes; v += 1) {
+        const debut = attack + this.delai + (v * fenetre) / 2;
+        const window = new Float32Array(fenetre);
+        for (let i = 0; i < fenetre; i += 1) window[i] = this.sample(debut + i);
+        const trouve = detectPitch(window, this.sampleRate, { seuilPic, clarteMin });
+        if (trouve) trouves.push(trouve);
+      }
+      const found = voter(trouves);
       if (!found) continue;
 
       const exact = midiFromFrequency(found.frequency);
@@ -289,7 +411,7 @@ export class PitchStream {
 export class PitchTracker {
   private readonly context: AudioContext;
   private readonly onOnset: (onset: Onset) => void;
-  private readonly onLevel?: (level: number) => void;
+  private readonly onLevel?: (level: number, sature: boolean) => void;
   private stream: MediaStream | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
   private node: AudioWorkletNode | null = null;
@@ -306,12 +428,13 @@ export class PitchTracker {
   /**
    * `onLevel` publie le niveau sonore courant (0–1) à chaque lot, qu'il y ait
    * ou non une attaque : c'est ce qui alimente un simple VU-mètre, la seule
-   * preuve continue que le micro capte quelque chose.
+   * preuve continue que le micro capte quelque chose. `sature` y dit si
+   * l'entrée écrête (voir `DetecteurSaturation`).
    */
   constructor(
     context: AudioContext,
     onOnset: (onset: Onset) => void,
-    onLevel?: (level: number) => void,
+    onLevel?: (level: number, sature: boolean) => void,
   ) {
     this.context = context;
     this.onOnset = onOnset;
@@ -435,6 +558,7 @@ function rootMeanSquare(buffer: Float32Array): number {
 export function detectPitch(
   buffer: Float32Array,
   sampleRate: number,
+  { seuilPic = 0.9, clarteMin = MIN_CLARITY }: { seuilPic?: number; clarteMin?: number } = {},
 ): { frequency: number; clarity: number } | null {
   const minTau = Math.max(2, Math.floor(sampleRate / frequencyFromMidi(MAX_MIDI)));
   const maxTau = Math.min(
@@ -476,12 +600,12 @@ export function detectPitch(
   if (peaks.length === 0) return null;
 
   const highest = Math.max(...peaks.map((peak) => nsdf[peak] ?? 0));
-  const chosen = peaks.find((peak) => (nsdf[peak] ?? 0) >= 0.9 * highest);
+  const chosen = peaks.find((peak) => (nsdf[peak] ?? 0) >= seuilPic * highest);
   if (chosen === undefined) return null;
   // Le seuil porte sur le pic effectivement retenu, et non sur le plus haut :
   // c'est celui-là qu'on s'apprête à appeler une note, et c'est donc sa
   // périodicité à lui qui doit convaincre.
-  if ((nsdf[chosen] ?? 0) < MIN_CLARITY) return null;
+  if ((nsdf[chosen] ?? 0) < clarteMin) return null;
 
   // Interpolation parabolique : sans elle, la hauteur est quantifiée par
   // l'échantillonnage, soit près d'un demi-ton dans l'aigu.
@@ -492,6 +616,30 @@ export function detectPitch(
   const shift = divisor === 0 ? 0 : (right - left) / divisor;
 
   return { frequency: sampleRate / (chosen + shift), clarity: middle };
+}
+
+/**
+ * Hauteur retenue parmi plusieurs fenêtres : le demi-ton le plus souvent vu,
+ * départagé par la clarté ; sa fréquence est la médiane de ses votes.
+ */
+function voter(
+  trouves: { frequency: number; clarity: number }[],
+): { frequency: number; clarity: number } | null {
+  if (trouves.length <= 1) return trouves[0] ?? null;
+  const parNote = new Map<number, { frequency: number; clarity: number }[]>();
+  for (const t of trouves) {
+    const midi = Math.round(midiFromFrequency(t.frequency));
+    parNote.set(midi, [...(parNote.get(midi) ?? []), t]);
+  }
+  const score = (groupe: { clarity: number }[]): number =>
+    groupe.length + groupe.reduce((somme, t) => somme + t.clarity, 0) / 100;
+  const [meilleur] = [...parNote.values()].sort((a, b) => score(b) - score(a));
+  if (!meilleur) return null;
+  const frequences = meilleur.map((t) => t.frequency).sort((a, b) => a - b);
+  return {
+    frequency: frequences[Math.floor(frequences.length / 2)] ?? 0,
+    clarity: Math.max(...meilleur.map((t) => t.clarity)),
+  };
 }
 
 function frequencyFromMidi(midi: number): number {

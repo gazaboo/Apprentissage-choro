@@ -7,7 +7,7 @@
  * où elle a été **rendue**, ce qui mesure la latence de la détection elle-même.
  */
 
-import { CLICK_HZ, CLICK_Q, PitchStream, type Onset } from './pitch';
+import { CLICK_HZ, CLICK_Q, PitchStream, type Onset, type PitchReglages } from './pitch';
 
 export interface OnsetRejoue extends Onset {
   /** Instant (s, depuis le début de la prise) où la note est sortie du flux. */
@@ -51,16 +51,86 @@ export function chaineEntree(samples: Float32Array, sampleRate: number): Float32
 export function rejouer(
   samples: Float32Array,
   sampleRate: number,
-  options: { filtrer?: boolean } = {},
+  options: { filtrer?: boolean; reglages?: Partial<PitchReglages> } = {},
 ): OnsetRejoue[] {
   const signal = options.filtrer === false ? samples : chaineEntree(samples, sampleRate);
   const heard: OnsetRejoue[] = [];
   let fin = 0;
-  const stream = new PitchStream(sampleRate, (onset) => heard.push({ ...onset, emisA: fin / sampleRate }));
+  const stream = new PitchStream(
+    sampleRate,
+    (onset) => heard.push({ ...onset, emisA: fin / sampleRate }),
+    undefined,
+    options.reglages,
+  );
   const BATCH = 512;
   for (let frame = 0; frame + BATCH <= signal.length; frame += BATCH) {
     fin = frame + BATCH;
     stream.push(frame, signal.slice(frame, frame + BATCH));
   }
   return heard;
+}
+
+export interface NoteVerite {
+  /** Instant de l'attaque, en secondes depuis le début de la prise. */
+  t: number;
+  midi: number;
+}
+
+export interface ScorePrise {
+  notes: number;
+  justes: number;
+  /** Bon nom de note, mauvaise octave. */
+  octave: number;
+  /** Détectées au bon moment, mais sur une autre note. */
+  fausses: number;
+  manquees: number;
+  /** Détections qui ne correspondent à aucune note jouée. */
+  enTrop: number;
+  /** Délai médian entre l'attaque réelle et la sortie de la note, en ms. */
+  renduMedianMs: number;
+}
+
+/**
+ * Confronte les détections à ce qui a réellement été joué : chaque note
+ * jouée prend la détection la plus proche à `tolerance` près.
+ */
+export function noterPrise(
+  detections: OnsetRejoue[],
+  verite: NoteVerite[],
+  tolerance = 0.1,
+): ScorePrise {
+  const prises = new Set<number>();
+  const score: ScorePrise = {
+    notes: verite.length,
+    justes: 0,
+    octave: 0,
+    fausses: 0,
+    manquees: 0,
+    enTrop: 0,
+    renduMedianMs: 0,
+  };
+  const rendus: number[] = [];
+  for (const note of verite) {
+    let meilleure = -1;
+    detections.forEach((d, i) => {
+      if (prises.has(i) || Math.abs(d.audioTime - note.t) > tolerance) return;
+      if (meilleure < 0 || Math.abs(d.audioTime - note.t) < Math.abs((detections[meilleure]?.audioTime ?? 0) - note.t)) {
+        meilleure = i;
+      }
+    });
+    const d = detections[meilleure];
+    if (!d) {
+      score.manquees += 1;
+      continue;
+    }
+    prises.add(meilleure);
+    rendus.push(d.emisA - note.t);
+    if (d.midi === note.midi) score.justes += 1;
+    else if ((d.midi - note.midi) % 12 === 0) score.octave += 1;
+    else score.fausses += 1;
+  }
+  score.enTrop = detections.length - prises.size;
+  rendus.sort((a, b) => a - b);
+  score.renduMedianMs = Math.round((rendus[Math.floor(rendus.length / 2)] ?? 0) * 1000);
+  return score;
 }

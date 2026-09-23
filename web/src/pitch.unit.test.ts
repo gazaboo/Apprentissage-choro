@@ -15,7 +15,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { PitchStream, detectPitch, type Onset } from './pitch';
+import { DetecteurSaturation, PitchStream, detectPitch, type Onset } from './pitch';
 import { midiFromFrequency } from './technique/theorie';
 
 const SR = 44100;
@@ -244,5 +244,49 @@ describe('PitchStream — notes qui se recouvrent', () => {
 
   it('reste muet sur du silence', () => {
     expect(run(new Float32Array(SR))).toEqual([]);
+  });
+});
+
+describe('DetecteurSaturation', () => {
+  const SR_S = 48000;
+  const lots = (signal: Float32Array): Float32Array[] => {
+    const out: Float32Array[] = [];
+    for (let i = 0; i + 512 <= signal.length; i += 512) out.push(signal.slice(i, i + 512));
+    return out;
+  };
+  const sinus = (amplitude: number, secondes: number): Float32Array =>
+    Float32Array.from({ length: SR_S * secondes }, (_, i) =>
+      Math.max(-1, Math.min(1, amplitude * Math.sin((2 * Math.PI * 110 * i) / SR_S))),
+    );
+
+  it('se tait sur un jeu fort mais sous le plafond', () => {
+    const d = new DetecteurSaturation(SR_S);
+    expect(lots(sinus(0.8, 2)).map((l) => d.push(l)).some(Boolean)).toBe(false);
+  });
+
+  it('alerte sur un signal écrêté, puis retombe quand le niveau baisse', () => {
+    const d = new DetecteurSaturation(SR_S);
+    const etats = lots(sinus(3, 1)).map((l) => d.push(l));
+    // Moins d'une demi-seconde pour s'en apercevoir.
+    expect(etats.indexOf(true)).toBeGreaterThanOrEqual(0);
+    expect(etats.indexOf(true) * 512).toBeLessThan(SR_S / 2);
+    const apres = lots(sinus(0.5, 2)).map((l) => d.push(l));
+    expect(apres.at(-1)).toBe(false);
+  });
+
+  it('ne clignote pas entre deux attaques saturées', () => {
+    // Une note écrêtée par seconde, comme sur les prises réelles : l'alerte
+    // doit tenir entre les notes, pas s'éteindre dans chaque creux.
+    const d = new DetecteurSaturation(SR_S);
+    const signal = new Float32Array(SR_S * 4);
+    for (let n = 0; n < 4; n += 1) {
+      for (let i = 0; i < SR_S; i += 1) {
+        signal[n * SR_S + i] = Math.max(-1, Math.min(1, 3 * Math.exp(-i / 4800) * Math.sin((2 * Math.PI * 110 * i) / SR_S)));
+      }
+    }
+    const etats = lots(signal).map((l) => d.push(l));
+    const premiere = etats.indexOf(true);
+    expect(premiere).toBeGreaterThanOrEqual(0);
+    expect(etats.slice(premiere).every(Boolean)).toBe(true);
   });
 });

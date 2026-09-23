@@ -24,3 +24,13 @@ lots et mêmes filtres que la page) et écrit à côté un `.rapport.txt`
 (non versionné).
 
 ## Prises
+
+| Prise | Joué | Conditions | Détection au 2026-09-23 |
+|---|---|---|---|
+| `gamme-c` | Gamme de do C2 → C4 (précédée d'un E2) | Firefox, 60 bpm, jeu libre, **micro saturé** (≈ 6 % d'échantillons écrêtés, 78 % sur certaines attaques) | 2/16 |
+| `arpege-am` | Arpège Am aller-retour × 2 | idem | 2/19 |
+
+La vérité terrain (`.verite.json`) a été établie hors ligne : attaques sur
+l'enveloppe, hauteur par produit spectral harmonique sur 400 ms prises 350 ms
+après l'attaque (hors écrêtage), puis contrôlée contre l'exercice. `sature`
+y dit si l'alerte de saturation doit se déclencher sur la prise.
