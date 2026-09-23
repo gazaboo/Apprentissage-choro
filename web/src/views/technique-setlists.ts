@@ -1,6 +1,8 @@
 /** Modale d'édition d'une setlist de technique : nom, sélection de tonalités.
  *
- * Montée depuis la page Technique (bouton ＋ « nouvelle » ou ✎ « modifier »).
+ * Montée depuis le menu de la pastille de la page Technique (« Nouvelle
+ * setlist », ou « Modifier » sur la ligne d'une setlist) ; la suppression se
+ * fait ici.
  * Une seule setlist de technique est « active » à la fois ; créer une setlist
  * l'active aussitôt. Quand une setlist est active, `pickExercices` ne choisit
  * plus que parmi ses exercices — contrairement au filage du répertoire, il
@@ -13,11 +15,12 @@
  */
 
 import { el, ui } from '../dom';
-import { setActiveTechniqueSetlist, upsertTechniqueSetlist } from '../store';
+import { deleteTechniqueSetlist, setActiveTechniqueSetlist, upsertTechniqueSetlist } from '../store';
 import type { Progress } from '../store';
 import { parAccord, parFamille, parMotif } from '../technique/catalogue';
 import type { ExerciceCarte } from '../technique/catalogue';
 import type { TechniqueSetlist } from '../types';
+import { deleteControl, enterSaves } from './section-ui';
 
 export type TechniqueSetlistTarget =
   | { mode: 'create' }
@@ -186,7 +189,21 @@ export function openTechniqueSetlistEditor(
         },
         checklist,
       ),
-      el('div', { class: 'flex justify-end gap-2' }, cancelButton, saveButton),
+      el(
+        'div',
+        { class: 'flex flex-wrap items-center justify-end gap-2' },
+        editing
+          ? deleteControl(
+              () => nameInput.value.trim() || editing.name,
+              () => {
+                deleteTechniqueSetlist(progress, editing.id);
+                close();
+              },
+            )
+          : null,
+        cancelButton,
+        saveButton,
+      ),
     ),
   );
 
@@ -202,7 +219,7 @@ export function openTechniqueSetlistEditor(
 
   function onKey(event: KeyboardEvent): void {
     if (event.key === 'Escape') close();
-    else if (event.key === 'Enter' && !event.isComposing) save();
+    else if (enterSaves(event)) save();
   }
 
   function save(): void {

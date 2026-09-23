@@ -18,7 +18,7 @@ import { createEmptyCard, fsrs, Rating, type Card as FsrsLibCard, type Grade } f
 import type { FsrsState, SrsCard, StudyMode, Tempo } from './types';
 
 const DEFAULT_EASE = 2.5;
-const PASSING_GRADE = 3;
+export const PASSING_GRADE = 3;
 const HISTORY_LIMIT = 500;
 
 /** Facteur appliqué à l'intervalle FSRS selon l'aisance déclarée. */
@@ -193,7 +193,8 @@ export function ensureFsrs(card: SrsCard): SrsCard & { fsrs: FsrsState } {
  * conservé que comme trace, et sert à suggérer une note dans le questionnaire.
  *
  * `mesures` porte ce que les arpèges et gammes savent chiffrer — BPM tenu,
- * justesse et placement relevés au micro. Comme `hints`, c'est une trace :
+ * justesse et placement relevés au micro — et, pour un morceau, le mode de
+ * présentation de la partition (`mode`). Comme `hints`, c'est une trace :
  * l'intervalle reste décidé par la note et l'aisance déclarées, la machine ne
  * juge pas à la place du musicien.
  */
@@ -202,7 +203,7 @@ export function review(
   grade: number,
   tempo: Tempo,
   hints: number,
-  mesures?: { bpm?: number; justesse?: number; placement?: number },
+  mesures?: { bpm?: number; justesse?: number; placement?: number; mode?: StudyMode },
 ): SrsCard {
   const base = ensureFsrs(card ?? newCard());
   const clamped = Math.max(0, Math.min(5, Math.round(grade)));

@@ -239,11 +239,16 @@ function techniquePoolForActiveSetlist(): ExerciceCarte[] {
   return set ? exercices.filter((carte) => set.exerciceIds.includes(carte.id)) : exercices;
 }
 
-function startSession(kind: 'deep' | 'urgent'): void {
+/**
+ * `picked` : les morceaux prioritaires déjà annoncés par la carte du
+ * Répertoire — on les reprend tels quels plutôt que de refaire un tirage qui
+ * pourrait départager autrement les égalités.
+ */
+function startSession(kind: 'deep' | 'urgent', picked?: SessionItem[]): void {
   const scope = scopeFromActiveSetlist();
   const pool = poolForActiveSetlist();
   if (kind === 'urgent') {
-    const items = pickSessionItems(pool, progress, 3);
+    const items = picked?.length ? picked : pickSessionItems(pool, progress, 3);
     if (items.length === 0) return;
     session = { ...scope, kind, blocks: buildRotation(items), index: 0, worked: new Set() };
   } else {
@@ -271,9 +276,12 @@ function startFilage(): void {
   navigate('#/filage');
 }
 
-/** Lance la séance d'arpèges et gammes, dans l'ordre du sélecteur SRS. */
-function startTechnique(): void {
-  const ordre = pickExercices(techniquePoolForActiveSetlist(), progress);
+/**
+ * Lance la séance d'arpèges et gammes, dans l'ordre du sélecteur SRS — ou
+ * dans celui déjà annoncé par la carte de la page Technique (`annonce`).
+ */
+function startTechnique(annonce?: ExerciceCarte[]): void {
+  const ordre = annonce?.length ? annonce : pickExercices(techniquePoolForActiveSetlist(), progress);
   if (ordre.length === 0) return;
   session = null;
   filage = null;

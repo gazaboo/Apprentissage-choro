@@ -296,6 +296,12 @@ export interface SrsReview {
   justesse?: number;
   /** Arpèges et gammes : part de notes tombées dans la fenêtre du clic (0–1). */
   placement?: number;
+  /**
+   * Morceaux : présentation de la partition pendant la révision (partition
+   * entière, masquée en partie, ou par cœur). Absent sur les révisions
+   * antérieures à son enregistrement — le parcours les montre alors neutres.
+   */
+  mode?: StudyMode;
 }
 
 /**
