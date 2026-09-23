@@ -519,6 +519,76 @@ body {
   }
 }
 
+/* Poignée et bulle de temps de la piste : mobile seulement (#153). Au doigt,
+   sans tête de lecture visible, on ne sait ni où l'on est ni où l'on attrape ;
+   la bulle dit où l'on posera la lecture avant qu'on relâche. */
+.seek-knob,
+.seek-bubble {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  /* La boîte dessinée fait 32 px (`max-md:h-8`) ; la saisie garde 44 px. */
+  .seek-bar::before {
+    content: '';
+    position: absolute;
+    inset: -6px 0;
+  }
+
+  .seek-knob {
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background: #fef3c7;
+    box-shadow:
+      0 0 0 3px #fbbf24,
+      0 2px 6px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition:
+      width 0.12s ease,
+      height 0.12s ease;
+  }
+
+  .seek-bar.is-dragging .seek-knob {
+    width: 22px;
+    height: 22px;
+  }
+
+  .seek-bubble {
+    display: block;
+    position: absolute;
+    bottom: calc(100% + 16px);
+    transform: translateX(-50%);
+    padding: 5px 8px;
+    border-radius: 7px;
+    background: #fbbf24;
+    color: #09090b;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+  }
+
+  .seek-bar.is-dragging .seek-bubble {
+    opacity: 1;
+  }
+
+  /* Le dock n'est plus une carte posée sur la page mais une barre collée en
+     bas, bord à bord (#153). */
+  .dock-shell {
+    border-width: 1px 0 0;
+    border-radius: 0;
+  }
+}
+
 /* --- Boucle A-B ----------------------------------------------------------- */
 
 /* Frise de tracé : le curseur annonce qu'on y dessine un intervalle, et non

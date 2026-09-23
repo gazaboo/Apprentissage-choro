@@ -14,8 +14,10 @@
 import { dockShell } from '../sheet';
 import {
   createPlayButton,
-  createPlayerRow,
+  createPlayerDock,
   createSeekBar,
+  createSeekRow,
+  createSkipButton,
   createSourceToggle,
   el,
   iconLabel,
@@ -58,11 +60,17 @@ const NEXT_VIEW_LABELS: Record<FilageView, string> = {
   grille: 'Voir la grille',
   scene: 'Masquer la partition',
 };
-/** Icône associée à chaque libellé ci-dessus, pour l'affichage mobile compact (#150). */
+/** Icône associée à chaque libellé ci-dessus, au-delà de 768 px (#150). */
 const NEXT_VIEW_ICONS: Record<FilageView, string> = {
   partition: '♪',
   grille: '▦',
   scene: '⊘',
+};
+/** Libellé court de l'en-tête mobile : un mot plutôt que ♪ ▦ ⊘ seuls (#153). */
+const NEXT_VIEW_SHORT: Record<FilageView, string> = {
+  partition: 'Partition',
+  grille: 'Grille',
+  scene: 'Masquer',
 };
 
 export function renderFilage(root: HTMLElement, context: FilageContext): () => void {
@@ -113,7 +121,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   // à la place du texte concaténé qui débordait sur 2 lignes sur mobile
   // (#150) — même principe que le titre de la barre de plein écran.
   const positionLabel = el('p', {
-    class: 'min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wider text-zinc-500',
+    class: 'flex min-w-0 flex-1 whitespace-pre text-xs font-semibold uppercase tracking-wider text-zinc-500',
   });
 
   // Scène (partition masquée) : le morceau en cours, en grand, et la suite.
@@ -145,18 +153,38 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   // Barre de titre au-dessus de la partition (partition affichée).
   const slimTitle = el('p', { class: 'text-lg font-medium text-zinc-200' });
 
+  // « 0:12 / 3:10 » d'un seul tenant au-delà de 768 px ; en dessous, les deux
+  // temps passent sous la piste, aux deux bouts (`createSeekRow`, #153).
   const timeLabel = el('span', {
-    class: 'shrink-0 font-mono text-sm text-zinc-400 tabular-nums',
+    class: 'shrink-0 font-mono text-sm text-zinc-400 tabular-nums max-md:hidden',
   }, '0:00 / 0:00');
-  const play = createPlayButton({ onToggle: () => player.togglePlay(), size: 'lg' });
+  const currentLabel = el('span', { class: 'font-mono text-zinc-400 tabular-nums md:hidden' }, '0:00');
+  const durationLabel = el('span', { class: 'font-mono text-zinc-500 tabular-nums md:hidden' }, '0:00');
+  const play = createPlayButton({ onToggle: () => player.togglePlay() });
   const playButton = play.root;
 
+  const skip = (delta: number): void => player.seekTo(player.getCurrentTime() + delta);
+  const backSkip = createSkipButton({ direction: -1, seconds: 5, onSkip: skip, extra: 'md:hidden' });
+  const forwardSkip = createSkipButton({ direction: 1, seconds: 5, onSkip: skip, extra: 'md:hidden' });
+
+  // « Passer au suivant » et le cycle de vue vivent dans le dock au-delà de
+  // 768 px, dans l'en-tête en dessous : la rangée des réglages du dock mobile
+  // n'a de place que pour la bande et la vitesse (#153). Deux jeux de boutons
+  // plutôt qu'un nœud déménagé au gré de la largeur.
   const nextButton = el(
     'button',
-    { type: 'button', class: ui.button, 'aria-label': 'Passer au morceau suivant' },
+    // `md:ml-auto` : repoussé à droite de la seconde ligne du dock desktop.
+    { type: 'button', class: `${ui.button} max-md:hidden md:ml-auto`, 'aria-label': 'Passer au morceau suivant' },
     iconLabel('⏭', 'Passer au suivant'),
   );
-  nextButton.addEventListener('click', () => startCountdown());
+  const nextButtonMobile = el(
+    'button',
+    { type: 'button', class: `${ui.button} px-3 md:hidden`, 'aria-label': 'Passer au morceau suivant' },
+    'Suivant ⏭',
+  );
+  for (const button of [nextButton, nextButtonMobile]) {
+    button.addEventListener('click', () => startCountdown());
+  }
 
   // --- Barre de lecture : on revient où l'on veut à tout moment ---------
 
@@ -198,11 +226,14 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     },
   });
 
-  const scoreToggle = el('button', { type: 'button', class: ui.button });
-  scoreToggle.addEventListener('click', () => {
-    view = nextView();
-    paintScoreVisibility();
-  });
+  const scoreToggle = el('button', { type: 'button', class: `${ui.button} max-md:hidden` });
+  const scoreToggleMobile = el('button', { type: 'button', class: `${ui.button} px-3 md:hidden` });
+  for (const button of [scoreToggle, scoreToggleMobile]) {
+    button.addEventListener('click', () => {
+      view = nextView();
+      paintScoreVisibility();
+    });
+  }
 
   // Bouton ordinaire, comme « Terminer et évaluer » à l'entraînement : sur cet
   // écran l'action principale est la lecture, et une seule action porte
@@ -215,7 +246,11 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   );
   finishButton.addEventListener('click', () => context.onFinish());
 
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
+  const backButton = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-label': 'Retour' },
+    iconLabel('←', 'Retour'),
+  );
   backButton.addEventListener('click', () => context.navigateHome());
 
   const countBig = el('div', {
@@ -352,6 +387,8 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     const next = nextView();
     scoreToggle.replaceChildren(iconLabel(NEXT_VIEW_ICONS[next], NEXT_VIEW_LABELS[next]));
     scoreToggle.setAttribute('aria-label', NEXT_VIEW_LABELS[next]);
+    scoreToggleMobile.textContent = NEXT_VIEW_SHORT[next];
+    scoreToggleMobile.setAttribute('aria-label', NEXT_VIEW_LABELS[next]);
   }
 
   // --- Déroulé ---------------------------------------------------------
@@ -423,8 +460,11 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     hasPlayed = false;
     seek.set(0, 0);
 
-    positionLabel.textContent =
-      `Filage ${INSTRUMENT_SHORT_LABELS[instrumentId]} · ${context.setlistName} · ${i + 1} / ${order.length}`;
+    // Le rang reste lisible quand l'en-tête mobile tronque le reste (#153).
+    positionLabel.replaceChildren(
+      el('span', { class: 'truncate' }, `Filage ${INSTRUMENT_SHORT_LABELS[instrumentId]} · ${context.setlistName} · `),
+      el('span', { class: 'shrink-0' }, `${i + 1} / ${order.length}`),
+    );
     paintStage();
 
     const instrument = song.instruments.find((entry) => entry.id === instrumentId);
@@ -479,7 +519,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   root.replaceChildren(
     el(
       'div',
-      { class: 'flex h-dvh flex-col px-4 pb-0 sm:px-6' },
+      { class: 'flex h-dvh flex-col px-4 pb-0 md:px-6' },
       playerMount,
 
       el(
@@ -489,7 +529,14 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
             'dense-bar flex shrink-0 items-center gap-3 py-4 max-md:py-2',
         },
         positionLabel,
-        el('div', { class: 'flex shrink-0 gap-1.5 md:gap-2' }, backButton, finishButton),
+        el(
+          'div',
+          { class: 'flex shrink-0 gap-1.5 md:gap-2' },
+          scoreToggleMobile,
+          nextButtonMobile,
+          backButton,
+          finishButton,
+        ),
       ),
 
       // Zone principale : la scène, ou la partition.
@@ -508,51 +555,40 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       ),
 
       // Dock de contrôle : la coquille commune à l'entraînement (`dockShell`,
-      // `sheet.ts`). Les commandes diffèrent — le filage n'a ni boucle, ni
-      // tonalité, ni Défi, mais a « Passer au suivant » et le cycle de vue —
-      // seule l'enveloppe visuelle est partagée (#137). Deux rangées sous
-      // 768px comme l'entraînement (`createPlayerRow`, #153) : la piste a
-      // besoin de sa propre rangée pour rester saisissable au doigt.
+      // `sheet.ts`), et la même disposition (`createPlayerDock`, #153) : la
+      // piste pleine largeur, puis lecture et réglages sous 768 px. Les
+      // commandes diffèrent — le filage n'a ni boucle, ni tonalité, ni Défi,
+      // mais a « Passer au suivant » et le cycle de vue (dans l'en-tête sous
+      // 768 px, voir `nextButtonMobile`).
       dockShell(
-        createPlayerRow(
-          playButton,
-          el(
-            'div',
-            { class: 'flex min-w-0 flex-1 items-center gap-2' },
-            seekBar,
-            timeLabel,
-          ),
-          // Deux groupes fixes plutôt qu'un `flex-wrap` unique à 8+ éléments :
-          // garantit visuellement une seule ligne sur mobile au lieu de
-          // compter sur le repli pour « juste tenir » (#150). Les libellés
-          // « Vitesse »/« Bande » se masquent sur mobile — les contrôles
-          // adjacents restent compréhensibles par leur forme, et portent leur
-          // propre `aria-label`.
-          el(
-            'div',
-            { class: 'dense-bar flex flex-wrap items-center justify-between gap-2' },
+        createPlayerDock({
+          seek: createSeekRow(seekBar, currentLabel, durationLabel, timeLabel),
+          transport: [backSkip, playButton, forwardSkip],
+          settingsRowOnDesktop: true,
+          settings: [
+            // Le stepper se replie en pastille « Vitesse » sous 768 px
+            // (`rateStepper.compact`, placée après la bande comme à
+            // l'entraînement).
             el(
               'div',
-              { class: 'flex flex-wrap items-center gap-2' },
-              el(
-                'span',
-                { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
-                'Vitesse',
-              ),
+              { class: 'flex items-center gap-2 max-md:hidden' },
+              el('span', { class: 'text-xs uppercase tracking-wider text-zinc-500' }, 'Vitesse'),
               rateStepper.minus,
               rateStepper.value,
               rateStepper.plus,
-              el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
-              el(
-                'span',
-                { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
-                'Bande',
-              ),
-              sourceToggle.root,
             ),
-            el('div', { class: 'flex flex-wrap items-center gap-2' }, nextButton, scoreToggle),
-          ),
-        ),
+            el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 md:block' }),
+            el(
+              'span',
+              { class: 'text-xs uppercase tracking-wider text-zinc-500 max-md:hidden' },
+              'Bande',
+            ),
+            sourceToggle.root,
+            rateStepper.compact,
+            nextButton,
+            scoreToggle,
+          ],
+        }),
       ),
     ),
     countdownVeil,
@@ -567,6 +603,8 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   unsubscribe = player.onTick((tick) => {
     play.set(tick.playing);
     timeLabel.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
+    currentLabel.textContent = formatTime(tick.currentTime);
+    durationLabel.textContent = formatTime(tick.duration);
     if (tick.playing) hasPlayed = true;
     seek.set(tick.currentTime, tick.duration);
 

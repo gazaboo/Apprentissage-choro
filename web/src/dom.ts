@@ -156,18 +156,17 @@ export function paintToggle(
 export function createPlayButton(options: {
   onToggle: () => void;
   disabled?: boolean;
-  /** 'lg' agrandit le cercle sous 768 px (dock à deux rangées, #153) sans
-   *  toucher à sa taille desktop. */
-  size?: 'default' | 'lg';
 }): { root: HTMLButtonElement; set(playing: boolean): void } {
   const icon = el('span', { class: 'text-xl leading-none' }, '▶');
   const root = el(
     'button',
     {
       type: 'button',
+      // 48 px partout : sur mobile il voisine avec les boutons ±5 s et les
+      // pastilles de 40 px, plus un cercle géant à côté de boutons minuscules
+      // (#153).
       class:
         'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
-        (options.size === 'lg' ? 'max-md:h-14 max-md:w-14 ' : 'max-md:h-10 max-md:w-10 ') +
         'bg-amber-400 pl-1 text-zinc-950 shadow-lg shadow-amber-400/20 ' +
         'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
         'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
@@ -218,17 +217,25 @@ export function createSeekBar(options: {
   decorations?: HTMLElement[];
 }): SeekBar {
   const fill = el('div', { class: 'absolute inset-y-0 left-0 rounded-full bg-amber-400' });
+  // Poignée et bulle de temps, visibles sous 768 px seulement (`style.css`) :
+  // au doigt, on ne voit pas où l'on est ni où l'on attrape sans elles (#153).
+  const knob = el('div', { class: 'seek-knob', 'aria-hidden': 'true' });
+  const bubble = el('div', { class: 'seek-bubble', 'aria-hidden': 'true' }, '0:00');
   const track = el(
     'div',
     { class: 'seek-track relative w-full rounded-full bg-zinc-700' },
     ...(options.decorations ?? []),
     fill,
+    knob,
+    bubble,
   );
   const root = el(
     'div',
     {
       // La zone de saisie fait 44 px de haut, même si la piste n'en fait que 4.
-      class: 'seek-bar flex h-11 w-full min-w-0 flex-1 cursor-pointer items-center',
+      // Sur mobile la boîte n'en dessine que 32, pour un dock plus bas ; un
+      // pseudo-élément (`style.css`) rend les 12 px manquants à la saisie.
+      class: 'seek-bar relative flex h-11 w-full min-w-0 flex-1 cursor-pointer items-center max-md:h-8',
       role: 'slider',
       'aria-label': 'Position dans le morceau',
       'aria-valuemin': 0,
@@ -248,6 +255,9 @@ export function createSeekBar(options: {
 
   function paint(ratio: number, current: number): void {
     fill.style.width = `${ratio * 100}%`;
+    knob.style.left = `${ratio * 100}%`;
+    bubble.style.left = `${ratio * 100}%`;
+    bubble.textContent = formatTime(current);
     root.setAttribute('aria-valuenow', String(Math.round(current)));
     root.setAttribute('aria-valuetext', formatTime(current));
     options.onPaint?.(ratio, current);
@@ -289,27 +299,172 @@ export function createSeekBar(options: {
 }
 
 /**
- * Bouton de lecture à côté d'un empilement à deux rangées sous 768 px (piste,
- * puis contrôles) ; une seule ligne au-delà, comme avant. Le lecteur devenait
- * trop court pour repositionner la tête au doigt une fois tout entassé sur
- * une ligne — la piste a besoin de sa propre rangée (#153).
+ * Piste et temps. Au-delà de 768 px, les temps encadrent la piste sur une
+ * ligne. En dessous, ils passent **sous** la piste, aux deux bouts : à côté,
+ * ils lui prenaient 75 px sur 375 (#153).
+ *
+ * `trailing`, s'il est fourni, suit la piste au-delà de 768 px seulement : le
+ * filage y garde son « 0:12 / 3:10 » d'un seul tenant.
  */
-export function createPlayerRow(
-  playButton: HTMLElement,
-  scrubberRow: HTMLElement,
-  controlsRow: HTMLElement,
+export function createSeekRow(
+  seekBar: HTMLElement,
+  current: HTMLElement,
+  duration: HTMLElement,
+  trailing?: HTMLElement,
 ): HTMLElement {
-  const stack = el(
+  current.classList.add('max-md:justify-self-start');
+  duration.classList.add('max-md:justify-self-end');
+  return el(
     'div',
-    { class: 'flex min-w-0 flex-1 flex-col gap-1.5 md:flex-row md:items-center md:gap-3' },
-    scrubberRow,
-    controlsRow,
+    {
+      class:
+        'grid w-full grid-cols-2 items-center text-[11px] max-md:leading-4 ' +
+        'md:flex md:gap-2',
+    },
+    current,
+    // Première sur mobile (pleine largeur), entre les temps au-delà.
+    el('div', { class: 'col-span-2 min-w-0 max-md:order-first max-md:-mb-2 md:flex-1' }, seekBar),
+    duration,
+    trailing ?? null,
+  );
+}
+
+/** Contour de flèche circulaire, chiffre au centre : l'icône de recul/avance
+ *  que tous les lecteurs audio emploient. */
+function skipIcon(direction: -1 | 1, seconds: number): SVGSVGElement {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 32 32');
+  svg.setAttribute('class', 'h-7 w-7');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2.2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  const arc = document.createElementNS(ns, 'path');
+  arc.setAttribute('d', direction < 0 ? 'M9 9.5A10 10 0 1 1 6 16' : 'M23 9.5A10 10 0 1 0 26 16');
+  const head = document.createElementNS(ns, 'path');
+  head.setAttribute('d', direction < 0 ? 'M9 4.5v5h5' : 'M23 4.5v5h-5');
+  const text = document.createElementNS(ns, 'text');
+  text.setAttribute('x', '16');
+  text.setAttribute('y', '20.5');
+  text.setAttribute('text-anchor', 'middle');
+  text.setAttribute('font-size', '10');
+  text.setAttribute('font-weight', '700');
+  text.setAttribute('fill', 'currentColor');
+  text.setAttribute('stroke', 'none');
+  text.textContent = String(seconds);
+  svg.append(arc, head, text);
+  return svg;
+}
+
+/**
+ * Reculer ou avancer de quelques secondes. Revenir un peu en arrière est le
+ * geste le plus fréquent du musicien qui travaille un passage : il ne doit
+ * pas dépendre d'un pointage précis sur la piste (#153).
+ */
+export function createSkipButton(options: {
+  direction: -1 | 1;
+  seconds: number;
+  onSkip: (deltaSeconds: number) => void;
+  disabled?: boolean;
+  extra?: string;
+}): HTMLButtonElement {
+  const button = el(
+    'button',
+    {
+      type: 'button',
+      class:
+        'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full ' +
+        'text-zinc-200 transition hover:bg-zinc-800 focus:outline-none ' +
+        'focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+        'disabled:cursor-not-allowed disabled:opacity-40' +
+        (options.extra ? ` ${options.extra}` : ''),
+      'aria-label': `${options.direction < 0 ? 'Reculer' : 'Avancer'} de ${options.seconds} secondes`,
+      disabled: options.disabled ?? false,
+    },
+    skipIcon(options.direction, options.seconds),
+  );
+  button.addEventListener('click', () => options.onSkip(options.direction * options.seconds));
+  return button;
+}
+
+/**
+ * Contenu mobile d'une pastille de réglage du dock : une légende en petites
+ * capitales (« Bande », « Vitesse », « Boucle ») au-dessus de la valeur. Une
+ * icône seule (🎙, 1×) se devinait ; un mot se lit (#153). Masqué au-delà de
+ * 768 px, où la pastille garde son rendu d'origine.
+ */
+export function captionedValue(caption: HTMLElement | string, value: HTMLElement | string): HTMLElement {
+  return el(
+    'span',
+    { class: 'flex flex-col items-start gap-0.5 md:hidden' },
+    typeof caption === 'string'
+      ? el(
+          'span',
+          { class: 'text-[9px] font-bold uppercase leading-none tracking-wider text-zinc-500' },
+          caption,
+        )
+      : caption,
+    typeof value === 'string'
+      ? el('span', { class: 'text-[13px] font-semibold leading-none text-zinc-100' }, value)
+      : value,
+  );
+}
+
+/** Gabarit mobile d'une pastille de réglage du dock : 40 px, légende au-dessus. */
+export const DOCK_CHIP_MOBILE = 'max-md:h-10 max-md:min-h-0 max-md:min-w-0 max-md:justify-start max-md:px-2';
+
+/**
+ * Disposition du dock audio.
+ *
+ * Sous 768 px, deux rangées : la piste seule sur toute la largeur, puis la
+ * lecture (±5 s autour du bouton) à gauche et les réglages à droite. Avant,
+ * le bouton de lecture englobait les deux rangées et les temps encadraient la
+ * piste : il lui restait 190 px sur 375 — pas plus que sur une seule ligne.
+ * Pleine largeur, elle en a environ 350 (#153, variante A des maquettes).
+ *
+ * Au-delà, une seule ligne comme avant : lecture, piste, réglages. Les
+ * rangées mobiles s'y dissolvent (`md:contents`) et `order` replace le bouton
+ * de lecture devant la piste.
+ */
+export function createPlayerDock(options: {
+  seek: HTMLElement;
+  transport: HTMLElement[];
+  settings: HTMLElement[];
+  /** Au-delà de 768 px, les réglages passent sur une seconde ligne, pleine
+   *  largeur : le filage en a trop pour laisser de la place à la piste. */
+  settingsRowOnDesktop?: boolean;
+}): HTMLElement {
+  const ownRow = options.settingsRowOnDesktop ?? false;
+  const transportGroup = el(
+    'div',
+    { class: 'flex shrink-0 items-center gap-1 md:order-1' },
+    ...options.transport,
+  );
+  const settingsGroup = el(
+    'div',
+    {
+      class:
+        'flex shrink-0 items-center gap-1.5 md:order-3 md:gap-3' +
+        (ownRow ? ' md:basis-full md:flex-wrap' : ''),
+    },
+    ...options.settings,
   );
   return el(
     'div',
-    { class: 'dense-bar flex w-full items-center gap-1.5 md:gap-3' },
-    playButton,
-    stack,
+    {
+      class:
+        'flex w-full flex-col gap-0.5 md:flex-row md:items-center md:gap-3' +
+        (ownRow ? ' md:flex-wrap md:gap-y-2' : ''),
+    },
+    el('div', { class: 'min-w-0 md:order-2 md:flex-1' }, options.seek),
+    el(
+      'div',
+      { class: 'flex items-center justify-between gap-1.5 md:contents' },
+      transportGroup,
+      settingsGroup,
+    ),
   );
 }
 
@@ -329,9 +484,8 @@ export function createSourceToggle(options: {
   extra?: string;
 }): { root: HTMLButtonElement; set(kind: AudioKind): void } {
   const LABELS: Record<AudioKind, string> = { reference: 'Original', playback: 'Playback' };
-  // Icônes mobiles : 🎙 pour l'enregistrement original (thème compris), 🎧
-  // pour l'accompagnement seul — la barre du bas doit tenir sur une seule
-  // ligne (#150), le texte se masque sous `max-md:hidden`.
+  // Icônes desktop seulement. Sur mobile, 🎙 et 🎧 seuls se devinaient mal :
+  // la pastille y dit « Bande » au-dessus du nom de la bande (#153).
   const ICONS: Record<AudioKind, string> = { reference: '🎙', playback: '🎧' };
   const HINTS: Record<AudioKind, string> = {
     reference: 'Enregistrement original, thème compris',
@@ -343,23 +497,22 @@ export function createSourceToggle(options: {
   const root = el('button', {
     type: 'button',
     class:
-      `${ui.chip} gap-1.5 max-md:min-h-8 max-md:min-w-0 max-md:px-2` +
+      `${ui.chip} gap-1.5 ${DOCK_CHIP_MOBILE}` +
       `${options.extra ? ` ${options.extra}` : ''}`,
   });
 
   function paint(): void {
     root.replaceChildren(
-      el('span', { 'aria-hidden': 'true' }, ICONS[current]),
-      el('span', { class: 'max-md:hidden font-semibold' }, LABELS[current]),
-      ...(cycles
-        ? [
-            el(
-              'span',
-              { class: 'max-md:hidden text-sm leading-none opacity-60', 'aria-hidden': 'true' },
-              '⇄',
-            ),
-          ]
-        : []),
+      el(
+        'span',
+        { class: 'inline-flex items-center gap-1.5 max-md:hidden' },
+        el('span', { 'aria-hidden': 'true' }, ICONS[current]),
+        el('span', { class: 'font-semibold' }, LABELS[current]),
+        cycles
+          ? el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, '⇄')
+          : null,
+      ),
+      captionedValue('Bande', LABELS[current]),
     );
     root.title = HINTS[current];
     root.setAttribute(
@@ -553,55 +706,138 @@ export function renderRateStepper(
   minus: HTMLButtonElement;
   value: HTMLButtonElement;
   plus: HTMLButtonElement;
+  /** Pastille « Vitesse » du dock mobile, qui ouvre le stepper en panneau. */
+  compact: HTMLElement;
   refresh: () => void;
 } {
   const getBpm = options.getBpm ?? (() => null);
   let rate = player.getRate();
 
-  // Sur mobile, le dock doit tenir sur une seule ligne (#150) : le stepper
-  // rétrécit sous les tailles tactiles standard plutôt que de forcer une
-  // 2e ligne — desktop inchangé.
-  const MOBILE_ICON = 'max-md:h-8 max-md:w-8';
-  const MOBILE_CHIP = 'max-md:min-h-8 max-md:min-w-0 max-md:px-1.5 max-md:text-[10px]';
-  const minus = el('button', { type: 'button', class: `${ui.icon} ${MOBILE_ICON}` }, '−');
-  const plus = el('button', { type: 'button', class: `${ui.icon} ${MOBILE_ICON}` }, '+');
+  const minus = el('button', { type: 'button', class: ui.icon }, '−');
+  const plus = el('button', { type: 'button', class: ui.icon }, '+');
   const value = el('button', { type: 'button', class: ui.chip }, '');
 
+  // --- Variante mobile ----------------------------------------------------
+  //
+  // Le stepper à trois boutons ne tient pas dans la rangée des réglages du
+  // dock mobile à côté de la bande et de la boucle (#153). Il s'y replie en
+  // une pastille « Vitesse » qui l'ouvre en panneau, avec des paliers en
+  // plus : on ralentit souvent d'un coup pour déchiffrer, pas cran par cran.
+  // Les deux jeux de boutons partagent l'état et se repeignent ensemble.
+  const PRESETS = [0.5, 0.7, 0.85, 1].filter((p) => p >= RATE_MIN && p <= RATE_MAX);
+  const popMinus = el('button', { type: 'button', class: ui.icon }, '−');
+  const popPlus = el('button', { type: 'button', class: ui.icon }, '+');
+  const popValue = el('output', {
+    class: 'min-w-20 text-center text-lg font-bold tabular-nums text-zinc-100',
+  });
+  const presetButtons = PRESETS.map((preset) => {
+    const button = el('button', { type: 'button' });
+    button.addEventListener('click', () => setRate(preset));
+    return button;
+  });
+  const popTitle = el('p', { class: 'text-sm font-semibold text-zinc-100' });
+  const popover = el(
+    'div',
+    {
+      class:
+        'absolute bottom-full right-0 z-10 mb-3 hidden w-64 flex-col gap-3 rounded-xl ' +
+        'border border-zinc-700 bg-zinc-900 p-3 shadow-2xl shadow-black/60',
+      role: 'dialog',
+      'aria-label': 'Vitesse de lecture',
+    },
+    popTitle,
+    el('div', { class: 'flex items-center justify-between' }, popMinus, popValue, popPlus),
+    el('div', { class: 'flex gap-1.5' }, ...presetButtons),
+  );
+  // « Tempo 110 » plutôt que « Vitesse 110 BPM » : la rangée mobile n'a pas
+  // la place pour l'unité, et la légende la dit déjà.
+  const compactCaption = el('span', {
+    class: 'text-[9px] font-bold uppercase leading-none tracking-wider text-zinc-500',
+  });
+  const compactValue = el('span', { class: 'text-[13px] font-semibold leading-none' });
+  const compactButton = el(
+    'button',
+    { type: 'button', 'aria-expanded': 'false', 'aria-haspopup': 'dialog' },
+    captionedValue(compactCaption, compactValue),
+  );
+  const compact = el('div', { class: 'relative md:hidden' }, compactButton, popover);
+
+  let open = false;
+  const onOutside = (event: PointerEvent): void => {
+    if (!compact.contains(event.target as Node)) setOpen(false);
+  };
+  const onKey = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') setOpen(false);
+  };
+  function setOpen(next: boolean): void {
+    if (next === open) return;
+    open = next;
+    popover.classList.toggle('hidden', !open);
+    popover.classList.toggle('flex', open);
+    compactButton.setAttribute('aria-expanded', String(open));
+    // Écouteurs posés à l'ouverture seulement : fermé, le panneau ne laisse
+    // rien traîner sur `document`.
+    if (open) {
+      document.addEventListener('pointerdown', onOutside);
+      document.addEventListener('keydown', onKey);
+    } else {
+      document.removeEventListener('pointerdown', onOutside);
+      document.removeEventListener('keydown', onKey);
+    }
+  }
+  compactButton.addEventListener('click', () => setOpen(!open));
+
   function paint(): void {
-    minus.disabled = rate <= RATE_MIN;
-    plus.disabled = rate >= RATE_MAX;
+    minus.disabled = popMinus.disabled = rate <= RATE_MIN;
+    plus.disabled = popPlus.disabled = rate >= RATE_MAX;
     const bpm = getBpm();
     const targetBpm = bpm ? Math.round(rate * bpm) : null;
     // Le cran « vitesse d'origine » est l'état neutre : c'est tout écart qui
     // s'annonce comme actif.
-    paintToggle(value, rate !== RATE_MAX, 'chip', MOBILE_CHIP);
+    paintToggle(value, rate !== RATE_MAX, 'chip');
+    paintToggle(compactButton, rate !== RATE_MAX, 'chip', DOCK_CHIP_MOBILE);
     value.textContent = targetBpm !== null ? `${targetBpm} BPM` : formatRate(rate);
+    // En pourcentage sur mobile : « 1× » se lisait mal, même légendé.
+    compactCaption.textContent = targetBpm !== null ? 'Tempo' : 'Vitesse';
+    compactValue.textContent = targetBpm !== null ? String(targetBpm) : `${Math.round(rate * 100)} %`;
+    popTitle.textContent = targetBpm !== null ? 'Tempo de lecture (BPM)' : 'Vitesse de lecture';
+    popValue.textContent = targetBpm !== null ? `${targetBpm} BPM` : `${Math.round(rate * 100)} %`;
+    PRESETS.forEach((preset, i) => {
+      const button = presetButtons[i]!;
+      button.textContent = bpm ? String(Math.round(preset * bpm)) : `${Math.round(preset * 100)} %`;
+      paintToggle(button, Math.abs(rate - preset) < 0.001, 'chip', 'flex-1');
+    });
     const label = targetBpm !== null ? `Tempo ${targetBpm} BPM` : `Vitesse ${formatRate(rate)}`;
     const resetHint = targetBpm !== null ? 'revenir au tempo original' : 'revenir à vitesse normale';
     minus.setAttribute('aria-label', `Ralentir — ${label}`);
     plus.setAttribute('aria-label', `Accélérer — ${label}`);
+    popMinus.setAttribute('aria-label', `Ralentir — ${label}`);
+    popPlus.setAttribute('aria-label', `Accélérer — ${label}`);
+    compactButton.setAttribute('aria-label', `${label} — toucher pour régler`);
     value.setAttribute(
       'aria-label',
       rate === RATE_MAX ? label : `${label}, toucher pour ${resetHint}`,
     );
   }
 
-  minus.addEventListener('click', () => {
-    const bpm = getBpm();
-    rate = player.setRate(bpm ? stepBpm(rate, bpm, -1) : stepRate(rate, -1));
+  function setRate(next: number): void {
+    rate = player.setRate(next);
     paint();
-  });
-  plus.addEventListener('click', () => {
+  }
+  const step = (direction: 1 | -1): void => {
     const bpm = getBpm();
-    rate = player.setRate(bpm ? stepBpm(rate, bpm, 1) : stepRate(rate, 1));
-    paint();
-  });
+    setRate(bpm ? stepBpm(rate, bpm, direction) : stepRate(rate, direction));
+  };
+
+  minus.addEventListener('click', () => step(-1));
+  plus.addEventListener('click', () => step(1));
+  popMinus.addEventListener('click', () => step(-1));
+  popPlus.addEventListener('click', () => step(1));
   value.addEventListener('click', () => {
     if (rate === RATE_MAX) return;
-    rate = player.setRate(RATE_MAX);
-    paint();
+    setRate(RATE_MAX);
   });
 
   paint();
-  return { minus, value, plus, refresh: paint };
+  return { minus, value, plus, compact, refresh: paint };
 }

@@ -1112,7 +1112,7 @@ export function renderTrainer(
     'div',
     {
       class:
-        'mx-auto flex h-dvh max-w-5xl flex-col gap-4 px-4 py-6 max-md:gap-2 max-md:py-2',
+        'mx-auto flex h-dvh max-w-5xl flex-col gap-4 px-4 py-6 max-md:gap-2 max-md:pb-0 max-md:pt-2',
     },
     playerMount,
     header,

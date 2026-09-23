@@ -71,8 +71,8 @@ export function dockShell(...rows: (HTMLElement | null)[]): HTMLElement {
     'div',
     {
       class:
-        'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
-        'flex-col gap-2 p-2',
+        'transport-shell dock-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
+        'flex-col gap-2 p-2 max-md:px-3 max-md:pb-1.5 max-md:pt-0.5',
     },
     ...rows.filter((row): row is HTMLElement => row !== null),
   );
@@ -80,7 +80,9 @@ export function dockShell(...rows: (HTMLElement | null)[]): HTMLElement {
     'div',
     {
       class:
-        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 ' +
+        // Bord à bord sous 768 px : la marge de page (`px-4`) et la carte
+        // prenaient 50 px à la piste sur 375 (#153).
+        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 max-md:-mx-4 ' +
         '[padding-bottom:env(safe-area-inset-bottom)]',
     },
     dock,
