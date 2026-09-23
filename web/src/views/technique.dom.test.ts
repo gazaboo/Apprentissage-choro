@@ -65,7 +65,7 @@ afterEach(() => {
 describe('renderTechnique — smoke', () => {
   it('affiche le premier exercice sans lever le métronome (audio créé au premier geste)', () => {
     const { root } = mount([carte(), carte({ id: 'arp-m7::D::descendant', sens: 'descendant' })]);
-    expect(root.textContent).toContain('exercice 1 sur 2');
+    expect(root.textContent).toContain('Exercice 1 sur 2');
     expect(root.textContent).toContain('Dm7');
   });
 
@@ -74,13 +74,20 @@ describe('renderTechnique — smoke', () => {
     expect(() => teardown()).not.toThrow();
   });
 
-  it('« Voir les notes » révèle les noms des notes (masqués par défaut)', () => {
+  it('« Voir les notes » révèle les notes sur la portée (masquées par défaut)', () => {
     const { root } = mount([carte()]);
     const reveal = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Voir les notes')!;
-    const notesRow = root.querySelector('.mx-auto.flex.w-max') as HTMLElement;
-    expect(notesRow.textContent).toBe('••••');
+    const noms = () => [...root.querySelectorAll('[data-portee] [data-nom]')].map((n) => n.textContent).join('');
+    const tetes = () => root.querySelectorAll('[data-portee] ellipse').length;
+    // Masquée : quatre emplacements, ni nom ni tête de note, mais les degrés.
+    expect(root.querySelectorAll('[data-portee] [data-note]')).toHaveLength(4);
+    expect(noms()).toBe('');
+    expect(tetes()).toBe(0);
+    expect(root.querySelector('[data-portee]')!.textContent).toContain('♭3');
     reveal.click();
-    expect(notesRow.textContent).toBe('DFAC');
+    expect(noms()).toBe('DFAC');
+    expect(tetes()).toBe(4);
+    expect(reveal.getAttribute('aria-pressed')).toBe('true');
   });
 
   it('« Retour » appelle navigateBack() sans ouvrir l\'évaluation', () => {
@@ -134,7 +141,7 @@ describe('renderTechnique — test du micro', () => {
     expect(test.getAttribute('aria-pressed')).toBe('false');
     expect(test.disabled).toBe(false);
     // Le relevé du test est bien là, mais masqué tant qu'il ne tourne pas.
-    const releve = root.querySelector('.flex-col.gap-2') as HTMLElement;
+    const releve = root.querySelector('[data-releve-micro]') as HTMLElement;
     expect(releve.textContent).toContain('Micro : jouez une note…');
     expect(releve.classList.contains('hidden')).toBe(true);
   });
@@ -151,11 +158,11 @@ describe('renderTechnique — test du micro', () => {
     await Promise.resolve();
 
     expect(root.textContent).toContain('Micro indisponible');
-    expect((root.querySelector('.flex-col.gap-2') as HTMLElement).classList).toContain('hidden');
+    expect((root.querySelector('[data-releve-micro]') as HTMLElement).classList).toContain('hidden');
     expect(document.body.querySelector('[role="dialog"]')).toBeNull();
     // Rien n'a démarré : « Démarrer le métronome » est toujours proposé.
     const play = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Démarrer le métronome',
+      (b) => b.getAttribute('aria-label') === 'Démarrer le métronome',
     ) as HTMLButtonElement;
     expect(play.disabled).toBe(false);
   });

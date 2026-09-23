@@ -128,7 +128,7 @@ function mount() {
 
 function bouton(root: HTMLElement, texte: string): HTMLButtonElement {
   return [...root.querySelectorAll('button')].find(
-    (b) => b.textContent === texte,
+    (b) => b.textContent === texte || b.getAttribute('aria-label') === texte,
   ) as HTMLButtonElement;
 }
 

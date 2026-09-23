@@ -89,3 +89,68 @@ export function help(): SVGSVGElement {
     'M12 17h.01',
   ]);
 }
+
+/** Chevron vers la gauche — revenir. */
+export function chevronLeft(): SVGSVGElement {
+  return svg(['M15 18l-6-6 6-6']);
+}
+
+/** Œil — voir les notes. */
+export function eye(): SVGSVGElement {
+  return svg([
+    'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z',
+    'M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+  ]);
+}
+
+/** Haut-parleur — écouter le motif. */
+export function volume(): SVGSVGElement {
+  return svg(['M11 5L6 9H2v6h4l5 4V5z', 'M15.5 8.5a5 5 0 0 1 0 7']);
+}
+
+/** Flèches en boucle — rejouer en continu. */
+export function repeat(): SVGSVGElement {
+  return svg([
+    'M17 2l4 4-4 4',
+    'M3 11V10a4 4 0 0 1 4-4h14',
+    'M7 22l-4-4 4-4',
+    'M21 13v1a4 4 0 0 1-4 4H3',
+  ]);
+}
+
+/** Micro — évaluation au micro. */
+export function mic(): SVGSVGElement {
+  return svg([
+    'M9 5a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0z',
+    'M5 10a7 7 0 0 0 14 0',
+    'M12 17v4',
+  ]);
+}
+
+/** Croix — annuler. */
+export function x(): SVGSVGElement {
+  return svg(['M18 6L6 18', 'M6 6l12 12']);
+}
+
+/** Signe « moins » — ralentir. */
+export function minus(): SVGSVGElement {
+  return svg(['M5 12h14']);
+}
+
+/** Icône pleine : les formes de lecture se lisent mieux remplies que tracées. */
+function filled(paths: string[]): SVGSVGElement {
+  const node = svg(paths);
+  node.setAttribute('fill', 'currentColor');
+  node.setAttribute('stroke', 'none');
+  return node;
+}
+
+/** Triangle de lecture, décalé d'un pixel vers la droite pour paraître centré. */
+export function play(): SVGSVGElement {
+  return filled(['M8 5.5v13l11-6.5z']);
+}
+
+/** Deux barres de pause. */
+export function pause(): SVGSVGElement {
+  return filled(['M6.5 5h4v14h-4z', 'M13.5 5h4v14h-4z']);
+}

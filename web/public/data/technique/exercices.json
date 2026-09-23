@@ -10,7 +10,7 @@
       "notes_descendant": ["D4", "Bb3", "A3", "F3", "D3"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
-      "note_de_travail": "Montée : 1 - 2 - 3 - 5 - 1\nDescente : 1 - 6m - 5 - 3 - 1"
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
     {
       "id": "arp-maj",
@@ -21,7 +21,7 @@
       "notes_descendant": ["C4", "A3", "G3", "E3", "C3"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
-      "note_de_travail": "Montée : 1 - 2 - 3 - 5 - 1\nDescente : 1 - 6m - 5 - 3 - 1"
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
     {
       "id": "arp-dom7",
