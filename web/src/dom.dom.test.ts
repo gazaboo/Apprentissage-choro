@@ -8,7 +8,15 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { createInstrumentChip, createSegmented } from './dom';
+import {
+  createInstrumentChip,
+  createPlayerDock,
+  createSegmented,
+  createSkipButton,
+  createSourceToggle,
+  el,
+  renderRateStepper,
+} from './dom';
 import type { InstrumentId } from './types';
 
 const instrument = (id: InstrumentId, name: string) => ({ id, name });
@@ -107,5 +115,114 @@ describe('createSegmented', () => {
     expect(seg.root.classList.contains('hidden')).toBe(true);
     seg.setVisible(true);
     expect(seg.root.classList.contains('hidden')).toBe(false);
+  });
+});
+
+describe('createPlayerDock', () => {
+  it('place la piste seule en tête, puis lecture et réglages sur une rangée', () => {
+    const seek = el('div', {}, 'piste');
+    const play = el('button', {}, 'lecture');
+    const back = el('button', {}, '-5');
+    const settings = el('button', {}, 'bande');
+    const dock = createPlayerDock({ seek, transport: [back, play], settings: [settings] });
+
+    // Sous 768 px, la piste a sa propre rangée, pleine largeur : aucun autre
+    // contrôle ne la partage (#153, variante A).
+    const [seekRow, controlsRow] = [...dock.children] as HTMLElement[];
+    expect(seekRow!.contains(seek)).toBe(true);
+    expect(seekRow!.contains(play)).toBe(false);
+    expect(controlsRow!.contains(play)).toBe(true);
+    expect(controlsRow!.contains(settings)).toBe(true);
+    // Lecture à gauche, réglages à droite.
+    expect(play.parentElement!.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
+
+describe('createSkipButton', () => {
+  it('annonce et transmet le décalage signé', () => {
+    const onSkip = vi.fn();
+    const back = createSkipButton({ direction: -1, seconds: 5, onSkip });
+    const forward = createSkipButton({ direction: 1, seconds: 5, onSkip });
+    expect(back.getAttribute('aria-label')).toBe('Reculer de 5 secondes');
+    expect(forward.getAttribute('aria-label')).toBe('Avancer de 5 secondes');
+
+    back.click();
+    expect(onSkip).toHaveBeenLastCalledWith(-5);
+    forward.click();
+    expect(onSkip).toHaveBeenLastCalledWith(5);
+  });
+});
+
+describe('createSourceToggle', () => {
+  it('se légende « Bande » sur mobile, pas d\'une icône seule', () => {
+    const toggle = createSourceToggle({ available: ['reference', 'playback'], current: 'reference', onPick: vi.fn() });
+    expect(toggle.root.textContent).toContain('Bande');
+    expect(toggle.root.textContent).toContain('Original');
+    toggle.root.click();
+    expect(toggle.root.textContent).toContain('Playback');
+  });
+});
+
+describe('renderRateStepper — pastille mobile', () => {
+  function fakePlayer(initial = 1) {
+    let rate = initial;
+    return {
+      setRate: vi.fn((next: number) => (rate = Math.min(1, Math.max(0.5, next)))),
+      getRate: () => rate,
+    };
+  }
+  const popoverOf = (compact: HTMLElement) => compact.querySelector<HTMLElement>('[role="dialog"]')!;
+
+  it('dit la vitesse en pourcentage et s\'ouvre en panneau', () => {
+    const player = fakePlayer();
+    const stepper = renderRateStepper(player);
+    document.body.append(stepper.compact);
+    const opener = stepper.compact.querySelector('button')!;
+
+    expect(opener.textContent).toContain('Vitesse');
+    expect(opener.textContent).toContain('100 %');
+    expect(popoverOf(stepper.compact).classList.contains('hidden')).toBe(true);
+
+    opener.click();
+    expect(popoverOf(stepper.compact).classList.contains('hidden')).toBe(false);
+    expect(opener.getAttribute('aria-expanded')).toBe('true');
+    stepper.compact.remove();
+  });
+
+  it('applique un palier et repeint les deux variantes du stepper', () => {
+    const player = fakePlayer();
+    const stepper = renderRateStepper(player);
+    const preset = [...popoverOf(stepper.compact).querySelectorAll('button')].find((b) => b.textContent === '70 %')!;
+
+    preset.click();
+    expect(player.setRate).toHaveBeenLastCalledWith(0.7);
+    expect(stepper.compact.querySelector('button')!.textContent).toContain('70 %');
+    // Le stepper desktop suit le même état.
+    expect(stepper.value.textContent).toBe('0,7×');
+    expect(preset.dataset.state).toBe('on');
+  });
+
+  it('se referme au toucher hors du panneau', () => {
+    const stepper = renderRateStepper(fakePlayer());
+    document.body.append(stepper.compact);
+    const opener = stepper.compact.querySelector('button')!;
+    opener.click();
+
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    expect(popoverOf(stepper.compact).classList.contains('hidden')).toBe(true);
+    expect(opener.getAttribute('aria-expanded')).toBe('false');
+    stepper.compact.remove();
+  });
+
+  it('affiche des paliers en BPM quand le tempo est connu', () => {
+    const stepper = renderRateStepper(fakePlayer(), { getBpm: () => 120 });
+    const labels = [...popoverOf(stepper.compact).querySelectorAll('button')].map((b) => b.textContent);
+    expect(labels).toContain('60');
+    expect(labels).toContain('120');
+    // Légende « Tempo », valeur sans unité : la rangée mobile est comptée.
+    const opener = stepper.compact.querySelector('button')!;
+    expect(opener.textContent).toContain('Tempo');
+    expect(opener.textContent).toContain('120');
+    expect(opener.textContent).not.toContain('BPM');
   });
 });

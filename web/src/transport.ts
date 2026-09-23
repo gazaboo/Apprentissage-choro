@@ -13,9 +13,14 @@
  */
 
 import {
+  captionedValue,
   createPlayButton,
+  createPlayerDock,
   createSeekBar,
+  createSeekRow,
+  createSkipButton,
   createSourceToggle,
+  DOCK_CHIP_MOBILE,
   el,
   paintToggle,
   renderRateStepper,
@@ -31,6 +36,9 @@ export interface Section {
   /** Une phrase disant à quoi sert le réglage — le titre seul ne suffit pas. */
   hint?: string;
   body: HTMLElement;
+  /** N'apparaît que sous 768px — pour un réglage déjà visible en direct dans
+   *  l'en-tête desktop, qui n'a pas besoin d'un second accès redondant (#153). */
+  mobileOnly?: boolean;
 }
 
 export interface TransportOptions {
@@ -66,6 +74,16 @@ export function createTransport(options: TransportOptions): Transport {
   });
   const playButton = play.root;
 
+  // Reculer/avancer de 5 s : mobile seulement, où la piste se vise au doigt
+  // (#153). Au-delà, la souris y suffit et le dock reste tel qu'il était.
+  const skip = (delta: number): void => player.seekTo(player.getCurrentTime() + delta);
+  const backButton = createSkipButton({
+    direction: -1, seconds: 5, onSkip: skip, disabled: !anySource, extra: 'md:hidden',
+  });
+  const forwardButton = createSkipButton({
+    direction: 1, seconds: 5, onSkip: skip, disabled: !anySource, extra: 'md:hidden',
+  });
+
   // --- Défilement ---------------------------------------------------------
 
   // Hors boucle, la piste est assombrie : le passage travaillé est le seul
@@ -86,8 +104,16 @@ export function createTransport(options: TransportOptions): Transport {
   const tickA = loopTick();
   const tickB = loopTick();
 
-  const currentLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-400' }, '0:00');
-  const durationLabel = el('span', { class: 'shrink-0 font-mono text-xs text-zinc-500' }, '0:00');
+  const currentLabel = el(
+    'span',
+    { class: 'shrink-0 font-mono text-xs text-zinc-400' },
+    '0:00',
+  );
+  const durationLabel = el(
+    'span',
+    { class: 'shrink-0 font-mono text-xs text-zinc-500' },
+    '0:00',
+  );
 
   // Géométrie et geste viennent de `dom.ts`, partagés avec le filage ; les
   // décorations de boucle restent propres à l'entraînement et se rangent
@@ -122,22 +148,18 @@ export function createTransport(options: TransportOptions): Transport {
   });
 
   /** Reçoit la frise de tracé, juste sous la piste. */
-  const laneSlotBar = el('div', { class: 'mt-0.5' });
+  /** Masqué avec la frise : vide, sa marge rallongeait encore le dock. */
+  const laneSlotBar = el('div', { class: 'mt-0.5 hidden' });
 
   // Les temps encadrent la piste au lieu d'occuper une ligne à eux seuls :
-  // une ligne de moins dans un dock qui en avait trois (#9, #137). Le résumé
+  // une ligne de moins dans un dock qui en avait trois (#9, #137) ; sur
+  // mobile, ils passent dessous (`createSeekRow`, #153). Le résumé
   // de boucle ne descend en dessous que lorsqu'il y a une boucle à résumer —
   // masqué, il n'est pas un élément de la colonne et n'y ajoute aucun espace.
   const seekRow = el(
     'div',
-    { class: 'order-1 flex min-w-0 flex-1 flex-col gap-0.5 md:order-2' },
-    el(
-      'div',
-      { class: 'flex w-full items-center gap-2' },
-      currentLabel,
-      el('div', { class: 'min-w-0 flex-1' }, seekBar),
-      durationLabel,
-    ),
+    { class: 'flex min-w-0 flex-1 flex-col gap-0.5' },
+    createSeekRow(seekBar, currentLabel, durationLabel),
     laneSlotBar,
     loopBadge,
   );
@@ -158,7 +180,8 @@ export function createTransport(options: TransportOptions): Transport {
   const rateStepper = renderRateStepper(player, { getBpm: () => song.audio[source]?.bpm ?? null });
   const rateGroup = el(
     'div',
-    { class: 'flex shrink-0 items-center gap-1 md:order-4' },
+    // Replié en pastille « Vitesse » sur mobile (`rateStepper.compact`).
+    { class: 'flex shrink-0 items-center gap-1 max-md:hidden' },
     rateStepper.minus,
     rateStepper.value,
     rateStepper.plus,
@@ -189,7 +212,6 @@ export function createTransport(options: TransportOptions): Transport {
       // On enchaîne si l'on jouait : s'arrêter à chaque bascule casserait le fil.
       loadSource(player.isPlaying());
     },
-    extra: 'md:order-3',
   });
   const sourceButton = sourceToggle.root;
 
@@ -199,37 +221,35 @@ export function createTransport(options: TransportOptions): Transport {
   // s'en sert pas : elle prenait de la place en permanence pour un geste
   // occasionnel (issue #120). Le bouton la révèle ; l'état de la boucle en
   // cours, lui, reste toujours lisible via `loopBadge`, indépendamment.
+  const loopState = el('span', { class: 'text-[13px] font-semibold leading-none' });
   const loopToggle = el(
     'button',
-    { type: 'button', class: `${ui.chip} md:order-6`, 'aria-expanded': 'false' },
-    '🔁 Loop',
+    { type: 'button', class: ui.chip, 'aria-expanded': 'false' },
+    el(
+      'span',
+      { class: 'inline-flex items-center gap-1.5 max-md:hidden' },
+      el('span', { 'aria-hidden': 'true' }, '🔁'),
+      'Loop',
+    ),
+    captionedValue('Boucle', loopState),
   );
 
   // --- Assemblage de la barre principale ---------------------------------
   //
-  // Sous 768 px, la piste prend toute la largeur sur une première ligne et
-  // les bascules se rangent dessous ; `flex-wrap` évite tout débordement si
-  // l'écran est vraiment étroit.
+  // Deux rangées sous 768 px — la piste pleine largeur, puis lecture et
+  // réglages —, une seule au-delà (#153). `createPlayerDock` porte cette
+  // bascule de disposition.
 
-  const secondary: HTMLElement[] = [];
-  if (sourceCycle.length > 1) secondary.push(sourceButton);
-  secondary.push(rateGroup);
-  if (anySource) secondary.push(loopToggle);
+  const settings: HTMLElement[] = [];
+  if (sourceCycle.length > 1) settings.push(sourceButton);
+  settings.push(rateGroup, rateStepper.compact);
+  if (anySource) settings.push(loopToggle);
 
-  const primary = el(
-    'div',
-    { class: 'flex w-full flex-col gap-1 md:flex-row md:items-center md:gap-3' },
-    seekRow,
-    el(
-      'div',
-      // `md:contents` efface cette enveloppe sur grand écran : ses enfants
-      // redeviennent alors des éléments de la rangée et suivent leur `order`.
-      { class: 'order-2 flex flex-wrap items-center gap-2 md:contents' },
-      playButton,
-      ...secondary,
-    ),
-  );
-  playButton.classList.add('md:order-1');
+  const primary = createPlayerDock({
+    seek: seekRow,
+    transport: [backButton, playButton, forwardButton],
+    settings,
+  });
 
   // --- Répéter un passage : tracé sur la frise ---------------------------
   //
@@ -248,12 +268,21 @@ export function createTransport(options: TransportOptions): Transport {
     return draftLoop ?? player.getLoop();
   }
 
+  /** Valeur de la pastille mobile « Boucle » : une boucle qui tourne prime
+   *  sur l'état de la frise. */
+  function paintLoopState(): void {
+    const loop = player.getLoop();
+    loopState.textContent =
+      loop.a !== null && loop.b !== null ? 'En cours' : laneOpen ? 'Tracer' : 'Non';
+  }
+
   function paintLoop(): void {
     const loop = shownLoop();
     const active = loop.a !== null && loop.b !== null;
     const signature = `${loop.a}|${loop.b}|${duration}|${laps}|${!!draftLoop}`;
     if (signature === paintedLoop) return;
     paintedLoop = signature;
+    paintLoopState();
 
     lanePrompt.classList.toggle('hidden', active || !!draftLoop);
     laneRail.classList.toggle('border-dashed', !active);
@@ -390,7 +419,9 @@ export function createTransport(options: TransportOptions): Transport {
   let laneOpen = false;
   function paintLoopToggle(): void {
     lane.classList.toggle('hidden', !laneOpen);
-    paintToggle(loopToggle, laneOpen, 'chip', 'md:order-6');
+    laneSlotBar.classList.toggle('hidden', !laneOpen);
+    paintToggle(loopToggle, laneOpen, 'chip', DOCK_CHIP_MOBILE);
+    paintLoopState();
     loopToggle.setAttribute('aria-expanded', String(laneOpen));
     loopToggle.setAttribute(
       'aria-label',

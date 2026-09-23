@@ -5,7 +5,7 @@
  * aucun raccourci clavier, et aucune action n'est cachée.
  */
 
-import { createInstrumentChip, createSegmented, el, paintToggle, ui } from '../dom';
+import { createInstrumentChip, createSegmented, el, iconLabel, paintToggle, ui } from '../dom';
 import { EclipseRunner } from '../eclipse';
 import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
@@ -239,10 +239,19 @@ export function renderTrainer(
   const fpIconButton = (glyph: string, aria: string): HTMLButtonElement =>
     el('button', { type: 'button', class: ui.icon, 'aria-label': aria }, glyph);
 
+  // Sans objet sur mobile : le plein écran n'apporte rien sur un écran déjà
+  // plein (retour du 2026-09-23, #153) — seul le point d'entrée disparaît,
+  // le mode plein écran lui-même (barre dédiée, sortie via Échap) reste
+  // inchangé pour qui l'a ouvert avant un redimensionnement.
   const fullpageEnter = el(
     'button',
-    { type: 'button', class: ui.button, 'aria-pressed': 'false' },
-    '⛶ Plein écran',
+    {
+      type: 'button',
+      class: `${ui.button} max-md:hidden`,
+      'aria-pressed': 'false',
+      'aria-label': 'Passer en plein écran',
+    },
+    iconLabel('⛶', 'Plein écran'),
   );
 
   // Sélecteur d'affichage : un seul groupe Partition / Grille, et les
@@ -250,10 +259,12 @@ export function renderTrainer(
   // elles n'ont de sens que là (#137). Le même choix existe en double, ici et
   // dans la barre de plein écran ; `createSegmented` laisse la vue seule
   // source de vérité, si bien que les deux se repeignent depuis le même état.
+  // Icône seule sur mobile plutôt que le texte abrégé de la barre de plein
+  // écran, jugé incompréhensible (#150) — le desktop garde le texte complet.
   const displaySelector = createSegmented<DisplayMode>(
     [
-      { value: 'partition', label: '♪ Partition' },
-      { value: 'grille', label: '▦ Grille' },
+      { value: 'partition', label: 'Partition', icon: '♪' },
+      { value: 'grille', label: 'Grille', icon: '▦' },
     ],
     (value) => setDisplay(value),
   );
@@ -268,8 +279,8 @@ export function renderTrainer(
 
   const contrechantSelector = createSegmented<'sans' | 'avec'>(
     [
-      { value: 'sans', label: 'Mélodie' },
-      { value: 'avec', label: '+ contre-chant' },
+      { value: 'sans', label: 'Mélodie', icon: '1' },
+      { value: 'avec', label: '+ contre-chant', icon: '2' },
     ],
     (value) => setContrechant(value),
   );
@@ -285,19 +296,72 @@ export function renderTrainer(
   // Les sous-options poussent depuis la bascule principale au lieu
   // d'apparaître d'un coup : l'animation dit qu'elles en dépendent. Elle est
   // courte et neutralisée sous `prefers-reduced-motion` (voir `style.css`).
+  // Masquée sur mobile (#153) : rejoint le tiroir Réglages sous forme de
+  // libellés complets (`modeSection` plus bas) plutôt que les icônes "1"/"2"
+  // jugées incompréhensibles sans essai-erreur.
   const contrechantReveal = el('div', { class: 'reveal-inline' }, contrechantSelector.root);
+  // `.reveal-inline` impose `display: grid` à toutes les tailles (style.css) :
+  // poser `max-md:hidden` directement dessus perd le duel de cascade contre
+  // cette règle non conditionnelle. On l'enveloppe plutôt.
+  const contrechantRevealSlot = el('div', { class: 'max-md:hidden' }, contrechantReveal);
   const fpContrechantReveal = el('div', { class: 'reveal-inline' }, fpContrechantSelector.root);
+
+  // Choix de tonalité, en double comme le mode d'affichage ci-dessus : la
+  // pastille cyclique reste dans l'en-tête desktop, une liste explicite
+  // rejoint le tiroir Réglages pour mobile (`tonaliteSection` plus bas) — les
+  // deux widgets se recopient l'un l'autre sans se rappeler l'un l'autre
+  // (même doctrine que `Segmented`, #137).
+  function pickInstrument(id: InstrumentId): void {
+    instrumentId = id;
+    hints = 0;
+    drawScore();
+    paintContrechantToggle();
+    instrumentChip.set(id);
+    drawerInstrumentSelector.set(id);
+  }
 
   const instrumentChip = createInstrumentChip({
     instruments: song.instruments,
     current: instrumentId,
-    onPick: (id) => {
-      instrumentId = id;
-      hints = 0;
-      drawScore();
-      paintContrechantToggle();
-    },
+    onPick: pickInstrument,
+    extra: 'max-md:hidden',
   });
+
+  const drawerInstrumentSelector = createSegmented<InstrumentId>(
+    song.instruments.map((instrument) => ({ value: instrument.id, label: instrument.name })),
+    pickInstrument,
+  );
+  drawerInstrumentSelector.set(instrumentId);
+  const tonaliteSection: Section = {
+    title: 'Tonalité',
+    hint: 'Transposition pour laquelle la partition s’affiche.',
+    body: drawerInstrumentSelector.root,
+    mobileOnly: true,
+  };
+
+  const drawerContrechantSelector = createSegmented<'sans' | 'avec'>(
+    [
+      { value: 'sans', label: 'Mélodie seule' },
+      { value: 'avec', label: '+ contre-chant' },
+    ],
+    (value) => setContrechant(value),
+  );
+  const contrechantUnavailableHint = el(
+    'p',
+    { class: 'text-xs leading-relaxed text-zinc-500' },
+    'Le contre-chant n’existe que pour la tonalité Ut, avec cette partition.',
+  );
+  const modeSection: Section = {
+    title: 'Affichage de la partition',
+    hint: 'Choisissez si le contre-chant s’ajoute à la mélodie.',
+    body: el(
+      'div',
+      { class: 'flex flex-col gap-2' },
+      drawerContrechantSelector.root,
+      contrechantUnavailableHint,
+    ),
+    mobileOnly: true,
+  };
 
   // Contrôles qui n'ont pas de sens sans partition à l'écran : ils
   // disparaissent en mode « Sans partition », alors que la pastille de
@@ -306,7 +370,7 @@ export function renderTrainer(
     'div',
     { class: 'flex shrink-0 items-center gap-2' },
     displaySelector.root,
-    contrechantReveal,
+    contrechantRevealSlot,
     fullpageEnter,
   );
 
@@ -325,8 +389,11 @@ export function renderTrainer(
     const has = contrechantAvailable() && activeDisplay() !== 'grille';
     contrechantReveal.classList.toggle('is-open', has);
     fpContrechantReveal.classList.toggle('is-open', has);
+    drawerContrechantSelector.root.classList.toggle('hidden', !has);
+    contrechantUnavailableHint.classList.toggle('hidden', has);
     contrechantSelector.set(contrechant);
     fpContrechantSelector.set(contrechant);
+    drawerContrechantSelector.set(contrechant);
   }
 
   const fullpageExit = el('button', { type: 'button', class: ui.button }, '✕ Fermer');
@@ -732,7 +799,14 @@ export function renderTrainer(
     primary: transport.primary,
     // « Comment travailler » vient en tête : c'est le choix qui structure la
     // séance, et le panneau défile — relégué en bas, il était hors d'atteinte.
-    sections: [defiSection, ...transport.sections],
+    // Tonalité et mode ne rejoignent le tiroir que sur mobile (`mobileOnly`) :
+    // sur desktop, ils restent visibles en direct dans l'en-tête (#153).
+    sections: [
+      defiSection,
+      tonaliteSection,
+      ...(song.contraponto !== null ? [modeSection] : []),
+      ...transport.sections,
+    ],
     panelPosition: progress.settings.panel,
     onPanelMoved: (panel) => {
       progress.settings.panel = panel;
@@ -789,19 +863,33 @@ export function renderTrainer(
   }
 
   const nextLabel = context.session ? 'Passer au morceau suivant' : 'Terminer et évaluer';
+  const nextIcon = context.session ? '⏭' : '✓';
   // Bouton ordinaire, et non `ui.primary` : sur cet écran l'action principale
   // est la lecture (le rond ambre du dock). Remplir « Terminer » en ambre en
   // faisait l'élément le plus voyant de la page, alors qu'on ne le touche
-  // qu'une fois, à la fin (#137).
-  const finishButton = el('button', { type: 'button', class: ui.button }, nextLabel);
+  // qu'une fois, à la fin (#137). Icône seule sur mobile : action de fin de
+  // parcours, peu consultée en continu (#150).
+  const finishButton = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-label': nextLabel },
+    iconLabel(nextIcon, nextLabel),
+  );
   finishButton.addEventListener('click', () => void finish());
 
   const stopSessionButton = context.session
-    ? el('button', { type: 'button', class: ui.button }, 'Terminer la séance')
+    ? el(
+        'button',
+        { type: 'button', class: ui.button, 'aria-label': 'Terminer la séance' },
+        iconLabel('⏹', 'Terminer la séance'),
+      )
     : null;
   stopSessionButton?.addEventListener('click', () => void finish(true));
 
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
+  const backButton = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-label': 'Retour' },
+    iconLabel('←', 'Retour'),
+  );
   backButton.addEventListener('click', () => context.navigateHome());
 
   // --- Minuteur de bloc (mode « urgences » uniquement) -------------------
@@ -831,11 +919,20 @@ export function renderTrainer(
         'span',
         {
           class:
-            'inline-flex min-h-11 items-center gap-2 rounded-lg border ' +
+            'inline-flex min-w-0 min-h-11 items-center gap-2 rounded-lg border ' +
             'border-amber-400/30 bg-amber-400/10 px-3 text-xs font-medium ' +
-            'text-amber-200',
+            'text-amber-200 max-md:min-h-8 max-md:px-2',
         },
-        el('span', { class: 'max-w-[14rem] truncate sm:max-w-none' }, context.session.label),
+        // Sur mobile, `min-w-0 flex-1` laisse le libellé se réduire à
+        // l'espace réellement disponible plutôt qu'imposer un plancher fixe
+        // de 14rem qui faisait déborder toute la page horizontalement dès
+        // qu'un libellé de séance était un peu long (#150). Desktop inchangé
+        // (`sm:max-w-none`, pas de troncature).
+        el(
+          'span',
+          { class: 'min-w-0 flex-1 truncate sm:max-w-none sm:flex-none' },
+          context.session.label,
+        ),
         blockMinutes !== null
           ? el(
               'span',
@@ -873,7 +970,10 @@ export function renderTrainer(
     el(
       'h1',
       {
-        class: 'min-w-0 truncate text-lg font-semibold text-zinc-100',
+        // Masqué visuellement sur mobile (reste le titre de page accessible) :
+        // déjà imprimé sur la partition juste en dessous, la place revient
+        // aux contrôles (retour du 2026-09-23, #153).
+        class: 'min-w-0 truncate text-lg font-semibold text-zinc-100 max-md:sr-only',
         // Le compositeur passe en infobulle plutôt que sur la ligne : il est
         // déjà imprimé sur la partition juste en dessous, et la place de
         // cette ligne revient aux contrôles (#137).
@@ -885,17 +985,14 @@ export function renderTrainer(
     sessionBadge,
   );
 
-  // Les contrôles d'affichage et de séance tiennent sur la même ligne que le
-  // titre tant que la place le permet, et basculent sur une seconde ligne à
-  // défilement horizontal dès qu'elle manque — `flex-wrap` s'en charge seul,
-  // sans point de rupture à maintenir.
+  // Sur mobile, tous les contrôles secondaires sont compactés en icône seule
+  // (`iconLabel`/`createSegmented` avec `icon`) pour tenir sur une seule
+  // ligne sans défilement horizontal — un défilement masquait des boutons
+  // sans indice qu'il fallait le faire (#150). Le desktop garde le texte
+  // complet, `gap-2` suffit alors à tout faire tenir.
   const headerControls = el(
     'div',
-    {
-      class:
-        'flex shrink-0 items-center gap-2 max-md:w-full ' +
-        'max-md:overflow-x-auto max-md:pb-1',
-    },
+    { class: 'flex shrink-0 items-center gap-1.5 md:gap-2' },
     scoreControls,
     instrumentChip.root,
     controlBar.opener,
@@ -903,11 +1000,19 @@ export function renderTrainer(
 
   const header = el(
     'header',
-    { class: 'dense-bar flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2' },
+    {
+      class:
+        'dense-bar flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 max-md:gap-x-2',
+    },
     backButton,
     identity,
     headerControls,
-    el('div', { class: 'flex shrink-0 gap-2' }, stopSessionButton, finishButton),
+    el(
+      'div',
+      { class: 'flex shrink-0 gap-1.5 md:gap-2' },
+      stopSessionButton,
+      finishButton,
+    ),
   );
 
   const noAudio = !anySource
@@ -1005,7 +1110,10 @@ export function renderTrainer(
   );
   const page = el(
     'div',
-    { class: 'mx-auto flex h-dvh max-w-5xl flex-col gap-4 px-4 py-6' },
+    {
+      class:
+        'mx-auto flex h-dvh max-w-5xl flex-col gap-4 px-4 py-6 max-md:gap-2 max-md:pb-0 max-md:pt-2',
+    },
     playerMount,
     header,
     scoreScroll,

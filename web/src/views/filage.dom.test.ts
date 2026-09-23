@@ -98,14 +98,15 @@ describe('renderFilage — dock de transport', () => {
 
   it('« Terminer le filage » appelle onFinish()', () => {
     const { root, context } = mount([song('a')]);
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer le filage')!;
+    const finish = root.querySelector('button[aria-label="Terminer le filage"]') as HTMLButtonElement;
     finish.click();
     expect(context.onFinish).toHaveBeenCalledOnce();
   });
 
   it('« Retour » appelle navigateHome()', () => {
     const { root, context } = mount([song('a')]);
-    const back = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Retour')!;
+    // Icône ← seule sur mobile, d'où le nom porté par `aria-label` (#153).
+    const back = root.querySelector('button[aria-label="Retour"]') as HTMLButtonElement;
     back.click();
     expect(context.navigateHome).toHaveBeenCalledOnce();
   });

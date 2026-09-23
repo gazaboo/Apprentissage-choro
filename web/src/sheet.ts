@@ -11,7 +11,7 @@
  * (#9, #137). C'est la disposition qu'employait déjà l'écran de filage.
  *
  * - ≥ 768 px : dock arrondi, centré, **tout sur une ligne** (lecture, frise,
- *   bascules, Défi). Le panneau Défi s'ouvre dans un
+ *   bascules, Réglages). Le panneau Réglages s'ouvre dans un
  *   popover étroit et **déplaçable** : la partition reste visible à côté, si
  *   bien qu'on voit l'effet de chaque réglage au moment où on le touche, et
  *   l'on pousse le panneau là où il ne gêne pas. Ce seuil est volontairement
@@ -24,7 +24,7 @@
  *   où le mettre.
  */
 
-import { el, paintToggle, ui } from './dom';
+import { el, iconLabel, paintToggle, ui } from './dom';
 import type { Section } from './transport';
 
 const DESKTOP = '(min-width: 768px)';
@@ -58,7 +58,7 @@ export interface ControlBar {
  *
  * C'est elle, le « modèle unique de dock » que demande #137. Plutôt qu'un
  * composant configurable couvrant à la fois l'entraînement (boucle A-B,
- * tonalité, sections Défi) et le filage (morceau suivant, cycle de vue,
+ * tonalité, sections Réglages) et le filage (morceau suivant, cycle de vue,
  * décompte), qui aurait fini en soupe d'options, chaque page compose ses
  * propres commandes dans une coquille commune — même démarche que
  * `renderRateStepper`, partagé entre les deux depuis longtemps.
@@ -71,8 +71,8 @@ export function dockShell(...rows: (HTMLElement | null)[]): HTMLElement {
     'div',
     {
       class:
-        'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
-        'flex-col gap-2 p-2',
+        'transport-shell dock-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
+        'flex-col gap-2 p-2 max-md:px-3 max-md:pb-1.5 max-md:pt-0.5',
     },
     ...rows.filter((row): row is HTMLElement => row !== null),
   );
@@ -80,7 +80,9 @@ export function dockShell(...rows: (HTMLElement | null)[]): HTMLElement {
     'div',
     {
       class:
-        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 ' +
+        // Bord à bord sous 768 px : la marge de page (`px-4`) et la carte
+        // prenaient 50 px à la piste sur 375 (#153).
+        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 max-md:-mx-4 ' +
         '[padding-bottom:env(safe-area-inset-bottom)]',
     },
     dock,
@@ -90,7 +92,11 @@ export function dockShell(...rows: (HTMLElement | null)[]): HTMLElement {
 function sectionBlock(section: Section): HTMLElement {
   return el(
     'section',
-    { class: 'flex min-w-0 flex-col gap-3 py-5 first:pt-0 last:pb-0' },
+    {
+      class:
+        'flex min-w-0 flex-col gap-3 py-5 first:pt-0 last:pb-0' +
+        (section.mobileOnly ? ' md:hidden' : ''),
+    },
     el('h3', { class: 'text-sm font-semibold text-zinc-100' }, section.title),
     section.hint
       ? el('p', { class: '-mt-2 text-xs leading-snug text-zinc-500' }, section.hint)
@@ -108,7 +114,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
 
   const closeButton = el(
     'button',
-    { type: 'button', class: ui.icon, 'aria-label': 'Fermer le défi' },
+    { type: 'button', class: ui.icon, 'aria-label': 'Fermer les réglages' },
     '\u2715',
   );
 
@@ -129,7 +135,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
         'rounded-t-2xl bg-zinc-900/95 px-4 py-3 backdrop-blur',
     },
     grip,
-    el('h2', { class: 'flex-1 text-sm font-semibold text-zinc-200' }, 'Défi'),
+    el('h2', { class: 'flex-1 text-sm font-semibold text-zinc-200' }, 'Réglages'),
     closeButton,
   );
 
@@ -140,7 +146,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
         'transport-shell pointer-events-auto flex w-full flex-col overflow-y-auto p-4 pt-0',
       role: 'dialog',
       'aria-modal': 'false',
-      'aria-label': 'Défi',
+      'aria-label': 'Réglages',
     },
     header,
     body,
@@ -156,18 +162,19 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   let isOpen = false;
   document.body.appendChild(overlay);
 
-  // Ouvreur unique, rendu à la vue plutôt que posé dans le dock. Le libellé
-  // reste écrit : dans la barre du haut la place ne manque plus, et « 🎯 »
-  // seul ne dit pas ce qu'on va ouvrir.
+  // Ouvreur unique, rendu à la vue plutôt que posé dans le dock. Le panneau
+  // porte désormais trois réglages (Défi, tonalité, mode d'affichage) plutôt
+  // que le seul Défi — l'icône ☰ dit « réglages », pas une action précise,
+  // d'où l'`aria-label` explicite (#150, #153).
   const toggle = el(
     'button',
     {
       type: 'button',
       class: `${ui.button} shrink-0`,
-      'aria-label': 'Ouvrir le défi',
+      'aria-label': 'Ouvrir les réglages',
       'aria-expanded': 'false',
     },
-    '🎯 Défi',
+    iconLabel('☰', 'Réglages'),
   );
   // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
   // l'emporterait sur un `hidden` posé sur le bouton lui-même.
@@ -202,7 +209,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     };
   }
 
-  /** Ancrage par défaut : au-dessus du bouton Défi, à droite. */
+  /** Ancrage par défaut : au-dessus du bouton Réglages, à droite. */
   function defaultPosition(): { x: number; y: number } {
     const dockBox = dock.getBoundingClientRect();
     const height = panel.offsetHeight || 320;
