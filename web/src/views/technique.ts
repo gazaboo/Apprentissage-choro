@@ -299,7 +299,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     (on && live
       ? 'border-amber-400/50 bg-amber-400/15 text-amber-200'
       : on
-        ? 'border-zinc-300/70 bg-zinc-700 font-semibold text-white'
+        ? `bg-transparent ${ui.selected}`
         : 'border-zinc-800 bg-transparent text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900');
 
   const revealButton = el(
