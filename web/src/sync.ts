@@ -308,6 +308,9 @@ export function mergeProgress(local: Progress, remoteRaw: unknown): Progress {
     activeTechniqueSetlistId: takeRemoteMeta
       ? (remote.activeTechniqueSetlistId ?? null)
       : local.activeTechniqueSetlistId,
+    techniquePresetsSeeded: takeRemoteMeta
+      ? remote.techniquePresetsSeeded === true
+      : local.techniquePresetsSeeded,
     sessions,
     settings: takeRemoteMeta
       ? { ...local.settings, ...(remote.settings as Progress['settings']) }

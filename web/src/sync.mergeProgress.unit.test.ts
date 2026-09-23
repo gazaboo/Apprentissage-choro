@@ -10,6 +10,7 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
     activeSetlistId: null,
     techniqueSetlists: [],
     activeTechniqueSetlistId: null,
+    techniquePresetsSeeded: false,
     sessions: [],
     _rev: 1,
     settings: {

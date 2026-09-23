@@ -53,6 +53,9 @@ export interface Progress {
   techniqueSetlists: TechniqueSetlist[];
   /** Setlist de technique active, ou `null` pour travailler tout le catalogue. */
   activeTechniqueSetlistId: string | null;
+  /** Vrai une fois les setlists de technique suggérées par défaut (#158)
+   *  proposées — évite de les recréer si l'utilisateur les a supprimées. */
+  techniquePresetsSeeded: boolean;
   /** Historique des séances menées ; ajout seul, jamais modifié. Plafonné à 200. */
   sessions: SessionRun[];
   /**
@@ -113,6 +116,7 @@ const DEFAULT_PROGRESS: Progress = {
   activeSetlistId: null,
   techniqueSetlists: [],
   activeTechniqueSetlistId: null,
+  techniquePresetsSeeded: false,
   sessions: [],
   _rev: 0,
   settings: {
@@ -257,6 +261,7 @@ export function loadProgress(): Progress {
       techniqueSetlists.some((entry) => entry.id === parsed.activeTechniqueSetlistId)
         ? parsed.activeTechniqueSetlistId
         : null;
+    const techniquePresetsSeeded = parsed.techniquePresetsSeeded === true;
     const rev =
       typeof parsed._rev === 'number' && Number.isFinite(parsed._rev)
         ? parsed._rev
@@ -275,6 +280,7 @@ export function loadProgress(): Progress {
       activeSetlistId,
       techniqueSetlists,
       activeTechniqueSetlistId,
+      techniquePresetsSeeded,
       sessions,
       _rev: rev,
       settings,

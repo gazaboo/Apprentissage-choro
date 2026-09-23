@@ -314,3 +314,49 @@ export function parAccord(cartes: ExerciceCarte[]): Map<string, ExerciceCarte[]>
   }
   return groups;
 }
+
+/** Vrai si la fondamentale du chiffrage n'a ni dièse ni bémol — « Dm7 », pas « F#m7 ». */
+export function estAccordNaturel(accord: string): boolean {
+  return /^[A-G](?![#b♯♭])/.test(accord);
+}
+
+/** Identifiants de motif considérés comme les gammes les plus utiles en choro. */
+const MOTIFS_GAMMES_COURANTES = new Set(['gamme-majeure', 'gamme-mineure']);
+
+export interface TechniquePresetSetlist {
+  id: string;
+  name: string;
+  exerciceIds: string[];
+}
+
+/**
+ * Setlists de technique suggérées par défaut (#158) : les arpèges, et les
+ * gammes les plus courantes, dans les tonalités sans dièse ni bémol — un
+ * point de départ raisonnable avant d'élargir à d'autres tonalités. Une
+ * setlist dont le catalogue ne fournit aucune carte (ex. famille absente)
+ * n'est pas proposée.
+ */
+export function presetsTechnique(cartes: ExerciceCarte[]): TechniquePresetSetlist[] {
+  const presets: TechniquePresetSetlist[] = [
+    {
+      id: 'preset-arpeges-naturels',
+      name: 'Arpèges sans dièse ni bémol',
+      exerciceIds: cartes
+        .filter((carte) => carte.famille === 'Arpèges' && estAccordNaturel(carte.accord))
+        .map((carte) => carte.id),
+    },
+    {
+      id: 'preset-gammes-naturelles',
+      name: 'Gammes courantes sans dièse ni bémol',
+      exerciceIds: cartes
+        .filter(
+          (carte) =>
+            carte.famille === 'Gammes' &&
+            MOTIFS_GAMMES_COURANTES.has(carte.motifId) &&
+            estAccordNaturel(carte.accord),
+        )
+        .map((carte) => carte.id),
+    },
+  ];
+  return presets.filter((preset) => preset.exerciceIds.length > 0);
+}
