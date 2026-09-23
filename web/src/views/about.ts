@@ -1,14 +1,60 @@
-/** Page « Comment ça marche » — les principes de mémorisation derrière l'app.
+/** Page « Comment ça marche » — d'abord l'usage courant, puis (repliés) les
+ *  principes de mémorisation qui le sous-tendent.
  *
- * Vue statique, à destination de l'utilisateur (pas des développeurs) : elle
- * explique, avec des sources réelles de sciences cognitives, à quel
- * mécanisme de l'app correspond chaque principe. Contrairement aux réglages
- * de l'UI — où le vocabulaire de conception reste en langue courante — cette
- * page a pour rôle de le nommer et de le sourcer.
+ * Vue statique, à destination de l'utilisateur (pas des développeurs).
+ * L'essentiel (séance, répétition espacée, catalogue, évaluation, synchro)
+ * est expliqué en langage courant, sans jargon ni référence à
+ * l'architecture interne — c'est ce qu'un nouvel utilisateur doit
+ * comprendre pour s'en servir. Les sources de sciences cognitives, plus
+ * denses, restent disponibles sous « Pour aller plus loin » pour qui veut
+ * creuser.
  */
 
 import { el, ui } from '../dom';
 
+interface Essentiel {
+  titre: string;
+  texte: string;
+}
+
+const ESSENTIELS: Essentiel[] = [
+  {
+    titre: 'La séance du jour',
+    texte:
+      'Chaque jour, l’app propose quelques morceaux à retravailler — ceux qui ' +
+      'commencent à s’oublier. On peut aussi parcourir tout le répertoire, ou ' +
+      'préparer un concert en enchaînant la setlist sans interruption (le filage).',
+  },
+  {
+    titre: 'La répétition espacée',
+    texte:
+      'Après chaque morceau, on indique si ça revient facilement ou pas. Plus ' +
+      'c’est su, plus l’app attend avant d’y revenir ; plus c’est fragile, plus ' +
+      'tôt elle le reproposera — l’idée est de réviser juste avant d’oublier.',
+  },
+  {
+    titre: 'Le catalogue et les setlists',
+    texte:
+      'Tout le répertoire est disponible, mais on peut le restreindre à une ' +
+      'setlist — un concert à préparer, un sous-ensemble à bosser. La séance et ' +
+      'le filage s’appuient alors sur cette sélection plutôt que sur le ' +
+      'catalogue entier.',
+  },
+  {
+    titre: 'Évaluation et feedback',
+    texte:
+      'À la fin d’un morceau, une courte auto-évaluation (de « rien ne revient » ' +
+      'à « parfait, sans indice ») et un tempo. C’est elle qui décide de la ' +
+      'prochaine révision.',
+  },
+  {
+    titre: 'Sauvegarde et synchronisation',
+    texte:
+      'La progression est enregistrée automatiquement sur l’appareil. Avec un ' +
+      'identifiant (page Compte), elle se synchronise aussi entre plusieurs ' +
+      'appareils.',
+  },
+];
 
 interface Principe {
   titre: string;
@@ -82,6 +128,15 @@ const PRINCIPES: Principe[] = [
   },
 ];
 
+function essentielCard(essentiel: Essentiel): HTMLElement {
+  return el(
+    'section',
+    { class: `${ui.card} flex flex-col gap-1` },
+    el('h2', { class: 'text-base font-medium text-zinc-100' }, essentiel.titre),
+    el('p', { class: 'text-sm text-zinc-300' }, essentiel.texte),
+  );
+}
+
 function principeCard(principe: Principe): HTMLElement {
   return el(
     'section',
@@ -94,7 +149,6 @@ function principeCard(principe: Principe): HTMLElement {
 }
 
 export function renderAbout(root: HTMLElement): () => void {
-
   root.replaceChildren(
     el(
       'div',
@@ -110,12 +164,23 @@ export function renderAbout(root: HTMLElement): () => void {
           el(
             'p',
             { class: 'mt-1 text-sm text-zinc-400' },
-            'Cinq principes de sciences cognitives, et ce qu’ils deviennent dans l’app.',
+            'L’essentiel pour s’en servir, en cinq points.',
           ),
         ),
       ),
 
-      ...PRINCIPES.map(principeCard),
+      ...ESSENTIELS.map(essentielCard),
+
+      el(
+        'details',
+        { class: `${ui.card}` },
+        el(
+          'summary',
+          { class: 'cursor-pointer text-sm font-medium text-zinc-200' },
+          'Pour aller plus loin — les principes de sciences cognitives',
+        ),
+        el('div', { class: 'mt-4 flex flex-col gap-4' }, ...PRINCIPES.map(principeCard)),
+      ),
     ),
   );
 
