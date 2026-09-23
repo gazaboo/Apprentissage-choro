@@ -1,9 +1,10 @@
-/** Accueil et gestion de la synchronisation.
+/** Accueil et réglages par défaut.
  *
  * À la première arrivée, tant qu'aucun choix n'a été fait, cet écran occupe
  * toute la place (mode passerelle) : rester sur l'appareil, ou saisir un
  * identifiant pour retrouver sa progression partout. Ensuite il redevient une
- * page ordinaire (`#/compte`) où l'on se connecte / déconnecte.
+ * page ordinaire (`#/compte`) qui ne propose plus que les réglages par
+ * défaut — un utilisateur ne change pas de compte sur le même appareil.
  *
  * La synchro est automatique : au chargement, au retour au premier plan, et en
  * différé après chaque enregistrement. Aucun bouton « synchroniser ».
@@ -11,14 +12,10 @@
 
 import { el, ui } from '../dom';
 import {
-  accountMode,
   chooseAnonymous,
-  formatLastSync,
-  getSyncCode,
   isValidCode,
   probeCode,
   setSyncCode,
-  signOut,
   syncNow,
 } from '../sync';
 import { saveProgress, type Progress } from '../store';
@@ -207,8 +204,6 @@ function renderGate(context: AccountContext, connect: (code: string) => void): H
 }
 
 export function renderAccount(root: HTMLElement, context: AccountContext): () => void {
-  const mode = accountMode();
-
   /** Se connecter à un identifiant : l'état distant est fusionné puis rechargé. */
   function connect(code: string): void {
     setSyncCode(code);
@@ -223,48 +218,6 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
   const blocks: HTMLElement[] = [
     el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, 'Compte'),
   ];
-
-  if (mode === 'sync') {
-    const outButton = el('button', { type: 'button', class: ui.button }, 'Se déconnecter');
-    outButton.addEventListener('click', () => {
-      signOut();
-      context.onChange();
-    });
-
-    blocks.push(
-      el(
-        'section',
-        { class: `${ui.card} flex flex-col gap-2` },
-        el('p', { class: ui.label }, 'Connecté'),
-        el(
-          'p',
-          { class: 'break-all text-base font-medium text-zinc-100' },
-          getSyncCode() ?? '',
-        ),
-        el(
-          'p',
-          { class: 'text-sm text-zinc-500' },
-          `Progression synchronisée automatiquement · ${formatLastSync()}.`,
-        ),
-        el(
-          'p',
-          { class: 'text-sm text-zinc-500' },
-          'Saisissez le même identifiant sur vos autres appareils.',
-        ),
-        el('div', { class: 'flex' }, outButton),
-      ),
-    );
-  } else {
-    blocks.push(
-      el(
-        'section',
-        { class: `${ui.card} flex flex-col gap-2` },
-        el('p', { class: 'text-sm text-zinc-300' }, 'Vous travaillez sur cet appareil uniquement.'),
-        el('p', { class: ui.label }, 'Synchroniser mes appareils'),
-        codeForm(connect),
-      ),
-    );
-  }
 
   if (context.progress) {
     const progress = context.progress;
