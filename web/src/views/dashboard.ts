@@ -676,7 +676,7 @@ export function renderDashboard(
 
   const aboutLink = el(
     'button',
-    { type: 'button', class: ui.button, title: 'Les principes de mémorisation de l’app' },
+    { type: 'button', class: ui.button, title: 'Comment fonctionne l’app' },
     'Comment ça marche ?',
   );
   aboutLink.addEventListener('click', context.openAbout);
