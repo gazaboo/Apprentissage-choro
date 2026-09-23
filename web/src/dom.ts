@@ -46,14 +46,26 @@ export function clear(node: HTMLElement): void {
  *   à la fois.* Sur l'écran d'entraînement, c'est le bouton de lecture.
  * - **Ambre vivant** : ce qui tourne en ce moment — la lecture en cours, la
  *   boucle active. Un état transitoire, jamais un réglage.
- * - **Sélection** (`*Active`) : gris relevé, jamais ambre. Trois canaux à la
- *   fois — bordure plus claire, surface remontée d'un cran, texte plus gras —
- *   pour rester identifiable sans dépendre de la couleur seule.
+ * - **Sélection** (`*Active`, `ui.selected`) : ambre discret — texte et
+ *   bordure seulement, sur la surface neutre (#162). C'est ce qui la sépare
+ *   de l'ambre vivant, dont la surface est teintée. Trois canaux à la fois —
+ *   couleur, bordure doublée d'un anneau interne, texte plus gras — pour
+ *   rester identifiable sans dépendre de la couleur seule.
  *
  * L'anneau de focus reste ambre : il dit « le clavier est ici », ce qui est
  * une quatrième question, orthogonale aux trois autres.
  */
+/**
+ * Marque d'un contrôle sélectionné, commune à toute l'app (#162). Ajoutée à un
+ * gabarit dont on a retiré bordure, texte et graisse ; l'anneau interne double
+ * la bordure sans décaler la mise en page.
+ */
+const SELECTED =
+  'border-amber-400/80 ring-1 ring-inset ring-amber-400/80 font-semibold text-amber-300';
+
 export const ui = {
+  /** Fragment d'état sélectionné, pour les contrôles faits main. */
+  selected: SELECTED,
   button:
     'inline-flex min-h-11 items-center justify-center rounded-lg border ' +
     'border-zinc-700 bg-zinc-800 px-4 text-sm font-medium text-zinc-200 ' +
@@ -62,8 +74,8 @@ export const ui = {
     'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-zinc-800',
   buttonActive:
     'inline-flex min-h-11 items-center justify-center rounded-lg border ' +
-    'border-zinc-300/70 bg-zinc-700 px-4 text-sm font-semibold ' +
-    'text-white transition hover:bg-zinc-600 focus:outline-none ' +
+    `bg-zinc-800 px-4 text-sm ${SELECTED} ` +
+    'transition hover:bg-zinc-700 focus:outline-none ' +
     'focus-visible:ring-2 focus-visible:ring-amber-400',
   primary:
     'inline-flex min-h-11 items-center justify-center rounded-lg bg-amber-400 ' +
@@ -84,8 +96,8 @@ export const ui = {
     'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-zinc-800',
   chipActive:
     'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg ' +
-    'border border-zinc-300/70 bg-zinc-700 px-3 text-xs font-semibold ' +
-    'text-white transition hover:bg-zinc-600 focus:outline-none ' +
+    `border bg-zinc-800 px-3 text-xs ${SELECTED} ` +
+    'transition hover:bg-zinc-700 focus:outline-none ' +
     'focus-visible:ring-2 focus-visible:ring-amber-400',
   /** Contrôle carré et compact (icône seule) de la barre de transport. */
   icon:
@@ -96,8 +108,8 @@ export const ui = {
     'disabled:cursor-not-allowed disabled:opacity-40',
   iconActive:
     'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ' +
-    'border border-zinc-300/70 bg-zinc-700 text-base font-semibold text-white ' +
-    'transition hover:bg-zinc-600 focus:outline-none focus-visible:ring-2 ' +
+    `border bg-zinc-800/80 text-base ${SELECTED} ` +
+    'transition hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 ' +
     'focus-visible:ring-amber-400',
   card: 'rounded-xl border border-zinc-800 bg-zinc-900/60 p-4',
   label: 'text-xs font-semibold uppercase tracking-wider text-zinc-500',
@@ -591,7 +603,7 @@ export function createSegmented<T extends string>(
 const segClass = (on: boolean): string =>
   'min-h-11 flex-1 rounded-lg border px-3 text-sm transition ' +
   (on
-    ? 'border-zinc-300/70 bg-zinc-700 font-semibold text-white hover:bg-zinc-600'
+    ? `bg-zinc-800 ${SELECTED} hover:bg-zinc-700`
     : 'border-zinc-700 bg-zinc-800 font-medium text-zinc-200 hover:border-zinc-500 hover:bg-zinc-700');
 
 /** Groupe de boutons à choix unique, largeur égale. Rappelle `onPick` et se repeint seul. */
