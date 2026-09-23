@@ -18,6 +18,7 @@
  * continuer », seule action en ambre plein.
  */
 
+import { JournalMicro, diagnosticMicroActif, telecharger } from '../diagnostic-micro';
 import { el, setState, ui } from '../dom';
 import * as icons from '../icons';
 import { Metronome, MAX_BPM, MIN_BPM, clampBpm, cycleOf } from '../metronome';
@@ -143,6 +144,24 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
    * juger.
    */
   let testTracker: PitchTracker | null = null;
+  /** Journal de la dernière écoute (évaluation ou test), avec `?debug=micro` seulement. */
+  const diagnostic = diagnosticMicroActif();
+  let journal: JournalMicro | null = null;
+
+  /** Pose un journal neuf sur `cible` avant son démarrage, si le diagnostic est actif. */
+  function journaliser(cible: PitchTracker, mode: 'evaluation' | 'test'): void {
+    if (!diagnostic) return;
+    const current = carte();
+    journal = new JournalMicro();
+    journal.meta = {
+      mode,
+      exercice: current.id,
+      notes: current.notes,
+      midi: current.midi,
+      bpm,
+    };
+    cible.journal = journal;
+  }
   let micTesting = false;
   let micTestActivating = false;
   /** Incrémenté à chaque coupure du test (`stopMicTest`) : permet à une activation en
@@ -183,6 +202,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
       // La prise, elle, garde tout : c'est la matière de la notation finale.
       if (tracker?.listening) prise.beats.push({ index: beatIndex, time: audioTime });
+      if (tracker?.listening) journal?.battue(beatIndex, audioTime);
 
       if (evaluating) {
         const motifLength = carte().notes.length;
@@ -354,6 +374,28 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   // `aria-live` : le message d'état change sans que le bouton ne reprenne le
   // focus, il faut donc l'annoncer explicitement aux lecteurs d'écran.
   const micHint = el('p', { class: 'text-center text-xs text-zinc-500', 'aria-live': 'polite' });
+  // Diagnostic (`?debug=micro`) : rapatrie la dernière écoute pour la rejouer
+  // hors ligne. Invisible pour qui n'a pas demandé ce mode.
+  const diagnosticButton = el(
+    'button',
+    {
+      type: 'button',
+      class: `${diagnostic ? '' : 'hidden '}self-center rounded border border-dashed border-amber-500/60 px-3 py-1 text-xs text-amber-300`,
+      'data-diagnostic-micro': '',
+    },
+    'Télécharger le diagnostic micro',
+  );
+  diagnosticButton.addEventListener('click', () => {
+    if (!journal || journal.vide()) {
+      diagnosticButton.textContent = 'Rien d’enregistré : écoutez d’abord (test ou évaluation)';
+      return;
+    }
+    const { wav, json } = journal.exporter();
+    const nom = `diagnostic-micro-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+    telecharger(`${nom}.wav`, wav, 'audio/wav');
+    telecharger(`${nom}.json`, json, 'application/json');
+    diagnosticButton.textContent = `Diagnostic téléchargé (${journal.duree.toFixed(0)} s)`;
+  });
   /** Point animé : seul repère qui bouge en continu, preuve que l'écoute est active. */
   const micStatusDot = el('span', { class: 'hidden h-2 w-2 rounded-full bg-rose-400 animate-pulse' });
   const micStatusText = el('span', { class: 'hidden text-xs font-semibold text-rose-300' }, 'Écoute en cours…');
@@ -820,6 +862,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     try {
       const context = await metronome.prepare();
       tracker ??= new PitchTracker(context, handleOnset, handleLevel);
+      journaliser(tracker, 'evaluation');
       await tracker.start();
       prise = { beats: [], onsets: [] };
       judged = new Map();
@@ -884,6 +927,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           testLevelFill.style.width = `${Math.round(level * 100)}%`;
         },
       );
+      journaliser(testTracker, 'test');
       await testTracker.start();
       if (generation !== micTestGeneration) {
         // Annulé pendant l'activation : ne pas ressusciter le test par-dessus
@@ -1156,6 +1200,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           micStatusRow,
           micHint,
           testRow,
+          diagnosticButton,
         ),
       ),
 

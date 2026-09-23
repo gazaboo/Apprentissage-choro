@@ -29,6 +29,7 @@
 
 import { midiFromFrequency } from './technique/theorie';
 import workletUrl from './pitch-capture.worklet.js?url';
+import type { JournalMicro } from './diagnostic-micro';
 
 /** Fenêtre d'estimation de hauteur, en échantillons : ~46 ms à 44,1 kHz.
  *
@@ -112,10 +113,10 @@ const MAX_MIDI = 78;
  * l'autocorrélation ne dépend pas de la forme du spectre, seulement de sa
  * périodicité.
  */
-const CLICK_HZ = [600, 800, 1000];
+export const CLICK_HZ = [600, 800, 1000];
 
 /** Étroitesse des cloches : assez fines pour ne mordre que sur le clic. */
-const CLICK_Q = 20;
+export const CLICK_Q = 20;
 
 export interface Onset {
   /** Instant `AudioContext.currentTime` de l'attaque. */
@@ -294,6 +295,13 @@ export class PitchTracker {
   private node: AudioWorkletNode | null = null;
   private notches: BiquadFilterNode[] = [];
   private pitchStream: PitchStream | null = null;
+  /** Second nœud de capture, branché avant les coupe-bandes, pour le journal. */
+  private rawNode: AudioWorkletNode | null = null;
+  /**
+   * Journal de diagnostic (`?debug=micro`) : s'il est posé avant `start()`, le
+   * signal brut et chaque note rendue y sont consignés.
+   */
+  journal: JournalMicro | null = null;
 
   /**
    * `onLevel` publie le niveau sonore courant (0–1) à chaque lot, qu'il y ait
@@ -327,7 +335,14 @@ export class PitchTracker {
 
     await this.context.audioWorklet.addModule(workletUrl);
 
-    this.pitchStream = new PitchStream(this.context.sampleRate, this.onOnset, this.onLevel);
+    const journal = this.journal;
+    const onOnset = journal
+      ? (onset: Onset): void => {
+          journal.onset(onset, this.context);
+          this.onOnset(onset);
+        }
+      : this.onOnset;
+    this.pitchStream = new PitchStream(this.context.sampleRate, onOnset, this.onLevel);
     this.source = this.context.createMediaStreamSource(this.stream);
     // Aucune sortie : le nœud consomme le micro et ne rejoue rien. C'est aussi
     // ce qui le garde actif sans passer par `destination`.
@@ -352,6 +367,20 @@ export class PitchTracker {
       this.source,
     );
     entree.connect(this.node);
+
+    if (journal) {
+      journal.ouvrir(this.context, this.stream.getAudioTracks()[0]);
+      this.rawNode = new AudioWorkletNode(this.context, 'pitch-capture', {
+        numberOfInputs: 1,
+        numberOfOutputs: 0,
+      });
+      this.rawNode.port.onmessage = (
+        event: MessageEvent<{ frame: number; samples: Float32Array }>,
+      ) => {
+        journal.echantillons(event.data.frame, event.data.samples);
+      };
+      this.source.connect(this.rawNode);
+    }
   }
 
   get listening(): boolean {
@@ -364,6 +393,9 @@ export class PitchTracker {
     for (const filtre of this.notches) filtre.disconnect();
     this.notches = [];
     this.node?.disconnect();
+    if (this.rawNode) this.rawNode.port.onmessage = null;
+    this.rawNode?.disconnect();
+    this.rawNode = null;
     this.source = null;
     this.node = null;
     this.pitchStream = null;

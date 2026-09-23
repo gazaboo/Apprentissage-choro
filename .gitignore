@@ -13,3 +13,6 @@ library/
 # Captures d'un balayage UI (scripts/capture-ui-verification.mjs) : à
 # regénérer localement, jamais à committer.
 docs/qa/
+
+# Rapports générés par le rejeu des prises micro
+web/src/__fixtures__/micro/*.rapport.txt
