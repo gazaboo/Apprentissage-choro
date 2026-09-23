@@ -14,6 +14,7 @@
 import { dockShell } from '../sheet';
 import {
   createPlayButton,
+  createPlayerRow,
   createSeekBar,
   createSourceToggle,
   el,
@@ -147,7 +148,7 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const timeLabel = el('span', {
     class: 'shrink-0 font-mono text-sm text-zinc-400 tabular-nums',
   }, '0:00 / 0:00');
-  const play = createPlayButton({ onToggle: () => player.togglePlay() });
+  const play = createPlayButton({ onToggle: () => player.togglePlay(), size: 'lg' });
   const playButton = play.root;
 
   const nextButton = el(
@@ -509,44 +510,48 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       // Dock de contrôle : la coquille commune à l'entraînement (`dockShell`,
       // `sheet.ts`). Les commandes diffèrent — le filage n'a ni boucle, ni
       // tonalité, ni Défi, mais a « Passer au suivant » et le cycle de vue —
-      // seule l'enveloppe visuelle est partagée (#137).
+      // seule l'enveloppe visuelle est partagée (#137). Deux rangées sous
+      // 768px comme l'entraînement (`createPlayerRow`, #153) : la piste a
+      // besoin de sa propre rangée pour rester saisissable au doigt.
       dockShell(
-        el(
-          'div',
-          { class: 'flex w-full items-center gap-2' },
+        createPlayerRow(
           playButton,
-          seekBar,
-          timeLabel,
-        ),
-        // Deux groupes fixes plutôt qu'un `flex-wrap` unique à 8+ éléments :
-        // garantit visuellement une seule ligne sur mobile au lieu de
-        // compter sur le repli pour « juste tenir » (#150). Les libellés
-        // « Vitesse »/« Bande » se masquent sur mobile — les contrôles
-        // adjacents restent compréhensibles par leur forme, et portent leur
-        // propre `aria-label`.
-        el(
-          'div',
-          { class: 'dense-bar flex flex-wrap items-center justify-between gap-2' },
           el(
             'div',
-            { class: 'flex flex-wrap items-center gap-2' },
-            el(
-              'span',
-              { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
-              'Vitesse',
-            ),
-            rateStepper.minus,
-            rateStepper.value,
-            rateStepper.plus,
-            el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
-            el(
-              'span',
-              { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
-              'Bande',
-            ),
-            sourceToggle.root,
+            { class: 'flex min-w-0 flex-1 items-center gap-2' },
+            seekBar,
+            timeLabel,
           ),
-          el('div', { class: 'flex flex-wrap items-center gap-2' }, nextButton, scoreToggle),
+          // Deux groupes fixes plutôt qu'un `flex-wrap` unique à 8+ éléments :
+          // garantit visuellement une seule ligne sur mobile au lieu de
+          // compter sur le repli pour « juste tenir » (#150). Les libellés
+          // « Vitesse »/« Bande » se masquent sur mobile — les contrôles
+          // adjacents restent compréhensibles par leur forme, et portent leur
+          // propre `aria-label`.
+          el(
+            'div',
+            { class: 'dense-bar flex flex-wrap items-center justify-between gap-2' },
+            el(
+              'div',
+              { class: 'flex flex-wrap items-center gap-2' },
+              el(
+                'span',
+                { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
+                'Vitesse',
+              ),
+              rateStepper.minus,
+              rateStepper.value,
+              rateStepper.plus,
+              el('span', { class: 'mx-1 hidden h-6 w-px bg-zinc-700 sm:block' }),
+              el(
+                'span',
+                { class: 'max-md:hidden text-xs uppercase tracking-wider text-zinc-500' },
+                'Bande',
+              ),
+              sourceToggle.root,
+            ),
+            el('div', { class: 'flex flex-wrap items-center gap-2' }, nextButton, scoreToggle),
+          ),
         ),
       ),
     ),

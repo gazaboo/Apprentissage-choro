@@ -8,7 +8,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { createInstrumentChip, createSegmented } from './dom';
+import { createInstrumentChip, createPlayButton, createPlayerRow, createSegmented, el } from './dom';
 import type { InstrumentId } from './types';
 
 const instrument = (id: InstrumentId, name: string) => ({ id, name });
@@ -107,5 +107,37 @@ describe('createSegmented', () => {
     expect(seg.root.classList.contains('hidden')).toBe(true);
     seg.setVisible(true);
     expect(seg.root.classList.contains('hidden')).toBe(false);
+  });
+});
+
+describe('createPlayButton', () => {
+  it('`size: \'lg\'` agrandit le cercle sous 768px sans toucher à sa taille desktop', () => {
+    const normal = createPlayButton({ onToggle: vi.fn() });
+    const large = createPlayButton({ onToggle: vi.fn(), size: 'lg' });
+    expect(normal.root.className).toContain('h-12 w-12');
+    expect(large.root.className).toContain('h-12 w-12');
+    expect(normal.root.className).toContain('max-md:h-10 max-md:w-10');
+    expect(large.root.className).toContain('max-md:h-14 max-md:w-14');
+    expect(large.root.className).not.toContain('max-md:h-10');
+  });
+});
+
+describe('createPlayerRow', () => {
+  it('assemble le bouton de lecture et les deux rangées en un seul bloc', () => {
+    const playButton = el('button', {}, 'lecture');
+    const scrubberRow = el('div', { 'data-scrubber': '' }, 'piste');
+    const controlsRow = el('div', { 'data-controls': '' }, 'réglages');
+    const row = createPlayerRow(playButton, scrubberRow, controlsRow);
+
+    expect(row.contains(playButton)).toBe(true);
+    expect(row.contains(scrubberRow)).toBe(true);
+    expect(row.contains(controlsRow)).toBe(true);
+    // Les deux rangées s'empilent sous 768px (`flex-col`) et reviennent sur
+    // une seule ligne au-delà (`md:flex-row`) — piste et bouton de lecture,
+    // eux, ne bougent jamais de la ligne principale (#153).
+    expect(scrubberRow.parentElement).toBe(controlsRow.parentElement);
+    expect(scrubberRow.parentElement!.className).toContain('flex-col');
+    expect(scrubberRow.parentElement!.className).toContain('md:flex-row');
+    expect(row.contains(scrubberRow.parentElement)).toBe(true);
   });
 });

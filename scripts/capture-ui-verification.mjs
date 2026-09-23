@@ -317,21 +317,26 @@ async function run() {
     await goto(session, songUrl);
     await capture(session, 'song-mode-entiere', 'Entraînement — mode Partition entière');
 
-    // L'ancien bouton « Réglages » a été remplacé par le panneau « Défi »
-    // (#109, cf. `sheet.ts`) — seul point d'entrée restant pour changer de
-    // mode de lecture depuis cette vue. Éclipses n'y a plus de bouton dédié
-    // (seuls les paliers de masquage et « partition entière » le sont :
-    // capture sautée) ; Sans partition est déjà couvert par l'écran Consigne
-    // capturé plus haut via le mode démonstration.
-    await clickAriaLabel(session, 'Ouvrir le défi');
-    await capture(session, 'song-defi-panel', 'Entraînement — panneau Défi');
+    // Le panneau « Défi » vit désormais dans le tiroir « Réglages » (#153),
+    // qui porte aussi la tonalité et le mode d'affichage sur mobile — seul
+    // point d'entrée restant pour changer de mode de lecture depuis cette
+    // vue. Éclipses n'y a plus de bouton dédié (seuls les paliers de
+    // masquage et « partition entière » le sont : capture sautée) ; Sans
+    // partition est déjà couvert par l'écran Consigne capturé plus haut via
+    // le mode démonstration.
+    await clickAriaLabel(session, 'Ouvrir les réglages');
+    await capture(session, 'song-defi-panel', 'Entraînement — panneau Défi (tiroir Réglages)');
     await clickByText(session, 'button', ['Partition masquée à 50 %']);
-    await clickAriaLabel(session, 'Fermer le défi');
+    await clickAriaLabel(session, 'Fermer les réglages');
     await capture(session, 'song-mode-mesures', 'Entraînement — mode Mesures cachées (50 %)');
 
+    // Plein écran n'a plus de point d'entrée sur mobile (#153) : forcer le
+    // viewport desktop le temps de ce déclenchement, quel que soit `PRIMARY`.
     await goto(session, songUrl);
+    await setViewport(session, DESKTOP.width, DESKTOP.height);
     await clickByText(session, 'button', ['Plein écran']);
-    await capture(session, 'song-plein-ecran', 'Entraînement — plein écran');
+    await capture(session, 'song-plein-ecran', 'Entraînement — plein écran', { viewport: DESKTOP });
+    await setViewport(session, PRIMARY.width, PRIMARY.height);
 
     await goto(session, songUrl);
     await setViewport(session, MOBILE.width, MOBILE.height);

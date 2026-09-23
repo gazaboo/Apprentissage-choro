@@ -66,7 +66,7 @@ function mount(overrides: Partial<ControlBarOptions> = {}) {
 const panel = () => document.body.querySelector('[role="dialog"]') as HTMLElement;
 const overlay = () => panel().parentElement as HTMLElement;
 const opener = () =>
-  document.body.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+  document.body.querySelector('button[aria-label="Ouvrir les réglages"]') as HTMLButtonElement;
 
 function pointer(type: string, clientX: number, clientY: number): PointerEvent {
   return new PointerEvent(type, { bubbles: true, clientX, clientY, pointerId: 1 });
@@ -85,7 +85,7 @@ describe('createControlBar — structure', () => {
     // `role="dialog"`, et il ne vit pas dans l'arbre de la vue.
     expect(bar.root.contains(panel())).toBe(false);
     expect(document.body.contains(panel())).toBe(true);
-    expect(panel().getAttribute('aria-label')).toBe('Défi');
+    expect(panel().getAttribute('aria-label')).toBe('Réglages');
   });
 
   it('rend chaque section avec son intitulé et son explication', () => {
@@ -124,7 +124,7 @@ describe('createControlBar — ouverture du Défi', () => {
     mount();
     opener().click();
     const close = panel().querySelector(
-      'button[aria-label="Fermer le défi"]',
+      'button[aria-label="Fermer les réglages"]',
     ) as HTMLButtonElement;
     close.click();
     expect(overlay().style.display).toBe('none');

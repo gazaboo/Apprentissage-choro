@@ -14,6 +14,7 @@
 
 import {
   createPlayButton,
+  createPlayerRow,
   createSeekBar,
   createSourceToggle,
   el,
@@ -32,6 +33,9 @@ export interface Section {
   /** Une phrase disant à quoi sert le réglage — le titre seul ne suffit pas. */
   hint?: string;
   body: HTMLElement;
+  /** N'apparaît que sous 768px — pour un réglage déjà visible en direct dans
+   *  l'en-tête desktop, qui n'a pas besoin d'un second accès redondant (#153). */
+  mobileOnly?: boolean;
 }
 
 export interface TransportOptions {
@@ -64,6 +68,7 @@ export function createTransport(options: TransportOptions): Transport {
   const play = createPlayButton({
     onToggle: () => player.togglePlay(),
     disabled: !anySource,
+    size: 'lg',
   });
   const playButton = play.root;
 
@@ -87,16 +92,14 @@ export function createTransport(options: TransportOptions): Transport {
   const tickA = loopTick();
   const tickB = loopTick();
 
-  // Masqués sur mobile : le dock doit tenir sur une seule ligne (#150), et
-  // la position se lit déjà au doigt sur la piste elle-même.
   const currentLabel = el(
     'span',
-    { class: 'max-md:hidden shrink-0 font-mono text-xs text-zinc-400' },
+    { class: 'shrink-0 font-mono text-xs text-zinc-400' },
     '0:00',
   );
   const durationLabel = el(
     'span',
-    { class: 'max-md:hidden shrink-0 font-mono text-xs text-zinc-500' },
+    { class: 'shrink-0 font-mono text-xs text-zinc-500' },
     '0:00',
   );
 
@@ -217,28 +220,23 @@ export function createTransport(options: TransportOptions): Transport {
 
   // --- Assemblage de la barre principale ---------------------------------
   //
-  // Une seule ligne, y compris sur mobile (#150) : chaque contrôle secondaire
-  // est réduit à une taille icône (voir `dense-bar` et les tailles `max-md:`
-  // ci-dessus), et les temps de la piste se masquent sous 768 px pour
-  // laisser la place. Avant #150, la barre passait en colonne sous 768 px
-  // (piste sur une ligne, bascules sur une seconde) ; ce n'est plus
-  // nécessaire une fois tout compacté.
+  // Deux rangées sous 768 px (piste, puis contrôles), une seule au-delà
+  // (#153) : entasser piste et bascules sur une seule ligne mobile (#150)
+  // rendait le lecteur trop court pour repositionner la tête au doigt.
+  // `createPlayerRow` porte cette bascule de disposition.
 
   const secondary: HTMLElement[] = [];
   if (sourceCycle.length > 1) secondary.push(sourceButton);
   secondary.push(rateGroup);
   if (anySource) secondary.push(loopToggle);
 
-  const primary = el(
+  const controlsRow = el(
     'div',
-    // `dense-bar` réduit la hauteur peinte des boutons descendants sous
-    // pointeur grossier aussi depuis #150 — la ligne de bascules a plus de
-    // chances de tenir sur une seule ligne à 375px sans grandir le dock.
-    { class: 'dense-bar flex w-full items-center gap-1.5 md:gap-3' },
-    playButton,
-    seekRow,
+    { class: 'flex items-center gap-1.5 md:gap-3' },
     ...secondary,
   );
+
+  const primary = createPlayerRow(playButton, seekRow, controlsRow);
 
   // --- Répéter un passage : tracé sur la frise ---------------------------
   //

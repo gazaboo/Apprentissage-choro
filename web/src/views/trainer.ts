@@ -239,11 +239,15 @@ export function renderTrainer(
   const fpIconButton = (glyph: string, aria: string): HTMLButtonElement =>
     el('button', { type: 'button', class: ui.icon, 'aria-label': aria }, glyph);
 
+  // Sans objet sur mobile : le plein écran n'apporte rien sur un écran déjà
+  // plein (retour du 2026-09-23, #153) — seul le point d'entrée disparaît,
+  // le mode plein écran lui-même (barre dédiée, sortie via Échap) reste
+  // inchangé pour qui l'a ouvert avant un redimensionnement.
   const fullpageEnter = el(
     'button',
     {
       type: 'button',
-      class: ui.button,
+      class: `${ui.button} max-md:hidden`,
       'aria-pressed': 'false',
       'aria-label': 'Passer en plein écran',
     },
@@ -292,19 +296,72 @@ export function renderTrainer(
   // Les sous-options poussent depuis la bascule principale au lieu
   // d'apparaître d'un coup : l'animation dit qu'elles en dépendent. Elle est
   // courte et neutralisée sous `prefers-reduced-motion` (voir `style.css`).
+  // Masquée sur mobile (#153) : rejoint le tiroir Réglages sous forme de
+  // libellés complets (`modeSection` plus bas) plutôt que les icônes "1"/"2"
+  // jugées incompréhensibles sans essai-erreur.
   const contrechantReveal = el('div', { class: 'reveal-inline' }, contrechantSelector.root);
+  // `.reveal-inline` impose `display: grid` à toutes les tailles (style.css) :
+  // poser `max-md:hidden` directement dessus perd le duel de cascade contre
+  // cette règle non conditionnelle. On l'enveloppe plutôt.
+  const contrechantRevealSlot = el('div', { class: 'max-md:hidden' }, contrechantReveal);
   const fpContrechantReveal = el('div', { class: 'reveal-inline' }, fpContrechantSelector.root);
+
+  // Choix de tonalité, en double comme le mode d'affichage ci-dessus : la
+  // pastille cyclique reste dans l'en-tête desktop, une liste explicite
+  // rejoint le tiroir Réglages pour mobile (`tonaliteSection` plus bas) — les
+  // deux widgets se recopient l'un l'autre sans se rappeler l'un l'autre
+  // (même doctrine que `Segmented`, #137).
+  function pickInstrument(id: InstrumentId): void {
+    instrumentId = id;
+    hints = 0;
+    drawScore();
+    paintContrechantToggle();
+    instrumentChip.set(id);
+    drawerInstrumentSelector.set(id);
+  }
 
   const instrumentChip = createInstrumentChip({
     instruments: song.instruments,
     current: instrumentId,
-    onPick: (id) => {
-      instrumentId = id;
-      hints = 0;
-      drawScore();
-      paintContrechantToggle();
-    },
+    onPick: pickInstrument,
+    extra: 'max-md:hidden',
   });
+
+  const drawerInstrumentSelector = createSegmented<InstrumentId>(
+    song.instruments.map((instrument) => ({ value: instrument.id, label: instrument.name })),
+    pickInstrument,
+  );
+  drawerInstrumentSelector.set(instrumentId);
+  const tonaliteSection: Section = {
+    title: 'Tonalité',
+    hint: 'Transposition pour laquelle la partition s’affiche.',
+    body: drawerInstrumentSelector.root,
+    mobileOnly: true,
+  };
+
+  const drawerContrechantSelector = createSegmented<'sans' | 'avec'>(
+    [
+      { value: 'sans', label: 'Mélodie seule' },
+      { value: 'avec', label: '+ contre-chant' },
+    ],
+    (value) => setContrechant(value),
+  );
+  const contrechantUnavailableHint = el(
+    'p',
+    { class: 'text-xs leading-relaxed text-zinc-500' },
+    'Le contre-chant n’existe que pour la tonalité Ut, avec cette partition.',
+  );
+  const modeSection: Section = {
+    title: 'Affichage de la partition',
+    hint: 'Choisissez si le contre-chant s’ajoute à la mélodie.',
+    body: el(
+      'div',
+      { class: 'flex flex-col gap-2' },
+      drawerContrechantSelector.root,
+      contrechantUnavailableHint,
+    ),
+    mobileOnly: true,
+  };
 
   // Contrôles qui n'ont pas de sens sans partition à l'écran : ils
   // disparaissent en mode « Sans partition », alors que la pastille de
@@ -313,7 +370,7 @@ export function renderTrainer(
     'div',
     { class: 'flex shrink-0 items-center gap-2' },
     displaySelector.root,
-    contrechantReveal,
+    contrechantRevealSlot,
     fullpageEnter,
   );
 
@@ -332,8 +389,11 @@ export function renderTrainer(
     const has = contrechantAvailable() && activeDisplay() !== 'grille';
     contrechantReveal.classList.toggle('is-open', has);
     fpContrechantReveal.classList.toggle('is-open', has);
+    drawerContrechantSelector.root.classList.toggle('hidden', !has);
+    contrechantUnavailableHint.classList.toggle('hidden', has);
     contrechantSelector.set(contrechant);
     fpContrechantSelector.set(contrechant);
+    drawerContrechantSelector.set(contrechant);
   }
 
   const fullpageExit = el('button', { type: 'button', class: ui.button }, '✕ Fermer');
@@ -739,7 +799,14 @@ export function renderTrainer(
     primary: transport.primary,
     // « Comment travailler » vient en tête : c'est le choix qui structure la
     // séance, et le panneau défile — relégué en bas, il était hors d'atteinte.
-    sections: [defiSection, ...transport.sections],
+    // Tonalité et mode ne rejoignent le tiroir que sur mobile (`mobileOnly`) :
+    // sur desktop, ils restent visibles en direct dans l'en-tête (#153).
+    sections: [
+      defiSection,
+      tonaliteSection,
+      ...(song.contraponto !== null ? [modeSection] : []),
+      ...transport.sections,
+    ],
     panelPosition: progress.settings.panel,
     onPanelMoved: (panel) => {
       progress.settings.panel = panel;
@@ -818,7 +885,11 @@ export function renderTrainer(
     : null;
   stopSessionButton?.addEventListener('click', () => void finish(true));
 
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
+  const backButton = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-label': 'Retour' },
+    iconLabel('←', 'Retour'),
+  );
   backButton.addEventListener('click', () => context.navigateHome());
 
   // --- Minuteur de bloc (mode « urgences » uniquement) -------------------
@@ -899,7 +970,10 @@ export function renderTrainer(
     el(
       'h1',
       {
-        class: 'min-w-0 truncate text-lg font-semibold text-zinc-100',
+        // Masqué visuellement sur mobile (reste le titre de page accessible) :
+        // déjà imprimé sur la partition juste en dessous, la place revient
+        // aux contrôles (retour du 2026-09-23, #153).
+        class: 'min-w-0 truncate text-lg font-semibold text-zinc-100 max-md:sr-only',
         // Le compositeur passe en infobulle plutôt que sur la ligne : il est
         // déjà imprimé sur la partition juste en dessous, et la place de
         // cette ligne revient aux contrôles (#137).

@@ -60,6 +60,11 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  // `createControlBar` (sheet.ts) ajoute son panneau à `document.body`, hors
+  // de `root`, à chaque montage — jamais nettoyé sinon : un test qui cherche
+  // `document.body.querySelector('[role="dialog"]')` tomberait sur le
+  // panneau d'un test précédent plutôt que le sien.
+  document.body.replaceChildren();
 });
 
 describe('renderTrainer — smoke', () => {
@@ -106,7 +111,7 @@ describe('renderTrainer — mini-lecteur (fpMiniBar)', () => {
 describe('renderTrainer — retour et navigation', () => {
   it('« Retour » appelle navigateHome() sans passer par l\'évaluation', () => {
     const { root, context } = mount();
-    const back = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Retour')!;
+    const back = root.querySelector('button[aria-label="Retour"]') as HTMLButtonElement;
     back.click();
     expect(context.navigateHome).toHaveBeenCalledOnce();
   });
@@ -282,7 +287,7 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     // Le bouton Défi remplace « Réglages » dans le dock (`sheet.ts`) — il n'y
     // vit plus dans l'en-tête de la partition, masqué comme le reste en mode
     // « Sans partition » (#109).
-    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    const defi = root.querySelector('button[aria-label="Ouvrir les réglages"]') as HTMLButtonElement;
     expect(defi).toBeTruthy();
     expect(defi.closest('.hidden')).toBeNull();
     const fullscreen = root.querySelector(
@@ -309,7 +314,7 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     const progress = masteredProgress();
     progress.settings.studyMode = 'mesures'; // distinct du mode ciblé, pour que la persistance soit probante
     const { root, context } = mount({}, { progress });
-    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    const defi = root.querySelector('button[aria-label="Ouvrir les réglages"]') as HTMLButtonElement;
     defi.click();
     // Le panneau (`sheet.ts`) vit dans `document.body`, pas dans `root`
     // (`createControlBar` y ajoute son overlay séparément).
@@ -330,7 +335,7 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     // (aucun historique) fait recommander 'entiere' à l'ouverture : les deux
     // divergent dès le montage, sans qu'aucun choix n'ait encore été fait.
     const { root, context } = mount();
-    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
+    const defi = root.querySelector('button[aria-label="Ouvrir les réglages"]') as HTMLButtonElement;
     defi.click();
     const panel = document.body.querySelector('[role="dialog"]') as HTMLElement;
     const entiere = [...panel.querySelectorAll('button')].find(

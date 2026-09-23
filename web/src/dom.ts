@@ -156,6 +156,9 @@ export function paintToggle(
 export function createPlayButton(options: {
   onToggle: () => void;
   disabled?: boolean;
+  /** 'lg' agrandit le cercle sous 768 px (dock à deux rangées, #153) sans
+   *  toucher à sa taille desktop. */
+  size?: 'default' | 'lg';
 }): { root: HTMLButtonElement; set(playing: boolean): void } {
   const icon = el('span', { class: 'text-xl leading-none' }, '▶');
   const root = el(
@@ -164,7 +167,7 @@ export function createPlayButton(options: {
       type: 'button',
       class:
         'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
-        'max-md:h-10 max-md:w-10 ' +
+        (options.size === 'lg' ? 'max-md:h-14 max-md:w-14 ' : 'max-md:h-10 max-md:w-10 ') +
         'bg-amber-400 pl-1 text-zinc-950 shadow-lg shadow-amber-400/20 ' +
         'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
         'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
@@ -283,6 +286,31 @@ export function createSeekBar(options: {
       paint(total ? currentTime / total : 0, currentTime);
     },
   };
+}
+
+/**
+ * Bouton de lecture à côté d'un empilement à deux rangées sous 768 px (piste,
+ * puis contrôles) ; une seule ligne au-delà, comme avant. Le lecteur devenait
+ * trop court pour repositionner la tête au doigt une fois tout entassé sur
+ * une ligne — la piste a besoin de sa propre rangée (#153).
+ */
+export function createPlayerRow(
+  playButton: HTMLElement,
+  scrubberRow: HTMLElement,
+  controlsRow: HTMLElement,
+): HTMLElement {
+  const stack = el(
+    'div',
+    { class: 'flex min-w-0 flex-1 flex-col gap-1.5 md:flex-row md:items-center md:gap-3' },
+    scrubberRow,
+    controlsRow,
+  );
+  return el(
+    'div',
+    { class: 'dense-bar flex w-full items-center gap-1.5 md:gap-3' },
+    playButton,
+    stack,
+  );
 }
 
 /**
