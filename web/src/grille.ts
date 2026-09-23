@@ -151,35 +151,66 @@ export function simplifyGrille(grille: Grille): Grille {
  * fonction, et le CSS se charge des corps.
  *
  * `simplifyChord` n'ayant laissé que cinq formes (`X`, `Xm`, `X7`, `Xdim`,
- * `Xm7b5`), la règle tient en deux temps : la fondamentale est la lettre et
- * son altération, puis ce qui reste se coupe entre lettres (la qualité) et
- * chiffres (l'exposant).
+ * `Xm7b5`), la règle tient en deux temps : la fondamentale est la lettre (son
+ * altération à part, pour être réduite), puis ce qui reste se coupe entre
+ * lettres (la qualité) et chiffres (l'exposant).
  *
  * Un chiffrage non reconnu part entier dans `root`, sans mise en forme : même
  * prudence que `simplifyChord`, mieux vaut un symbole brut qu'un symbole faux.
  */
 export function splitChordSymbol(symbol: string): {
   root: string;
+  accidental: string;
   quality: string;
   sup: string;
 } {
   const match = /^([A-G])([#b]?)(.*)$/.exec(symbol);
-  if (!match) return { root: symbol, quality: '', sup: '' };
+  if (!match) return { root: symbol, accidental: '', quality: '', sup: '' };
 
   const letter = match[1] ?? '';
   const accidental = match[2] ?? '';
   const rest = match[3] ?? '';
 
-  // Le `b` et le `#` typographiques : accolés à une lettre et réduits, les
-  // caractères ASCII se lisent comme une partie du nom de l'accord.
+  // Le `b` et le `#` typographiques, rendus à part pour être réduits : les
+  // caractères ASCII, ou un signe au corps de la lettre, se lisent comme une
+  // partie du nom de l'accord et l'élargissent d'autant.
   const sign = accidental === 'b' ? '♭' : accidental === '#' ? '♯' : '';
   // `m7b5` se coupe en `m` + `7b5` ; `dim` n'a pas d'exposant ; `7` n'a que ça.
   const cut = /^([A-Za-z]*)(.*)$/.exec(rest);
   return {
-    root: letter + sign,
+    root: letter,
+    accidental: sign,
     quality: cut?.[1] ?? '',
     sup: cut?.[2] ?? '',
   };
+}
+
+/**
+ * Rangs des cases qui tombent dans une demi-rangée faite uniquement de
+ * bourrage. Les cases sont posées sur huit colonnes, mais la carte se replie
+ * en quatre sur petit écran : une demi-rangée vide y deviendrait une rangée
+ * entière de cases blanches, un saut de ligne au milieu des fins de partie
+ * (#152). On les repère ici pour ne les masquer qu'en quatre colonnes.
+ * `isPad` part d'un début de rangée.
+ */
+export function emptyHalfRowIndices(isPad: boolean[]): number[] {
+  const half = BARS_PER_LINE / 2;
+  const out: number[] = [];
+  for (let start = 0; start + half <= isPad.length; start += half) {
+    const slice = isPad.slice(start, start + half);
+    if (slice.every(Boolean)) {
+      for (let i = 0; i < half; i += 1) out.push(start + i);
+    }
+  }
+  return out;
+}
+
+/** Masque, en quatre colonnes seulement, les demi-rangées de pur bourrage. */
+function markEmptyHalfRows(cells: HTMLElement[]): void {
+  const isPad = cells.map((cell) => cell.classList.contains('pad'));
+  for (const i of emptyHalfRowIndices(isPad)) {
+    cells[i]?.classList.add('pad-half');
+  }
 }
 
 /** Deux cellules portent-elles exactement les mêmes accords ? */
@@ -346,12 +377,19 @@ export class GrilleView {
     // reprise ne les embrasse donc pas, ce qui est bien ce qu'on joue.
     let firstCell: HTMLElement | null = null;
     let lastCell: HTMLElement | null = null;
+    // Cases de la séquence et des fins, dans l'ordre, depuis un début de
+    // rangée : de quoi repérer les demi-rangées vides (voir `markEmptyHalfRows`).
+    const rowCells: HTMLElement[] = [];
+    const append = (node: HTMLElement): void => {
+      grid.appendChild(node);
+      rowCells.push(node);
+    };
     const place = (node: HTMLElement): void => {
       if (!node.classList.contains('pad')) {
         if (firstCell === null) firstCell = node;
         lastCell = node;
       }
-      grid.appendChild(node);
+      append(node);
       col = (col + 1) % BARS_PER_LINE;
     };
     const closeRow = (): void => {
@@ -389,15 +427,16 @@ export class GrilleView {
       const alignCol =
         endStartCol + e2.length <= BARS_PER_LINE ? endStartCol : 0;
       for (let p = 0; p < alignCol; p += 1) {
-        grid.appendChild(el('div', { class: 'chord-cell pad' }));
+        append(el('div', { class: 'chord-cell pad' }));
       }
       normalizeSequence(e2).forEach((cell, k) => {
-        grid.appendChild(endingCell(cell, true, k === 0 ? '2.' : ''));
+        append(endingCell(cell, true, k === 0 ? '2.' : ''));
       });
       for (let p = alignCol + e2.length; p < BARS_PER_LINE; p += 1) {
-        grid.appendChild(el('div', { class: 'chord-cell pad' }));
+        append(el('div', { class: 'chord-cell pad' }));
       }
     }
+    markEmptyHalfRows(rowCells);
 
     if (part.repeat) {
       const open = firstCell as HTMLElement | null;
@@ -663,11 +702,12 @@ function quantize(root: number): number {
 
 /** Un chiffrage écrit : fondamentale, qualité sur la ligne, chiffre en exposant. */
 function chordSymbol(chord: string): HTMLElement {
-  const { root, quality, sup } = splitChordSymbol(chord);
+  const { root, accidental, quality, sup } = splitChordSymbol(chord);
   return el(
     'span',
     { class: 'ch' },
     el('i', { class: 'rt' }, root),
+    accidental ? el('i', { class: 'ac' }, accidental) : null,
     quality ? el('i', { class: 'qa' }, quality) : null,
     sup ? el('i', { class: 'sp' }, sup) : null,
   );
@@ -728,13 +768,12 @@ function endingCell(chords: GrilleCell, bracketed: boolean, label: string): HTML
 /** Rangée annexe (coda, transition) : un libellé pleine largeur puis les mesures. */
 function pushLabeledRow(grid: HTMLElement, label: string, seq: GrilleCell[]): void {
   grid.appendChild(el('div', { class: 'grille-row-label' }, label));
-  let col = 0;
-  for (const cell of normalizeSequence(seq)) {
-    grid.appendChild(cell.length === 0 ? simileCell() : chordCell(cell));
-    col = (col + 1) % BARS_PER_LINE;
+  const cells = normalizeSequence(seq).map((cell) =>
+    cell.length === 0 ? simileCell() : chordCell(cell),
+  );
+  while (cells.length % BARS_PER_LINE !== 0) {
+    cells.push(el('div', { class: 'chord-cell pad' }));
   }
-  while (col !== 0) {
-    grid.appendChild(el('div', { class: 'chord-cell pad' }));
-    col = (col + 1) % BARS_PER_LINE;
-  }
+  grid.append(...cells);
+  markEmptyHalfRows(cells);
 }
