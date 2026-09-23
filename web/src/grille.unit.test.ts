@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildSlots,
+  emptyHalfRowIndices,
   fitDiagonalRoot,
   fitInlineRoot,
   normalizeSequence,
@@ -178,5 +179,32 @@ describe('fitInlineRoot', () => {
 
   it('retombe sur un corps sûr quand la mesure a échoué', () => {
     expect(fitInlineRoot([0, 0, 0])).toBe(1.2);
+  });
+});
+
+/* Repli en quatre colonnes : une demi-rangée de bourrage y ferait une rangée
+ * blanche entière, un saut de ligne entre les fins de partie (#152). */
+describe('emptyHalfRowIndices', () => {
+  const row = (spec: string): boolean[] => [...spec].map((c) => c === '.');
+
+  it('repère la demi-rangée vide qui suit une 1re fin de deux mesures', () => {
+    // 1re fin : deux mesures, deux cases de bourrage pour finir la moitié,
+    // puis la seconde moitié entièrement vide.
+    expect(emptyHalfRowIndices(row('xx......'))).toEqual([4, 5, 6, 7]);
+  });
+
+  it('repère la moitié gauche vide quand la 2e fin est alignée à droite', () => {
+    expect(emptyHalfRowIndices(row('......xx'))).toEqual([0, 1, 2, 3]);
+  });
+
+  it('laisse une demi-rangée qui porte au moins une mesure', () => {
+    expect(emptyHalfRowIndices(row('xxx..x..'))).toEqual([]);
+    expect(emptyHalfRowIndices(row('xxxxxxxx'))).toEqual([]);
+  });
+
+  it('traite chaque rangée indépendamment', () => {
+    expect(emptyHalfRowIndices(row('xxxxxxxx' + 'xx......' + 'xx......'))).toEqual([
+      12, 13, 14, 15, 20, 21, 22, 23,
+    ]);
   });
 });

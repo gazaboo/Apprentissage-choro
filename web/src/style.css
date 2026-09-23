@@ -203,6 +203,11 @@ body {
     grid-template-columns: repeat(4, 1fr);
     font-size: 3.44cqi;
   }
+  /* Demi-rangée de pur bourrage : en quatre colonnes, elle ferait une rangée
+     entière de cases vides (#152). */
+  .chord-cell.pad-half {
+    display: none;
+  }
 }
 
 /* Le fond de la case masque le fond de la grille : seul le `gap` reste visible,
@@ -315,7 +320,9 @@ body {
   color: rgb(var(--mask-ink) / 0.75);
 }
 .chord-cell.simile .ch {
-  font-size: var(--rt);
+  /* Moitié du corps d'un chiffrage : le « % » dit seulement « rien ne
+     change », il ne doit pas attirer l'œil autant qu'un accord (#152). */
+  font-size: calc(var(--rt) * 0.5);
 }
 /* Bourrage de fin de ligne : une case vide du quadrillage, comme sur une
    grille écrite à la main — et non un trou dans le tracé. */
