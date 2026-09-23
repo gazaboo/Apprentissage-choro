@@ -58,3 +58,34 @@ export function trash(): SVGSVGElement {
     'M14 11v6',
   ]);
 }
+
+/** Notes de musique — répertoire. */
+export function music(): SVGSVGElement {
+  return svg([
+    'M9 18V5l12-2v13',
+    'M3 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+    'M15 16a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+  ]);
+}
+
+/** Tracé en dents de scie — technique (exercices au métronome). */
+export function activity(): SVGSVGElement {
+  return svg(['M22 12h-4l-3 9L9 3l-3 9H2']);
+}
+
+/** Silhouette — compte. */
+export function user(): SVGSVGElement {
+  return svg([
+    'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2',
+    'M8 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0',
+  ]);
+}
+
+/** Point d'interrogation cerclé — aide. */
+export function help(): SVGSVGElement {
+  return svg([
+    'M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0',
+    'M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3',
+    'M12 17h.01',
+  ]);
+}

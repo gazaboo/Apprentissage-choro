@@ -12,10 +12,6 @@
 
 import { el, ui } from '../dom';
 
-export interface AboutContext {
-  navigateHome: () => void;
-}
-
 interface Essentiel {
   titre: string;
   texte: string;
@@ -152,10 +148,7 @@ function principeCard(principe: Principe): HTMLElement {
   );
 }
 
-export function renderAbout(root: HTMLElement, context: AboutContext): () => void {
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
-  backButton.addEventListener('click', context.navigateHome);
-
+export function renderAbout(root: HTMLElement): () => void {
   root.replaceChildren(
     el(
       'div',
@@ -174,7 +167,6 @@ export function renderAbout(root: HTMLElement, context: AboutContext): () => voi
             'L’essentiel pour s’en servir, en cinq points.',
           ),
         ),
-        backButton,
       ),
 
       ...ESSENTIELS.map(essentielCard),
