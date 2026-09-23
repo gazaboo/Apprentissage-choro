@@ -20,6 +20,7 @@ import {
 } from '../sync';
 import { saveProgress, type Progress } from '../store';
 import { renderDefaultSettingsFields } from './default-settings';
+import { clearInstallPrompt, getInstallPrompt, isStandalone } from '../pwaInstall';
 import type { Song } from '../types';
 
 export interface AccountContext {
@@ -133,6 +134,42 @@ function codeForm(connect: (code: string) => void): HTMLElement {
   );
 }
 
+/**
+ * Carte d'installation PWA : n'apparaît que si le navigateur a effectivement
+ * proposé l'installation (`beforeinstallprompt` capturé dès le démarrage par
+ * `pwaInstall.ts`) et que l'app ne tourne pas déjà en fenêtre autonome.
+ */
+function installCard(): HTMLElement | null {
+  if (isStandalone()) return null;
+  const prompt = getInstallPrompt();
+  if (!prompt) return null;
+
+  const section = el(
+    'section',
+    { class: 'flex flex-col gap-2 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4' },
+    el('p', { class: ui.label }, 'Installer'),
+    el(
+      'p',
+      { class: 'text-sm text-zinc-400' },
+      'Ajoutez l’app à votre écran d’accueil pour la lancer en plein écran, comme une application installée.',
+    ),
+  );
+  const button = el('button', { type: 'button', class: ui.button }, 'Installer');
+  button.addEventListener('click', () => {
+    void (async () => {
+      button.disabled = true;
+      await prompt.prompt();
+      await prompt.userChoice;
+      // Acceptée ou refusée, l'invite ne peut resservir : on retire la
+      // carte plutôt que de garder un bouton mort.
+      clearInstallPrompt();
+      section.remove();
+    })();
+  });
+  section.append(el('div', { class: 'flex' }, button));
+  return section;
+}
+
 function renderGate(context: AccountContext, connect: (code: string) => void): HTMLElement {
   const continueButton = el('button', { type: 'button', class: ui.button }, 'Continuer');
   continueButton.addEventListener('click', () => {
@@ -218,6 +255,9 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
   const blocks: HTMLElement[] = [
     el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, 'Compte'),
   ];
+
+  const install = installCard();
+  if (install) blocks.push(install);
 
   if (context.progress) {
     const progress = context.progress;
