@@ -9,72 +9,86 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  createInstrumentChip,
   createPlayerDock,
   createSegmented,
   createSkipButton,
   createSourceToggle,
+  createTopBarIdentity,
+  createTopBarMenu,
   el,
+  menuSection,
   renderRateStepper,
 } from './dom';
-import type { InstrumentId } from './types';
 
-const instrument = (id: InstrumentId, name: string) => ({ id, name });
+describe('createTopBarMenu', () => {
+  function mount() {
+    const trigger = el('button', { type: 'button' }, 'Affichage');
+    const inside = el('button', { type: 'button' }, 'Grille');
+    const menu = createTopBarMenu({ trigger, label: 'Affichage', content: [menuSection('Vue', inside)] });
+    document.body.append(menu.root);
+    return { trigger, inside, menu };
+  }
 
-describe('createInstrumentChip', () => {
-  it('parcourt les transpositions en cycle et prévient la vue', () => {
-    const onPick = vi.fn();
-    const chip = createInstrumentChip({
-      instruments: [instrument('c', 'Concert'), instrument('bb', 'Si bémol'), instrument('eb', 'Mi bémol')],
-      current: 'c',
-      onPick,
-    });
-    expect(chip.root.textContent).toContain('Ut');
+  it('s\'ouvre au toucher, reste ouvert quand on y choisit, et se ferme dehors ou à Échap (#153)', () => {
+    const { trigger, inside, menu } = mount();
+    expect(menu.panel.classList.contains('hidden')).toBe(true);
+    trigger.click();
+    expect(menu.panel.classList.contains('hidden')).toBe(false);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
 
-    chip.root.click();
-    expect(onPick).toHaveBeenLastCalledWith('bb');
-    expect(chip.root.textContent).toContain('Si♭');
+    inside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    expect(menu.panel.classList.contains('hidden')).toBe(false);
 
-    chip.root.click();
-    expect(onPick).toHaveBeenLastCalledWith('eb');
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    expect(menu.panel.classList.contains('hidden')).toBe(true);
 
-    chip.root.click();
-    expect(onPick).toHaveBeenLastCalledWith('c');
-    expect(chip.root.textContent).toContain('Ut');
+    trigger.click();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(menu.panel.classList.contains('hidden')).toBe(true);
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    menu.root.remove();
   });
 
-  it('reste affichée mais inerte quand le morceau n\'a qu\'une tonalité', () => {
-    const onPick = vi.fn();
-    const chip = createInstrumentChip({
-      instruments: [instrument('c', 'Concert (Ut / C)')],
-      current: 'c',
-      onPick,
-    });
-    // L'information « cette partition est en Ut » vaut d'être lue même
-    // lorsqu'il n'y a rien à choisir : c'est elle qui remplace la mention
-    // retirée du sous-titre.
-    expect(chip.root.textContent).toContain('Ut');
-    expect(chip.root.disabled).toBe(true);
-    // Pas de chevron : il annoncerait un choix qui n'existe pas.
-    expect(chip.root.textContent).not.toContain('▾');
+  it('nomme le panneau et en titre les rubriques', () => {
+    const { menu } = mount();
+    expect(menu.panel.getAttribute('role')).toBe('dialog');
+    expect(menu.panel.getAttribute('aria-label')).toBe('Affichage');
+    expect(menu.panel.querySelector('h3')?.textContent).toBe('Vue');
+    menu.root.remove();
+  });
+});
 
-    chip.root.click();
-    expect(onPick).not.toHaveBeenCalled();
+describe('createTopBarIdentity', () => {
+  it('garde un vrai titre de page et ouvre son panneau de contexte (#153)', () => {
+    const action = el('button', { type: 'button' }, 'Terminer la séance');
+    const identity = createTopBarIdentity({
+      caption: ['Urgences', el('span', {}, ' · 2 sur 3')],
+      title: 'Benzinho',
+      subtitle: '· Jacob do Bandolim',
+      panelLabel: 'Benzinho',
+      panel: [action],
+    });
+    document.body.append(identity.root);
+    // Le titre n'est pas dans le bouton : `h1` seul, lu tel quel.
+    expect(identity.root.querySelector('h1')?.textContent).toBe('Benzinho');
+    expect(identity.root.querySelector('button h1')).toBeNull();
+    expect(identity.root.textContent).toContain('Urgences · 2 sur 3');
+
+    const panel = identity.root.querySelector('[role="dialog"]') as HTMLElement;
+    expect(panel.classList.contains('hidden')).toBe(true);
+    (identity.root.querySelector('button.identity-hit') as HTMLButtonElement).click();
+    expect(panel.classList.contains('hidden')).toBe(false);
+    identity.setOpen(false);
+    expect(panel.classList.contains('hidden')).toBe(true);
+    identity.root.remove();
   });
 
-  it('se laisse repeindre par la vue sans rappeler `onPick`', () => {
-    const onPick = vi.fn();
-    const chip = createInstrumentChip({
-      instruments: [instrument('c', 'Concert'), instrument('bb', 'Si bémol')],
-      current: 'c',
-      onPick,
-    });
-    chip.set('bb');
-    expect(chip.root.textContent).toContain('Si♭');
-    expect(onPick).not.toHaveBeenCalled();
-    // Le cycle repart de la valeur imposée, pas de celle d'origine.
-    chip.root.click();
-    expect(onPick).toHaveBeenLastCalledWith('c');
+  it('remplace la légende et le titre au changement de morceau', () => {
+    const identity = createTopBarIdentity({ caption: ['Filage'], title: 'A', panelLabel: 'Filage', panel: [] });
+    identity.setCaption(['Filage', el('span', {}, ' · 2 sur 3')]);
+    identity.title.textContent = 'B';
+    expect(identity.root.textContent).toContain('Filage · 2 sur 3');
+    expect(identity.title.textContent).toBe('B');
   });
 });
 

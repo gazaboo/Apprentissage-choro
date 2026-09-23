@@ -15,6 +15,9 @@ import { dockShell } from '../sheet';
 import {
   createPlayButton,
   createPlayerDock,
+  captionedValue,
+  createTopBarIdentity,
+  DOCK_CHIP_MOBILE,
   createSeekBar,
   createSeekRow,
   createSkipButton,
@@ -66,11 +69,12 @@ const NEXT_VIEW_ICONS: Record<FilageView, string> = {
   grille: '▦',
   scene: '⊘',
 };
-/** Libellé court de l'en-tête mobile : un mot plutôt que ♪ ▦ ⊘ seuls (#153). */
-const NEXT_VIEW_SHORT: Record<FilageView, string> = {
+/** Ce que montre la zone principale, pour la pastille « Affichage » mobile :
+ *  elle dit l'état courant, comme la pastille « Bande » du dock (#153). */
+const VIEW_NAMES: Record<FilageView, string> = {
   partition: 'Partition',
   grille: 'Grille',
-  scene: 'Masquer',
+  scene: 'Masquée',
 };
 
 export function renderFilage(root: HTMLElement, context: FilageContext): () => void {
@@ -117,13 +121,6 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const grilleContainer = el('div', { class: 'hidden' });
   const grilleView = new GrilleView(grilleContainer, { onHintUsed: () => {} });
 
-  // En-tête : contexte discret + sortie. `truncate` absorbe l'espace variable
-  // à la place du texte concaténé qui débordait sur 2 lignes sur mobile
-  // (#150) — même principe que le titre de la barre de plein écran.
-  const positionLabel = el('p', {
-    class: 'flex min-w-0 flex-1 whitespace-pre text-xs font-semibold uppercase tracking-wider text-zinc-500',
-  });
-
   // Scène (partition masquée) : le morceau en cours, en grand, et la suite.
   const stagePosition = el('p', { class: 'text-sm uppercase tracking-wider text-zinc-500' });
   const stageTitle = el('h1', {
@@ -150,9 +147,6 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     ),
   );
 
-  // Barre de titre au-dessus de la partition (partition affichée).
-  const slimTitle = el('p', { class: 'text-lg font-medium text-zinc-200' });
-
   // « 0:12 / 3:10 » d'un seul tenant au-delà de 768 px ; en dessous, les deux
   // temps passent sous la piste, aux deux bouts (`createSeekRow`, #153).
   const timeLabel = el('span', {
@@ -167,24 +161,17 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const backSkip = createSkipButton({ direction: -1, seconds: 5, onSkip: skip, extra: 'md:hidden' });
   const forwardSkip = createSkipButton({ direction: 1, seconds: 5, onSkip: skip, extra: 'md:hidden' });
 
-  // « Passer au suivant » et le cycle de vue vivent dans le dock au-delà de
-  // 768 px, dans l'en-tête en dessous : la rangée des réglages du dock mobile
-  // n'a de place que pour la bande et la vitesse (#153). Deux jeux de boutons
-  // plutôt qu'un nœud déménagé au gré de la largeur.
+  // « Passer au suivant » et le cycle de vue vivent dans la barre du haut, à
+  // toutes les largeurs : ce sont des gestes de navigation, pas de lecture, et
+  // le dock ne garde plus que l'audio (#153, variante 1 des maquettes).
   const nextButton = el(
     'button',
-    // `md:ml-auto` : repoussé à droite de la seconde ligne du dock desktop.
-    { type: 'button', class: `${ui.button} max-md:hidden md:ml-auto`, 'aria-label': 'Passer au morceau suivant' },
-    iconLabel('⏭', 'Passer au suivant'),
+    { type: 'button', class: `${ui.button} gap-1.5 max-md:px-3`, 'aria-label': 'Passer au morceau suivant' },
+    el('span', { class: 'md:hidden' }, 'Suivant'),
+    el('span', { class: 'max-md:hidden' }, 'Passer au suivant'),
+    el('span', { class: 'max-md:hidden', 'aria-hidden': 'true' }, '⏭'),
   );
-  const nextButtonMobile = el(
-    'button',
-    { type: 'button', class: `${ui.button} px-3 md:hidden`, 'aria-label': 'Passer au morceau suivant' },
-    'Suivant ⏭',
-  );
-  for (const button of [nextButton, nextButtonMobile]) {
-    button.addEventListener('click', () => startCountdown());
-  }
+  nextButton.addEventListener('click', () => startCountdown());
 
   // --- Barre de lecture : on revient où l'on veut à tout moment ---------
 
@@ -226,8 +213,16 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     },
   });
 
+  // Le cycle de vue : au-delà de 768 px, le bouton annonce l'état suivant
+  // (« Voir la grille ») ; en dessous, une pastille légendée dit l'état
+  // courant (« Affichage / Partition ») et avance d'un cran au toucher.
   const scoreToggle = el('button', { type: 'button', class: `${ui.button} max-md:hidden` });
-  const scoreToggleMobile = el('button', { type: 'button', class: `${ui.button} px-3 md:hidden` });
+  const viewValue = el('span', { class: 'text-[13px] font-semibold leading-none text-zinc-100' });
+  const scoreToggleMobile = el(
+    'button',
+    { type: 'button', class: `${ui.button} md:hidden ${DOCK_CHIP_MOBILE}` },
+    captionedValue('Affichage', viewValue),
+  );
   for (const button of [scoreToggle, scoreToggleMobile]) {
     button.addEventListener('click', () => {
       view = nextView();
@@ -237,21 +232,57 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
 
   // Bouton ordinaire, comme « Terminer et évaluer » à l'entraînement : sur cet
   // écran l'action principale est la lecture, et une seule action porte
-  // l'ambre plein (#137). Icône seule sur mobile : action de fin de parcours,
-  // peu consultée en continu (#150).
+  // l'ambre plein (#137). En direct au-delà de 1024 px seulement ; en dessous,
+  // dans le panneau du titre, loin de « Suivant » avec qui il se confondait
+  // (⏹ ⏭, #153).
   const finishButton = el(
     'button',
-    { type: 'button', class: ui.button, 'aria-label': 'Terminer le filage' },
-    iconLabel('⏹', 'Terminer le filage'),
+    { type: 'button', class: `${ui.button} max-lg:hidden`, 'aria-label': 'Terminer le filage' },
+    'Terminer le filage',
   );
   finishButton.addEventListener('click', () => context.onFinish());
 
+  // Flèche seule sous 1024 px : entre 768 et 1024, le mot coûtait au titre
+  // la place de s'afficher (#153).
   const backButton = el(
     'button',
-    { type: 'button', class: ui.button, 'aria-label': 'Retour' },
-    iconLabel('←', 'Retour'),
+    { type: 'button', class: `${ui.button} gap-1.5 max-lg:w-10 max-lg:px-0`, 'aria-label': 'Retour' },
+    el('span', { 'aria-hidden': 'true' }, '←'),
+    el('span', { class: 'max-lg:hidden' }, 'Retour'),
   );
   backButton.addEventListener('click', () => context.navigateHome());
+
+  // Bloc titre : « Filage · 1 sur 3 » au-dessus du morceau, et un panneau
+  // avec la suite du filage et sa sortie. Remplace « F..1 / 3 » (préfixe
+  // tronqué à deux lettres sur mobile) et la rangée de titre qui suivait (#153).
+  const panelUpNext = el('ol', { class: 'flex flex-col gap-1 text-sm text-zinc-300' });
+  const panelFinish = el(
+    'button',
+    { type: 'button', class: `${ui.button} w-full justify-start text-red-300` },
+    'Terminer le filage',
+  );
+  const identity = createTopBarIdentity({
+    caption: [''],
+    accent: true,
+    dot: 'bg-amber-400',
+    title: '',
+    panelLabel: `Filage · ${context.setlistName}`,
+    panel: [
+      el(
+        'div',
+        { class: 'flex flex-col gap-0.5' },
+        el('p', { class: 'text-base font-semibold text-zinc-100' }, `Filage · ${context.setlistName}`),
+        el('p', { class: 'text-xs text-zinc-500' }, `Rôle : ${INSTRUMENT_SHORT_LABELS[instrumentId]}`),
+      ),
+      el('p', { class: `${ui.label}` }, 'À suivre'),
+      panelUpNext,
+      panelFinish,
+    ],
+  });
+  panelFinish.addEventListener('click', () => {
+    identity.setOpen(false);
+    context.onFinish();
+  });
 
   const countBig = el('div', {
     class: 'text-[8rem] font-bold leading-none tabular-nums text-amber-300 sm:text-[12rem]',
@@ -376,7 +407,6 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
 
     scoreContainer.classList.toggle('hidden', view !== 'partition');
     grilleContainer.classList.toggle('hidden', view !== 'grille');
-    slimTitle.classList.toggle('hidden', view === 'scene');
     stagePanel.classList.toggle('hidden', view !== 'scene');
 
     // La note n'a de sens qu'à l'arrêt sur la scène faute de partition : la
@@ -387,8 +417,8 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     const next = nextView();
     scoreToggle.replaceChildren(iconLabel(NEXT_VIEW_ICONS[next], NEXT_VIEW_LABELS[next]));
     scoreToggle.setAttribute('aria-label', NEXT_VIEW_LABELS[next]);
-    scoreToggleMobile.textContent = NEXT_VIEW_SHORT[next];
-    scoreToggleMobile.setAttribute('aria-label', NEXT_VIEW_LABELS[next]);
+    viewValue.textContent = VIEW_NAMES[view];
+    scoreToggleMobile.setAttribute('aria-label', `Affichage : ${VIEW_NAMES[view]} — ${NEXT_VIEW_LABELS[next]}`);
   }
 
   // --- Déroulé ---------------------------------------------------------
@@ -398,7 +428,22 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     stagePosition.textContent = `Morceau ${index + 1} sur ${order.length}`;
     stageTitle.textContent = order[index]?.title ?? '';
     stageComposer.textContent = composer;
-    slimTitle.textContent = `${order[index]?.title ?? ''} · ${composer}`;
+    identity.title.textContent = order[index]?.title ?? '';
+    identity.subtitle.textContent = `· ${composer}`;
+
+    const rest = order.slice(index + 1);
+    panelUpNext.replaceChildren(
+      ...(rest.length === 0
+        ? [el('li', { class: 'text-zinc-500' }, 'Dernier morceau du filage.')]
+        : rest.map((song, k) =>
+            el(
+              'li',
+              { class: 'flex items-baseline gap-2' },
+              el('span', { class: 'w-5 shrink-0 font-mono text-xs text-zinc-600' }, String(index + 2 + k)),
+              el('span', { class: 'truncate' }, song.title),
+            ),
+          )),
+    );
 
     const upcoming = order.slice(index + 1, index + 4);
     upNextLabel.classList.toggle('hidden', upcoming.length === 0);
@@ -460,11 +505,12 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
     hasPlayed = false;
     seek.set(0, 0);
 
-    // Le rang reste lisible quand l'en-tête mobile tronque le reste (#153).
-    positionLabel.replaceChildren(
-      el('span', { class: 'truncate' }, `Filage ${INSTRUMENT_SHORT_LABELS[instrumentId]} · ${context.setlistName} · `),
-      el('span', { class: 'shrink-0' }, `${i + 1} / ${order.length}`),
-    );
+    // Le rang reste lisible quand la légende se tronque : il vit dans son
+    // propre élément, que la troncature n'atteint pas (#153).
+    identity.setCaption([
+      'Filage',
+      el('span', { class: 'shrink-0' }, ` · ${i + 1} sur ${order.length}`),
+    ]);
     paintStage();
 
     const instrument = song.instruments.find((entry) => entry.id === instrumentId);
@@ -522,21 +568,18 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       { class: 'flex h-dvh flex-col px-4 pb-0 md:px-6' },
       playerMount,
 
+      // Même barre du haut qu'à l'entraînement (#153) : retour, bloc titre,
+      // puis la vue et les actions de fin.
       el(
         'header',
-        {
-          class:
-            'dense-bar flex shrink-0 items-center gap-3 py-4 max-md:py-2',
-        },
-        positionLabel,
-        el(
-          'div',
-          { class: 'flex shrink-0 gap-1.5 md:gap-2' },
-          scoreToggleMobile,
-          nextButtonMobile,
-          backButton,
-          finishButton,
-        ),
+        { class: 'dense-bar flex shrink-0 items-center gap-2 py-2 md:gap-3 md:py-4' },
+        backButton,
+        identity.root,
+        scoreToggleMobile,
+        scoreToggle,
+        el('span', { class: 'h-6 w-px shrink-0 bg-zinc-800 max-md:hidden', 'aria-hidden': 'true' }),
+        finishButton,
+        nextButton,
       ),
 
       // Zone principale : la scène, ou la partition.
@@ -547,7 +590,6 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
         el(
           'div',
           { class: 'mx-auto flex w-full max-w-5xl flex-col gap-4' },
-          slimTitle,
           scoreNote,
           scoreContainer,
           grilleContainer,
@@ -558,13 +600,12 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
       // `sheet.ts`), et la même disposition (`createPlayerDock`, #153) : la
       // piste pleine largeur, puis lecture et réglages sous 768 px. Les
       // commandes diffèrent — le filage n'a ni boucle, ni tonalité, ni Défi,
-      // mais a « Passer au suivant » et le cycle de vue (dans l'en-tête sous
-      // 768 px, voir `nextButtonMobile`).
+      // mais a « Passer au suivant » et le cycle de vue — dans la barre du
+      // haut, à toutes les largeurs (#153).
       dockShell(
         createPlayerDock({
           seek: createSeekRow(seekBar, currentLabel, durationLabel, timeLabel),
           transport: [backSkip, playButton, forwardSkip],
-          settingsRowOnDesktop: true,
           settings: [
             // Le stepper se replie en pastille « Vitesse » sous 768 px
             // (`rateStepper.compact`, placée après la bande comme à
@@ -585,8 +626,6 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
             ),
             sourceToggle.root,
             rateStepper.compact,
-            nextButton,
-            scoreToggle,
           ],
         }),
       ),

@@ -648,8 +648,9 @@ body {
 
 /* --- Barre du haut dense (#137, révisé #150) ------------------------------ */
 
-/* Les contrôles de la barre du haut sont dessinés en 36 px mais gardent une
-   cible de 44 px, étendue par un pseudo-élément. C'est ce que fait Material —
+/* Les contrôles de la barre du haut sont dessinés en 40 px (36 avant #153,
+   sous le seuil retenu pour le dock) mais gardent une cible de 44 px, étendue
+   par un pseudo-élément. C'est ce que fait Material —
    icône 24dp, bouton dessiné 40dp, cible 48dp : la densité visuelle ne se
    paie pas en atteignabilité.
    L'extension est verticale seulement ; horizontalement les boutons sont déjà
@@ -662,42 +663,23 @@ body {
    grossier. */
 .dense-bar button {
   position: relative;
-  min-height: 2.25rem;
+  min-height: 2.5rem;
 }
 
 .dense-bar button::after {
   content: '';
   position: absolute;
-  inset: -0.25rem 0;
+  inset: -0.125rem 0;
 }
 
-/* --- Révélation des sous-options d'affichage (#137) ---------------------- */
-
-/* Les sous-options « Mélodie / + contre-chant » poussent depuis la bascule
-   Partition dont elles dépendent, au lieu d'apparaître d'un coup. Grille à
-   une colonne : la seule façon d'animer vers « la largeur du contenu » sans
-   la coder en dur. */
-.reveal-inline {
-  display: grid;
-  grid-template-columns: 0fr;
-  opacity: 0;
-  transition:
-    grid-template-columns 150ms ease-out,
-    opacity 150ms ease-out;
+/* Surface cliquable du bloc titre (`createTopBarIdentity`) : posée par-dessus
+   la légende et le titre, elle ne suit pas la règle ci-dessus. */
+.dense-bar button.identity-hit {
+  position: absolute;
+  min-height: 0;
 }
 
-.reveal-inline > * {
-  min-width: 0;
-  overflow: hidden;
+.dense-bar button.identity-hit::after {
+  content: none;
 }
 
-.reveal-inline.is-open {
-  grid-template-columns: 1fr;
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal-inline {
-    transition: none;
-  }
-}

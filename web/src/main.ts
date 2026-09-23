@@ -467,6 +467,11 @@ function render(): void {
       session.kind === 'urgent'
         ? `Révision des urgences · ${session.setlistName} — morceau ${position} sur ${session.blocks.length}`
         : `Travail de fond · ${session.setlistName} — morceau ${position} sur ${session.order.length}`;
+    const total = session.kind === 'urgent' ? session.blocks.length : session.order.length;
+    const caption = {
+      kind: session.kind === 'urgent' ? 'Urgences' : 'Travail de fond',
+      position: `${position} sur ${total}`,
+    };
     teardown = renderTrainer(root!, ordered, {
       progress,
       player,
@@ -474,6 +479,7 @@ function render(): void {
       session: {
         kind: session.kind,
         label,
+        caption,
         blockMinutes: session.kind === 'urgent' ? progress.settings.blockMinutes : null,
         onBlockEnd: advanceSession,
         onStopSession: finishRun,

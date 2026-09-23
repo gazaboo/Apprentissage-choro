@@ -135,6 +135,23 @@ async function clickByText(session, tag, candidates, { optional = false } = {}) 
   return true;
 }
 
+/**
+ * « Terminer le filage » : en direct au-delà de 1024 px, dans le panneau du
+ * titre de la barre du haut en dessous (#153).
+ */
+async function finishFilage(session) {
+  if (await clickByText(session, 'button', ['Terminer le filage'], { optional: true })) return;
+  // Le voile du décompte d'entrée recouvre la barre : l'écarter d'abord.
+  const veil = '[aria-label="Démarrer le filage maintenant"]';
+  if (await evaluate(session, `!!document.querySelector('${veil}')?.getClientRects().length`)) {
+    await clickSelector(session, veil);
+    await settle();
+  }
+  await clickSelector(session, 'header .identity-hit');
+  await settle();
+  await clickByText(session, 'button', ['Terminer le filage']);
+}
+
 async function clickAriaLabel(session, label) {
   await clickSelector(session, `[aria-label=${JSON.stringify(label)}]`);
   await settle();
@@ -317,14 +334,15 @@ async function run() {
     await goto(session, songUrl);
     await capture(session, 'song-mode-entiere', 'Entraînement — mode Partition entière');
 
-    // Le panneau « Défi » vit désormais dans le tiroir « Réglages » (#153),
-    // qui porte aussi la tonalité et le mode d'affichage sur mobile — seul
-    // point d'entrée restant pour changer de mode de lecture depuis cette
-    // vue. Éclipses n'y a plus de bouton dédié (seuls les paliers de
+    // Le menu « Affichage » de la barre du haut réunit vue, portées et
+    // tonalité ; son dernier lien ouvre le tiroir « Réglages », qui porte le
+    // Défi (#153). Éclipses n'y a plus de bouton dédié (seuls les paliers de
     // masquage et « partition entière » le sont : capture sautée) ; Sans
     // partition est déjà couvert par l'écran Consigne capturé plus haut via
     // le mode démonstration.
-    await clickAriaLabel(session, 'Ouvrir les réglages');
+    await clickAriaLabel(session, 'Affichage de la partition');
+    await capture(session, 'song-menu-affichage', 'Entraînement — menu Affichage (barre du haut)');
+    await clickByText(session, 'button', ['Défi et autres réglages']);
     await capture(session, 'song-defi-panel', 'Entraînement — panneau Défi (tiroir Réglages)');
     await clickByText(session, 'button', ['Partition masquée à 50 %']);
     await clickAriaLabel(session, 'Fermer les réglages');
@@ -366,7 +384,7 @@ async function run() {
     await clickByText(session, 'button', ['Commencer le filage']);
     await capture(session, 'filage-partition', 'Filage — zone de partition');
     // Immédiatement terminé, sans progression : résumé "rien travaillé".
-    await clickByText(session, 'button', ['Terminer le filage']);
+    await finishFilage(session);
     await capture(session, 'resume-rien-travaille', 'Résumé de fin de séance — rien travaillé');
 
     await goto(session, `${BASE_URL}/#/`);
@@ -378,12 +396,17 @@ async function run() {
     // L'ordre exact des 3 candidats dépend de la disponibilité d'une grille
     // pour ce morceau (sautée si absente) — on les propose tous, `optional`
     // pour ne pas interrompre tout le run si le cycle diffère de l'attendu.
+    // Sous 768 px, le cycle passe par la pastille « Affichage » de la barre
+    // du haut, qui dit l'état courant et non le suivant (#153).
     const cycleLabels = ['Voir la grille', 'Masquer la partition', 'Voir la partition'];
-    await clickByText(session, 'button', cycleLabels, { optional: true });
+    const cycleView = async () =>
+      (await clickByText(session, 'button', cycleLabels, { optional: true })) ||
+      clickAriaLabel(session, (await evaluate(session, `document.querySelector('button[aria-label^="Affichage :"]')?.getAttribute('aria-label')`)) ?? '');
+    await cycleView();
     await capture(session, 'filage-etat-2', 'Filage — 2ᵉ état du cycle (grille ou scène)');
-    await clickByText(session, 'button', cycleLabels, { optional: true });
+    await cycleView();
     await capture(session, 'filage-etat-3', 'Filage — 3ᵉ état du cycle');
-    await clickByText(session, 'button', ['Terminer le filage']);
+    await finishFilage(session);
     await capture(session, 'resume-normal', 'Résumé de fin de séance — normal');
 
     // --- 9. Technique (arpèges/gammes), si le catalogue est présent -------
