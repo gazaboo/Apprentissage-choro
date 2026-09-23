@@ -15,33 +15,33 @@ import type { Grille } from './types';
  * cinq formes, ce sont elles qu'il faut couvrir — plus le repli défensif. */
 describe('splitChordSymbol', () => {
   it('écrit un accord majeur sans qualité ni exposant', () => {
-    expect(splitChordSymbol('C')).toEqual({ root: 'C', quality: '', sup: '' });
+    expect(splitChordSymbol('C')).toEqual({ root: 'C', accidental: '', quality: '', sup: '' });
   });
 
   it('pose le `m` du mineur sur la ligne', () => {
-    expect(splitChordSymbol('Dm')).toEqual({ root: 'D', quality: 'm', sup: '' });
+    expect(splitChordSymbol('Dm')).toEqual({ root: 'D', accidental: '', quality: 'm', sup: '' });
   });
 
   it('monte le chiffre de septième en exposant', () => {
-    expect(splitChordSymbol('E7')).toEqual({ root: 'E', quality: '', sup: '7' });
+    expect(splitChordSymbol('E7')).toEqual({ root: 'E', accidental: '', quality: '', sup: '7' });
   });
 
   it('coupe `m7b5` entre la qualité et son chiffrage', () => {
-    expect(splitChordSymbol('Em7b5')).toEqual({ root: 'E', quality: 'm', sup: '7b5' });
+    expect(splitChordSymbol('Em7b5')).toEqual({ root: 'E', accidental: '', quality: 'm', sup: '7b5' });
   });
 
   it('garde `dim` entier sur la ligne', () => {
-    expect(splitChordSymbol('Fdim')).toEqual({ root: 'F', quality: 'dim', sup: '' });
+    expect(splitChordSymbol('Fdim')).toEqual({ root: 'F', accidental: '', quality: 'dim', sup: '' });
   });
 
-  it('rend les altérations en signes typographiques', () => {
-    expect(splitChordSymbol('Bb7')).toEqual({ root: 'B♭', quality: '', sup: '7' });
-    expect(splitChordSymbol('F#dim')).toEqual({ root: 'F♯', quality: 'dim', sup: '' });
+  it('rend les altérations en signes typographiques, à part de la lettre', () => {
+    expect(splitChordSymbol('Bb7')).toEqual({ root: 'B', accidental: '♭', quality: '', sup: '7' });
+    expect(splitChordSymbol('F#dim')).toEqual({ root: 'F', accidental: '♯', quality: 'dim', sup: '' });
   });
 
   it('laisse un chiffrage non reconnu entier, sans mise en forme', () => {
     // Même prudence que `simplifyChord` : mieux vaut un symbole brut qu'un faux.
-    expect(splitChordSymbol('N.C.')).toEqual({ root: 'N.C.', quality: '', sup: '' });
+    expect(splitChordSymbol('N.C.')).toEqual({ root: 'N.C.', accidental: '', quality: '', sup: '' });
   });
 });
 

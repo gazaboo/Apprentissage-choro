@@ -251,6 +251,16 @@ body {
   font-size: var(--rt);
   letter-spacing: -0.01em;
 }
+/* L'altération, au corps de la lettre, pesait autant qu'elle et élargissait
+   le chiffrage : réduite et remontée contre la lettre, comme sur une grille
+   imprimée, elle se lit comme un accent de la fondamentale. */
+.chord-cell .ac {
+  font-style: normal;
+  font-size: calc(var(--rt) * 0.55);
+  vertical-align: 0.6em;
+  line-height: 0;
+  margin-left: 0.02em;
+}
 .chord-cell .qa {
   font-style: normal;
   font-size: calc(var(--rt) * 0.46);

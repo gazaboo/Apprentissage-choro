@@ -151,32 +151,35 @@ export function simplifyGrille(grille: Grille): Grille {
  * fonction, et le CSS se charge des corps.
  *
  * `simplifyChord` n'ayant laissé que cinq formes (`X`, `Xm`, `X7`, `Xdim`,
- * `Xm7b5`), la règle tient en deux temps : la fondamentale est la lettre et
- * son altération, puis ce qui reste se coupe entre lettres (la qualité) et
- * chiffres (l'exposant).
+ * `Xm7b5`), la règle tient en deux temps : la fondamentale est la lettre (son
+ * altération à part, pour être réduite), puis ce qui reste se coupe entre
+ * lettres (la qualité) et chiffres (l'exposant).
  *
  * Un chiffrage non reconnu part entier dans `root`, sans mise en forme : même
  * prudence que `simplifyChord`, mieux vaut un symbole brut qu'un symbole faux.
  */
 export function splitChordSymbol(symbol: string): {
   root: string;
+  accidental: string;
   quality: string;
   sup: string;
 } {
   const match = /^([A-G])([#b]?)(.*)$/.exec(symbol);
-  if (!match) return { root: symbol, quality: '', sup: '' };
+  if (!match) return { root: symbol, accidental: '', quality: '', sup: '' };
 
   const letter = match[1] ?? '';
   const accidental = match[2] ?? '';
   const rest = match[3] ?? '';
 
-  // Le `b` et le `#` typographiques : accolés à une lettre et réduits, les
-  // caractères ASCII se lisent comme une partie du nom de l'accord.
+  // Le `b` et le `#` typographiques, rendus à part pour être réduits : les
+  // caractères ASCII, ou un signe au corps de la lettre, se lisent comme une
+  // partie du nom de l'accord et l'élargissent d'autant.
   const sign = accidental === 'b' ? '♭' : accidental === '#' ? '♯' : '';
   // `m7b5` se coupe en `m` + `7b5` ; `dim` n'a pas d'exposant ; `7` n'a que ça.
   const cut = /^([A-Za-z]*)(.*)$/.exec(rest);
   return {
-    root: letter + sign,
+    root: letter,
+    accidental: sign,
     quality: cut?.[1] ?? '',
     sup: cut?.[2] ?? '',
   };
@@ -699,11 +702,12 @@ function quantize(root: number): number {
 
 /** Un chiffrage écrit : fondamentale, qualité sur la ligne, chiffre en exposant. */
 function chordSymbol(chord: string): HTMLElement {
-  const { root, quality, sup } = splitChordSymbol(chord);
+  const { root, accidental, quality, sup } = splitChordSymbol(chord);
   return el(
     'span',
     { class: 'ch' },
     el('i', { class: 'rt' }, root),
+    accidental ? el('i', { class: 'ac' }, accidental) : null,
     quality ? el('i', { class: 'qa' }, quality) : null,
     sup ? el('i', { class: 'sp' }, sup) : null,
   );
