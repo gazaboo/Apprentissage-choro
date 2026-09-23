@@ -9,9 +9,6 @@
 
 import { el, ui } from '../dom';
 
-export interface AboutContext {
-  navigateHome: () => void;
-}
 
 interface Principe {
   titre: string;
@@ -96,9 +93,7 @@ function principeCard(principe: Principe): HTMLElement {
   );
 }
 
-export function renderAbout(root: HTMLElement, context: AboutContext): () => void {
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
-  backButton.addEventListener('click', context.navigateHome);
+export function renderAbout(root: HTMLElement): () => void {
 
   root.replaceChildren(
     el(
@@ -118,7 +113,6 @@ export function renderAbout(root: HTMLElement, context: AboutContext): () => voi
             'Cinq principes de sciences cognitives, et ce qu’ils deviennent dans l’app.',
           ),
         ),
-        backButton,
       ),
 
       ...PRINCIPES.map(principeCard),

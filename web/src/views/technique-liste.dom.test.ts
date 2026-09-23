@@ -50,7 +50,6 @@ function mount(cartes: ExerciceCarte[], overrides: Partial<TechniqueListeContext
     cartes,
     onStart: vi.fn(),
     onStartTonalite: vi.fn(),
-    navigateHome: vi.fn(),
     ...overrides,
   };
   const teardown = renderTechniqueListe(root, context);
@@ -128,12 +127,5 @@ describe('renderTechniqueListe — interactions', () => {
     expect(context.onStartTonalite).toHaveBeenCalledWith(
       expect.arrayContaining([montant, descendant]),
     );
-  });
-
-  it('« Retour » appelle navigateHome()', () => {
-    const { root, context } = mount([carte()]);
-    const back = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Retour')!;
-    back.click();
-    expect(context.navigateHome).toHaveBeenCalledOnce();
   });
 });

@@ -40,7 +40,6 @@ export interface TechniqueListeContext {
   onStart: () => void;
   /** Lance une séance restreinte à une tonalité précise (les deux sens). */
   onStartTonalite: (cartes: ExerciceCarte[]) => void;
-  navigateHome: () => void;
 }
 
 /** Échéance d'une carte, en toutes lettres — même formulation que le répertoire. */
@@ -68,9 +67,6 @@ export function renderTechniqueListe(
   let confirmingDelete = false;
   let closeDropdown: (() => void) | null = null;
   let closeModal: (() => void) | null = null;
-
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
-  backButton.addEventListener('click', context.navigateHome);
 
   const startButton = el('button', { type: 'button', class: ui.primary });
   startButton.addEventListener('click', context.onStart);
@@ -351,7 +347,52 @@ export function renderTechniqueListe(
     paintBody();
   }
 
+  // --- Dernières séances de technique ------------------------------------
+  // Venues de l'ancienne carte « Technique » du tableau de bord : depuis la
+  // navigation par sections, cette page est le seul point d'entrée technique.
+
+  const historySlot = el('div', { class: 'flex flex-col gap-2' });
+  let historyExpanded = false;
+
+  function paintHistory(): void {
+    const runs = context.progress.sessions.filter((run) => run.kind === 'technique');
+    if (runs.length === 0) {
+      historySlot.replaceChildren();
+      return;
+    }
+    const toggle = el(
+      'button',
+      { type: 'button', class: 'self-start text-sm text-amber-300/80 hover:text-amber-200' },
+      historyExpanded ? 'Masquer les dernières séances' : 'Voir les dernières séances',
+    );
+    toggle.addEventListener('click', () => {
+      historyExpanded = !historyExpanded;
+      paintHistory();
+    });
+    const recent = runs.slice(-10).reverse();
+    historySlot.replaceChildren(toggle);
+    if (historyExpanded) {
+      historySlot.append(
+        el(
+            'ul',
+            { class: 'flex flex-col gap-1 text-sm text-zinc-400' },
+            ...recent.map((run) =>
+              el(
+                'li',
+                {},
+                `${new Date(run.date).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'short',
+                })} · ${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`,
+              ),
+            ),
+          ),
+      );
+    }
+  }
+
   repaint();
+  paintHistory();
 
   root.replaceChildren(
     el(
@@ -367,7 +408,6 @@ export function renderTechniqueListe(
           el('h1', { class: 'text-3xl font-semibold text-zinc-100' }, 'Arpèges et gammes'),
           headerCount,
         ),
-        backButton,
       ),
 
       el(
@@ -395,6 +435,7 @@ export function renderTechniqueListe(
             'Les exercices en retard d’abord, puis quelques-uns jamais travaillés. ' +
               'Une note par clic de métronome, sans plaquer d’accord.',
           ),
+          historySlot,
         ),
       ),
 

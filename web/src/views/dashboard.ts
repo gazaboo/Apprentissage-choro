@@ -11,7 +11,6 @@ import { pickSessionItems } from '../session';
 import { daysOverdue, MASTERY_LEVELS, masteryLevel, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { activeSetlist, deleteSetlist, getCard, setActiveSetlist } from '../store';
-import { accountMode, getSyncCode } from '../sync';
 import type { SessionRun, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
 import { openSetlistEditor } from './setlists';
@@ -27,14 +26,8 @@ const BADGE_LABELS: Record<Badge, string> = {
 export interface DashboardContext {
   progress: Progress;
   openSong: (songId: string) => void;
-  openAccount: () => void;
-  openAbout: () => void;
   startSession: (kind: 'deep' | 'urgent') => void;
   startFilage: () => void;
-  /** `null` quand le catalogue d'arpèges est absent : la section disparaît. */
-  openTechnique: (() => void) | null;
-  /** Nombre d'exercices que proposerait une séance lancée maintenant. */
-  techniqueCount: number;
 }
 
 const RUN_KIND_LABELS: Record<SessionRun['kind'], string> = {
@@ -50,15 +43,6 @@ function runSummary(run: SessionRun): string {
       ? `filage ${INSTRUMENT_SHORT_LABELS[run.instrumentId]}`
       : RUN_KIND_LABELS[run.kind];
   return `${run.setlistName} · ${kind} · ${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
-}
-
-/**
- * Résumé d'une séance technique, sans nom de setlist : la technique a sa
- * propre setlist (#127), distincte de celle du répertoire et gérée sur sa
- * page dédiée — l'afficher ici ferait doublon avec le titre de la carte.
- */
-function techniqueRunSummary(run: SessionRun): string {
-  return `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`;
 }
 
 /**
@@ -118,10 +102,6 @@ export function renderDashboard(
   const listHeading = el('h2', { class: 'text-lg font-semibold text-zinc-100' });
   const sessionSlot = el('section', {
     class: 'rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-5',
-  });
-  /** Section technique : visuellement distincte, car indépendante de la setlist. */
-  const techniqueSlot = el('section', {
-    class: 'rounded-2xl border border-sky-400/25 bg-sky-400/[0.05] p-5',
   });
 
   const songById = new Map(songs.map((song) => [song.id, song]));
@@ -224,7 +204,6 @@ export function renderDashboard(
     paintHeader();
     paintList();
     paintSessionCard();
-    paintTechniqueCard();
   }
 
   function chooseSetlist(id: string): void {
@@ -571,81 +550,6 @@ export function renderDashboard(
     sessionSlot.replaceChildren(el('div', { class: 'flex flex-col gap-3' }, ...rows));
   }
 
-  // --- Technique : arpèges et gammes, indépendants de toute setlist ----
-
-  let techniqueSessionsExpanded = false;
-
-  /**
-   * Section à part : la technique n'apparaît pas dans l'historique du
-   * répertoire (issue #52 — les deux étaient entrelacées dans une même carte
-   * « Session du jour »). Sa propre setlist (#127) se gère sur sa page dédiée,
-   * pas ici — cette carte reste un simple point d'entrée/résumé.
-   */
-  function paintTechniqueCard(): void {
-    if (!context.openTechnique) {
-      techniqueSlot.replaceChildren();
-      return;
-    }
-    const openTechnique = context.openTechnique;
-
-    const techniqueButton = el(
-      'button',
-      { type: 'button', class: ui.button },
-      context.techniqueCount > 0 ? 'Commencer' : 'Voir les exercices',
-    );
-    techniqueButton.addEventListener('click', openTechnique);
-
-    const rows: HTMLElement[] = [
-      el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Technique instrumentale'),
-      el(
-        'div',
-        { class: 'flex flex-col gap-1' },
-        el('div', { class: 'flex flex-wrap gap-2' }, techniqueButton),
-        el(
-          'span',
-          { class: 'text-[11px] text-zinc-500' },
-          'Arpèges et gammes au métronome, note à note, hors répertoire.',
-        ),
-      ),
-    ];
-
-    const techniqueRuns = progress.sessions.filter((run) => run.kind === 'technique');
-    if (techniqueRuns.length > 0) {
-      const toggle = el(
-        'button',
-        { type: 'button', class: 'self-start text-sm text-sky-300/80 hover:text-sky-200' },
-        techniqueSessionsExpanded ? 'Masquer les dernières séances' : 'Voir les dernières séances',
-      );
-      toggle.addEventListener('click', () => {
-        techniqueSessionsExpanded = !techniqueSessionsExpanded;
-        paintTechniqueCard();
-      });
-      rows.push(toggle);
-
-      if (techniqueSessionsExpanded) {
-        const recent = techniqueRuns.slice(-10).reverse();
-        rows.push(
-          el(
-            'ul',
-            { class: 'flex flex-col gap-1 text-sm text-zinc-400' },
-            ...recent.map((run) =>
-              el(
-                'li',
-                {},
-                `${new Date(run.date).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'short',
-                })} · ${techniqueRunSummary(run)}`,
-              ),
-            ),
-          ),
-        );
-      }
-    }
-
-    techniqueSlot.replaceChildren(el('div', { class: 'flex flex-col gap-3' }, ...rows));
-  }
-
   function paintList(): void {
     const visible = scopedSongs();
     list.replaceChildren(
@@ -661,26 +565,6 @@ export function renderDashboard(
     );
   }
 
-  // Identité en haut à droite : l'identifiant connecté, ou « Anonyme ».
-  const identity = accountMode() === 'sync' ? getSyncCode() ?? 'Compte' : 'Anonyme';
-  const accountLink = el(
-    'button',
-    {
-      type: 'button',
-      class: `${ui.button} max-w-[11rem]`,
-      title: 'Compte et synchronisation',
-    },
-    el('span', { class: 'truncate' }, identity),
-  );
-  accountLink.addEventListener('click', context.openAccount);
-
-  const aboutLink = el(
-    'button',
-    { type: 'button', class: ui.button, title: 'Les principes de mémorisation de l’app' },
-    'Comment ça marche ?',
-  );
-  aboutLink.addEventListener('click', context.openAbout);
-
   root.replaceChildren(
     el(
       'div',
@@ -695,10 +579,8 @@ export function renderDashboard(
           el('h1', { class: 'text-3xl font-semibold text-zinc-100' }, 'Répertoire de choros'),
           subtitle,
         ),
-        el('div', { class: 'flex flex-wrap gap-2' }, aboutLink, accountLink),
       ),
 
-      techniqueSlot,
       sessionSlot,
 
       el('section', { class: 'flex flex-col gap-4' }, listHeading, list),
