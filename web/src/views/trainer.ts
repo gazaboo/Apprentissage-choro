@@ -873,6 +873,7 @@ export function renderTrainer(
         answer.grade,
         answer.tempo,
         answer.hints,
+        { mode },
       );
       putCard(progress, song.id, instrumentId, card);
     }

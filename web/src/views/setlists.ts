@@ -1,6 +1,7 @@
 /** Modale d'édition d'une setlist : nom, ordre de passage, sélection.
  *
- * Montée depuis le tableau de bord (bouton ＋ « nouvelle » ou ✎ « modifier »).
+ * Montée depuis le menu de la pastille de setlist (« Nouvelle setlist », ou
+ * « Modifier » sur la ligne d'une setlist) ; la suppression se fait ici.
  * Une seule setlist est « active » à la fois ; créer une setlist l'active
  * aussitôt. Quand une setlist est active, le tableau de bord et la Session du
  * jour ne portent que sur ses morceaux — le SRS décide de l'ordre à l'intérieur.
@@ -12,9 +13,10 @@
 
 import { el, ui } from '../dom';
 import { chevronDown, chevronUp, trash } from '../icons';
-import { setActiveSetlist, upsertSetlist } from '../store';
+import { deleteSetlist, setActiveSetlist, upsertSetlist } from '../store';
 import type { Progress } from '../store';
 import type { Setlist, Song } from '../types';
+import { deleteControl, enterSaves } from './section-ui';
 
 export type SetlistTarget =
   | { mode: 'create' }
@@ -358,7 +360,21 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
           ),
         ),
       ),
-      el('div', { class: 'flex justify-end gap-2' }, cancelButton, saveButton),
+      el(
+        'div',
+        { class: 'flex flex-wrap items-center justify-end gap-2' },
+        editing
+          ? deleteControl(
+              () => nameInput.value.trim() || editing.name,
+              () => {
+                deleteSetlist(progress, editing.id);
+                close();
+              },
+            )
+          : null,
+        cancelButton,
+        saveButton,
+      ),
       liveRegion,
     ),
   );
@@ -375,7 +391,7 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
 
   function onKey(event: KeyboardEvent): void {
     if (event.key === 'Escape') close();
-    else if (event.key === 'Enter' && !event.isComposing) save();
+    else if (enterSaves(event)) save();
   }
 
   function save(): void {
