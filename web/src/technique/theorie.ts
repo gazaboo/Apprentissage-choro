@@ -109,6 +109,28 @@ export function nameFromMidi(midi: number): string {
 }
 
 /**
+ * Degré d'une note par rapport à une fondamentale, écrit comme sur une grille :
+ * le numéro vient de la distance de lettres, l'altération de l'écart à la
+ * gamme majeure de la fondamentale. En ré : fa donne « ♭3 », si bémol « ♭6 »,
+ * la « 5 » ; en si : la bémol donne « ♭♭7 ».
+ *
+ * Se fonder sur l'orthographe plutôt que sur les demi-tons est ce qui
+ * distingue une sixte mineure (« ♭6 ») d'une quinte augmentée (« ♯5 ») : la
+ * même touche, deux fonctions.
+ */
+export function degre(note: NoteSpelling, root: NoteSpelling): string {
+  const distance = (letterIndex(note.letter) - letterIndex(root.letter) + 7) % 7;
+  const reel = (pitchClass(note) - pitchClass(root) + 12) % 12;
+  // Écart à la gamme majeure, ramené dans −6…+5 : un do bémol au-dessus de si
+  // est à une octave moins un demi-ton de la tonique, pas à onze demi-tons.
+  let ecart = reel - naturalPc(distance);
+  if (ecart > 6) ecart -= 12;
+  if (ecart < -6) ecart += 12;
+  const alteration = ecart > 0 ? '♯'.repeat(ecart) : '♭'.repeat(-ecart);
+  return `${alteration}${distance + 1}`;
+}
+
+/**
  * Fondamentale d'un chiffrage : « Dm7 » → ré, « Bb7(b9) » → si bémol.
  * On ne lit que le début du symbole ; la qualité reste au chiffrage, qui est
  * de toute façon le seul texte affiché à l'écran.
