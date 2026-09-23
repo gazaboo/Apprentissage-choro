@@ -215,7 +215,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     'aria-hidden': 'true',
   });
   const accordLabel = el('p', {
-    class: 'text-7xl font-semibold leading-none tracking-tight text-zinc-100',
+    class: 'text-7xl font-semibold leading-none tracking-tight text-zinc-100 paysage:text-4xl',
   });
   const sensLabel = el('p', {
     class: 'text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500',
@@ -224,7 +224,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   // bien visible, pour qu'il soit impossible de manquer le moment où
   // l'évaluation démarre réellement.
   const countdownLabel = el('p', {
-    class: 'hidden text-7xl font-semibold leading-none tracking-tight text-amber-300',
+    class: 'hidden text-7xl font-semibold leading-none tracking-tight text-amber-300 paysage:text-4xl',
     'aria-live': 'assertive',
   });
   const statusLabel = el('p', {
@@ -532,7 +532,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // l'emporterait sur `.hidden` (même spécificité, déclarée après dans le
     // CSS généré par Tailwind).
     finishButton.className =
-      `${playRunning ? ui.button : ui.primary} min-h-12 w-full [grid-area:suite] md:w-auto md:px-8`;
+      `${playRunning ? ui.button : ui.primary} min-h-12 w-full [grid-area:suite] md:w-auto md:px-8 paysage:w-auto paysage:px-6`;
     finishButton.style.display = evaluating ? 'none' : '';
 
     const listening = tracker?.listening ?? false;
@@ -1015,25 +1015,31 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     {
       class:
         'shrink-0 rounded-t-3xl border-t border-zinc-800 bg-zinc-900/80 px-4 pt-3 ' +
-        'pb-[calc(env(safe-area-inset-bottom)+1rem)] md:rounded-none md:px-8 md:py-4',
+        'pb-[calc(env(safe-area-inset-bottom)+1rem)] md:rounded-none md:px-8 md:py-4 ' +
+        'paysage:rounded-none paysage:pt-2 paysage:pb-[calc(env(safe-area-inset-bottom)+0.5rem)]',
     },
     el(
       'div',
       {
         // Mobile : l'info sur toute la largeur, puis tempo | transport, puis
-        // « Noter et continuer ». Au-delà de 768 px, une seule ligne.
+        // « Noter et continuer ». Au-delà de 768 px, une seule ligne — de même
+        // sur un téléphone en paysage, où les trois lignes laissaient à peine
+        // 120 px à la portée (#170).
         class:
           'mx-auto grid max-w-5xl grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 ' +
           "[grid-template-areas:'info_info'_'tempo_transport'_'suite_suite'] " +
           'md:grid-cols-[auto_1fr_auto_auto] md:gap-x-6 ' +
-          "md:[grid-template-areas:'tempo_info_transport_suite']",
+          "md:[grid-template-areas:'tempo_info_transport_suite'] " +
+          'paysage:grid-cols-[auto_1fr_auto_auto] ' +
+          "paysage:[grid-template-areas:'tempo_info_transport_suite']",
       },
       el(
         'div',
         {
           class:
             'flex items-center justify-between gap-3 [grid-area:info] ' +
-            'md:flex-col md:items-start md:justify-center md:gap-0',
+            'md:flex-col md:items-start md:justify-center md:gap-0 ' +
+            'paysage:flex-col paysage:items-start paysage:justify-center paysage:gap-0',
         },
         bpmHint,
         testMicButton,
@@ -1070,7 +1076,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         {
           class:
             'grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 py-2 ' +
-            '[padding-top:calc(env(safe-area-inset-top)+0.5rem)] md:px-6 md:py-4',
+            '[padding-top:calc(env(safe-area-inset-top)+0.5rem)] md:px-6 md:py-4 ' +
+            'paysage:py-0.5 paysage:[padding-top:calc(env(safe-area-inset-top)+0.125rem)]',
         },
         el('div', { class: 'justify-self-start' }, backButton),
         el(
@@ -1093,11 +1100,17 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
               // et disparaissent sous les boutons, et un contenu centré ferait
               // alors glisser la portée pendant qu'on la lit.
               'mx-auto flex max-w-3xl flex-col items-center gap-5 px-4 pb-4 ' +
-              'pt-[max(1rem,4vh)] md:gap-6 md:pb-6',
+              'pt-[max(1rem,4vh)] md:gap-6 md:pb-6 paysage:gap-3 paysage:pt-2',
           },
           el(
             'div',
-            { class: 'flex flex-col items-center gap-3 text-center' },
+            {
+              // En paysage (#170), l'en-tête de l'exercice tient sur une ligne :
+              // la portée doit rester visible sans défiler.
+              class:
+                'flex flex-col items-center gap-3 text-center ' +
+                'paysage:flex-row paysage:flex-wrap paysage:justify-center paysage:gap-x-4 paysage:gap-y-1',
+            },
             sensLabel,
             accordLabel,
             countdownLabel,
@@ -1108,7 +1121,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
             {
               class:
                 'w-full rounded-2xl border border-zinc-800 bg-zinc-900/60 px-1 py-4 ' +
-                'sm:px-4 md:px-8 md:py-5',
+                'sm:px-4 md:px-8 md:py-5 paysage:py-2',
               'aria-label': 'Motif',
             },
             porteeMount,
