@@ -19,7 +19,7 @@
       "reference": "C",
       "notes": ["C", "D", "E", "G"],
       "notes_descendant": ["C4", "A3", "G3", "E3", "C3"],
-      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
       "note_de_travail": "Montée : 1 - 2 - 3 - 5 - 1\nDescente : 1 - 6m - 5 - 3 - 1"
     },
@@ -29,7 +29,7 @@
       "nom": "Arpège de dominante",
       "reference": "A7",
       "notes": ["A", "C#", "E", "G", "A"],
-      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
       "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
@@ -59,7 +59,7 @@
       "nom": "Gamme majeure",
       "reference": "C",
       "notes": ["C", "D", "E", "F", "G", "A", "B", "C"],
-      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
       "note_de_travail": "Sur une seule position."
     },
