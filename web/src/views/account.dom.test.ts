@@ -137,21 +137,12 @@ describe('renderAccount — formulaire d\'identifiant', () => {
 });
 
 describe('renderAccount — page compte (gate: false)', () => {
-  it('mode local : propose le formulaire de synchro et un retour', () => {
+  it('ne propose plus de connexion/déconnexion : juste un retour', () => {
     const { root, context } = mount({ gate: false, navigateHome: vi.fn() });
-    expect(root.textContent).toContain('Vous travaillez sur cet appareil uniquement.');
+    expect(root.textContent).not.toContain('Vous travaillez sur cet appareil uniquement.');
+    expect(root.textContent).not.toContain('Se déconnecter');
     findButton(root, 'Retour au répertoire').click();
     expect(context.navigateHome).toHaveBeenCalledOnce();
-  });
-
-  it('mode sync : propose la déconnexion, qui repasse le compte à "none"', () => {
-    localStorage.setItem('choro-sync-code', 'deja-connecte');
-    const { root, context } = mount({ gate: false });
-    expect(accountMode()).toBe('sync');
-    expect(root.textContent).toContain('deja-connecte');
-    findButton(root, 'Se déconnecter').click();
-    expect(context.onChange).toHaveBeenCalledOnce();
-    expect(accountMode()).toBe('none');
   });
 
   it('sans `progress` (passerelle) : pas de section réglages par défaut', () => {

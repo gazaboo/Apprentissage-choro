@@ -44,12 +44,8 @@ function mountDashboard(songs: Song[], contextOverrides: Partial<DashboardContex
   const context: DashboardContext = {
     progress: baseProgress(),
     openSong: vi.fn(),
-    openAccount: vi.fn(),
-    openAbout: vi.fn(),
     startSession: vi.fn(),
     startFilage: vi.fn(),
-    openTechnique: vi.fn(),
-    techniqueCount: 0,
     ...contextOverrides,
   };
   const teardown = renderDashboard(root, songs, context);
@@ -167,25 +163,6 @@ describe('renderDashboard — CTA', () => {
     expect(labels.some((label) => label?.startsWith('Réviser'))).toBe(true);
   });
 
-  it('la rangée technique appelle openTechnique() quand fourni', () => {
-    const openTechnique = vi.fn();
-    const { root } = mountDashboard([song('a')], { openTechnique, techniqueCount: 3 });
-    const button = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Commencer');
-    expect(button).toBeDefined();
-    button!.click();
-    expect(openTechnique).toHaveBeenCalledOnce();
-  });
-
-  it('la rangée technique affiche "Voir les exercices" quand `techniqueCount` est nul', () => {
-    const { root } = mountDashboard([song('a')], { openTechnique: vi.fn(), techniqueCount: 0 });
-    expect(root.textContent).toContain('Voir les exercices');
-  });
-
-  it('la section technique est absente quand `openTechnique` est `null`', () => {
-    const { root } = mountDashboard([song('a')], { openTechnique: null });
-    expect(root.textContent).not.toContain('Arpèges et gammes au métronome');
-  });
-
   it('cliquer un morceau appelle openSong(id)', () => {
     const { root, context } = mountDashboard([song('a', 'Carinhoso')]);
     const row = [...root.querySelectorAll('button')].find((b) =>
@@ -193,14 +170,5 @@ describe('renderDashboard — CTA', () => {
     );
     row!.click();
     expect(context.openSong).toHaveBeenCalledWith('a');
-  });
-
-  it('cliquer l\'identité ouvre le compte', () => {
-    const { root, context } = mountDashboard([song('a')]);
-    const button = [...root.querySelectorAll('button')].find((b) =>
-      b.getAttribute('title') === 'Compte et synchronisation',
-    );
-    button!.click();
-    expect(context.openAccount).toHaveBeenCalledOnce();
   });
 });

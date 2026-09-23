@@ -5,7 +5,17 @@
  * aucun raccourci clavier, et aucune action n'est cachée.
  */
 
-import { createInstrumentChip, createSegmented, el, paintToggle, ui } from '../dom';
+import {
+  captionedValue,
+  createSegmented,
+  createTopBarIdentity,
+  createTopBarMenu,
+  DOCK_CHIP_MOBILE,
+  el,
+  menuSection,
+  paintToggle,
+  ui,
+} from '../dom';
 import { EclipseRunner } from '../eclipse';
 import { GrilleView } from '../grille';
 import { ScoreView } from '../score';
@@ -26,7 +36,7 @@ import type {
   StudyMode,
 } from '../types';
 import { isGrille } from '../types';
-import { MASK_LEVELS, STUDY_MODE_HINTS } from '../types';
+import { INSTRUMENT_KEY_LABELS, MASK_LEVELS, STUDY_MODE_HINTS } from '../types';
 import { formatTime, Player } from '../audio';
 import { askSrs } from './srsModal';
 
@@ -39,6 +49,10 @@ export interface TrainerContext {
     kind: 'deep' | 'urgent';
     /** Texte du bandeau (« … — bloc 2 sur 6 » ou « … — morceau 3 sur 8 »). */
     label: string;
+    /** Version courte, pour la légende de la barre du haut (« Urgences »,
+     *  « 2 sur 3 ») : le rang ne se tronque pas, le type de séance si. À
+     *  défaut, `label`, tronqué. */
+    caption?: { kind: string; position: string };
     /** Minutes par bloc, ou `null` pour le travail de fond (pas de minuteur). */
     blockMinutes: number | null;
     /** Évaluer le morceau courant puis passer au suivant. */
@@ -236,79 +250,154 @@ export function renderTrainer(
   let fpTwoCol = fpPrefs.twoColumns;
   let fpPlayerHidden = anySource && fpPrefs.playerHidden;
 
-  const fpIconButton = (glyph: string, aria: string): HTMLButtonElement =>
-    el('button', { type: 'button', class: ui.icon, 'aria-label': aria }, glyph);
-
+  // Sans objet sur mobile : le plein écran n'apporte rien sur un écran déjà
+  // plein (retour du 2026-09-23, #153) — seul le point d'entrée disparaît,
+  // le mode plein écran lui-même (barre dédiée, sortie via Échap) reste
+  // inchangé pour qui l'a ouvert avant un redimensionnement. Icône seule
+  // entre 768 et 1024 px, où la barre du haut n'a pas la place du libellé.
   const fullpageEnter = el(
     'button',
-    { type: 'button', class: ui.button, 'aria-pressed': 'false' },
-    '⛶ Plein écran',
-  );
-
-  // Sélecteur d'affichage : un seul groupe Partition / Grille, et les
-  // sous-options Mélodie qui se révèlent à côté quand Partition est choisie —
-  // elles n'ont de sens que là (#137). Le même choix existe en double, ici et
-  // dans la barre de plein écran ; `createSegmented` laisse la vue seule
-  // source de vérité, si bien que les deux se repeignent depuis le même état.
-  const displaySelector = createSegmented<DisplayMode>(
-    [
-      { value: 'partition', label: '♪ Partition' },
-      { value: 'grille', label: '▦ Grille' },
-    ],
-    (value) => setDisplay(value),
-  );
-  const fpDisplaySelector = createSegmented<DisplayMode>(
-    [
-      { value: 'partition', label: 'Part.' },
-      { value: 'grille', label: 'Grille' },
-    ],
-    (value) => setDisplay(value),
-    { variant: 'chip' },
-  );
-
-  const contrechantSelector = createSegmented<'sans' | 'avec'>(
-    [
-      { value: 'sans', label: 'Mélodie' },
-      { value: 'avec', label: '+ contre-chant' },
-    ],
-    (value) => setContrechant(value),
-  );
-  const fpContrechantSelector = createSegmented<'sans' | 'avec'>(
-    [
-      { value: 'sans', label: 'Mél.' },
-      { value: 'avec', label: 'Mél.+CC' },
-    ],
-    (value) => setContrechant(value),
-    { variant: 'chip' },
-  );
-
-  // Les sous-options poussent depuis la bascule principale au lieu
-  // d'apparaître d'un coup : l'animation dit qu'elles en dépendent. Elle est
-  // courte et neutralisée sous `prefers-reduced-motion` (voir `style.css`).
-  const contrechantReveal = el('div', { class: 'reveal-inline' }, contrechantSelector.root);
-  const fpContrechantReveal = el('div', { class: 'reveal-inline' }, fpContrechantSelector.root);
-
-  const instrumentChip = createInstrumentChip({
-    instruments: song.instruments,
-    current: instrumentId,
-    onPick: (id) => {
-      instrumentId = id;
-      hints = 0;
-      drawScore();
-      paintContrechantToggle();
+    {
+      type: 'button',
+      class: `${ui.button} gap-1.5 max-lg:px-3`,
+      'aria-pressed': 'false',
+      'aria-label': 'Passer en plein écran',
+      title: 'Plein écran',
     },
-  });
-
-  // Contrôles qui n'ont pas de sens sans partition à l'écran : ils
-  // disparaissent en mode « Sans partition », alors que la pastille de
-  // tonalité et l'ouvreur du Défi restent joignables (#109).
-  const scoreControls = el(
-    'div',
-    { class: 'flex shrink-0 items-center gap-2' },
-    displaySelector.root,
-    contrechantReveal,
-    fullpageEnter,
+    el('span', { 'aria-hidden': 'true' }, '⛶'),
+    el('span', { class: 'max-lg:hidden' }, 'Plein écran'),
   );
+  // Enveloppe : `ui.button` impose `inline-flex`, qui l'emporterait sur un
+  // `hidden` posé sur le bouton lui-même (même piège que `toggleSlot`).
+  const fullpageEnterSlot = el('div', { class: 'shrink-0 max-md:hidden' }, fullpageEnter);
+
+  // Bascule Partition / Grille en accès direct, au-delà de 768 px seulement :
+  // sur mobile elle vit dans le menu « Affichage ». Le même choix existe en
+  // double, ici et dans la barre de plein écran ; `createSegmented` laisse la
+  // vue seule source de vérité, si bien que les deux se repeignent depuis le
+  // même état. Mêmes mots des deux côtés : la barre de plein écran abrégeait
+  // en « Part. », jugé incompréhensible (#150, #153).
+  const displayOptions: { value: DisplayMode; label: string }[] = [
+    { value: 'partition', label: 'Partition' },
+    { value: 'grille', label: 'Grille' },
+  ];
+  const displaySelector = createSegmented<DisplayMode>(displayOptions, (value) => setDisplay(value));
+  const displaySlot = el('div', { class: 'shrink-0 max-md:hidden' }, displaySelector.root);
+  const fpDisplaySelector = createSegmented<DisplayMode>(displayOptions, (value) => setDisplay(value));
+
+  function pickInstrument(id: InstrumentId): void {
+    instrumentId = id;
+    hints = 0;
+    drawScore();
+    paintAffichage();
+  }
+
+  // --- Menu « Affichage » -------------------------------------------------
+  //
+  // Vue, portées et tonalité réunies derrière un seul bouton (#153, variante 1
+  // des maquettes). Elles occupaient cinq boutons de la barre du haut sur
+  // desktop (Partition, Grille, Mélodie, + contre-chant, Ut ▾) et, sur mobile,
+  // des icônes (♪ ▦) ou une place dans le tiroir Réglages. Le menu existe en
+  // double — barre du haut et barre de plein écran — et chaque exemplaire se
+  // repeint depuis le même état (`paintAffichage`).
+
+  interface AffichageMenu {
+    root: HTMLElement;
+    paint: () => void;
+  }
+
+  function createAffichageMenu(): AffichageMenu {
+    const view = createSegmented<DisplayMode>(displayOptions, (value) => setDisplay(value), {
+      extra: 'flex-1',
+    });
+    view.root.classList.add('w-full');
+    const contrechantChoice = createSegmented<'sans' | 'avec'>(
+      [
+        { value: 'sans', label: 'Mélodie seule' },
+        { value: 'avec', label: '+ contre-chant' },
+      ],
+      (value) => setContrechant(value),
+      { extra: 'flex-1' },
+    );
+    contrechantChoice.root.classList.add('w-full');
+    const contrechantHint = el(
+      'p',
+      { class: 'text-xs leading-relaxed text-zinc-500' },
+      'Le contre-chant ne s’affiche que sur la partition, en Ut.',
+    );
+    const tonalite = createSegmented<InstrumentId>(
+      song.instruments.map((instrument) => ({
+        value: instrument.id,
+        label: INSTRUMENT_KEY_LABELS[instrument.id] ?? instrument.name,
+      })),
+      pickInstrument,
+      { extra: 'flex-1 px-2' },
+    );
+    tonalite.root.classList.add('w-full');
+
+    const viewSection = menuSection('Vue', view.root);
+    const contrechantSection = menuSection('Portées', contrechantChoice.root, contrechantHint);
+    const tonaliteSection = menuSection('Tonalité', tonalite.root);
+    if (song.instruments.length < 2) tonaliteSection.classList.add('hidden');
+
+    const reglages = el(
+      'button',
+      { type: 'button', class: `${ui.button} w-full gap-2` },
+      'Défi et autres réglages',
+      el('span', { 'aria-hidden': 'true' }, '→'),
+    );
+
+    const value = el('span', { class: 'text-[13px] font-semibold leading-none text-zinc-100' });
+    const trigger = el(
+      'button',
+      {
+        type: 'button',
+        class: `${ui.button} gap-1.5 ${DOCK_CHIP_MOBILE}`,
+        'aria-label': 'Affichage de la partition',
+      },
+      el(
+        'span',
+        { class: 'inline-flex items-center gap-1.5 max-md:hidden' },
+        'Affichage',
+        el('span', { class: 'text-xs opacity-60', 'aria-hidden': 'true' }, '▾'),
+      ),
+      captionedValue('Affichage', value),
+    );
+    const menu = createTopBarMenu({
+      trigger,
+      label: 'Affichage',
+      content: [viewSection, contrechantSection, tonaliteSection, reglages],
+    });
+    reglages.addEventListener('click', () => {
+      menu.setOpen(false);
+      controlBar.open();
+    });
+
+    return {
+      root: menu.root,
+      paint() {
+        const active = activeDisplay();
+        view.set(active);
+        viewSection.classList.toggle('hidden', mode === 'sans' || !grilleReady());
+        const hasContrechant = contrechantAvailable() && active !== 'grille';
+        contrechantSection.classList.toggle('hidden', mode === 'sans' || song.contraponto === null);
+        contrechantChoice.setVisible(hasContrechant);
+        contrechantHint.classList.toggle('hidden', hasContrechant);
+        contrechantChoice.set(contrechant);
+        tonalite.set(instrumentId);
+        value.textContent =
+          mode === 'sans' ? 'Sans partition' : active === 'grille' ? 'Grille' : 'Partition';
+      },
+    };
+  }
+
+  const affichageMenu = createAffichageMenu();
+  const fpAffichageMenu = createAffichageMenu();
+
+  function paintAffichage(): void {
+    affichageMenu.paint();
+    fpAffichageMenu.paint();
+  }
 
   function paintDisplayToggle(): void {
     const has = grilleReady();
@@ -317,57 +406,105 @@ export function renderTrainer(
     const active = activeDisplay();
     displaySelector.set(active);
     fpDisplaySelector.set(active);
+    paintAffichage();
   }
 
-  /** Sans effet sur la grille : le contre-chant est un choix de rendu de la
-   *  partition, absent de la grille d'accords (#98). */
-  function paintContrechantToggle(): void {
-    const has = contrechantAvailable() && activeDisplay() !== 'grille';
-    contrechantReveal.classList.toggle('is-open', has);
-    fpContrechantReveal.classList.toggle('is-open', has);
-    contrechantSelector.set(contrechant);
-    fpContrechantSelector.set(contrechant);
-  }
+  // --- Barre de plein écran ----------------------------------------------
+  //
+  // Mêmes mots qu'en mode normal (#153) : « Taille », « 1 page | 2 pages »,
+  // « Masquer le lecteur », là où elle alignait ▥ et ▾ à deviner.
 
-  const fullpageExit = el('button', { type: 'button', class: ui.button }, '✕ Fermer');
+  const fullpageExit = el(
+    'button',
+    { type: 'button', class: ui.button, 'aria-label': 'Quitter le plein écran' },
+    '✕ Quitter',
+  );
 
-  const fpZoomOut = fpIconButton('−', 'Réduire la partition');
-  const fpZoomIn = fpIconButton('+', 'Agrandir la partition');
+  const fpZoomOut = el('button', { type: 'button', class: ui.icon, 'aria-label': 'Réduire la partition' }, '−');
+  const fpZoomIn = el('button', { type: 'button', class: ui.icon, 'aria-label': 'Agrandir la partition' }, '+');
   const fpZoomLabel = el(
     'button',
     {
       type: 'button',
-      class: ui.chip,
+      class: `${ui.chip} min-w-16`,
       'aria-label': 'Taille de la partition — toucher pour revenir à 100 %',
     },
     '100 %',
   );
+  const fpZoomGroup = el(
+    'div',
+    { class: 'flex shrink-0 items-center gap-1.5' },
+    el('span', { class: 'text-[10px] font-bold uppercase tracking-wider text-zinc-500' }, 'Taille'),
+    fpZoomOut,
+    fpZoomLabel,
+    fpZoomIn,
+  );
 
-  const fpColumns = fpIconButton('▥', 'Une ou deux colonnes');
-  const fpColumnsSlot = el('div', { class: 'hidden' }, fpColumns);
+  const fpColumns = createSegmented<'1' | '2'>(
+    [
+      { value: '1', label: '1 page' },
+      { value: '2', label: '2 pages' },
+    ],
+    (value) => {
+      fpTwoCol = value === '2';
+      applyFpLayout();
+      saveFp();
+    },
+  );
+  const fpColumnsSlot = el('div', { class: 'hidden shrink-0' }, fpColumns.root);
 
   // Repli du lecteur : réservé au plein écran, où gagner de la hauteur sur la
   // partition est tout l'objet du mode. Hors plein écran le dock est dans le
   // flux et ne recouvre plus rien — le replier n'apporte plus assez pour
   // justifier un contrôle de plus à comprendre (#132).
-  const fpPlayerToggle = fpIconButton('▾', 'Réduire le lecteur');
+  const fpPlayerToggle = el('button', { type: 'button', class: ui.button }, 'Masquer le lecteur');
   if (!anySource) fpPlayerToggle.classList.add('hidden');
+
+  // Lecteur minimal, visible seulement quand le dock est replié. Il se range
+  // dans la barre plutôt que de flotter en bas à droite, où il cachait des
+  // mesures (#153).
+  const fpMiniIcon = el('span', { class: 'text-base leading-none' }, '▶');
+  const fpMiniPlay = el(
+    'button',
+    {
+      type: 'button',
+      class:
+        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400 ' +
+        'pl-0.5 text-zinc-950',
+      'aria-label': 'Lecture ou pause',
+    },
+    fpMiniIcon,
+  );
+  fpMiniPlay.addEventListener('click', () => player.togglePlay());
+  const fpMiniTime = el('span', { class: 'font-mono text-xs text-zinc-300 tabular-nums' }, '0:00');
+  const fpMiniBar = el(
+    'div',
+    { class: 'hidden shrink-0 items-center gap-2' },
+    fpMiniPlay,
+    fpMiniTime,
+  );
 
   const fullpageBar = el(
     'div',
     {
       class:
-        'flex shrink-0 flex-wrap items-center gap-2 border-b border-zinc-800 ' +
-        'bg-zinc-950 px-3 py-2 [padding-top:calc(env(safe-area-inset-top)+0.5rem)]',
+        'dense-bar flex shrink-0 flex-wrap items-center gap-2 border-b border-zinc-800 ' +
+        'bg-zinc-950 px-3 py-2 md:gap-3 [padding-top:calc(env(safe-area-inset-top)+0.5rem)]',
     },
     fullpageExit,
-    el('span', { class: 'min-w-0 flex-1 truncate text-sm text-zinc-500' }, song.title),
+    el(
+      'div',
+      { class: 'flex min-w-0 flex-1 flex-col justify-center' },
+      el('p', { class: 'text-xs text-zinc-400' }, 'Plein écran'),
+      el('p', { class: 'truncate text-lg font-semibold leading-tight text-zinc-100' }, song.title),
+    ),
     fpDisplaySelector.root,
-    fpContrechantReveal,
-    fpZoomOut,
-    fpZoomLabel,
-    fpZoomIn,
+    fpAffichageMenu.root,
+    el('span', { class: 'h-6 w-px bg-zinc-800', 'aria-hidden': 'true' }),
+    fpZoomGroup,
     fpColumnsSlot,
+    el('span', { class: 'h-6 w-px bg-zinc-800', 'aria-hidden': 'true' }),
+    fpMiniBar,
     fpPlayerToggle,
   );
 
@@ -382,36 +519,6 @@ export function renderTrainer(
     { class: 'fixed inset-0 z-10 hidden flex-col bg-zinc-950' },
     fullpageBar,
     fullpageScroll,
-  );
-
-  // Lecteur minimal, visible seulement quand la barre complète est réduite.
-  const fpMiniIcon = el('span', { class: 'text-lg leading-none' }, '▶');
-  const fpMiniPlay = el(
-    'button',
-    {
-      type: 'button',
-      class:
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400 ' +
-        'pl-0.5 text-zinc-950',
-      'aria-label': 'Lecture ou pause',
-    },
-    fpMiniIcon,
-  );
-  fpMiniPlay.addEventListener('click', () => player.togglePlay());
-  const fpMiniTime = el('span', { class: 'font-mono text-xs text-zinc-300' }, '0:00');
-  const fpMiniExpand = fpIconButton('▴', 'Rouvrir le lecteur complet');
-  const fpMiniBar = el(
-    'div',
-    {
-      class:
-        'pointer-events-auto fixed right-0 bottom-0 z-30 m-3 hidden items-center gap-2 ' +
-        'rounded-full border border-zinc-700 bg-zinc-900/95 py-1.5 pr-2 pl-1.5 shadow-lg ' +
-        'shadow-black/40 backdrop-blur ' +
-        '[margin-bottom:calc(env(safe-area-inset-bottom)+0.75rem)]',
-    },
-    fpMiniPlay,
-    fpMiniTime,
-    fpMiniExpand,
   );
 
   const fpTickUnsub = player.onTick((tick) => {
@@ -444,7 +551,7 @@ export function renderTrainer(
     fpZoomLabel.textContent = `${Math.round(fpZoom * 100)} %`;
     fpZoomOut.disabled = fpZoom <= FP_ZOOM_MIN + 1e-6;
     fpZoomIn.disabled = fpZoom >= FP_ZOOM_MAX - 1e-6;
-    paintToggle(fpColumns, cols === 2, 'icon');
+    fpColumns.set(fpTwoCol ? '2' : '1');
   }
 
   function saveFp(): void {
@@ -462,25 +569,16 @@ export function renderTrainer(
   fpZoomOut.addEventListener('click', () => setFpZoom(fpZoom - FP_ZOOM_STEP));
   fpZoomIn.addEventListener('click', () => setFpZoom(fpZoom + FP_ZOOM_STEP));
   fpZoomLabel.addEventListener('click', () => setFpZoom(1));
-  fpColumns.addEventListener('click', () => {
-    fpTwoCol = !fpTwoCol;
-    applyFpLayout();
-    saveFp();
-  });
 
   function applyFpPlayer(): void {
-    // Le repli du lecteur vaut aussi bien en plein écran que hors plein écran
-    // (issue #120) : le dock est le même nœud fixé en bas dans les deux cas.
-    const mini = fpPlayerHidden;
+    // Le repli ne vaut qu'en plein écran : le lecteur minimal vit dans sa
+    // barre, et hors plein écran rien ne le remplacerait (#132, #153).
+    const mini = fpPlayerHidden && fullpage;
     controlBar.root.classList.toggle('hidden', mini);
     fpMiniBar.classList.toggle('hidden', !mini);
     fpMiniBar.classList.toggle('flex', mini);
-    fpPlayerToggle.textContent = fpPlayerHidden ? '▴' : '▾';
-    paintToggle(fpPlayerToggle, fpPlayerHidden, 'icon', anySource ? '' : 'hidden');
-    fpPlayerToggle.setAttribute(
-      'aria-label',
-      fpPlayerHidden ? 'Rouvrir le lecteur complet' : 'Réduire le lecteur',
-    );
+    fpPlayerToggle.textContent = fpPlayerHidden ? 'Afficher le lecteur' : 'Masquer le lecteur';
+    paintToggle(fpPlayerToggle, false, 'button', anySource ? '' : 'hidden');
   }
   function setFpPlayer(shown: boolean): void {
     fpPlayerHidden = anySource && !shown;
@@ -488,7 +586,6 @@ export function renderTrainer(
     saveFp();
   }
   fpPlayerToggle.addEventListener('click', () => setFpPlayer(fpPlayerHidden));
-  fpMiniExpand.addEventListener('click', () => setFpPlayer(true));
 
   function setFullpage(on: boolean): void {
     if (on === fullpage) return;
@@ -538,12 +635,13 @@ export function renderTrainer(
   fpWide.addEventListener('change', onFpViewport);
   window.addEventListener('resize', onFpViewport);
 
-  /** En « Sans partition », les bascules d'en-tête n'ont plus de sens — le
-   *  bouton Défi, lui, vit dans le dock (`sheet.ts`) et reste toujours
-   *  joignable, quel que soit le mode (#109). */
+  /** En « Sans partition », la bascule de vue et le plein écran n'ont plus de
+   *  sens — le menu « Affichage », lui, reste joignable, avec la tonalité et
+   *  le lien vers le Défi (#109, #153). */
   function paintFullpage(): void {
-    scoreControls.classList.toggle('hidden', mode === 'sans');
-    scoreControls.classList.toggle('flex', mode !== 'sans');
+    displaySlot.classList.toggle('hidden', mode === 'sans');
+    fullpageEnterSlot.classList.toggle('hidden', mode === 'sans');
+    paintAffichage();
     if (mode === 'sans') setFullpage(false);
     onFpViewport();
     applyFpPlayer();
@@ -587,7 +685,7 @@ export function renderTrainer(
     }
     drawScore();
     paintDisplayToggle();
-    paintContrechantToggle();
+    paintAffichage();
     paintFullpage();
   }
 
@@ -599,7 +697,7 @@ export function renderTrainer(
     hints = 0;
     aides = 0;
     drawScore();
-    paintContrechantToggle();
+    paintAffichage();
   }
 
   /**
@@ -732,6 +830,8 @@ export function renderTrainer(
     primary: transport.primary,
     // « Comment travailler » vient en tête : c'est le choix qui structure la
     // séance, et le panneau défile — relégué en bas, il était hors d'atteinte.
+    // Tonalité et portées n'y figurent plus : elles vivent dans le menu
+    // « Affichage » de la barre du haut, sur toutes les largeurs (#153).
     sections: [defiSection, ...transport.sections],
     panelPosition: progress.settings.panel,
     onPanelMoved: (panel) => {
@@ -788,25 +888,43 @@ export function renderTrainer(
     }
   }
 
-  const nextLabel = context.session ? 'Passer au morceau suivant' : 'Terminer et évaluer';
   // Bouton ordinaire, et non `ui.primary` : sur cet écran l'action principale
   // est la lecture (le rond ambre du dock). Remplir « Terminer » en ambre en
   // faisait l'élément le plus voyant de la page, alors qu'on ne le touche
-  // qu'une fois, à la fin (#137).
-  const finishButton = el('button', { type: 'button', class: ui.button }, nextLabel);
+  // qu'une fois, à la fin (#137). En mots sur mobile aussi : « ✓ » et « ⏭ »
+  // seuls ne disaient pas s'ils évaluaient, passaient ou quittaient (#153).
+  const nextLabel = context.session ? 'Passer au morceau suivant' : 'Terminer et évaluer';
+  const finishButton = el(
+    'button',
+    { type: 'button', class: `${ui.button} gap-1.5 max-md:px-3`, 'aria-label': nextLabel },
+    ...(context.session
+      ? [
+          el('span', { class: 'lg:hidden' }, 'Suivant'),
+          el('span', { class: 'max-lg:hidden' }, 'Passer au suivant'),
+          el('span', { class: 'max-md:hidden', 'aria-hidden': 'true' }, '⏭'),
+        ]
+      : [
+          el('span', { class: 'max-lg:hidden', 'aria-hidden': 'true' }, '✓'),
+          // Un seul élément de flex : l'espace s'y écrit, dans le texte et à
+          // l'écran, sans s'ajouter à l'écart entre éléments.
+          el('span', {}, 'Terminer', el('span', { class: 'max-lg:hidden' }, ' et évaluer')),
+        ]),
+  );
   finishButton.addEventListener('click', () => void finish());
 
-  const stopSessionButton = context.session
-    ? el('button', { type: 'button', class: ui.button }, 'Terminer la séance')
-    : null;
-  stopSessionButton?.addEventListener('click', () => void finish(true));
-
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
+  // Flèche seule sous 1024 px : entre 768 et 1024, le mot coûtait au titre
+  // la place de s'afficher (#153).
+  const backButton = el(
+    'button',
+    { type: 'button', class: `${ui.button} gap-1.5 max-lg:w-10 max-lg:px-0`, 'aria-label': 'Retour' },
+    el('span', { 'aria-hidden': 'true' }, '←'),
+    el('span', { class: 'max-lg:hidden' }, 'Retour'),
+  );
   backButton.addEventListener('click', () => context.navigateHome());
 
   // --- Minuteur de bloc (mode « urgences » uniquement) -------------------
 
-  const blockLabel = el('span', { class: 'font-mono text-amber-300' }, '');
+  const blockLabel = el('span', { class: 'font-mono tabular-nums' }, '');
   let timer: BlockTimer | null = null;
   const blockMinutes = context.session?.blockMinutes ?? null;
   if (blockMinutes !== null) {
@@ -819,95 +937,92 @@ export function renderTrainer(
     timer.start(blockMinutes);
   }
 
-  // --- Assemblage ---------------------------------------------------------
+  // --- Barre du haut -------------------------------------------------------
+  //
+  // Une seule rangée, à hauteur fixe, sur toutes les largeurs (#153, variante
+  // 1 des maquettes) : retour, puis le titre sous une légende d'état, le menu
+  // « Affichage », et l'action de fin en toutes lettres. Elle passait sur deux
+  // ou trois rangées selon la largeur et la vue, et la partition sautait d'une
+  // vingtaine de pixels en passant de Partition à Grille.
 
   const status = statusOf(getCard(progress, song.id, instrumentId));
+  const STATUS_DOTS: Record<typeof status, string> = {
+    'a-reviser': 'bg-amber-400',
+    jamais: 'bg-zinc-500',
+    'a-jour': 'bg-emerald-500',
+  };
 
-  // Pastille de contexte de séance : remplace l'ancien bandeau pleine
-  // largeur (#107) — mêmes infos (libellé + temps restant), en ligne à côté
-  // du titre plutôt que sur une rangée dédiée.
-  const sessionBadge = context.session
+  const session = context.session;
+  const panelButton = `${ui.button} w-full justify-start`;
+  const panelNext = session
+    ? el('button', { type: 'button', class: panelButton }, 'Passer au morceau suivant')
+    : null;
+  const panelStop = session
     ? el(
-        'span',
-        {
-          class:
-            'inline-flex min-h-11 items-center gap-2 rounded-lg border ' +
-            'border-amber-400/30 bg-amber-400/10 px-3 text-xs font-medium ' +
-            'text-amber-200',
-        },
-        el('span', { class: 'max-w-[14rem] truncate sm:max-w-none' }, context.session.label),
-        blockMinutes !== null
-          ? el(
-              'span',
-              { class: 'flex items-center gap-1' },
-              el('span', { class: 'sr-only' }, 'Temps restant : '),
-              blockLabel,
-            )
-          : null,
+        'button',
+        { type: 'button', class: `${panelButton} text-red-300`, 'aria-label': 'Terminer la séance' },
+        'Terminer la séance',
       )
     : null;
+  const panelReglages = el('button', { type: 'button', class: panelButton }, 'Défi et autres réglages');
 
-  // L'état SRS devient une pastille collée au titre plutôt qu'un mot en
-  // toutes lettres au même rang que lui : c'est une information de contexte,
-  // pas un élément de la ligne principale (#137).
-  const statusDot = el('span', {
-    class:
-      'h-2 w-2 shrink-0 rounded-full ' +
-      (status === 'a-reviser'
-        ? 'bg-amber-400'
-        : status === 'jamais'
-          ? 'bg-zinc-600'
-          : 'bg-emerald-500'),
-    title: STATUS_LABELS[status],
-    'aria-label': STATUS_LABELS[status],
-    role: 'img',
+  // La légende dit où l'on est ; le panneau qu'elle ouvre porte le détail
+  // et les actions rares. Le titre, masqué sur mobile depuis #150 parce qu'il
+  // est imprimé sur la partition, revient : la grille, elle, ne l'imprime pas.
+  const identity = createTopBarIdentity({
+    caption: session
+      ? [
+          session.caption?.kind ?? session.label,
+          session.caption ? el('span', { class: 'shrink-0' }, ` · ${session.caption.position}`) : null,
+          blockMinutes !== null
+            ? el('span', { class: 'shrink-0' }, el('span', { class: 'sr-only' }, 'Temps restant : '), ' · ', blockLabel)
+            : null,
+        ].filter((part): part is string | HTMLElement => part !== null)
+      : [STATUS_LABELS[status]],
+    accent: session !== undefined,
+    dot: session ? 'bg-amber-400' : STATUS_DOTS[status],
+    title: song.title,
+    subtitle: song.composer ? `· ${song.composer}` : '',
+    panelLabel: song.title,
+    panel: [
+      el(
+        'div',
+        { class: 'flex flex-col gap-0.5' },
+        el('p', { class: 'text-base font-semibold text-zinc-100' }, song.title),
+        el('p', { class: 'text-sm text-zinc-400' }, song.composer || 'Compositeur inconnu'),
+        el('p', { class: 'text-xs text-zinc-500' }, STATUS_LABELS[status]),
+      ),
+      session
+        ? el('p', { class: 'text-sm leading-snug text-amber-200' }, session.label)
+        : null,
+      panelNext,
+      panelStop,
+      panelReglages,
+    ],
   });
-
-  // La tonalité de référence ne figure plus dans le sous-titre : la pastille
-  // de transposition, remontée du dock, *est* l'affichage de cette
-  // information — et, contrairement au texte qu'elle remplace, elle se met à
-  // jour quand on change de tonalité.
-  const identity = el(
-    'div',
-    { class: 'flex min-w-0 flex-1 items-center gap-2' },
-    el(
-      'h1',
-      {
-        class: 'min-w-0 truncate text-lg font-semibold text-zinc-100',
-        // Le compositeur passe en infobulle plutôt que sur la ligne : il est
-        // déjà imprimé sur la partition juste en dessous, et la place de
-        // cette ligne revient aux contrôles (#137).
-        title: `${song.title} — ${song.composer || 'compositeur inconnu'}`,
-      },
-      song.title,
-    ),
-    statusDot,
-    sessionBadge,
-  );
-
-  // Les contrôles d'affichage et de séance tiennent sur la même ligne que le
-  // titre tant que la place le permet, et basculent sur une seconde ligne à
-  // défilement horizontal dès qu'elle manque — `flex-wrap` s'en charge seul,
-  // sans point de rupture à maintenir.
-  const headerControls = el(
-    'div',
-    {
-      class:
-        'flex shrink-0 items-center gap-2 max-md:w-full ' +
-        'max-md:overflow-x-auto max-md:pb-1',
-    },
-    scoreControls,
-    instrumentChip.root,
-    controlBar.opener,
-  );
+  panelNext?.addEventListener('click', () => {
+    identity.setOpen(false);
+    void finish();
+  });
+  panelStop?.addEventListener('click', () => {
+    identity.setOpen(false);
+    void finish(true);
+  });
+  panelReglages.addEventListener('click', () => {
+    identity.setOpen(false);
+    controlBar.open();
+  });
 
   const header = el(
     'header',
-    { class: 'dense-bar flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2' },
+    { class: 'dense-bar flex shrink-0 items-center gap-2 md:gap-3' },
     backButton,
-    identity,
-    headerControls,
-    el('div', { class: 'flex shrink-0 gap-2' }, stopSessionButton, finishButton),
+    identity.root,
+    displaySlot,
+    affichageMenu.root,
+    fullpageEnterSlot,
+    el('span', { class: 'h-6 w-px shrink-0 bg-zinc-800 max-md:hidden', 'aria-hidden': 'true' }),
+    finishButton,
   );
 
   const noAudio = !anySource
@@ -969,8 +1084,8 @@ export function renderTrainer(
     el(
       'p',
       { class: 'text-xs text-zinc-500' },
-      'Ce défi est réversible : touchez « 🎯 Défi » dans la barre du bas pour ' +
-        'changer de mode à tout moment.',
+      'Ce défi est réversible : touchez « Affichage » en haut, puis « Défi et ' +
+        'autres réglages », pour changer de mode à tout moment.',
     ),
     el(
       'p',
@@ -1005,20 +1120,23 @@ export function renderTrainer(
   );
   const page = el(
     'div',
-    { class: 'mx-auto flex h-dvh max-w-5xl flex-col gap-4 px-4 py-6' },
+    {
+      class:
+        'mx-auto flex h-dvh max-w-5xl flex-col gap-4 px-4 py-6 max-md:gap-2 max-md:pb-0 max-md:pt-2',
+    },
     playerMount,
     header,
     scoreScroll,
     controlBar.root,
   );
 
-  root.replaceChildren(page, fullpageOverlay, fpMiniBar, eclipseVeil);
+  root.replaceChildren(page, fullpageOverlay, eclipseVeil);
 
   drawScore();
   paintMode();
   paintConsigne();
   paintDisplayToggle();
-  paintContrechantToggle();
+  paintAffichage();
   paintFullpage();
   if (mode === 'eclipses') eclipses.start();
 
@@ -1036,7 +1154,7 @@ export function renderTrainer(
       grille = data;
       grilleView.setGrille(grille);
       paintDisplayToggle();
-      paintContrechantToggle();
+      paintAffichage();
       if (display === 'grille') {
         drawScore();
         paintFullpage();

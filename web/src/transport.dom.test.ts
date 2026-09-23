@@ -113,6 +113,24 @@ describe('createTransport — défilement', () => {
     expect(player.getCurrentTime()).toBe(135);
   });
 
+  it('recule et avance de 5 s, bornés au morceau (#153)', () => {
+    const { primary, player } = mount();
+    player.__tick();
+    const back = primary.querySelector<HTMLButtonElement>('button[aria-label="Reculer de 5 secondes"]')!;
+    const forward = primary.querySelector<HTMLButtonElement>('button[aria-label="Avancer de 5 secondes"]')!;
+
+    player.seekTo(42);
+    back.click();
+    expect(player.getCurrentTime()).toBe(37);
+    forward.click();
+    forward.click();
+    expect(player.getCurrentTime()).toBe(47);
+
+    player.seekTo(2);
+    back.click();
+    expect(player.getCurrentTime()).toBe(0);
+  });
+
   it('reste inerte tant que la durée est inconnue', () => {
     const { primary, player } = mount();
     const bar = seekBar(primary);

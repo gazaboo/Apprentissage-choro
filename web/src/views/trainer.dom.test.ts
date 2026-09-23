@@ -54,12 +54,34 @@ function mount(songOverrides: Partial<Song> = {}, contextOverrides: Partial<Trai
   return { root, context, player, teardown };
 }
 
+/** Menu « Affichage » de la barre du haut (#153) : premier des deux
+ *  exemplaires, l'autre vit dans la barre de plein écran. */
+const affichageMenu = (root: HTMLElement) =>
+  root.querySelector('header [role="dialog"][aria-label="Affichage"]') as HTMLElement;
+const menuButton = (root: HTMLElement, text: string) =>
+  [...affichageMenu(root).querySelectorAll('button')].find((b) => b.textContent === text)!;
+
+/** Ouvre le tiroir Réglages par le lien du menu « Affichage » (#153). */
+function openReglages(root: HTMLElement): HTMLElement {
+  [...affichageMenu(root).querySelectorAll('button')]
+    .find((b) => b.textContent?.startsWith('Défi et autres réglages'))!
+    .click();
+  // Le panneau (`sheet.ts`) vit dans `document.body`, pas dans `root`
+  // (`createControlBar` y ajoute son overlay séparément).
+  return document.body.querySelector('[role="dialog"]') as HTMLElement;
+}
+
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  // `createControlBar` (sheet.ts) ajoute son panneau à `document.body`, hors
+  // de `root`, à chaque montage — jamais nettoyé sinon : un test qui cherche
+  // `document.body.querySelector('[role="dialog"]')` tomberait sur le
+  // panneau d'un test précédent plutôt que le sien.
+  document.body.replaceChildren();
 });
 
 describe('renderTrainer — smoke', () => {
@@ -106,7 +128,7 @@ describe('renderTrainer — mini-lecteur (fpMiniBar)', () => {
 describe('renderTrainer — retour et navigation', () => {
   it('« Retour » appelle navigateHome() sans passer par l\'évaluation', () => {
     const { root, context } = mount();
-    const back = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Retour')!;
+    const back = root.querySelector('button[aria-label="Retour"]') as HTMLButtonElement;
     back.click();
     expect(context.navigateHome).toHaveBeenCalledOnce();
   });
@@ -115,12 +137,8 @@ describe('renderTrainer — retour et navigation', () => {
 describe('renderTrainer — bascule contre-chant (#80)', () => {
   it('le morceau sans contraponto ne montre pas la bascule', () => {
     const { root } = mount({ contraponto: null });
-    const button = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === '+ contre-chant',
-    )!;
-    // Les sous-options sont repliées, non retirées : c'est `is-open` qui dit
-    // si elles sont déployées (#137).
-    expect(button.closest('.reveal-inline')?.classList.contains('is-open')).toBe(false);
+    // Rubrique « Portées » du menu « Affichage » repliée, non retirée (#153).
+    expect(menuButton(root, '+ contre-chant').closest('section')?.classList.contains('hidden')).toBe(true);
   });
 
   it('le morceau avec contraponto bascule le rendu et enregistre le choix', () => {
@@ -163,19 +181,15 @@ describe('renderTrainer — bascule contre-chant (#80)', () => {
 
     expect(root.querySelectorAll('img')).toHaveLength(1);
 
-    const avec = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === '+ contre-chant',
-    )!;
+    const avec = menuButton(root, '+ contre-chant');
+    expect(avec.closest('section')?.classList.contains('hidden')).toBe(false);
     avec.click();
     const images = [...root.querySelectorAll('img')];
     expect(images).toHaveLength(2);
     expect(images[0]!.src).toContain('/contraponto/');
     expect(context.progress.settings.contrechant).toBe('avec');
 
-    const seul = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Mélodie',
-    )!;
-    seul.click();
+    menuButton(root, 'Mélodie seule').click();
     expect(root.querySelectorAll('img')).toHaveLength(1);
     expect(context.progress.settings.contrechant).toBe('sans');
   });
@@ -184,7 +198,7 @@ describe('renderTrainer — bascule contre-chant (#80)', () => {
 describe('renderTrainer — évaluation de fin (askSrs)', () => {
   it('« Terminer et évaluer » ouvre la modale, « Passer » n\'enregistre rien et revient à l\'accueil', async () => {
     const { root, context } = mount();
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
 
@@ -202,7 +216,7 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
 
   it('« Enregistrer » dans la modale écrit la carte SRS puis revient à l\'accueil', async () => {
     const { root, context } = mount();
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
 
@@ -234,9 +248,9 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
         },
       },
     );
-    const finish = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Passer au morceau suivant',
-    )!;
+    const finish = root.querySelector(
+      'button[aria-label="Passer au morceau suivant"]',
+    ) as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
     // `controlBar` (réglages, sheet.ts) porte aussi `role="dialog"` en
@@ -248,6 +262,58 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
 
     expect(onBlockEnd).toHaveBeenCalledOnce();
     expect(context.navigateHome).not.toHaveBeenCalled();
+  });
+});
+
+describe('renderTrainer — barre du haut (#153)', () => {
+  const session = (onStopSession = vi.fn()) => ({
+    kind: 'urgent' as const,
+    label: 'Révision des urgences · Concert — morceau 2 sur 3',
+    caption: { kind: 'Urgences', position: '2 sur 3' },
+    blockMinutes: null,
+    onBlockEnd: vi.fn(),
+    onStopSession,
+  });
+
+  it('la légende dit l\'état du morceau hors séance, et le rang en séance', () => {
+    expect(mount().root.querySelector('header')!.textContent).toContain('Jamais travaillé');
+    const { root } = mount({}, { session: session() });
+    expect(root.querySelector('header')!.textContent).toContain('Urgences · 2 sur 3');
+  });
+
+  it('« Terminer la séance » ne vit plus à côté de « Suivant » : dans le panneau du titre', async () => {
+    const onStopSession = vi.fn();
+    const { root } = mount({}, { session: session(onStopSession) });
+    const header = root.querySelector('header')!;
+    const direct = [...header.querySelectorAll('button')].filter(
+      (b) => b.textContent === 'Terminer la séance' && !b.closest('[role="dialog"]'),
+    );
+    expect(direct).toHaveLength(0);
+
+    const stop = header.querySelector('[role="dialog"] button[aria-label="Terminer la séance"]') as HTMLButtonElement;
+    stop.click();
+    await Promise.resolve();
+    const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
+    [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!.click();
+    await Promise.resolve();
+    expect(onStopSession).toHaveBeenCalledOnce();
+  });
+
+  it('le menu « Affichage » change la tonalité, repeinte des deux côtés', () => {
+    const { root } = mount({
+      instruments: [
+        { id: 'c', name: 'Ut', page_count: 0, measure_count: 0, pages: [] },
+        { id: 'bb', name: 'Si♭', page_count: 0, measure_count: 0, pages: [] },
+      ],
+    });
+    menuButton(root, 'Si♭ / B♭').click();
+    const menus = [...root.querySelectorAll('[role="dialog"][aria-label="Affichage"]')];
+    // Barre du haut et barre de plein écran.
+    expect(menus).toHaveLength(2);
+    for (const menu of menus) {
+      const bb = [...menu.querySelectorAll('button')].find((b) => b.textContent === 'Si♭ / B♭')!;
+      expect(bb.dataset.state).toBe('on');
+    }
   });
 });
 
@@ -283,15 +349,17 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     expect(context.progress.settings.studyMode).toBe('eclipses');
   });
 
-  it('le bouton Défi (dock) reste joignable en mode \'sans\', contrairement aux bascules de l\'en-tête', () => {
+  it('le Défi reste joignable en mode \'sans\', contrairement aux bascules de l\'en-tête', () => {
     const { root } = mount({}, { progress: masteredProgress() });
-    // Le bouton Défi remplace « Réglages » dans le dock (`sheet.ts`) — il n'y
-    // vit plus dans l'en-tête de la partition, masqué comme le reste en mode
-    // « Sans partition » (#109).
-    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
-    expect(defi).toBeTruthy();
-    expect(defi.closest('.hidden')).toBeNull();
-    const fullscreen = [...root.querySelectorAll('button')].find((b) => b.textContent === '⛶ Plein écran')!;
+    // Le menu « Affichage » reste en place, et dit « Sans partition » ; son
+    // lien mène au Défi (#109, #153).
+    const trigger = root.querySelector('button[aria-label="Affichage de la partition"]') as HTMLButtonElement;
+    expect(trigger.closest('.hidden')).toBeNull();
+    expect(trigger.textContent).toContain('Sans partition');
+    expect(openReglages(root).textContent).toContain('Partition masquée à 75 %');
+    const fullscreen = root.querySelector(
+      'button[aria-label="Passer en plein écran"]',
+    ) as HTMLButtonElement;
     expect(fullscreen.closest('.hidden')).not.toBeNull();
   });
 
@@ -313,11 +381,7 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     const progress = masteredProgress();
     progress.settings.studyMode = 'mesures'; // distinct du mode ciblé, pour que la persistance soit probante
     const { root, context } = mount({}, { progress });
-    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
-    defi.click();
-    // Le panneau (`sheet.ts`) vit dans `document.body`, pas dans `root`
-    // (`createControlBar` y ajoute son overlay séparément).
-    const panel = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const panel = openReglages(root);
     const masque75 = [...panel.querySelectorAll('button')].find(
       (b) => b.textContent === 'Partition masquée à 75 %',
     )!;
@@ -334,9 +398,7 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     // (aucun historique) fait recommander 'entiere' à l'ouverture : les deux
     // divergent dès le montage, sans qu'aucun choix n'ait encore été fait.
     const { root, context } = mount();
-    const defi = root.querySelector('button[aria-label="Ouvrir le défi"]') as HTMLButtonElement;
-    defi.click();
-    const panel = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    const panel = openReglages(root);
     const entiere = [...panel.querySelectorAll('button')].find(
       (b) => b.textContent === 'Afficher la partition entière',
     )!;
@@ -354,7 +416,7 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     )!;
     aideEntiere.click();
 
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer et évaluer')!;
+    const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
     finish.click();
     await Promise.resolve();
 

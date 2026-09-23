@@ -54,6 +54,8 @@ import { renderOnboarding } from './views/onboarding';
 // plus une route dédiée.
 import { renderTechnique } from './views/technique';
 import { renderTechniqueListe } from './views/technique-liste';
+import { mountSectionShell, techniqueDueToday } from './views/nav';
+import type { Section } from './views/nav';
 import { renderTrainer } from './views/trainer';
 import { initPwaInstallCapture } from './pwaInstall';
 
@@ -268,12 +270,6 @@ function startFilage(): void {
   navigate('#/filage');
 }
 
-/** Ouvre la vue d'ensemble des arpèges et gammes. */
-function openTechnique(): void {
-  if (exercices.length === 0) return;
-  navigate('#/technique');
-}
-
 /** Lance la séance d'arpèges et gammes, dans l'ordre du sélecteur SRS. */
 function startTechnique(): void {
   const ordre = pickExercices(techniquePoolForActiveSetlist(), progress);
@@ -388,6 +384,15 @@ function showError(message: string): void {
   );
 }
 
+/** Habille une page de premier niveau de la navigation par sections. */
+function shell(active: Section): HTMLElement {
+  return mountSectionShell(root!, {
+    active,
+    hasTechnique: exercices.length > 0,
+    techniqueDue: techniqueDueToday(progress),
+  });
+}
+
 function render(): void {
   teardown?.();
   teardown = null;
@@ -399,7 +404,7 @@ function render(): void {
   const account = accountMode();
   if (account === 'none' || hash === '#/compte') {
     const wasGate = account === 'none';
-    teardown = renderAccount(root!, {
+    teardown = renderAccount(wasGate ? root! : shell('compte'), {
       gate: wasGate,
       progress: wasGate ? null : progress,
       songs,
@@ -415,7 +420,8 @@ function render(): void {
           render();
         }
       },
-      navigateHome: account === 'none' ? null : goHome,
+      // Hors passerelle, la navigation par sections tient lieu de retour.
+      navigateHome: null,
     });
     return;
   }
@@ -453,7 +459,7 @@ function render(): void {
   }
 
   if (hash === '#/aide') {
-    teardown = renderAbout(root!, { navigateHome: goHome });
+    teardown = renderAbout(shell('aide'));
     return;
   }
 
@@ -472,6 +478,11 @@ function render(): void {
       session.kind === 'urgent'
         ? `Révision des urgences · ${session.setlistName} — morceau ${position} sur ${session.blocks.length}`
         : `Travail de fond · ${session.setlistName} — morceau ${position} sur ${session.order.length}`;
+    const total = session.kind === 'urgent' ? session.blocks.length : session.order.length;
+    const caption = {
+      kind: session.kind === 'urgent' ? 'Urgences' : 'Travail de fond',
+      position: `${position} sur ${total}`,
+    };
     teardown = renderTrainer(root!, ordered, {
       progress,
       player,
@@ -479,6 +490,7 @@ function render(): void {
       session: {
         kind: session.kind,
         label,
+        caption,
         blockMinutes: session.kind === 'urgent' ? progress.settings.blockMinutes : null,
         onBlockEnd: advanceSession,
         onStopSession: finishRun,
@@ -523,10 +535,9 @@ function render(): void {
   }
 
   if (hash === '#/technique' && exercices.length > 0) {
-    teardown = renderTechniqueListe(root!, {
+    teardown = renderTechniqueListe(shell('technique'), {
       progress,
       cartes: exercices,
-      navigateHome: goHome,
       onStart: startTechnique,
       onStartTonalite: startTechniqueTonalite,
     });
@@ -557,16 +568,11 @@ function render(): void {
     }
   }
 
-  teardown = renderDashboard(root!, songs, {
+  teardown = renderDashboard(shell('repertoire'), songs, {
     progress,
     openSong: (songId) => navigate(`#/song/${songId}`),
-    openAccount: () => navigate('#/compte'),
-    openAbout: () => navigate('#/aide'),
     startSession,
     startFilage,
-    openTechnique: exercices.length > 0 ? openTechnique : null,
-    techniqueCount:
-      exercices.length > 0 ? pickExercices(techniquePoolForActiveSetlist(), progress).length : 0,
   });
 }
 

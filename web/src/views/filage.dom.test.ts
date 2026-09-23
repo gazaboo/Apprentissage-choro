@@ -98,14 +98,32 @@ describe('renderFilage — dock de transport', () => {
 
   it('« Terminer le filage » appelle onFinish()', () => {
     const { root, context } = mount([song('a')]);
-    const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Terminer le filage')!;
+    const finish = root.querySelector('button[aria-label="Terminer le filage"]') as HTMLButtonElement;
+    finish.click();
+    expect(context.onFinish).toHaveBeenCalledOnce();
+  });
+
+  it('la barre du haut dit le rang et le titre, en entier (#153)', () => {
+    const { root } = mount([song('a', 'Alpha'), song('b', 'Bravo')]);
+    const header = root.querySelector('header') as HTMLElement;
+    // Remplace « F..1 / 2 », dont le préfixe se tronquait à deux lettres.
+    expect(header.textContent).toContain('Filage · 1 sur 2');
+    expect(header.querySelector('h1')?.textContent).toBe('Alpha');
+  });
+
+  it('le panneau du titre porte la suite du filage et sa sortie', () => {
+    const { root, context } = mount([song('a', 'Alpha'), song('b', 'Bravo')]);
+    const panel = root.querySelector('header [role="dialog"]') as HTMLElement;
+    expect(panel.textContent).toContain('Bravo');
+    const finish = [...panel.querySelectorAll('button')].find((b) => b.textContent === 'Terminer le filage')!;
     finish.click();
     expect(context.onFinish).toHaveBeenCalledOnce();
   });
 
   it('« Retour » appelle navigateHome()', () => {
     const { root, context } = mount([song('a')]);
-    const back = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Retour')!;
+    // Icône ← seule sur mobile, d'où le nom porté par `aria-label` (#153).
+    const back = root.querySelector('button[aria-label="Retour"]') as HTMLButtonElement;
     back.click();
     expect(context.navigateHome).toHaveBeenCalledOnce();
   });
