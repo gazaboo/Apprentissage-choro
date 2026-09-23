@@ -30,6 +30,7 @@
 import { midiFromFrequency } from './technique/theorie';
 import workletUrl from './pitch-capture.worklet.js?url';
 import type { JournalMicro } from './diagnostic-micro';
+import { MesureLatence, latenceEstimee } from './latence';
 
 /** Fenêtre d'estimation de hauteur, en échantillons : ~46 ms à 44,1 kHz.
  *
@@ -465,8 +466,9 @@ export class PitchTracker {
   private node: AudioWorkletNode | null = null;
   private notches: BiquadFilterNode[] = [];
   private pitchStream: PitchStream | null = null;
-  /** Second nœud de capture, branché avant les coupe-bandes, pour le journal. */
+  /** Second nœud de capture, branché avant les coupe-bandes, pour la mesure de latence et le journal. */
   private rawNode: AudioWorkletNode | null = null;
+  private mesureLatence: MesureLatence | null = null;
   /**
    * Journal de diagnostic (`?debug=micro`) : s'il est posé avant `start()`, le
    * signal brut et chaque note rendue y sont consignés.
@@ -539,19 +541,39 @@ export class PitchTracker {
     );
     entree.connect(this.node);
 
-    if (journal) {
-      journal.ouvrir(this.context, this.stream.getAudioTracks()[0]);
-      this.rawNode = new AudioWorkletNode(this.context, 'pitch-capture', {
-        numberOfInputs: 1,
-        numberOfOutputs: 0,
-      });
-      this.rawNode.port.onmessage = (
-        event: MessageEvent<{ frame: number; samples: Float32Array }>,
-      ) => {
-        journal.echantillons(event.data.frame, event.data.samples);
-      };
-      this.source.connect(this.rawNode);
-    }
+    // Signal brut, avant les coupe-bandes : c'est là que les clics du
+    // décompte s'entendent encore, pour mesurer la latence (`MesureLatence`),
+    // et là que le journal de diagnostic prend sa prise.
+    journal?.ouvrir(this.context, this.stream.getAudioTracks()[0]);
+    const mesure = new MesureLatence(this.context.sampleRate);
+    this.mesureLatence = mesure;
+    this.rawNode = new AudioWorkletNode(this.context, 'pitch-capture', {
+      numberOfInputs: 1,
+      numberOfOutputs: 0,
+    });
+    this.rawNode.port.onmessage = (event: MessageEvent<{ frame: number; samples: Float32Array }>) => {
+      mesure.push(event.data.frame, event.data.samples);
+      journal?.echantillons(event.data.frame, event.data.samples);
+    };
+    this.source.connect(this.rawNode);
+  }
+
+  /** Annonce un clic de décompte (horloge du contexte), à mesurer. */
+  clicDecompte(time: number): void {
+    this.mesureLatence?.clic(time);
+  }
+
+  /**
+   * Retard des attaques sur les battues, en secondes : mesuré sur les clics
+   * du décompte si le micro les a entendus, estimé par le navigateur sinon.
+   */
+  latence(): { secondes: number; mesuree: boolean } {
+    const mesuree = this.mesureLatence?.latence() ?? null;
+    if (mesuree !== null) return { secondes: mesuree, mesuree: true };
+    return {
+      secondes: latenceEstimee(this.context, this.stream?.getAudioTracks()[0]),
+      mesuree: false,
+    };
   }
 
   get listening(): boolean {

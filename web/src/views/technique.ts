@@ -30,7 +30,13 @@ import type { Progress } from '../store';
 import { getTechniqueCard, putTechniqueCard } from '../store';
 import type { ExerciceCarte } from '../technique/catalogue';
 import { DEFAULT_BPM, SENS_LABELS, dernierBpm } from '../technique/catalogue';
-import { detailLignes, meilleurDecalage, noter, resume } from '../technique/grader';
+import {
+  detailLignes,
+  fenetrePlacementMs,
+  meilleurDecalage,
+  noter,
+  resume,
+} from '../technique/grader';
 import { mettreEnPortee, sommet, type MiseEnPortee } from '../technique/portee';
 import { chordRoot, degre, nameFromMidi, parseNote } from '../technique/theorie';
 import { dessinerPortee } from './portee';
@@ -119,6 +125,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   };
   /** Verdict en direct de la passe courante, par position dans le motif. */
   let judged = new Map<number, 'juste' | 'faux'>();
+  /** Écart au clic (ms, latence retirée) de la dernière attaque jugée, par position. */
+  let placements = new Map<number, number>();
   let tracker: PitchTracker | null = null;
   let micError: string | null = null;
   /** Le temps que `getUserMedia` réponde : sans cet état, le clic semble ignoré. */
@@ -188,6 +196,12 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         // clic : sans ça, le premier repaint arriverait après ce premier
         // `onBeat`, avec un bref retard visible.)
         if (evaluating) paintCountdown(-beatIndex);
+        // Le micro entend le clic du décompte : c'est ce qui mesure la
+        // latence du matériel, sans rien demander (voir `latence.ts`).
+        if (tracker?.listening) {
+          tracker.clicDecompte(audioTime);
+          journal?.battue(beatIndex, audioTime);
+        }
         return;
       }
       if (countingIn) {
@@ -196,6 +210,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         countingIn = false;
         prise = { beats: [], onsets: [] };
         judged = new Map();
+        placements = new Map();
         paintCountdown(null);
         paintTransport();
       }
@@ -540,7 +555,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   function paintNotes(): void {
     porteeMount.replaceChildren(
-      dessinerPortee(mise, { revelee: revealed, active: lit, verdicts: judged, degres }),
+      dessinerPortee(mise, {
+        revelee: revealed,
+        active: lit,
+        verdicts: judged,
+        degres,
+        placements,
+        fenetreMs: fenetrePlacementMs(60 / bpm),
+      }),
     );
   }
 
@@ -729,6 +751,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     beats = [];
     prise = { beats: [], onsets: [] };
     judged = new Map();
+    placements = new Map();
     // L'accent tombe sur la première note du motif : on entend le cycle, ce
     // qui suffit à se repérer sans compter.
     await metronome.start(bpm, carte().notes.length);
@@ -805,7 +828,10 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     if (next !== lit) {
       // Chaque passe repart d'une ardoise vierge : le retour en direct montre
       // la passe en cours, pas l'accumulation depuis le début.
-      if (next === 0) judged = new Map();
+      if (next === 0) {
+        judged = new Map();
+        placements = new Map();
+      }
       lit = next;
       paintNotes();
     }
@@ -828,6 +854,19 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
    * qu'à la pastille allumée, car une note jouée un peu en avance appartient
    * déjà à la battue suivante.
    */
+  /**
+   * Attaques ramenées sur l'horloge des battues. Une battue est datée quand le
+   * clic est programmé, une attaque quand le micro la reçoit : entre les deux,
+   * toute la latence du matériel (~100 ms mesurées), qui ferait paraître en
+   * retard une note jouée pile sur le clic entendu. Les attaques restent
+   * gardées brutes dans la prise ; la latence, mesurée sur le décompte, n'est
+   * connue qu'une fois ses clics entendus.
+   */
+  function compenser(onsets: Onset[]): Onset[] {
+    const retard = tracker?.latence().secondes ?? 0;
+    return onsets.map((onset) => ({ ...onset, audioTime: onset.audioTime - retard }));
+  }
+
   function handleOnset(onset: Onset): void {
     if (silenceTimer !== null) {
       window.clearTimeout(silenceTimer);
@@ -843,12 +882,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // Une fois par passe : assez souvent pour se recaler vite, assez rare pour
     // que la recherche de décalage ne pèse pas sur chaque note.
     if (motif.length > 0 && prise.onsets.length % motif.length === 0) {
-      decalage = meilleurDecalage(motif, prise.beats, prise.onsets);
+      decalage = meilleurDecalage(motif, prise.beats, compenser(prise.onsets));
     }
 
+    const temps = (compenser([onset])[0] ?? onset).audioTime;
     let closest: { index: number; time: number } | null = null;
     for (const beat of prise.beats) {
-      if (!closest || Math.abs(beat.time - onset.audioTime) < Math.abs(closest.time - onset.audioTime)) {
+      if (!closest || Math.abs(beat.time - temps) < Math.abs(closest.time - temps)) {
         closest = beat;
       }
     }
@@ -859,6 +899,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     if (attendu === undefined) return;
 
     judged.set(position, onset.midi === attendu ? 'juste' : 'faux');
+    placements.set(position, (temps - closest.time) * 1000);
     paintNotes();
   }
 
@@ -907,6 +948,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       await tracker.start();
       prise = { beats: [], onsets: [] };
       judged = new Map();
+      placements = new Map();
       decalage = 0;
       micSilence = false;
       clearSilenceTimer();
@@ -1039,7 +1081,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // métronome tourne, et l'on note tout ce qui a été joué. Le décalage est
     // recalculé une dernière fois sur la prise entière.
     if (current.midi.length > 0 && prise.onsets.length > 0) {
-      decalage = meilleurDecalage(current.midi, prise.beats, prise.onsets);
+      decalage = meilleurDecalage(current.midi, prise.beats, compenser(prise.onsets));
     }
     const attendues = prise.beats.map(
       (beat) => current.midi[(beat.index + decalage) % current.midi.length] ?? 0,
@@ -1047,8 +1089,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     const resultat = noter(
       attendues,
       prise.beats.map((beat) => beat.time),
-      prise.onsets,
+      compenser(prise.onsets),
     );
+    const latence = tracker?.latence();
     const mesure =
       resultat.attendues > 0
         ? {
@@ -1059,7 +1102,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
     const contexte =
       resultat.attendues > 0
-        ? resume(resultat, bpm)
+        ? `${resume(resultat, bpm)}${
+            latence
+              ? ` Latence du matériel retirée : ${Math.round(latence.secondes * 1000)} ms (${
+                  latence.mesuree ? 'mesurée sur le décompte' : 'estimée, clics non entendus'
+                }).`
+              : ''
+          }`
         : `Travaillé à ${bpm} BPM. ${
             hints === 0 ? 'Les notes n’ont pas été révélées.' : `Notes révélées ${hints} fois.`
           }`;
@@ -1104,6 +1153,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     revealed = false;
     prise = { beats: [], onsets: [] };
     judged = new Map();
+    placements = new Map();
     decalage = 0;
 
     if (endSession || index + 1 >= ordre.length) {

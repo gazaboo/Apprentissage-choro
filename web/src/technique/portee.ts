@@ -97,9 +97,12 @@ export const LARGEUR_REFERENCE =
   MARGE + CLE_X + CLE_LARGEUR + APRES_CLE + 13 + JEU_ALTERATION +
   2 * TETE_DEMI_LARGEUR + 8 * PAS + SEPARATION + FIN + MARGE;
 
-/** Rangées de texte sous la portée : noms des notes, puis degrés. */
+/** Rangées de texte sous la portée : noms des notes, degrés, puis placement
+ *  rythmique jugé au micro — rangée réservée d'office, pour que la portée ne
+ *  saute pas quand les premiers verdicts arrivent. */
 const ECART_NOMS = 16;
 const ECART_DEGRES = 20;
+const ECART_PLACEMENT = 18;
 export const TAILLE_TEXTE = 13;
 
 export interface NotePlacee {
@@ -133,9 +136,10 @@ export interface MiseEnPortee {
   separation: number | null;
   /** Bas de la zone où une note peut tomber (tête, hampe, altération). */
   yPied: number;
-  /** Lignes de base des deux rangées de texte. */
+  /** Lignes de base des rangées de texte. */
   yNoms: number;
   yDegres: number;
+  yPlacement: number;
 }
 
 const LETTRES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -209,7 +213,8 @@ export function mettreEnPortee(
   const yPied = ligneBasse + dessous;
   const yNoms = yPied + ECART_NOMS;
   const yDegres = yNoms + ECART_DEGRES;
-  const hauteur = yDegres + 5;
+  const yPlacement = yDegres + ECART_PLACEMENT;
+  const hauteur = yPlacement + 5;
 
   // --- Placement horizontal -------------------------------------------------
   const premiere = echelons[0];
@@ -263,5 +268,6 @@ export function mettreEnPortee(
     yPied,
     yNoms,
     yDegres,
+    yPlacement,
   };
 }

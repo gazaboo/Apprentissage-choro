@@ -16,6 +16,11 @@ import { nameFromMidi } from './theorie';
 /** Fenêtre de placement, en fraction de battue, de part et d'autre du clic. */
 const WINDOW_RATIO = 0.3;
 
+/** Tolérance de placement, en millisecondes, pour une battue de `beatSeconds`. */
+export function fenetrePlacementMs(beatSeconds: number): number {
+  return beatSeconds * WINDOW_RATIO * 1000;
+}
+
 /** Au-delà, on considère qu'aucune attaque ne correspond à cette battue. */
 const MATCH_RATIO = 0.5;
 
