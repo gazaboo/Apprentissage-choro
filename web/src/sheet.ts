@@ -45,10 +45,14 @@ export interface ControlBar {
   root: HTMLElement;
   /**
    * Bouton qui ouvre le panneau, à placer où la vue veut. Il vivait dans le
-   * dock ; la barre du haut le regroupe désormais avec les autres contrôles
-   * de séance (#137). Le panneau, lui, ne bouge pas.
+   * dock, puis dans la barre du haut (#137) ; celle-ci ouvre désormais le
+   * panneau par `open()`, depuis ses menus (#153). Le panneau, lui, ne bouge
+   * pas.
    */
   opener: HTMLElement;
+  /** Ouvre le panneau depuis ailleurs que l'ouvreur : un lien de menu, par
+   *  exemple, quand la vue n'affiche pas l'ouvreur lui-même (#153). */
+  open: () => void;
   destroy: () => void;
 }
 
@@ -312,6 +316,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   return {
     root,
     opener: toggleSlot,
+    open: () => setOpen(true),
     destroy: () => {
       query.removeEventListener('change', layout);
       window.removeEventListener('resize', onResize);

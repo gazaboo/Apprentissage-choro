@@ -1,7 +1,7 @@
 /** Petites fabriques DOM, pour écrire les vues sans framework. */
 
 import { formatTime, RATE_MAX, RATE_MIN, stepBpm, stepRate } from './audio';
-import { INSTRUMENT_CHIP_LABELS, type AudioKind, type InstrumentId } from './types';
+import type { AudioKind } from './types';
 
 type Attrs = Record<string, string | number | boolean | undefined>;
 type Child = Node | string | null | undefined | false;
@@ -588,66 +588,6 @@ export function createSegmented<T extends string>(
   };
 }
 
-/**
- * Pastille de transposition : « Ut ▾ », un appui pour passer à la suivante.
- *
- * Quand le morceau n'a qu'une tonalité, elle reste affichée mais inerte —
- * l'information « cette partition est en Ut » vaut d'être lue même lorsqu'il
- * n'y a rien à choisir, et c'est elle qui remplace la mention « Concert
- * (Ut / C) » retirée du sous-titre (#137).
- */
-export function createInstrumentChip(options: {
-  instruments: { id: InstrumentId; name: string }[];
-  current: InstrumentId;
-  onPick: (id: InstrumentId) => void;
-  extra?: string;
-}): { root: HTMLButtonElement; set(id: InstrumentId): void } {
-  const ids = options.instruments.map((instrument) => instrument.id);
-  const nameOf = (id: InstrumentId): string =>
-    options.instruments.find((instrument) => instrument.id === id)?.name ?? id;
-  const cycles = ids.length > 1;
-
-  const root = el('button', {
-    type: 'button',
-    class: `${ui.chip} gap-1.5${options.extra ? ` ${options.extra}` : ''}`,
-    disabled: !cycles,
-  });
-  let current = options.current;
-
-  function paint(): void {
-    const label = el('span', { class: 'font-semibold' }, INSTRUMENT_CHIP_LABELS[current] ?? current);
-    // Le chevron dit « ça se change » : sans tonalité alternative, il mentirait.
-    root.replaceChildren(
-      ...(cycles
-        ? [label, el('span', { class: 'text-sm leading-none opacity-60', 'aria-hidden': 'true' }, '▾')]
-        : [label]),
-    );
-    root.title = nameOf(current);
-    root.setAttribute(
-      'aria-label',
-      cycles
-        ? `Transposition ${nameOf(current)} — toucher pour changer`
-        : `Transposition ${nameOf(current)}`,
-    );
-  }
-
-  root.addEventListener('click', () => {
-    if (!cycles) return;
-    current = ids[(ids.indexOf(current) + 1) % ids.length]!;
-    paint();
-    options.onPick(current);
-  });
-
-  paint();
-  return {
-    root,
-    set(id) {
-      current = id;
-      paint();
-    },
-  };
-}
-
 const segClass = (on: boolean): string =>
   'min-h-11 flex-1 rounded-lg border px-3 text-sm transition ' +
   (on
@@ -680,6 +620,182 @@ export function segmented<T extends string>(
     return button;
   });
   return el('div', { class: 'flex gap-2' }, ...buttons);
+}
+
+/**
+ * Ouvre et ferme un panneau ancré sur son bouton : un appui l'ouvre, un
+ * second, un appui ailleurs ou Échap le ferment.
+ *
+ * Commun au panneau de vitesse du dock et aux menus de la barre du haut
+ * (#153). Les écouteurs de `document` ne sont posés qu'à l'ouverture : fermé,
+ * le panneau ne laisse rien traîner. `container` délimite le « dedans » —
+ * le bouton et le panneau, qu'un appui ne doit pas refermer.
+ */
+export function createPopover(options: {
+  trigger: HTMLButtonElement;
+  panel: HTMLElement;
+  container: HTMLElement;
+  onToggle?: (open: boolean) => void;
+}): { setOpen(open: boolean): void; isOpen(): boolean } {
+  const { trigger, panel, container } = options;
+  let open = false;
+  trigger.setAttribute('aria-haspopup', 'dialog');
+  trigger.setAttribute('aria-expanded', 'false');
+
+  const onOutside = (event: PointerEvent): void => {
+    if (!container.contains(event.target as Node)) setOpen(false);
+  };
+  const onKey = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') setOpen(false);
+  };
+  function setOpen(next: boolean): void {
+    if (next === open) return;
+    open = next;
+    panel.classList.toggle('hidden', !open);
+    panel.classList.toggle('flex', open);
+    trigger.setAttribute('aria-expanded', String(open));
+    if (open) {
+      document.addEventListener('pointerdown', onOutside);
+      document.addEventListener('keydown', onKey);
+    } else {
+      document.removeEventListener('pointerdown', onOutside);
+      document.removeEventListener('keydown', onKey);
+    }
+    options.onToggle?.(open);
+  }
+  trigger.addEventListener('click', () => setOpen(!open));
+  return { setOpen, isOpen: () => open };
+}
+
+/**
+ * Menu déroulant de la barre du haut : son panneau, sous le bouton au-delà
+ * de 768 px, et sur toute la largeur de l'écran en dessous — un panneau de
+ * 320 px ancré à un bouton de droite sortirait de l'écran d'un téléphone.
+ */
+export function createTopBarMenu(options: {
+  trigger: HTMLButtonElement;
+  label: string;
+  content: (HTMLElement | null)[];
+  align?: 'left' | 'right';
+}): { root: HTMLElement; panel: HTMLElement; setOpen(open: boolean): void } {
+  const panel = el(
+    'div',
+    {
+      class:
+        'absolute top-full z-50 mt-2 hidden w-80 flex-col gap-4 rounded-xl border ' +
+        'border-zinc-700 bg-zinc-900 p-4 text-left shadow-2xl shadow-black/60 ' +
+        'max-md:fixed max-md:inset-x-3 max-md:top-14 max-md:mt-0 max-md:w-auto ' +
+        (options.align === 'left' ? 'left-0' : 'right-0'),
+      role: 'dialog',
+      'aria-label': options.label,
+    },
+    ...options.content.filter((node): node is HTMLElement => node !== null),
+  );
+  const root = el('div', { class: 'relative shrink-0' }, options.trigger, panel);
+  const popover = createPopover({ trigger: options.trigger, panel, container: root });
+  return { root, panel, setOpen: popover.setOpen };
+}
+
+/** Rubrique d'un menu de la barre du haut : petite légende, puis son contenu. */
+export function menuSection(title: string, ...body: (HTMLElement | null)[]): HTMLElement {
+  return el(
+    'section',
+    { class: 'flex flex-col gap-1.5' },
+    el('h3', { class: 'text-[10px] font-bold uppercase tracking-wider text-zinc-500' }, title),
+    ...body.filter((node): node is HTMLElement => node !== null),
+  );
+}
+
+/**
+ * Bloc titre de la barre du haut : une légende d'état au-dessus du titre, le
+ * tout cliquable pour ouvrir un panneau de contexte (#153, variante 1 des
+ * maquettes).
+ *
+ * La légende dit *où l'on est* (« Jamais travaillé », « Urgences · 2 sur 3 »,
+ * « Filage · 1 sur 3 ») ; le panneau porte ce qui ne mérite pas un bouton
+ * permanent, dont les sorties définitives (« Terminer la séance ») qu'on ne
+ * veut plus voir à côté de « Suivant ».
+ *
+ * Le titre reste un vrai `h1`, hors du bouton (un bouton n'admet pas de
+ * titre) : la surface cliquable est posée par-dessus (`.identity-hit`).
+ */
+export function createTopBarIdentity(options: {
+  caption: (HTMLElement | string)[];
+  title: string;
+  subtitle?: string;
+  /** Légende en ambre : on est dans une séance ou un filage. */
+  accent?: boolean;
+  /** Couleur du point d'état (`bg-…`), ou rien. */
+  dot?: string;
+  panelLabel: string;
+  panel: (HTMLElement | null)[];
+}): {
+  root: HTMLElement;
+  title: HTMLElement;
+  subtitle: HTMLElement;
+  setCaption(parts: (HTMLElement | string)[]): void;
+  setOpen(open: boolean): void;
+} {
+  const caption = el('span', { class: 'flex min-w-0 items-center gap-1' });
+  const setCaption = (parts: (HTMLElement | string)[]): void => {
+    caption.replaceChildren(
+      ...parts.map((part, i) =>
+        typeof part === 'string'
+          ? el('span', { class: i === 0 ? 'truncate' : 'shrink-0' }, part)
+          : part,
+      ),
+    );
+  };
+  setCaption(options.caption);
+  const title = el(
+    'h1',
+    { class: 'min-w-0 truncate text-[15px] font-semibold leading-tight text-zinc-100 md:text-lg' },
+    options.title,
+  );
+  const subtitle = el(
+    'span',
+    { class: 'min-w-0 truncate text-sm text-zinc-500 max-md:hidden' },
+    options.subtitle ?? '',
+  );
+  const hit = el('button', {
+    type: 'button',
+    class:
+      'identity-hit absolute inset-0 rounded-lg focus:outline-none focus-visible:ring-2 ' +
+      'focus-visible:ring-amber-400',
+    'aria-label': `${options.panelLabel} — détails`,
+  });
+  const panel = el(
+    'div',
+    {
+      class:
+        'absolute left-0 top-full z-50 mt-2 hidden w-80 flex-col gap-3 rounded-xl border ' +
+        'border-zinc-700 bg-zinc-900 p-4 shadow-2xl shadow-black/60 ' +
+        'max-md:fixed max-md:inset-x-3 max-md:top-14 max-md:mt-0 max-md:w-auto',
+      role: 'dialog',
+      'aria-label': options.panelLabel,
+    },
+    ...options.panel.filter((node): node is HTMLElement => node !== null),
+  );
+  const root = el(
+    'div',
+    { class: 'relative flex h-10 min-w-0 flex-1 flex-col justify-center' },
+    el(
+      'p',
+      {
+        class:
+          'flex min-w-0 items-center gap-1.5 text-[11px] font-medium leading-tight md:text-xs ' +
+          (options.accent ? 'text-amber-300' : 'text-zinc-400'),
+      },
+      options.dot ? el('span', { class: `h-2 w-2 shrink-0 rounded-full ${options.dot}`, 'aria-hidden': 'true' }) : null,
+      caption,
+      el('span', { class: 'shrink-0 text-zinc-600', 'aria-hidden': 'true' }, '▾'),
+    ),
+    el('div', { class: 'flex min-w-0 items-baseline gap-2' }, title, subtitle),
+    hit,
+    panel,
+  );
+  const popover = createPopover({ trigger: hit, panel, container: root });
+  return { root, title, subtitle, setCaption, setOpen: popover.setOpen };
 }
 
 /** `123.4` → `1,25`. Point décimal en virgule, comme partout ailleurs dans l'interface. */
@@ -757,35 +873,11 @@ export function renderRateStepper(
   const compactValue = el('span', { class: 'text-[13px] font-semibold leading-none' });
   const compactButton = el(
     'button',
-    { type: 'button', 'aria-expanded': 'false', 'aria-haspopup': 'dialog' },
+    { type: 'button' },
     captionedValue(compactCaption, compactValue),
   );
   const compact = el('div', { class: 'relative md:hidden' }, compactButton, popover);
-
-  let open = false;
-  const onOutside = (event: PointerEvent): void => {
-    if (!compact.contains(event.target as Node)) setOpen(false);
-  };
-  const onKey = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') setOpen(false);
-  };
-  function setOpen(next: boolean): void {
-    if (next === open) return;
-    open = next;
-    popover.classList.toggle('hidden', !open);
-    popover.classList.toggle('flex', open);
-    compactButton.setAttribute('aria-expanded', String(open));
-    // Écouteurs posés à l'ouverture seulement : fermé, le panneau ne laisse
-    // rien traîner sur `document`.
-    if (open) {
-      document.addEventListener('pointerdown', onOutside);
-      document.addEventListener('keydown', onKey);
-    } else {
-      document.removeEventListener('pointerdown', onOutside);
-      document.removeEventListener('keydown', onKey);
-    }
-  }
-  compactButton.addEventListener('click', () => setOpen(!open));
+  createPopover({ trigger: compactButton, panel: popover, container: compact });
 
   function paint(): void {
     minus.disabled = popMinus.disabled = rate <= RATE_MIN;
