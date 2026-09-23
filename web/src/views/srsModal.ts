@@ -5,7 +5,7 @@
  * déclenchés. Tout se fait au doigt, il n'y a rien à taper.
  */
 
-import { el, ui } from '../dom';
+import { el, paintToggle, ui } from '../dom';
 import { GRADE_LABELS, TEMPO_LABELS, suggestGrade } from '../srs';
 import type { Tempo } from '../types';
 
@@ -33,6 +33,10 @@ const TEMPOS: Tempo[] = ['sous-tempo', 'crispe', 'fluide'];
  * quand l'appelant en fournit un : un résumé chiffré seul ne permet pas de
  * distinguer une faute de jeu d'une erreur du détecteur, et c'est justement ce
  * doute qui décourage de se fier au relevé.
+ *
+ * `maxSuggested` plafonne la note *présélectionnée* (jamais les boutons eux-
+ * mêmes, toujours cliquables) — pour ne pas suggérer un 5 quand l'utilisateur
+ * a rouvert la partition en cours de route.
  */
 export function askSrs(
   title: string,
@@ -41,10 +45,11 @@ export function askSrs(
   maskedCount: number,
   contexte?: string,
   detail?: Node,
+  maxSuggested?: number,
 ): Promise<SrsAnswer | null | 'cancelled'> {
   return new Promise((resolve) => {
     const suggested = suggestGrade(hints, maskedCount);
-    let grade = suggested;
+    let grade = Math.min(suggested, maxSuggested ?? 5);
     let tempo: Tempo = 'crispe';
 
     const gradeButtons: HTMLButtonElement[] = [];
@@ -53,10 +58,10 @@ export function askSrs(
 
     const paint = (): void => {
       gradeButtons.forEach((button, index) => {
-        button.className = index === grade ? ui.buttonActive : ui.button;
+        paintToggle(button, index === grade);
       });
       tempoButtons.forEach((button, index) => {
-        button.className = TEMPOS[index] === tempo ? ui.buttonActive : ui.button;
+        paintToggle(button, TEMPOS[index] === tempo);
       });
       gradeCaption.textContent = GRADE_LABELS[grade] ?? '';
     };

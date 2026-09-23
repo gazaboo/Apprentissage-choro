@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/machucando-adalberto-de-souza/audio/reference.576abf9c.opus",
+    "duration": 125.59,
+    "source_url": "https://www.youtube.com/watch?v=u8M3h16AA30&list=RDu8M3h16AA30&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 94.0
+  },
+  "playback": {
+    "file": "data/machucando-adalberto-de-souza/audio/playback.dd306403.opus",
+    "duration": 169.61,
+    "source_url": "https://www.youtube.com/watch?v=jQkHtgeSme0&list=RDjQkHtgeSme0&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 132.5
+  }
+}

@@ -11,8 +11,10 @@ import type {
   MaskLevel,
   SessionRun,
   Setlist,
+  Song,
   SrsCard,
   StudyMode,
+  TechniqueSetlist,
 } from './types';
 import {
   isDisplayMode,
@@ -22,8 +24,23 @@ import {
   isSessionKind,
   isStudyMode,
 } from './types';
+import { ensureFsrs, review } from './srs';
 
 const STORAGE_KEY = 'choro-srs-v1';
+const DEMO_ACTIVE_KEY = 'choro-demo';
+const DEMO_STORAGE_KEY = 'choro-demo-srs';
+
+/** Mode démonstration (#109, outil de QA) : `sessionStorage` plutôt que
+ *  `localStorage` — fermer l'onglet suffit à tout effacer, y compris si on
+ *  oublie de cliquer « Quitter ». La progression réelle n'est jamais lue ni
+ *  écrite tant que ce drapeau est actif. */
+export function isDemoActive(): boolean {
+  try {
+    return sessionStorage.getItem(DEMO_ACTIVE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
 export interface Progress {
   /** Indexé par `${songId}::${instrumentId}`. */
@@ -32,6 +49,13 @@ export interface Progress {
   setlists: Setlist[];
   /** Setlist active, ou `null` pour travailler tout le répertoire. */
   activeSetlistId: string | null;
+  /** Setlists de technique (gammes, arpèges), indépendantes de celles du répertoire. */
+  techniqueSetlists: TechniqueSetlist[];
+  /** Setlist de technique active, ou `null` pour travailler tout le catalogue. */
+  activeTechniqueSetlistId: string | null;
+  /** Vrai une fois les setlists de technique suggérées par défaut (#158)
+   *  proposées — évite de les recréer si l'utilisateur les a supprimées. */
+  techniquePresetsSeeded: boolean;
   /** Historique des séances menées ; ajout seul, jamais modifié. Plafonné à 200. */
   sessions: SessionRun[];
   /**
@@ -57,6 +81,15 @@ export interface Progress {
     maskSeed: number;
     /** Réglage du seul mode « Éclipses ». */
     eclipseIntensity: EclipseIntensity;
+    /** Tonalité par défaut, utilisée pour préremplir les écrans qui doivent
+     *  choisir un instrument avant tout historique par morceau (filage,
+     *  premier passage sur un morceau). Ne force jamais un choix déjà fait
+     *  morceau par morceau. */
+    instrumentDefault: InstrumentId;
+    /** Préférence avec/sans contre-chant. Sans effet tant qu'aucun morceau ne
+     *  propose de variante contraponto (#80) — champ posé à l'avance pour que
+     *  l'assistant d'accueil et la page Compte puissent déjà l'enregistrer. */
+    contrechant: 'avec' | 'sans';
     /** Position du panneau de réglages, déplacé à la main. */
     panel: { x: number; y: number } | null;
     /** Préférences du mode plein écran de la partition. */
@@ -81,6 +114,9 @@ const DEFAULT_PROGRESS: Progress = {
   cards: {},
   setlists: [],
   activeSetlistId: null,
+  techniqueSetlists: [],
+  activeTechniqueSetlistId: null,
+  techniquePresetsSeeded: false,
   sessions: [],
   _rev: 0,
   settings: {
@@ -90,6 +126,8 @@ const DEFAULT_PROGRESS: Progress = {
     maskLevel: 50,
     maskSeed: 1,
     eclipseIntensity: 'moyennes',
+    instrumentDefault: 'c',
+    contrechant: 'sans',
     panel: null,
     fullpage: { ...DEFAULT_FULLPAGE },
   },
@@ -133,6 +171,22 @@ function sanitizeSetlist(value: unknown): Setlist | null {
   return { id: raw.id, name: raw.name, songIds, createdAt };
 }
 
+/** Normalise une entrée de setlist technique lue du stockage, ou `null` si inexploitable. */
+function sanitizeTechniqueSetlist(value: unknown): TechniqueSetlist | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  if (typeof raw.id !== 'string' || raw.id === '') return null;
+  if (typeof raw.name !== 'string') return null;
+  const exerciceIds = Array.isArray(raw.exerciceIds)
+    ? raw.exerciceIds.filter((id): id is string => typeof id === 'string')
+    : [];
+  const createdAt =
+    typeof raw.createdAt === 'string' && raw.createdAt !== ''
+      ? raw.createdAt
+      : new Date().toISOString();
+  return { id: raw.id, name: raw.name, exerciceIds, createdAt };
+}
+
 /** Normalise une séance lue du stockage, ou `null` si inexploitable. */
 function sanitizeSessionRun(value: unknown): SessionRun | null {
   if (typeof value !== 'object' || value === null) return null;
@@ -160,7 +214,9 @@ function sanitizeSessionRun(value: unknown): SessionRun | null {
 export function loadProgress(): Progress {
   let raw: string | null = null;
   try {
-    raw = localStorage.getItem(STORAGE_KEY);
+    raw = isDemoActive()
+      ? sessionStorage.getItem(DEMO_STORAGE_KEY)
+      : localStorage.getItem(STORAGE_KEY);
   } catch {
     return structuredClone(DEFAULT_PROGRESS);
   }
@@ -171,7 +227,11 @@ export function loadProgress(): Progress {
     const cards: Record<string, SrsCard> = {};
     for (const [key, value] of Object.entries(parsed.cards ?? {})) {
       if (isCard(value)) {
-        cards[key] = { ...value, history: Array.isArray(value.history) ? value.history : [] };
+        const withHistory = { ...value, history: Array.isArray(value.history) ? value.history : [] };
+        // Migre une carte SM-2 héritée, ou reconstruit un état FSRS perdu à
+        // la synchro (voir `normalizeCard` dans `sync.ts`) — sans effet sur
+        // une carte déjà migrée.
+        cards[key] = ensureFsrs(withHistory);
       }
     }
     const stored = (parsed.settings ?? {}) as Record<string, unknown>;
@@ -191,6 +251,17 @@ export function loadProgress(): Progress {
       setlists.some((entry) => entry.id === parsed.activeSetlistId)
         ? parsed.activeSetlistId
         : null;
+    const techniqueSetlists = Array.isArray(parsed.techniqueSetlists)
+      ? parsed.techniqueSetlists
+          .map(sanitizeTechniqueSetlist)
+          .filter((entry): entry is TechniqueSetlist => entry !== null)
+      : [];
+    const activeTechniqueSetlistId =
+      typeof parsed.activeTechniqueSetlistId === 'string' &&
+      techniqueSetlists.some((entry) => entry.id === parsed.activeTechniqueSetlistId)
+        ? parsed.activeTechniqueSetlistId
+        : null;
+    const techniquePresetsSeeded = parsed.techniquePresetsSeeded === true;
     const rev =
       typeof parsed._rev === 'number' && Number.isFinite(parsed._rev)
         ? parsed._rev
@@ -203,7 +274,17 @@ export function loadProgress(): Progress {
           .slice(-200)
       : [];
 
-    return { cards, setlists, activeSetlistId, sessions, _rev: rev, settings };
+    return {
+      cards,
+      setlists,
+      activeSetlistId,
+      techniqueSetlists,
+      activeTechniqueSetlistId,
+      techniquePresetsSeeded,
+      sessions,
+      _rev: rev,
+      settings,
+    };
   } catch {
     return structuredClone(DEFAULT_PROGRESS);
   }
@@ -236,6 +317,12 @@ function migrateSettings(
   if (!isEclipseIntensity(settings.eclipseIntensity)) {
     settings.eclipseIntensity = DEFAULT_PROGRESS.settings.eclipseIntensity;
   }
+  if (!isInstrumentId(settings.instrumentDefault)) {
+    settings.instrumentDefault = DEFAULT_PROGRESS.settings.instrumentDefault;
+  }
+  if (settings.contrechant !== 'avec' && settings.contrechant !== 'sans') {
+    settings.contrechant = DEFAULT_PROGRESS.settings.contrechant;
+  }
   if (typeof settings.maskSeed !== 'number' || !Number.isFinite(settings.maskSeed)) {
     settings.maskSeed = DEFAULT_PROGRESS.settings.maskSeed;
   }
@@ -263,26 +350,65 @@ function migrateSettings(
 
 export function saveProgress(progress: Progress): void {
   progress._rev = Date.now();
+  const demo = isDemoActive();
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    if (demo) sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(progress));
+    else localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   } catch {
     // Quota plein ou stockage refusé : la session reste utilisable en mémoire.
     console.warn('Progression non enregistrée (localStorage indisponible).');
   }
-  afterSave(progress);
+  // La démo ne doit jamais déclencher de synchro : elle pousserait des
+  // données de test vers le stockage réel du compte (#109, mode démo).
+  if (!demo) afterSave(progress);
 }
 
 /**
  * Écrit sans toucher à `_rev` ni notifier la synchro. Réservé au module de
  * synchro lui-même, quand il enregistre le résultat d'une fusion : il ne faut
- * pas qu'un `pull` déclenche aussitôt un `push`.
+ * pas qu'un `pull` déclenche aussitôt un `push`. Jamais atteint en mode démo
+ * (la synchro y est coupée dans `saveProgress`), mais routé par cohérence.
  */
 export function persistMerged(progress: Progress): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    if (isDemoActive()) sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(progress));
+    else localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   } catch {
     console.warn('Progression non enregistrée (localStorage indisponible).');
   }
+}
+
+/**
+ * Amorce un parcours de démonstration (#109, outil de QA) : un morceau par
+ * branche de `recommendedMode`, construit via `review()` comme une vraie
+ * séance l'aurait fait. Active le drapeau **avant** d'écrire, pour que les
+ * `putCard`/`saveProgress` qui suivent routent déjà vers `DEMO_STORAGE_KEY`
+ * et ne touchent jamais la progression réelle.
+ */
+export function seedDemoProgress(songs: Song[]): void {
+  sessionStorage.setItem(DEMO_ACTIVE_KEY, '1');
+  const progress = structuredClone(DEFAULT_PROGRESS);
+  const scenarios: number[][] = [
+    [], // nouveau morceau -> 'entiere'
+    [5], // un seul Good/Easy -> 'entiere'
+    [5, 5], // deux Good/Easy, nombre pair -> 'sans' (Consigne)
+    [5, 5, 5], // trois Good/Easy, nombre impair -> 'entiere' (alternance)
+    [5, 5, 1], // Again récent malgré l'historique -> 'entiere'
+  ];
+  scenarios.forEach((grades, i) => {
+    const song = songs[i];
+    if (!song || grades.length === 0) return;
+    const instrumentId = song.instruments[0]!.id;
+    let card: SrsCard | undefined;
+    for (const grade of grades) card = review(card, grade, 'fluide', 0);
+    putCard(progress, song.id, instrumentId, card!);
+  });
+}
+
+/** Quitte le mode démonstration : efface le drapeau et les données de test. */
+export function stopDemo(): void {
+  sessionStorage.removeItem(DEMO_ACTIVE_KEY);
+  sessionStorage.removeItem(DEMO_STORAGE_KEY);
 }
 
 /** Setlist active, ou `null`. */
@@ -312,6 +438,40 @@ export function deleteSetlist(progress: Progress, id: string): void {
 export function setActiveSetlist(progress: Progress, id: string | null): void {
   progress.activeSetlistId =
     id && progress.setlists.some((entry) => entry.id === id) ? id : null;
+  saveProgress(progress);
+}
+
+/** Setlist de technique active, ou `null`. */
+export function activeTechniqueSetlist(progress: Progress): TechniqueSetlist | null {
+  if (!progress.activeTechniqueSetlistId) return null;
+  return (
+    progress.techniqueSetlists.find(
+      (entry) => entry.id === progress.activeTechniqueSetlistId,
+    ) ?? null
+  );
+}
+
+/** Crée ou remplace une setlist de technique (identité par `id`), puis enregistre. */
+export function upsertTechniqueSetlist(
+  progress: Progress,
+  setlist: TechniqueSetlist,
+): void {
+  const index = progress.techniqueSetlists.findIndex((entry) => entry.id === setlist.id);
+  if (index === -1) progress.techniqueSetlists.push(setlist);
+  else progress.techniqueSetlists[index] = setlist;
+  saveProgress(progress);
+}
+
+/** Supprime une setlist de technique ; si c'était l'active, on repasse sur tout le catalogue. */
+export function deleteTechniqueSetlist(progress: Progress, id: string): void {
+  progress.techniqueSetlists = progress.techniqueSetlists.filter((entry) => entry.id !== id);
+  if (progress.activeTechniqueSetlistId === id) progress.activeTechniqueSetlistId = null;
+  saveProgress(progress);
+}
+
+export function setActiveTechniqueSetlist(progress: Progress, id: string | null): void {
+  progress.activeTechniqueSetlistId =
+    id && progress.techniqueSetlists.some((entry) => entry.id === id) ? id : null;
   saveProgress(progress);
 }
 

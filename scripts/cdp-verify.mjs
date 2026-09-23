@@ -11,6 +11,7 @@
  *   import {
  *     launchChromium, waitForCdp, openTab, connect,
  *     setViewport, evaluate, clickSelector, screenshot, stopChromium,
+ *     addInitScript,
  *   } from '../scripts/cdp-verify.mjs';
  *
  *   const chromium = launchChromium();
@@ -242,6 +243,16 @@ export async function clickSelector(session, selector) {
 export async function reloadVia(session, url) {
   await session.send('Page.navigate', { url: 'about:blank' });
   await session.send('Page.navigate', { url });
+}
+
+/**
+ * Injecte un script exécuté avant tout script de la page, à chaque
+ * navigation suivante (persiste tant que la session reste ouverte). Utile
+ * pour intercepter un `fetch` avant que le code de l'app ne l'appelle —
+ * impossible à obtenir via `evaluate`, qui ne s'exécute qu'après coup.
+ */
+export async function addInitScript(session, source) {
+  await session.send('Page.addScriptToEvaluateOnNewDocument', { source });
 }
 
 export async function screenshot(session, outputPath) {

@@ -1,0 +1,11 @@
+{
+  "reference": {
+    "file": "data/naquele-tempo-pixinguinha/audio/reference.add30534.opus",
+    "duration": 193.21,
+    "source_url": "https://www.youtube.com/watch?v=AwryEdYhYGg&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 123.0
+  },
+  "playback": null
+}

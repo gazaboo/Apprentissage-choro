@@ -10,6 +10,7 @@ function song(id: string, title = id): Song {
     composer: '',
     audio: { reference: null, playback: null },
     instruments: [{ id: 'c', name: 'Ut', page_count: 1, measure_count: 1, pages: [] }],
+    contraponto: null,
   };
 }
 
@@ -18,6 +19,9 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
     cards: {},
     setlists: [],
     activeSetlistId: null,
+    techniqueSetlists: [],
+    activeTechniqueSetlistId: null,
+    techniquePresetsSeeded: false,
     sessions: [],
     _rev: 0,
     settings: {
@@ -27,6 +31,8 @@ function baseProgress(overrides: Partial<Progress> = {}): Progress {
       maskLevel: 50,
       maskSeed: 1,
       eclipseIntensity: 'moyennes',
+      instrumentDefault: 'c',
+      contrechant: 'sans',
       panel: null,
       fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
     },
@@ -171,5 +177,48 @@ describe('openSetlistEditor — enregistrement et fermeture', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(onClose).toHaveBeenCalledOnce();
     expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+  });
+});
+
+describe('openSetlistEditor — suppression', () => {
+  const existing: Setlist = {
+    id: 's1',
+    name: 'Roda du jeudi',
+    songIds: ['a'],
+    createdAt: '2026-01-01',
+  };
+
+  it('pas de suppression à la création', () => {
+    const { overlay } = open();
+    expect(overlay.textContent).not.toContain('Supprimer la setlist');
+  });
+
+  it('demande confirmation, puis supprime la setlist et ferme la modale', () => {
+    const progress = baseProgress({ setlists: [existing], activeSetlistId: 's1' });
+    const { overlay, onClose } = open({ progress, target: { mode: 'edit', setlist: existing } });
+    findButton(overlay, 'Supprimer la setlist').click();
+    expect(overlay.textContent).toContain('Supprimer « Roda du jeudi » ?');
+    expect(progress.setlists).toHaveLength(1);
+    findButton(overlay, 'Supprimer').click();
+    expect(progress.setlists).toHaveLength(0);
+    expect(progress.activeSetlistId).toBeNull();
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('« Garder » annule la confirmation', () => {
+    const progress = baseProgress({ setlists: [existing] });
+    const { overlay } = open({ progress, target: { mode: 'edit', setlist: existing } });
+    findButton(overlay, 'Supprimer la setlist').click();
+    findButton(overlay, 'Garder').click();
+    expect(progress.setlists).toHaveLength(1);
+    expect(findButton(overlay, 'Supprimer la setlist')).toBeTruthy();
+  });
+
+  it('Entrée sur un bouton l’active sans enregistrer la modale', () => {
+    const progress = baseProgress({ setlists: [existing] });
+    const { overlay, onClose } = open({ progress, target: { mode: 'edit', setlist: existing } });
+    const cancel = findButton(overlay, 'Annuler');
+    cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(onClose).not.toHaveBeenCalled();
   });
 });

@@ -69,6 +69,9 @@ function baseProgress(): Progress {
     cards: {},
     setlists: [],
     activeSetlistId: null,
+    techniqueSetlists: [],
+    activeTechniqueSetlistId: null,
+    techniquePresetsSeeded: false,
     sessions: [],
     _rev: 0,
     settings: {
@@ -78,6 +81,8 @@ function baseProgress(): Progress {
       maskLevel: 50,
       maskSeed: 1,
       eclipseIntensity: 'moyennes',
+      instrumentDefault: 'c',
+      contrechant: 'sans',
       panel: null,
       fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
     },
@@ -119,7 +124,7 @@ function mount() {
     progress: baseProgress(),
     ordre: [carte()],
     markWorked: vi.fn(),
-    navigateHome: vi.fn(),
+    navigateBack: vi.fn(),
     onFinish: vi.fn(),
   };
   const teardown = renderTechnique(root, context);
@@ -128,14 +133,14 @@ function mount() {
 
 function bouton(root: HTMLElement, texte: string): HTMLButtonElement {
   return [...root.querySelectorAll('button')].find(
-    (b) => b.textContent === texte,
+    (b) => b.textContent === texte || b.getAttribute('aria-label') === texte,
   ) as HTMLButtonElement;
 }
 
 describe('renderTechnique — décompte des battues évaluées', () => {
   it('s’arrête à 3 × N battues, sans battue fantôme pendant le délai de grâce', async () => {
     const { root, teardown } = mount();
-    bouton(root, 'Écouter au micro').click();
+    bouton(root, 'Évaluation au micro').click();
     // Laisse `getUserMedia` et `metronome.start()` se résoudre.
     await vi.advanceTimersByTimeAsync(0);
     expect(trackers[0]?.listening).toBe(true);
@@ -168,7 +173,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
 
   it('détaille les notes à vérifier, une ligne par note, sans interpréter', async () => {
     const { root, teardown } = mount();
-    bouton(root, 'Écouter au micro').click();
+    bouton(root, 'Évaluation au micro').click();
     await vi.advanceTimersByTimeAsync(0);
 
     const total = PASSES * MOTIF.length;

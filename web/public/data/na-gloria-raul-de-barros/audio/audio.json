@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/na-gloria-raul-de-barros/audio/reference.3731390f.opus",
+    "duration": 176.29,
+    "source_url": "https://www.youtube.com/watch?v=-4RIi23Rrrw",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 101.3
+  },
+  "playback": {
+    "file": "data/na-gloria-raul-de-barros/audio/playback.1eaa5e5a.opus",
+    "duration": 145.51,
+    "source_url": "https://www.youtube.com/watch?v=nC8GsHLHo04&list=RDnC8GsHLHo04&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 99.4
+  }
+}

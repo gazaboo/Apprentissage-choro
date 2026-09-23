@@ -10,7 +10,7 @@
       "notes_descendant": ["D4", "Bb3", "A3", "F3", "D3"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
-      "note_de_travail": "Montée : 1 - 2 - 3 - 5 - 1\nDescente : 1 - 6m - 5 - 3 - 1"
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
     {
       "id": "arp-maj",
@@ -19,17 +19,37 @@
       "reference": "C",
       "notes": ["C", "D", "E", "G"],
       "notes_descendant": ["C4", "A3", "G3", "E3", "C3"],
-      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
-      "note_de_travail": "Montée : 1 - 2 - 3 - 5 - 1\nDescente : 1 - 6m - 5 - 3 - 1"
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
     {
       "id": "arp-dom7",
       "famille": "Arpèges",
       "nom": "Arpège de dominante",
       "reference": "A7",
-      "notes": ["A", "C#", "E", "G"],
-      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "notes": ["A", "C#", "E", "G", "A"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
+      "sens": ["aller-retour"],
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+    },
+    {
+      "id": "arp-m7b5",
+      "famille": "Arpèges",
+      "nom": "Arpège demi-diminué",
+      "reference": "Bm7b5",
+      "notes": ["B", "D", "F", "A"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
+      "sens": ["aller-retour"],
+      "note_de_travail": "Une note par clic, sans plaquer d'accord."
+    },
+    {
+      "id": "arp-dim7",
+      "famille": "Arpèges",
+      "nom": "Arpège diminué",
+      "reference": "Bdim7",
+      "notes": ["B", "D", "F", "Ab"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["aller-retour"],
       "note_de_travail": "Une note par clic, sans plaquer d'accord."
     },
@@ -39,9 +59,9 @@
       "nom": "Gamme majeure",
       "reference": "C",
       "notes": ["C", "D", "E", "F", "G", "A", "B", "C"],
-      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
-      "note_de_travail": "Sur une seule position, sans corde à vide si possible."
+      "note_de_travail": "Sur une seule position."
     },
     {
       "id": "gamme-mineure",
@@ -51,7 +71,7 @@
       "notes": ["A", "B", "C", "D", "E", "F", "G", "A"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
-      "note_de_travail": "Sur une seule position, sans corde à vide si possible."
+      "note_de_travail": "Sur une seule position."
     },
     {
       "id": "gamme-mineure-harmonique",
@@ -61,7 +81,7 @@
       "notes": ["A", "B", "C", "D", "E", "F", "G#", "A"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
-      "note_de_travail": "Sur une seule position, sans corde à vide si possible. La sensible (7e degré) est haussée d'un demi-ton."
+      "note_de_travail": "Sur une seule position. La sensible (7e degré) est haussée d'un demi-ton."
     },
     {
       "id": "gamme-mineure-melodique",
@@ -71,7 +91,7 @@
       "notes": ["A", "B", "C", "D", "E", "F#", "G#", "A"],
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
-      "note_de_travail": "Sur une seule position, sans corde à vide si possible. Forme jazz : les 6e et 7e degrés restent haussés à la descente."
+      "note_de_travail": "Sur une seule position. Forme jazz : les 6e et 7e degrés restent haussés à la descente."
     }
   ]
 }

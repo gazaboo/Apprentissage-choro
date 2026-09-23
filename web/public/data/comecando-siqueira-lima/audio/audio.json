@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/comecando-siqueira-lima/audio/reference.92c8c710.opus",
+    "duration": 331.61,
+    "source_url": "https://www.youtube.com/watch?v=Sz6CrVpoMHA",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 103.4
+  },
+  "playback": {
+    "file": "data/comecando-siqueira-lima/audio/playback.2550fff6.opus",
+    "duration": 245.01,
+    "source_url": "https://www.youtube.com/watch?v=Z--RTaVjjJg",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 90.7
+  }
+}

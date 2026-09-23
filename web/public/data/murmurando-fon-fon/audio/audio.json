@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/murmurando-fon-fon/audio/reference.12eb9c43.opus",
+    "duration": 289.61,
+    "source_url": "https://www.youtube.com/watch?v=VF69EOBz2iQ",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 95.7
+  },
+  "playback": {
+    "file": "data/murmurando-fon-fon/audio/playback.49643c3b.opus",
+    "duration": 173.57,
+    "source_url": "https://www.youtube.com/watch?v=MSC8fBzVG9A",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 110.0
+  }
+}

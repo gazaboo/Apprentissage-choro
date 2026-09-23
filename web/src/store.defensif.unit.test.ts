@@ -33,9 +33,12 @@ describe('loadProgress — chemins défensifs', () => {
     const progress = loadProgress();
     expect(progress.cards).toEqual({});
     expect(progress.setlists).toEqual([]);
+    expect(progress.techniqueSetlists).toEqual([]);
     expect(progress.sessions).toEqual([]);
     expect(progress._rev).toBe(0);
     expect(progress.settings.display).toBe('partition');
+    expect(progress.settings.instrumentDefault).toBe('c');
+    expect(progress.settings.contrechant).toBe('sans');
   });
 
   it('JSON invalide → progression par défaut, sans lever', () => {
@@ -68,6 +71,51 @@ describe('loadProgress — chemins défensifs', () => {
     expect(loadProgress().cards.a!.history).toEqual([]);
   });
 
+  it('carte SM-2 héritée (sans `fsrs`, avec historique) est migrée au chargement', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        cards: {
+          a: {
+            ease: 2.1,
+            interval: 12,
+            repetitions: 3,
+            due: '2026-09-10',
+            history: [
+              { date: '2026-08-01', grade: 4, tempo: 'fluide', hints: 0 },
+              { date: '2026-08-12', grade: 4, tempo: 'fluide', hints: 0 },
+            ],
+          },
+        },
+      }),
+    );
+    const card = loadProgress().cards.a!;
+    expect(card.fsrs).toBeDefined();
+    expect(card.fsrs!.reps).toBe(2);
+    expect(card.fsrs!.lastReview).toBe('2026-08-12');
+  });
+
+  it('un état `fsrs` corrompu est reconstruit par rejeu plutôt que gardé tel quel', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        cards: {
+          a: {
+            ease: 2.5,
+            interval: 6,
+            repetitions: 2,
+            due: '2026-09-10',
+            history: [{ date: '2026-08-01', grade: 4, tempo: 'fluide', hints: 0 }],
+            fsrs: { stability: 'pas-un-nombre' },
+          },
+        },
+      }),
+    );
+    const card = loadProgress().cards.a!;
+    expect(typeof card.fsrs!.stability).toBe('number');
+    expect(card.fsrs!.reps).toBe(1);
+  });
+
   it('migre un ancien réglage `maskLevel: 0` en `studyMode: "entiere"`', () => {
     storage.setItem(
       'choro-srs-v1',
@@ -92,6 +140,38 @@ describe('loadProgress — chemins défensifs', () => {
     expect(loadProgress().settings.maskLevel).toBe(75);
   });
 
+  it('un `instrumentDefault` valide est conservé', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { instrumentDefault: 'eb' } }),
+    );
+    expect(loadProgress().settings.instrumentDefault).toBe('eb');
+  });
+
+  it('un `instrumentDefault` invalide retombe sur `c`', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { instrumentDefault: 'fa-dièse' } }),
+    );
+    expect(loadProgress().settings.instrumentDefault).toBe('c');
+  });
+
+  it('un `contrechant` valide est conservé', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { contrechant: 'avec' } }),
+    );
+    expect(loadProgress().settings.contrechant).toBe('avec');
+  });
+
+  it('un `contrechant` invalide retombe sur `sans`', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({ settings: { contrechant: 'peut-être' } }),
+    );
+    expect(loadProgress().settings.contrechant).toBe('sans');
+  });
+
   it('une setlist malformée (sans `id`) est écartée', () => {
     storage.setItem(
       'choro-srs-v1',
@@ -113,6 +193,29 @@ describe('loadProgress — chemins défensifs', () => {
       }),
     );
     expect(loadProgress().activeSetlistId).toBeNull();
+  });
+
+  it('une setlist de technique malformée (sans `id`) est écartée', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        techniqueSetlists: [{ name: 'sans id' }, { id: 't1', name: 'Sans dièse ni bémol' }],
+      }),
+    );
+    const progress = loadProgress();
+    expect(progress.techniqueSetlists).toHaveLength(1);
+    expect(progress.techniqueSetlists[0]!.id).toBe('t1');
+  });
+
+  it('`activeTechniqueSetlistId` pointant une setlist de technique absente est neutralisé', () => {
+    storage.setItem(
+      'choro-srs-v1',
+      JSON.stringify({
+        techniqueSetlists: [{ id: 't1', name: 'Sans dièse ni bémol' }],
+        activeTechniqueSetlistId: 'ghost',
+      }),
+    );
+    expect(loadProgress().activeTechniqueSetlistId).toBeNull();
   });
 
   it('les séances sont plafonnées à 200 au chargement', () => {

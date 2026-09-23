@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/migalhas-de-amor-jacob-do-bandolim/audio/reference.d606dd3e.opus",
+    "duration": 178.01,
+    "source_url": "https://www.youtube.com/watch?v=Xv3m7JciGVc&list=RDXv3m7JciGVc&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 136.0
+  },
+  "playback": {
+    "file": "data/migalhas-de-amor-jacob-do-bandolim/audio/playback.35aa1f1a.opus",
+    "duration": 197.11,
+    "source_url": "https://www.youtube.com/watch?v=7LNtZspRojk&list=RD7LNtZspRojk&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 126.0
+  }
+}

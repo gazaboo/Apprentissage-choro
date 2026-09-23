@@ -1,4 +1,4 @@
-"""Lecture de l'arborescence source : morceaux, URLs YouTube, PDF catégorisés.
+"""Lecture de l'arborescence source : morceaux, URLs des sources audio, PDF.
 
 Tout est tolérant aux données manquantes : un fichier absent, vide ou
 illisible produit `None`, jamais une exception.
@@ -26,9 +26,10 @@ INSTRUMENT_ORDER = ["c", "bb", "eb"]
 
 _RE_BB = re.compile(r"\b(bb|clarinet(te)?)\b", re.IGNORECASE)
 _RE_EB = re.compile(r"\b(eb|saxo(phone)?|alto)\b", re.IGNORECASE)
+_RE_CONTRAPONTO = re.compile(r"\b(contraponto|contracant[oe]s?)\b", re.IGNORECASE)
 
 # ---------------------------------------------------------------------------
-# URLs YouTube
+# URLs des sources audio
 # ---------------------------------------------------------------------------
 
 _RE_YOUTUBE = re.compile(
@@ -37,15 +38,6 @@ _RE_YOUTUBE = re.compile(
     re.IGNORECASE,
 )
 _RE_ANY_URL = re.compile(r"https?://[^\s)>\]]+")
-
-
-@dataclass
-class AudioSource:
-    url: str
-    youtube_id: str
-
-    def to_dict(self) -> dict:
-        return {"url": self.url, "youtube_id": self.youtube_id}
 
 
 @dataclass
@@ -61,9 +53,11 @@ class SongFolder:
     title: str
     composer: str
     folder: Path
-    reference: AudioSource | None = None
-    playback: AudioSource | None = None
+    reference: str | None = None
+    playback: str | None = None
     scores: list[ScorePdf] = field(default_factory=list)
+    # Partition Ut avec une deuxième voix (contre-chant), si trouvée (#80).
+    contraponto: ScorePdf | None = None
     warnings: list[str] = field(default_factory=list)
 
 
@@ -106,11 +100,15 @@ def parse_folder_name(name: str) -> tuple[str, str]:
     return name.strip(), ""
 
 
-def extract_youtube(md_path: Path) -> AudioSource | None:
-    """Extrait la première URL YouTube d'un fichier markdown.
+def extract_source_url(md_path: Path) -> str | None:
+    """Extrait l'URL de la source audio d'un fichier markdown.
+
+    Le motif YouTube sert d'ancre plutôt que de filtre : ces fichiers portent
+    souvent autre chose que l'URL (structure du morceau, notes de travail), et
+    une recherche d'URL générique attraperait la première venue.
 
     Retourne None si le fichier est absent, vide, illisible, ou ne contient
-    aucune URL YouTube reconnaissable.
+    aucune URL reconnaissable.
     """
     try:
         if not md_path.is_file():
@@ -126,7 +124,7 @@ def extract_youtube(md_path: Path) -> AudioSource | None:
         return None
     url_match = _RE_ANY_URL.search(text, match.start())
     url = url_match.group(0) if url_match else match.group(0)
-    return AudioSource(url=url.rstrip(".,;"), youtube_id=match.group(1))
+    return url.rstrip(".,;")
 
 
 def classify_pdf(filename: str) -> str:
@@ -174,16 +172,45 @@ def scan_song_folder(folder: Path) -> SongFolder:
         folder=folder,
     )
 
-    song.reference = extract_youtube(folder / "url.md")
-    song.playback = extract_youtube(folder / "url-playback.md")
+    song.reference = extract_source_url(folder / "url.md")
+    song.playback = extract_source_url(folder / "url-playback.md")
     if song.reference is None:
         song.warnings.append("pas d'URL de reference (url.md absent ou vide)")
     if song.playback is None:
         song.warnings.append("pas d'URL de playback (url-playback.md absent ou vide)")
 
-    # Regroupement des PDF par instrument, puis arbitrage des conflits.
+    # Le contraponto (#80) est écarté avant le regroupement par instrument :
+    # sinon un fichier "... - Contraponto - C.pdf" concurrencerait la mélodie
+    # Ut pour le même instrument_id et l'une des deux serait jetée comme
+    # CONFLIT. V1 : Ut uniquement, les candidats Bb/Eb sont ignorés.
+    all_pdfs = sorted(folder.glob("*.pdf"))
+    contraponto_candidates = [p for p in all_pdfs if _RE_CONTRAPONTO.search(p.stem)]
+    melody_pdfs = [p for p in all_pdfs if p not in contraponto_candidates]
+
+    ut_contraponto = [p for p in contraponto_candidates if classify_pdf(p.name) == "c"]
+    if ut_contraponto:
+        if len(ut_contraponto) > 1:
+            ranked = sorted(
+                ut_contraponto,
+                key=lambda p: (-_naming_score(p, title, composer), len(p.name)),
+            )
+            winner, discarded = ranked[0], ranked[1:]
+            song.warnings.append(
+                "CONFLIT CONTRAPONTO: {} PDF -> retenu '{}', ignore(s) {}".format(
+                    len(ut_contraponto),
+                    winner.name,
+                    ", ".join(f"'{p.name}'" for p in discarded),
+                )
+            )
+        else:
+            winner = ut_contraponto[0]
+        song.contraponto = ScorePdf(
+            instrument_id="contraponto", instrument_name="Contraponto", path=winner,
+        )
+
+    # Regroupement des PDF de mélodie par instrument, puis arbitrage des conflits.
     by_instrument: dict[str, list[Path]] = {}
-    for pdf in sorted(folder.glob("*.pdf")):
+    for pdf in melody_pdfs:
         by_instrument.setdefault(classify_pdf(pdf.name), []).append(pdf)
 
     for instrument_id in INSTRUMENT_ORDER:

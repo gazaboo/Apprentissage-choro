@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/proezas-de-solon-pixinguinha/audio/reference.82893dbe.opus",
+    "duration": 183.81,
+    "source_url": "https://www.youtube.com/watch?v=V0JQ2gwfamQ",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 95.7
+  },
+  "playback": {
+    "file": "data/proezas-de-solon-pixinguinha/audio/playback.acddc896.opus",
+    "duration": 155.11,
+    "source_url": "https://www.youtube.com/watch?v=CYjE5nS_c_c",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 114.8
+  }
+}

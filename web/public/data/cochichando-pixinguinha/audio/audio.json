@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/cochichando-pixinguinha/audio/reference.3bdc3cb6.opus",
+    "duration": 168.51,
+    "source_url": "https://www.youtube.com/watch?v=woCyMZe2UXQ&list=RDwoCyMZe2UXQ&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 83.4
+  },
+  "playback": {
+    "file": "data/cochichando-pixinguinha/audio/playback.a4a69a89.opus",
+    "duration": 184.91,
+    "source_url": "https://www.youtube.com/watch?v=KWQqPKMpafk&list=RDKWQqPKMpafk&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 84.7
+  }
+}

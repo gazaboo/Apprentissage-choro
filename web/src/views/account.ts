@@ -1,9 +1,10 @@
-/** Accueil et gestion de la synchronisation.
+/** Accueil et réglages par défaut.
  *
  * À la première arrivée, tant qu'aucun choix n'a été fait, cet écran occupe
  * toute la place (mode passerelle) : rester sur l'appareil, ou saisir un
  * identifiant pour retrouver sa progression partout. Ensuite il redevient une
- * page ordinaire (`#/compte`) où l'on se connecte / déconnecte.
+ * page ordinaire (`#/compte`) qui ne propose plus que les réglages par
+ * défaut — un utilisateur ne change pas de compte sur le même appareil.
  *
  * La synchro est automatique : au chargement, au retour au premier plan, et en
  * différé après chaque enregistrement. Aucun bouton « synchroniser ».
@@ -11,16 +12,16 @@
 
 import { el, ui } from '../dom';
 import {
-  accountMode,
   chooseAnonymous,
-  formatLastSync,
-  getSyncCode,
   isValidCode,
   probeCode,
   setSyncCode,
-  signOut,
   syncNow,
 } from '../sync';
+import { saveProgress, type Progress } from '../store';
+import { renderDefaultSettingsFields } from './default-settings';
+import { clearInstallPrompt, getInstallPrompt, isStandalone } from '../pwaInstall';
+import type { Song } from '../types';
 
 export interface AccountContext {
   /** `true` à la première arrivée : pas de retour possible, il faut choisir. */
@@ -29,6 +30,9 @@ export interface AccountContext {
   onChange: () => void;
   /** Retour au répertoire (absent en mode passerelle). */
   navigateHome: (() => void) | null;
+  /** Absents en mode passerelle : nécessaires pour la section réglages. */
+  progress: Progress | null;
+  songs: Song[];
 }
 
 const inputClass =
@@ -130,6 +134,42 @@ function codeForm(connect: (code: string) => void): HTMLElement {
   );
 }
 
+/**
+ * Carte d'installation PWA : n'apparaît que si le navigateur a effectivement
+ * proposé l'installation (`beforeinstallprompt` capturé dès le démarrage par
+ * `pwaInstall.ts`) et que l'app ne tourne pas déjà en fenêtre autonome.
+ */
+function installCard(): HTMLElement | null {
+  if (isStandalone()) return null;
+  const prompt = getInstallPrompt();
+  if (!prompt) return null;
+
+  const section = el(
+    'section',
+    { class: 'flex flex-col gap-2 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4' },
+    el('p', { class: ui.label }, 'Installer'),
+    el(
+      'p',
+      { class: 'text-sm text-zinc-400' },
+      'Ajoutez l’app à votre écran d’accueil pour la lancer en plein écran, comme une application installée.',
+    ),
+  );
+  const button = el('button', { type: 'button', class: ui.button }, 'Installer');
+  button.addEventListener('click', () => {
+    void (async () => {
+      button.disabled = true;
+      await prompt.prompt();
+      await prompt.userChoice;
+      // Acceptée ou refusée, l'invite ne peut resservir : on retire la
+      // carte plutôt que de garder un bouton mort.
+      clearInstallPrompt();
+      section.remove();
+    })();
+  });
+  section.append(el('div', { class: 'flex' }, button));
+  return section;
+}
+
 function renderGate(context: AccountContext, connect: (code: string) => void): HTMLElement {
   const continueButton = el('button', { type: 'button', class: ui.button }, 'Continuer');
   continueButton.addEventListener('click', () => {
@@ -201,8 +241,6 @@ function renderGate(context: AccountContext, connect: (code: string) => void): H
 }
 
 export function renderAccount(root: HTMLElement, context: AccountContext): () => void {
-  const mode = accountMode();
-
   /** Se connecter à un identifiant : l'état distant est fusionné puis rechargé. */
   function connect(code: string): void {
     setSyncCode(code);
@@ -218,49 +256,40 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
     el('h1', { class: 'text-2xl font-semibold text-zinc-100' }, 'Compte'),
   ];
 
-  if (mode === 'sync') {
-    const outButton = el('button', { type: 'button', class: ui.button }, 'Se déconnecter');
-    outButton.addEventListener('click', () => {
-      signOut();
-      context.onChange();
-    });
+  const install = installCard();
+  if (install) blocks.push(install);
 
-    blocks.push(
-      el(
-        'section',
-        { class: `${ui.card} flex flex-col gap-2` },
-        el('p', { class: ui.label }, 'Connecté'),
-        el(
-          'p',
-          { class: 'break-all text-base font-medium text-zinc-100' },
-          getSyncCode() ?? '',
-        ),
-        el(
-          'p',
-          { class: 'text-sm text-zinc-500' },
-          `Progression synchronisée automatiquement · ${formatLastSync()}.`,
-        ),
-        el(
-          'p',
-          { class: 'text-sm text-zinc-500' },
-          'Saisissez le même identifiant sur vos autres appareils.',
-        ),
-        el('div', { class: 'flex' }, outButton),
-      ),
+  if (context.progress) {
+    const progress = context.progress;
+    const fields = renderDefaultSettingsFields(
+      context.songs,
+      {
+        instrumentDefault: progress.settings.instrumentDefault,
+        display: progress.settings.display,
+        contrechant: progress.settings.contrechant,
+      },
+      (next) => {
+        progress.settings.instrumentDefault = next.instrumentDefault;
+        progress.settings.display = next.display;
+        progress.settings.contrechant = next.contrechant;
+        saveProgress(progress);
+      },
     );
-  } else {
     blocks.push(
       el(
         'section',
-        { class: `${ui.card} flex flex-col gap-2` },
-        el('p', { class: 'text-sm text-zinc-300' }, 'Vous travaillez sur cet appareil uniquement.'),
-        el('p', { class: ui.label }, 'Synchroniser mes appareils'),
-        codeForm(connect),
+        { class: `${ui.card} flex flex-col gap-4` },
+        el('p', { class: ui.label }, 'Réglages par défaut'),
+        fields,
       ),
     );
   }
 
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour au répertoire');
+  const backButton = el(
+    'button',
+    { type: 'button', class: `${ui.icon} self-start`, 'aria-label': 'Retour au répertoire' },
+    '←',
+  );
   if (context.navigateHome) backButton.addEventListener('click', context.navigateHome);
 
   root.replaceChildren(

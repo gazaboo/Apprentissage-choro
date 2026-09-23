@@ -11,6 +11,7 @@
  * de déverrouillage — c'est le fichier qui décide.
  */
 
+import { shuffleTies } from '../random';
 import { daysOverdue, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { getTechniqueCard } from '../store';
@@ -254,12 +255,15 @@ export const NOUVELLES_PAR_SEANCE = 5;
  * catalogue seraient toutes à égalité de priorité maximale, et une première
  * séance ne serait qu'une marche aléatoire sans fin. Les neuves sont prises
  * dans l'ordre du catalogue, non au hasard, pour qu'une famille s'installe
- * avant que la suivante ne commence.
+ * avant que la suivante ne commence — en revanche, les cartes en retard à
+ * égalité de retard sont départagées au hasard (`rng`, injectable pour un
+ * tirage déterministe en test) plutôt que par l'ordre figé du catalogue (#82).
  */
 export function pickExercices(
   cartes: ExerciceCarte[],
   progress: Progress,
   maxNouvelles = NOUVELLES_PAR_SEANCE,
+  rng: () => number = Math.random,
 ): ExerciceCarte[] {
   const dues: { carte: ExerciceCarte; retard: number }[] = [];
   const nouvelles: ExerciceCarte[] = [];
@@ -271,6 +275,7 @@ export function pickExercices(
   }
 
   dues.sort((a, b) => b.retard - a.retard);
+  shuffleTies(dues, (entry) => entry.retard, rng);
   return [...dues.map((entry) => entry.carte), ...nouvelles.slice(0, maxNouvelles)];
 }
 
@@ -283,4 +288,75 @@ export function parFamille(cartes: ExerciceCarte[]): Map<string, ExerciceCarte[]
     else groups.set(carte.famille, [carte]);
   }
   return groups;
+}
+
+/** Regroupe les cartes par motif, dans l'ordre d'apparition du catalogue. */
+export function parMotif(cartes: ExerciceCarte[]): Map<string, ExerciceCarte[]> {
+  const groups = new Map<string, ExerciceCarte[]>();
+  for (const carte of cartes) {
+    const list = groups.get(carte.motifId);
+    if (list) list.push(carte);
+    else groups.set(carte.motifId, [carte]);
+  }
+  return groups;
+}
+
+/**
+ * Regroupe les cartes d'un même motif par tonalité (`accord`) — les sens
+ * montant et descendant d'une même tonalité s'y retrouvent ensemble.
+ */
+export function parAccord(cartes: ExerciceCarte[]): Map<string, ExerciceCarte[]> {
+  const groups = new Map<string, ExerciceCarte[]>();
+  for (const carte of cartes) {
+    const list = groups.get(carte.accord);
+    if (list) list.push(carte);
+    else groups.set(carte.accord, [carte]);
+  }
+  return groups;
+}
+
+/** Vrai si la fondamentale du chiffrage n'a ni dièse ni bémol — « Dm7 », pas « F#m7 ». */
+export function estAccordNaturel(accord: string): boolean {
+  return /^[A-G](?![#b♯♭])/.test(accord);
+}
+
+/** Identifiants de motif considérés comme les gammes les plus utiles en choro. */
+const MOTIFS_GAMMES_COURANTES = new Set(['gamme-majeure', 'gamme-mineure']);
+
+export interface TechniquePresetSetlist {
+  id: string;
+  name: string;
+  exerciceIds: string[];
+}
+
+/**
+ * Setlists de technique suggérées par défaut (#158) : les arpèges, et les
+ * gammes les plus courantes, dans les tonalités sans dièse ni bémol — un
+ * point de départ raisonnable avant d'élargir à d'autres tonalités. Une
+ * setlist dont le catalogue ne fournit aucune carte (ex. famille absente)
+ * n'est pas proposée.
+ */
+export function presetsTechnique(cartes: ExerciceCarte[]): TechniquePresetSetlist[] {
+  const presets: TechniquePresetSetlist[] = [
+    {
+      id: 'preset-arpeges-naturels',
+      name: 'Arpèges sans dièse ni bémol',
+      exerciceIds: cartes
+        .filter((carte) => carte.famille === 'Arpèges' && estAccordNaturel(carte.accord))
+        .map((carte) => carte.id),
+    },
+    {
+      id: 'preset-gammes-naturelles',
+      name: 'Gammes courantes sans dièse ni bémol',
+      exerciceIds: cartes
+        .filter(
+          (carte) =>
+            carte.famille === 'Gammes' &&
+            MOTIFS_GAMMES_COURANTES.has(carte.motifId) &&
+            estAccordNaturel(carte.accord),
+        )
+        .map((carte) => carte.id),
+    },
+  ];
+  return presets.filter((preset) => preset.exerciceIds.length > 0);
 }

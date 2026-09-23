@@ -1,0 +1,11 @@
+{
+  "reference": {
+    "file": "data/bionne-chiquinha-gonzaga/audio/reference.feeab4f9.opus",
+    "duration": 152.01,
+    "source_url": "https://www.youtube.com/watch?v=xPPxQfmeoyY",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 90.7
+  },
+  "playback": null
+}

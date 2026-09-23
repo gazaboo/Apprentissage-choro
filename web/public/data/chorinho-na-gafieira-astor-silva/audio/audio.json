@@ -1,0 +1,11 @@
+{
+  "reference": {
+    "file": "data/chorinho-na-gafieira-astor-silva/audio/reference.99790565.opus",
+    "duration": 250.61,
+    "source_url": "https://www.youtube.com/watch?v=EK2XbL_WRaY",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 129.2
+  },
+  "playback": null
+}

@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/araponga-luiz-gonzaga/audio/reference.94570d13.opus",
+    "duration": 171.04,
+    "source_url": "https://www.youtube.com/watch?v=m1L6q945Elc",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 120.2
+  },
+  "playback": {
+    "file": "data/araponga-luiz-gonzaga/audio/playback.987f1fad.opus",
+    "duration": 188.41,
+    "source_url": "https://www.youtube.com/watch?v=F5hQ7Xr00so",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 94.0
+  }
+}

@@ -1,6 +1,7 @@
 /** Modale d'édition d'une setlist : nom, ordre de passage, sélection.
  *
- * Montée depuis le tableau de bord (bouton ＋ « nouvelle » ou ✎ « modifier »).
+ * Montée depuis le menu de la pastille de setlist (« Nouvelle setlist », ou
+ * « Modifier » sur la ligne d'une setlist) ; la suppression se fait ici.
  * Une seule setlist est « active » à la fois ; créer une setlist l'active
  * aussitôt. Quand une setlist est active, le tableau de bord et la Session du
  * jour ne portent que sur ses morceaux — le SRS décide de l'ordre à l'intérieur.
@@ -12,9 +13,10 @@
 
 import { el, ui } from '../dom';
 import { chevronDown, chevronUp, trash } from '../icons';
-import { setActiveSetlist, upsertSetlist } from '../store';
+import { deleteSetlist, setActiveSetlist, upsertSetlist } from '../store';
 import type { Progress } from '../store';
 import type { Setlist, Song } from '../types';
+import { deleteControl, enterSaves } from './section-ui';
 
 export type SetlistTarget =
   | { mode: 'create' }
@@ -304,8 +306,8 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
       'div',
       {
         class:
-          'flex max-h-[85vh] w-full max-w-lg flex-col gap-4 rounded-2xl border ' +
-          'border-zinc-800 bg-zinc-900 p-5 shadow-2xl shadow-black/60',
+          'flex max-h-[85vh] w-full max-w-lg lg:max-w-3xl flex-col gap-4 rounded-2xl ' +
+          'border border-zinc-800 bg-zinc-900 p-5 shadow-2xl shadow-black/60',
       },
       el(
         'h2',
@@ -313,37 +315,66 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
         editing ? 'Modifier la setlist' : 'Nouvelle setlist',
       ),
       nameInput,
+      // Deux colonnes à partir de `lg` : sur laptop, autant profiter de la
+      // largeur pour voir l'ordre de passage et le choix des morceaux côte à
+      // côte plutôt qu'empilés (#63).
       el(
         'div',
-        { class: 'flex items-baseline justify-between gap-3' },
-        el('p', { class: ui.label }, 'Ordre de passage'),
-        countLabel,
-      ),
-      el(
-        'p',
-        { class: '-mt-1 text-xs text-zinc-500' },
-        'Glissez une ligne, ou utilisez ▲▼, pour fixer l’ordre du filage.',
+        { class: 'flex min-h-0 flex-1 flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-x-6' },
+        el(
+          'div',
+          { class: 'flex min-h-0 flex-col gap-2' },
+          el(
+            'div',
+            { class: 'flex items-baseline justify-between gap-3' },
+            el('p', { class: ui.label }, 'Ordre de passage'),
+            countLabel,
+          ),
+          el(
+            'p',
+            { class: 'text-xs text-zinc-500' },
+            'Glissez une ligne, ou utilisez ▲▼, pour fixer l’ordre du filage.',
+          ),
+          el(
+            'div',
+            {
+              class:
+                'max-h-52 lg:max-h-80 shrink-0 overflow-y-auto rounded-lg border ' +
+                'border-zinc-800 bg-zinc-900/60 p-2',
+            },
+            orderList,
+          ),
+        ),
+        el(
+          'div',
+          { class: 'flex min-h-0 flex-1 flex-col gap-2 lg:flex-none' },
+          el('p', { class: ui.label }, 'Tous les morceaux'),
+          el(
+            'div',
+            {
+              class:
+                'min-h-0 flex-1 lg:max-h-80 overflow-y-auto rounded-lg border ' +
+                'border-zinc-800 bg-zinc-900/60 p-2',
+            },
+            checklist,
+          ),
+        ),
       ),
       el(
         'div',
-        {
-          class:
-            'max-h-52 shrink-0 overflow-y-auto rounded-lg border border-zinc-800 ' +
-            'bg-zinc-900/60 p-2',
-        },
-        orderList,
+        { class: 'flex flex-wrap items-center justify-end gap-2' },
+        editing
+          ? deleteControl(
+              () => nameInput.value.trim() || editing.name,
+              () => {
+                deleteSetlist(progress, editing.id);
+                close();
+              },
+            )
+          : null,
+        cancelButton,
+        saveButton,
       ),
-      el('p', { class: ui.label }, 'Tous les morceaux'),
-      el(
-        'div',
-        {
-          class:
-            'min-h-0 flex-1 overflow-y-auto rounded-lg border border-zinc-800 ' +
-            'bg-zinc-900/60 p-2',
-        },
-        checklist,
-      ),
-      el('div', { class: 'flex justify-end gap-2' }, cancelButton, saveButton),
       liveRegion,
     ),
   );
@@ -360,7 +391,7 @@ export function openSetlistEditor(options: SetlistEditorOptions): () => void {
 
   function onKey(event: KeyboardEvent): void {
     if (event.key === 'Escape') close();
-    else if (event.key === 'Enter' && !event.isComposing) save();
+    else if (enterSaves(event)) save();
   }
 
   function save(): void {

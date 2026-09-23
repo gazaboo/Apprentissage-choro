@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/vibracoes-jacob-do-bandolim/audio/reference.e5465e18.opus",
+    "duration": 262.11,
+    "source_url": "https://www.youtube.com/watch?v=EzUn9fPk5n4&list=RDEzUn9fPk5n4&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 123.0
+  },
+  "playback": {
+    "file": "data/vibracoes-jacob-do-bandolim/audio/playback.3d180139.opus",
+    "duration": 277.51,
+    "source_url": "https://www.youtube.com/watch?v=eMyojG5dUdQ&list=RDeMyojG5dUdQ&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 120.2
+  }
+}

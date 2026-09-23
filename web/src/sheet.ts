@@ -5,8 +5,13 @@
  * d'en rendre deux copies. Les écouteurs et l'état visuel suivent donc le
  * déménagement sans qu'on ait à les recâbler.
  *
- * - ≥ 768 px : dock flottant arrondi en bas, centré, **tout sur une ligne**
- *   (lecture, frise, bascules, Réglages). Les réglages s'ouvrent dans un
+ * Le dock est `sticky` **dans le flux**, non `fixed` par-dessus : il pousse le
+ * contenu plutôt que de le recouvrir, si bien que la partition n'est jamais
+ * masquée et qu'aucune vue n'a de réserve de hauteur à maintenir à la main
+ * (#9, #137). C'est la disposition qu'employait déjà l'écran de filage.
+ *
+ * - ≥ 768 px : dock arrondi, centré, **tout sur une ligne** (lecture, frise,
+ *   bascules, Réglages). Le panneau Réglages s'ouvre dans un
  *   popover étroit et **déplaçable** : la partition reste visible à côté, si
  *   bien qu'on voit l'effet de chaque réglage au moment où on le touche, et
  *   l'on pousse le panneau là où il ne gêne pas. Ce seuil est volontairement
@@ -19,7 +24,7 @@
  *   où le mettre.
  */
 
-import { el, ui } from './dom';
+import { el, iconLabel, paintToggle, ui } from './dom';
 import type { Section } from './transport';
 
 const DESKTOP = '(min-width: 768px)';
@@ -36,15 +41,66 @@ export interface ControlBarOptions {
 }
 
 export interface ControlBar {
-  /** À insérer dans le document ; se positionne lui-même en `fixed`. */
+  /** À insérer dans le document ; `sticky`, dernier de sa colonne. */
   root: HTMLElement;
+  /**
+   * Bouton qui ouvre le panneau, à placer où la vue veut. Il vivait dans le
+   * dock, puis dans la barre du haut (#137) ; celle-ci ouvre désormais le
+   * panneau par `open()`, depuis ses menus (#153). Le panneau, lui, ne bouge
+   * pas.
+   */
+  opener: HTMLElement;
+  /** Ouvre le panneau depuis ailleurs que l'ouvreur : un lien de menu, par
+   *  exemple, quand la vue n'affiche pas l'ouvreur lui-même (#153). */
+  open: () => void;
   destroy: () => void;
+}
+
+/**
+ * Coquille visuelle du dock : hauteur, fond, arrondi, marge de sécurité, et
+ * sa place dans le flux. Elle **ignore** les commandes qu'on y range.
+ *
+ * C'est elle, le « modèle unique de dock » que demande #137. Plutôt qu'un
+ * composant configurable couvrant à la fois l'entraînement (boucle A-B,
+ * tonalité, sections Réglages) et le filage (morceau suivant, cycle de vue,
+ * décompte), qui aurait fini en soupe d'options, chaque page compose ses
+ * propres commandes dans une coquille commune — même démarche que
+ * `renderRateStepper`, partagé entre les deux depuis longtemps.
+ *
+ * `sticky` et non `fixed` : le dock appartient au flux et pousse le contenu
+ * au lieu de flotter par-dessus (#9, #137).
+ */
+export function dockShell(...rows: (HTMLElement | null)[]): HTMLElement {
+  const dock = el(
+    'div',
+    {
+      class:
+        'transport-shell dock-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
+        'flex-col gap-2 p-2 max-md:px-3 max-md:pb-1.5 max-md:pt-0.5',
+    },
+    ...rows.filter((row): row is HTMLElement => row !== null),
+  );
+  return el(
+    'div',
+    {
+      class:
+        // Bord à bord sous 768 px : la marge de page (`px-4`) et la carte
+        // prenaient 50 px à la piste sur 375 (#153).
+        'pointer-events-none sticky bottom-0 z-30 mt-auto shrink-0 max-md:-mx-4 ' +
+        '[padding-bottom:env(safe-area-inset-bottom)]',
+    },
+    dock,
+  );
 }
 
 function sectionBlock(section: Section): HTMLElement {
   return el(
     'section',
-    { class: 'flex min-w-0 flex-col gap-3 py-5 first:pt-0 last:pb-0' },
+    {
+      class:
+        'flex min-w-0 flex-col gap-3 py-5 first:pt-0 last:pb-0' +
+        (section.mobileOnly ? ' md:hidden' : ''),
+    },
     el('h3', { class: 'text-sm font-semibold text-zinc-100' }, section.title),
     section.hint
       ? el('p', { class: '-mt-2 text-xs leading-snug text-zinc-500' }, section.hint)
@@ -110,58 +166,32 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   let isOpen = false;
   document.body.appendChild(overlay);
 
-  // Un seul bouton d'ouverture, deux tailles : libellé complet sur grand
-  // écran, icône seule dans le coin de la barre sur petit écran. Les deux
-  // vivent dans la barre — plus de bouton flottant qui se cogne au reste.
+  // Ouvreur unique, rendu à la vue plutôt que posé dans le dock. Le panneau
+  // porte désormais trois réglages (Défi, tonalité, mode d'affichage) plutôt
+  // que le seul Défi — l'icône ☰ dit « réglages », pas une action précise,
+  // d'où l'`aria-label` explicite (#150, #153).
   const toggle = el(
-    'button',
-    { type: 'button', class: `${ui.button} shrink-0`, 'aria-expanded': 'false' },
-    '\u2699\uFE0E Réglages',
-  );
-  // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
-  // l'emporterait sur un `hidden` posé sur le bouton lui-même.
-  const toggleSlot = el('div', { class: 'hidden shrink-0 md:block' }, toggle);
-
-  const miniToggle = el(
     'button',
     {
       type: 'button',
-      class: `${ui.icon} shrink-0 md:hidden`,
+      class: `${ui.button} shrink-0`,
       'aria-label': 'Ouvrir les réglages',
       'aria-expanded': 'false',
     },
-    '⚙︎',
+    iconLabel('☰', 'Réglages'),
   );
+  // Le masquage porte sur l'enveloppe : `ui.button` impose `inline-flex`, qui
+  // l'emporterait sur un `hidden` posé sur le bouton lui-même.
+  const toggleSlot = el('div', { class: 'shrink-0' }, toggle);
 
-  const dock = el(
-    'div',
-    {
-      class:
-        'transport-shell pointer-events-auto mx-auto flex w-full max-w-5xl ' +
-        'flex-col gap-3 p-2 md:p-3',
-    },
+  const root = dockShell(
     el(
       'div',
-      // Sur petit écran, l'engrenage s'aligne en bas, au niveau de la rangée
-      // de bascules ; sur grand écran, tout est sur une ligne.
-      { class: 'flex w-full items-end gap-2 md:items-center md:gap-3' },
+      { class: 'flex w-full items-end gap-2 md:items-center' },
       el('div', { class: 'min-w-0 flex-1' }, options.primary),
-      miniToggle,
-      toggleSlot,
     ),
   );
-
-  const root = el(
-    'div',
-    {
-      class:
-        'pointer-events-none fixed inset-x-0 bottom-0 z-30 px-2 md:px-4 ' +
-        '[padding-bottom:calc(env(safe-area-inset-bottom)+0.5rem)] ' +
-        'md:[padding-bottom:calc(env(safe-area-inset-bottom)+1.5rem)]',
-    },
-    dock,
-  );
-
+  const dock = root.firstElementChild as HTMLElement;
 
   const query = window.matchMedia(DESKTOP);
 
@@ -235,16 +265,11 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
     isOpen = open;
     overlay.style.display = open ? (query.matches ? 'block' : 'flex') : 'none';
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.className = `${open ? ui.buttonActive : ui.button} shrink-0`;
-    miniToggle.setAttribute('aria-expanded', String(open));
-    miniToggle.className =
-      `${open ? ui.iconActive : ui.icon} shrink-0 md:hidden` +
-      (blocks.length === 0 ? ' hidden' : '');
+    paintToggle(toggle, open, 'button', 'shrink-0');
     if (open) placePanel();
   }
 
   toggle.addEventListener('click', () => setOpen(!isOpen));
-  miniToggle.addEventListener('click', () => setOpen(!isOpen));
   closeButton.addEventListener('click', () => setOpen(false));
   // Un tap hors du panneau referme, mais seulement sur petit écran : sur
   // grand écran l'enveloppe ne couvre rien, et cliquer la partition pour
@@ -258,7 +283,7 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
   function layout(): void {
     const empty = blocks.length === 0;
     body.append(...blocks);
-    toggleSlot.classList.toggle('md:hidden', empty);
+    toggleSlot.classList.toggle('hidden', empty);
     if (query.matches) {
       overlay.className = 'fixed inset-0 z-40 pointer-events-none';
       panel.classList.add('rounded-2xl', 'fixed', 'max-h-[70vh]');
@@ -290,6 +315,8 @@ export function createControlBar(options: ControlBarOptions): ControlBar {
 
   return {
     root,
+    opener: toggleSlot,
+    open: () => setOpen(true),
     destroy: () => {
       query.removeEventListener('change', layout);
       window.removeEventListener('resize', onResize);

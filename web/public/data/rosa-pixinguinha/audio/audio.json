@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/rosa-pixinguinha/audio/reference.edc477ef.opus",
+    "duration": 293.01,
+    "source_url": "https://www.youtube.com/watch?v=zQ2ohMtNLl8",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 184.6
+  },
+  "playback": {
+    "file": "data/rosa-pixinguinha/audio/playback.08a08494.opus",
+    "duration": 226.71,
+    "source_url": "https://www.youtube.com/watch?v=GPpcaT7HDw0&list=RDGPpcaT7HDw0&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 95.7
+  }
+}

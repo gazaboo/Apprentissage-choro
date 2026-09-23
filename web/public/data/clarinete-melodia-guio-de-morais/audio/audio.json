@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/clarinete-melodia-guio-de-morais/audio/reference.9bff914a.opus",
+    "duration": 198.45,
+    "source_url": "https://www.youtube.com/watch?v=DePa_jnvWfE",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 107.7
+  },
+  "playback": {
+    "file": "data/clarinete-melodia-guio-de-morais/audio/playback.05057e53.opus",
+    "duration": 154.41,
+    "source_url": "https://www.youtube.com/watch?v=kNqY1VJxZoY",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 79.5
+  }
+}

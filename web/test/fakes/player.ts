@@ -1,4 +1,4 @@
-/** Double du `Player` de `src/youtube.ts` pour les tests de vues en jsdom.
+/** Double du `Player` de `src/audio.ts` pour les tests de vues en jsdom.
  *
  * `Player` porte des champs privés : structurellement, seule une vraie
  * instance lui est assignable. Le double est donc construit comme un objet
@@ -11,12 +11,16 @@
  * que l'original (retour en A au franchissement de B, `laps` incrémenté).
  */
 
-import type { Loop, Player, PlayerTick } from '../../src/youtube';
+import type { Loop, Player, PlayerFailure, PlayerTick } from '../../src/audio';
 
 const MIN_LOOP = 0.5;
 
 export interface FakePlayerControls {
   __setPlaying(playing: boolean): void;
+  /** Simule la fin du fichier : c'est elle qui déclenche l'enchaînement. */
+  __setEnded(ended: boolean): void;
+  /** Émet une panne de lecture vers les abonnés de `onFailure`. */
+  __fail(failure: PlayerFailure): void;
   __setDuration(duration: number): void;
   /** Simule un battement du ticker ; `at` déplace la position avant le calcul. */
   __tick(at?: number): void;
@@ -31,6 +35,8 @@ export function createFakePlayer(): Player & FakePlayerControls {
   let laps = 0;
   let rate = 1;
   const listeners = new Set<(tick: PlayerTick) => void>();
+  const failureListeners = new Set<(failure: PlayerFailure) => void>();
+  let ended = false;
 
   const clamp = (v: number): number => Math.max(0, duration ? Math.min(v, duration) : v);
   const getLoop = (): Loop => ({ ...loop });
@@ -42,14 +48,16 @@ export function createFakePlayer(): Player & FakePlayerControls {
       return true;
     },
 
-    load(_videoId: string, autoplay = false): void {
+    load(_src: string, autoplay = false, knownDuration?: number): void {
       loop = { a: null, b: null };
       laps = 0;
+      ended = false;
+      if (knownDuration !== undefined) duration = knownDuration;
       if (autoplay) playing = true;
     },
 
-    cue(videoId: string): void {
-      fake.load(videoId, false);
+    cue(src: string, knownDuration?: number): void {
+      fake.load(src, false, knownDuration);
     },
 
     play(): void {
@@ -64,8 +72,8 @@ export function createFakePlayer(): Player & FakePlayerControls {
       return playing;
     },
 
-    getPlayerState(): number {
-      return playing ? 1 : 2;
+    hasEnded(): boolean {
+      return ended;
     },
 
     togglePlay(): void {
@@ -87,6 +95,11 @@ export function createFakePlayer(): Player & FakePlayerControls {
     onTick(listener: (tick: PlayerTick) => void): () => void {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+
+    onFailure(listener: (failure: PlayerFailure) => void): () => void {
+      failureListeners.add(listener);
+      return () => failureListeners.delete(listener);
     },
 
     getLoop,
@@ -140,14 +153,22 @@ export function createFakePlayer(): Player & FakePlayerControls {
       return rate;
     },
 
-    clearCountdown(): void {},
-
     destroy(): void {
       listeners.clear();
+      failureListeners.clear();
     },
 
     __setPlaying(value: boolean): void {
       playing = value;
+    },
+
+    __setEnded(value: boolean): void {
+      ended = value;
+      if (value) playing = false;
+    },
+
+    __fail(failure: PlayerFailure): void {
+      for (const listener of failureListeners) listener(failure);
     },
 
     __setDuration(value: number): void {

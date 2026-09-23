@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/vou-vivendo-pixinguinha/audio/reference.e4d8823a.opus",
+    "duration": 150.61,
+    "source_url": "https://www.youtube.com/watch?v=EgrCA6DhUdo",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 89.1
+  },
+  "playback": {
+    "file": "data/vou-vivendo-pixinguinha/audio/playback.077d1161.opus",
+    "duration": 185.11,
+    "source_url": "https://www.youtube.com/watch?v=dLRMFM_Q-FA",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 112.3
+  }
+}

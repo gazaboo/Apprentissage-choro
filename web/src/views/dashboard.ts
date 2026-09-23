@@ -1,45 +1,53 @@
-/** Tableau de bord : vue d'ensemble du répertoire, choix de setlist et séances.
+/** Page Répertoire : ce qu'on travaille aujourd'hui, puis tous les morceaux.
  *
- * La liste porte une décision par morceau — travailler ou non — assortie d'un
- * rappel discret de l'échéance (« Revoir dans 11 j »). Le détail des
- * transpositions reste sur la page du morceau : il n'aide pas à choisir.
+ * La carte « Aujourd'hui » nomme les morceaux prioritaires que la séance va
+ * proposer, avec l'exercice prévu pour chacun (avec ou sans partition). On
+ * y parle de priorité, jamais de retard : un apprenant qui revient après
+ * trois semaines retrouve la même petite dose, pas une dette à éponger.
+ *
+ * La liste, par ordre alphabétique, montre pour chaque morceau le parcours de
+ * ses dernières séances — partition, partition masquée, par cœur — plutôt
+ * qu'une échéance.
  */
 
 import { el, ui } from '../dom';
-import { pencil, plus, trash } from '../icons';
-import { pickSessionItems } from '../session';
-import { daysOverdue, MASTERY_LEVELS, masteryLevel, statusOf } from '../srs';
+import { parcours, PARCOURS_LONGUEUR, type ParcoursCase } from '../parcours';
+import { pickSessionItems, type SessionItem } from '../session';
+import { recommendedMode } from '../srs';
 import type { Progress } from '../store';
-import { activeSetlist, deleteSetlist, getCard, setActiveSetlist } from '../store';
-import { accountMode, getSyncCode } from '../sync';
+import { activeSetlist, getCard, setActiveSetlist } from '../store';
 import type { SessionRun, Song } from '../types';
 import { INSTRUMENT_SHORT_LABELS } from '../types';
+import {
+  historyBlock,
+  modeBadge,
+  priorityCard,
+  scopePicker,
+  sectionHeader,
+  sectionLayout,
+  sectionSubtitle,
+  shortDate,
+} from './section-ui';
 import { openSetlistEditor } from './setlists';
-
-/** Les trois états SRS se ramènent à une seule décision pour l'utilisateur. */
-type Badge = 'a-travailler' | 'a-jour';
-
-const BADGE_LABELS: Record<Badge, string> = {
-  'a-travailler': 'À travailler',
-  'a-jour': 'À jour',
-};
 
 export interface DashboardContext {
   progress: Progress;
   openSong: (songId: string) => void;
-  openAccount: () => void;
-  openAbout: () => void;
-  startSession: (kind: 'deep' | 'urgent') => void;
+  /**
+   * `items` : les morceaux prioritaires affichés dans la carte, pour que la
+   * séance lancée soit exactement celle annoncée (le tirage départage les
+   * égalités au hasard, il ne doit pas être refait au clic).
+   */
+  startSession: (kind: 'deep' | 'urgent', items?: SessionItem[]) => void;
   startFilage: () => void;
-  /** `null` quand le catalogue d'arpèges est absent : la section disparaît. */
-  openTechnique: (() => void) | null;
-  /** Nombre d'exercices que proposerait une séance lancée maintenant. */
-  techniqueCount: number;
 }
+
+/** Nombre de morceaux d'une séance ciblée — le même que `startSession`. */
+const PRIORITY_COUNT = 3;
 
 const RUN_KIND_LABELS: Record<SessionRun['kind'], string> = {
   deep: 'travail de fond',
-  urgent: 'révision des urgences',
+  urgent: 'morceaux prioritaires',
   filage: 'filage',
   technique: 'arpèges et gammes',
 };
@@ -49,55 +57,18 @@ function runSummary(run: SessionRun): string {
     run.kind === 'filage' && run.instrumentId
       ? `filage ${INSTRUMENT_SHORT_LABELS[run.instrumentId]}`
       : RUN_KIND_LABELS[run.kind];
-  const count =
-    run.kind === 'technique'
-      ? `${run.songCount} exercice${run.songCount > 1 ? 's' : ''}`
-      : `${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
-  return `${run.setlistName} · ${kind} · ${count}`;
+  return `${run.setlistName} · ${kind} · ${run.songCount} morceau${run.songCount > 1 ? 'x' : ''}`;
 }
 
-/**
- * Un morceau est « à jour » dès qu'une de ses transpositions l'est, et qu'aucune
- * n'est en retard.
- *
- * Exiger que toutes le soient reviendrait à ne jamais basculer le badge : les
- * morceaux ont trois transpositions et l'on n'en travaille qu'une, si bien que
- * les deux autres resteraient éternellement « jamais travaillées ».
- */
-function songBadge(song: Song, progress: Progress): Badge {
-  const statuses = song.instruments.map((instrument) =>
-    statusOf(getCard(progress, song.id, instrument.id)),
-  );
-  if (statuses.includes('a-reviser')) return 'a-travailler';
-  return statuses.includes('a-jour') ? 'a-jour' : 'a-travailler';
+function songCards(song: Song, progress: Progress) {
+  return song.instruments.map((instrument) => getCard(progress, song.id, instrument.id));
 }
 
-/**
- * Niveau de maîtrise du morceau : celui de la transposition la plus
- * travaillée. Comme pour `songBadge`, exiger un accord entre toutes les
- * transpositions laisserait les deux non travaillées tirer la jauge à 0.
- */
-function songMasteryLevel(song: Song, progress: Progress): number {
-  return Math.max(
-    0,
-    ...song.instruments.map((instrument) =>
-      masteryLevel(getCard(progress, song.id, instrument.id)),
-    ),
-  );
+function reviewCount(song: Song, progress: Progress): number {
+  return songCards(song, progress).reduce((total, card) => total + (card?.history.length ?? 0), 0);
 }
 
-/** Échéance de révision du morceau, affichée discrètement dans la liste. */
-function dueLabel(song: Song, progress: Progress): string {
-  const cards = song.instruments
-    .map((instrument) => getCard(progress, song.id, instrument.id))
-    .filter((card) => card !== undefined);
-  if (cards.length === 0) return 'Jamais travaillé';
-
-  const overdue = Math.max(...cards.map((card) => daysOverdue(card)));
-  if (overdue > 0) return `En retard de ${overdue} j`;
-  if (overdue === 0) return "À réviser aujourd'hui";
-  return `Revoir dans ${-overdue} j`;
-}
+const byTitle = (a: Song, b: Song): number => a.title.localeCompare(b.title, 'fr');
 
 export function renderDashboard(
   root: HTMLElement,
@@ -105,13 +76,6 @@ export function renderDashboard(
   context: DashboardContext,
 ): () => void {
   const { progress } = context;
-
-  const list = el('div', { class: 'grid gap-2' });
-  const subtitle = el('p', { class: 'mt-1 text-sm text-zinc-400' });
-  const sessionSlot = el('section', {
-    class: 'rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-5',
-  });
-
   const songById = new Map(songs.map((song) => [song.id, song]));
 
   /** Vivier courant : la setlist active, ou tout le répertoire. */
@@ -120,582 +84,264 @@ export function renderDashboard(
     return set ? songs.filter((song) => set.songIds.includes(song.id)) : songs;
   }
 
-  function paintHeader(): void {
-    const scoped = scopedSongs();
-    const due = scoped.filter(
-      (song) => songBadge(song, progress) === 'a-travailler',
-    ).length;
-    const set = activeSetlist(progress);
-    subtitle.textContent = set
-      ? `Setlist « ${set.name} » · ${scoped.length} morceaux · ${due} à travailler`
-      : `Tout le répertoire · ${scoped.length} morceaux · ${due} à travailler`;
-  }
-
-  // --- Sélecteur de setlist + aperçu ------------------------------------
-
-  let previewExpanded = false;
-  /** `true` quand la suppression de la setlist active attend confirmation. */
-  let confirmingDelete = false;
-  /** Retire l'écouteur de fermeture au clic extérieur, s'il est posé. */
-  let closeDropdown: (() => void) | null = null;
-  /** Ferme la modale d'édition si elle est ouverte (teardown). */
-  let closeModal: (() => void) | null = null;
-
   /** Morceaux d'une setlist présents dans le manifeste courant. */
-  function knownSongs(set: ReturnType<typeof activeSetlist>): Song[] {
-    if (!set) return songs;
-    return set.songIds
+  function knownSongs(songIds: string[]): Song[] {
+    return songIds
       .map((id) => songById.get(id))
       .filter((song): song is Song => song !== undefined);
   }
 
-  /** Ligne de détail d'une option : « 8 morceaux · Titre · Titre · Titre ». */
-  function optionDetail(id: string): string {
-    if (!id) return `${songs.length} morceaux`;
-    const set = progress.setlists.find((entry) => entry.id === id) ?? null;
-    const known = knownSongs(set);
-    const count = `${known.length} morceau${known.length > 1 ? 'x' : ''}`;
-    const titles = known.slice(0, 3).map((song) => song.title);
-    return titles.length ? `${count} · ${titles.join(' · ')}` : count;
-  }
-
-  const dropTrigger = el(
-    'button',
-    {
-      type: 'button',
-      class:
-        'flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border ' +
-        'border-zinc-700 bg-zinc-800 px-3 text-left text-sm text-zinc-200 ' +
-        'hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
-      'aria-haspopup': 'listbox',
-      'aria-expanded': 'false',
-    },
-    el('span', { class: 'truncate' }),
-    el('span', { class: 'shrink-0 text-zinc-500' }, '▾'),
-  );
-
-  const dropList = el('div', {
-    class:
-      'absolute left-0 right-0 z-20 mt-1 hidden max-h-80 overflow-y-auto rounded-lg ' +
-      'border border-zinc-700 bg-zinc-900 py-1 shadow-xl shadow-black/50',
-    role: 'listbox',
-    'aria-label': 'Setlist travaillée',
-  });
-
-  function setDropdownOpen(open: boolean): void {
-    dropList.classList.toggle('hidden', !open);
-    dropTrigger.setAttribute('aria-expanded', String(open));
-    closeDropdown?.();
-    closeDropdown = null;
-    if (!open) return;
-    const onDocClick = (event: MouseEvent): void => {
-      if (!dropList.contains(event.target as Node) && event.target !== dropTrigger) {
-        setDropdownOpen(false);
-      }
-    };
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setDropdownOpen(false);
-    };
-    // Différé : le clic qui vient d'ouvrir ne doit pas refermer aussitôt.
-    setTimeout(() => document.addEventListener('click', onDocClick), 0);
-    document.addEventListener('keydown', onKey);
-    closeDropdown = () => {
-      document.removeEventListener('click', onDocClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }
-
-  /** Redessine tout ce qui dépend de la setlist active. */
-  function repaintScope(): void {
-    refreshDropdown();
-    paintActions();
-    paintPreview();
-    paintHeader();
-    paintList();
-    paintSessionCard();
-  }
-
-  function chooseSetlist(id: string): void {
-    setActiveSetlist(progress, id || null);
-    previewExpanded = false;
-    confirmingDelete = false;
-    setDropdownOpen(false);
-    repaintScope();
-  }
-
-  function refreshDropdown(): void {
-    const activeId = progress.activeSetlistId ?? '';
-    (dropTrigger.firstElementChild as HTMLElement).textContent =
-      activeId ? progress.setlists.find((e) => e.id === activeId)?.name ?? 'Setlist' : 'Tout le répertoire';
-
-    const entries: Array<{ id: string; name: string }> = [
-      { id: '', name: 'Tout le répertoire' },
-      ...progress.setlists.map((entry) => ({ id: entry.id, name: entry.name })),
-    ];
-    dropList.replaceChildren(
-      ...entries.map(({ id, name }) => {
-        const selected = id === activeId;
-        const option = el(
-          'button',
-          {
-            type: 'button',
-            role: 'option',
-            'aria-selected': String(selected),
-            class:
-              'flex w-full flex-col gap-0.5 px-3 py-2 text-left hover:bg-zinc-800 ' +
-              'focus:bg-zinc-800 focus:outline-none ' +
-              (selected ? 'bg-amber-400/10' : ''),
-          },
-          el(
-            'span',
-            { class: `text-sm ${selected ? 'font-medium text-amber-200' : 'text-zinc-200'}` },
-            name,
-          ),
-          el('span', { class: 'text-xs text-zinc-500' }, optionDetail(id)),
-        );
-        option.addEventListener('click', () => chooseSetlist(id));
-        return option;
-      }),
-    );
-  }
-
-  dropTrigger.addEventListener('click', () => {
-    setDropdownOpen(dropList.classList.contains('hidden'));
-  });
-
-  // --- Actions setlist : nouvelle / modifier / supprimer ---------------
+  const subtitle = sectionSubtitle();
+  const cardSlot = el('div');
+  const listSlot = el('section', { class: 'flex flex-col gap-1' });
+  const historyState = { expanded: false };
+  let closeModal: (() => void) | null = null;
 
   function openEditor(target: Parameters<typeof openSetlistEditor>[0]['target']): void {
-    setDropdownOpen(false);
-    confirmingDelete = false;
     closeModal = openSetlistEditor({
       songs,
       progress,
       target,
       onClose: () => {
         closeModal = null;
-        repaintScope();
+        repaint();
       },
     });
   }
 
-  const newButton = el(
-    'button',
-    { type: 'button', class: ui.icon, 'aria-label': 'Nouvelle setlist' },
-    plus(),
-  );
-  newButton.addEventListener('click', () => openEditor({ mode: 'create' }));
-
-  const editButton = el(
-    'button',
-    { type: 'button', class: ui.icon, 'aria-label': 'Modifier la setlist' },
-    pencil(),
-  );
-  editButton.addEventListener('click', () => {
-    const set = activeSetlist(progress);
-    if (set) openEditor({ mode: 'edit', setlist: set });
+  const picker = scopePicker({
+    label: 'Setlist travaillée',
+    createLabel: 'Nouvelle setlist',
+    options: () => [
+      { id: '', name: 'Tout le répertoire', detail: `${songs.length} morceaux` },
+      ...progress.setlists.map((set) => {
+        const known = knownSongs(set.songIds);
+        const count = `${known.length} morceau${known.length > 1 ? 'x' : ''}`;
+        const titles = known.slice(0, 3).map((song) => song.title);
+        return { id: set.id, name: set.name, detail: [count, ...titles].join(' · ') };
+      }),
+    ],
+    activeId: () => progress.activeSetlistId ?? '',
+    onChoose: (id) => {
+      setActiveSetlist(progress, id || null);
+      repaint();
+    },
+    onEdit: (id) => {
+      const set = progress.setlists.find((entry) => entry.id === id);
+      if (set) openEditor({ mode: 'edit', setlist: set });
+    },
+    onCreate: () => openEditor({ mode: 'create' }),
   });
 
-  const deleteButton = el(
-    'button',
-    { type: 'button', class: ui.icon, 'aria-label': 'Supprimer la setlist' },
-    trash(),
-  );
-  deleteButton.addEventListener('click', () => {
-    if (!activeSetlist(progress)) return;
-    confirmingDelete = true;
-    paintActions();
-  });
+  function paintHeader(scoped: Song[]): void {
+    const worked = scoped.filter((song) => reviewCount(song, progress) > 0).length;
+    subtitle.textContent =
+      `${scoped.length} morceau${scoped.length > 1 ? 'x' : ''} · ` +
+      `${worked} travaillé${worked > 1 ? 's' : ''}`;
+  }
 
-  const actionSlot = el('div', { class: 'flex shrink-0 items-center gap-2' });
-
-  function paintActions(): void {
+  function paintCard(scoped: Song[]): void {
     const set = activeSetlist(progress);
-    editButton.disabled = !set;
-    deleteButton.disabled = !set;
+    const items = scoped.length > 0 ? pickSessionItems(scoped, progress, PRIORITY_COUNT) : [];
 
-    if (confirmingDelete && set) {
-      const yes = el(
+    const start = el(
+      'button',
+      { type: 'button', class: ui.primary, disabled: items.length === 0 },
+      'Commencer la séance',
+    );
+    start.addEventListener('click', () => context.startSession('urgent', items));
+
+    // Sans setlist, on peut parcourir tout le répertoire ; avec une setlist,
+    // la seconde action est le filage — l'enchaîner comme en concert.
+    const secondary = set
+      ? el(
+          'button',
+          { type: 'button', class: ui.button, disabled: scoped.length === 0 },
+          'Filer toute la setlist',
+        )
+      : el(
+          'button',
+          { type: 'button', class: ui.button, disabled: scoped.length === 0 },
+          'Parcourir tout le répertoire',
+        );
+    secondary.addEventListener('click', () =>
+      set ? context.startFilage() : context.startSession('deep'),
+    );
+
+    const links: HTMLElement[] = [];
+    if (!set) {
+      const filage = el(
         'button',
         {
           type: 'button',
           class:
-            'inline-flex min-h-11 items-center justify-center rounded-lg border ' +
-            'border-rose-500/60 bg-rose-500/15 px-4 text-sm font-medium text-rose-200 ' +
-            'transition hover:bg-rose-500/25 focus:outline-none focus-visible:ring-2 ' +
-            'focus-visible:ring-rose-400',
+            'text-xs text-zinc-400 underline decoration-dotted underline-offset-4 ' +
+            'hover:text-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
         },
-        'Supprimer',
+        'Préparer un concert',
       );
-      yes.addEventListener('click', () => {
-        deleteSetlist(progress, set.id);
-        confirmingDelete = false;
-        repaintScope();
-      });
-      const no = el('button', { type: 'button', class: ui.button }, 'Annuler');
-      no.addEventListener('click', () => {
-        confirmingDelete = false;
-        paintActions();
-      });
-      actionSlot.replaceChildren(
-        el('span', { class: 'text-xs text-zinc-400' }, `Supprimer « ${set.name} » ?`),
-        yes,
-        no,
-      );
-    } else {
-      actionSlot.replaceChildren(newButton, editButton, deleteButton);
+      filage.addEventListener('click', () => context.startFilage());
+      links.push(filage);
     }
+    const runs = progress.sessions.filter((run) => run.kind !== 'technique');
+    const history = historyBlock(
+      runs
+        .slice(-10)
+        .reverse()
+        .map((run) => `${shortDate(run.date)} · ${runSummary(run)}`),
+      historyState,
+    );
+
+    cardSlot.replaceChildren(
+      priorityCard({
+        title: 'Morceaux prioritaires',
+        items: items.map(({ song, instrumentId }) => {
+          const card = getCard(progress, song.id, instrumentId);
+          return {
+            label: song.title,
+            fresh: !card || card.history.length === 0,
+            aside: modeBadge(recommendedMode(card) === 'sans'),
+          };
+        }),
+        empty: 'Cette setlist ne contient aucun morceau du répertoire actuel.',
+        actions: [start, secondary],
+        footer:
+          links.length > 0 || history
+            ? [
+                el(
+                  'div',
+                  { class: 'flex flex-wrap items-start justify-between gap-x-4 gap-y-2' },
+                  ...links,
+                  history ? el('div', { class: 'ml-auto flex flex-col' }, history) : null,
+                ),
+              ]
+            : [],
+      }),
+    );
   }
 
-  const previewSlot = el('div', { class: 'flex flex-col gap-1' });
-
-  /** Aperçu des morceaux de la setlist active, sous le sélecteur. */
-  function paintPreview(): void {
+  function paintList(scoped: Song[]): void {
     const set = activeSetlist(progress);
-    if (!set) {
-      previewSlot.replaceChildren();
-      return;
-    }
-    const known = knownSongs(set);
-    const missing = set.songIds.length - known.length;
-
-    if (known.length === 0) {
-      previewSlot.replaceChildren(
+    const heading = el(
+      'div',
+      { class: 'flex items-baseline justify-between' },
+      el('h2', { class: ui.label }, set ? 'Toute la setlist' : 'Tout le répertoire'),
+      el('span', { class: 'text-xs text-zinc-500' }, String(scoped.length)),
+    );
+    if (scoped.length === 0) {
+      listSlot.replaceChildren(
+        heading,
         el(
           'p',
-          { class: 'text-sm text-zinc-500' },
+          { class: 'py-3 text-sm text-zinc-500' },
           'Cette setlist ne contient aucun morceau du répertoire actuel.',
         ),
       );
       return;
     }
-
-    if (!previewExpanded) {
-      const line = el(
-        'p',
-        { class: 'text-sm text-zinc-400' },
-        known.slice(0, 5).map((song) => song.title).join(' · '),
-      );
-      const extra = known.length - 5;
-      if (extra <= 0 && missing <= 0) {
-        previewSlot.replaceChildren(line);
-        return;
-      }
-      const more = el(
-        'button',
-        { type: 'button', class: 'text-sm text-amber-300/80 hover:text-amber-200' },
-        extra > 0 ? `+ ${extra} autre${extra > 1 ? 's' : ''}` : 'voir la liste',
-      );
-      more.addEventListener('click', () => {
-        previewExpanded = true;
-        paintPreview();
-      });
-      previewSlot.replaceChildren(
-        el('div', { class: 'flex flex-wrap items-baseline gap-x-2 gap-y-1' }, line, more),
-      );
-      return;
-    }
-
-    const chips = known.map((song) => {
-      const chip = el(
-        'button',
-        {
-          type: 'button',
-          class:
-            'rounded-full border border-zinc-700 bg-zinc-800/70 px-2.5 py-1 text-xs ' +
-            'text-zinc-300 hover:border-zinc-500 hover:text-zinc-100',
-        },
-        song.title,
-      );
-      chip.addEventListener('click', () => context.openSong(song.id));
-      return chip;
-    });
-    const collapse = el(
-      'button',
-      { type: 'button', class: 'self-start text-sm text-amber-300/80 hover:text-amber-200' },
-      'réduire',
-    );
-    collapse.addEventListener('click', () => {
-      previewExpanded = false;
-      paintPreview();
-    });
-    previewSlot.replaceChildren(
-      el('div', { class: 'flex flex-wrap gap-1.5' }, ...chips),
-      ...(missing > 0
-        ? [
-            el(
-              'p',
-              { class: 'text-xs text-zinc-600' },
-              `${missing} morceau${missing > 1 ? 'x' : ''} introuvable${missing > 1 ? 's' : ''}`,
-            ),
-          ]
-        : []),
-      collapse,
+    const rows = [...scoped].sort(byTitle).map((song) => songRow(song, progress, context));
+    const anyTrail = scoped.some((song) => reviewCount(song, progress) > 0);
+    listSlot.replaceChildren(
+      heading,
+      el('div', { class: 'flex flex-col divide-y divide-zinc-800/80' }, ...rows),
+      ...(anyTrail ? [parcoursLegend()] : []),
     );
   }
 
-  const scopeRow = el(
-    'section',
-    { class: 'flex flex-col gap-2' },
-    el('p', { class: ui.label }, 'Setlist travaillée'),
-    el(
-      'div',
-      { class: 'flex flex-wrap items-start gap-2' },
-      el('div', { class: 'relative min-w-[12rem] flex-1' }, dropTrigger, dropList),
-      actionSlot,
-    ),
-    previewSlot,
-  );
-
-  // --- Session du jour -------------------------------------------------
-
-  let sessionsExpanded = false;
-
-  function paintSessionCard(): void {
-    const set = activeSetlist(progress);
-    const poolSize = scopedSongs().length;
-    const empty = poolSize === 0;
-    const urgentN = Math.min(3, poolSize);
-
-    const deepButton = el(
-      'button',
-      { type: 'button', class: ui.primary, disabled: empty },
-      set ? 'Travailler toute la setlist' : 'Parcourir tout le répertoire',
-    );
-    deepButton.addEventListener('click', () => context.startSession('deep'));
-
-    const urgentButton = el(
-      'button',
-      { type: 'button', class: ui.button, disabled: empty },
-      urgentN <= 1 ? 'Réviser le plus en retard' : `Réviser les ${urgentN} plus en retard`,
-    );
-    urgentButton.addEventListener('click', () => context.startSession('urgent'));
-
-    const filageButton = el(
-      'button',
-      { type: 'button', class: ui.button, disabled: empty },
-      'Préparer un filage',
-    );
-    filageButton.addEventListener('click', () => context.startFilage());
-
-    // Toutes les rangées ont le même gabarit : un libellé à largeur fixe, un
-    // espace horizontal franc (`sm:gap-x-4`), puis le contenu. Le libellé ne
-    // doit jamais revenir à la ligne ni mordre sur les boutons — d'où
-    // `whitespace-nowrap` et une colonne assez large pour « Technique ».
-    const sessionRow = (label: string, content: HTMLElement): HTMLElement =>
-      el(
-        'div',
-        { class: 'flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-x-4' },
-        el(
-          'span',
-          { class: `${ui.label} whitespace-nowrap sm:w-20 sm:shrink-0` },
-          label,
-        ),
-        content,
-      );
-
-    const rows: HTMLElement[] = [
-      el('h2', { class: 'text-lg font-semibold text-zinc-100' }, 'Session du jour'),
-      sessionRow(
-        'Travail',
-        el('div', { class: 'flex flex-wrap gap-2' }, deepButton, urgentButton),
-      ),
-      sessionRow(
-        'Filage',
-        el(
-          'div',
-          { class: 'flex flex-col gap-1' },
-          el('div', { class: 'flex flex-wrap gap-2' }, filageButton),
-          el(
-            'span',
-            { class: 'text-[11px] text-zinc-500' },
-            'La setlist enchaînée avec l’audio, décompte de 5 s entre les morceaux.',
-          ),
-        ),
-      ),
-    ];
-
-    // Les arpèges et gammes ne dépendent d'aucune setlist : la rangée vient
-    // après le répertoire, et disparaît si le catalogue est absent.
-    if (context.openTechnique) {
-      const techniqueButton = el(
-        'button',
-        { type: 'button', class: ui.button },
-        context.techniqueCount > 0 ? 'Commencer' : 'Voir les exercices',
-      );
-      techniqueButton.addEventListener('click', context.openTechnique);
-      rows.push(
-        sessionRow(
-          'Technique',
-          el(
-            'div',
-            { class: 'flex flex-col gap-1' },
-            el('div', { class: 'flex flex-wrap gap-2' }, techniqueButton),
-            el(
-              'span',
-              { class: 'text-[11px] text-zinc-500' },
-              'Arpèges et gammes au métronome, note à note, hors répertoire.',
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (progress.sessions.length > 0) {
-      const toggle = el(
-        'button',
-        { type: 'button', class: 'self-start text-sm text-amber-300/80 hover:text-amber-200' },
-        sessionsExpanded ? 'Masquer les dernières séances' : 'Voir les dernières séances',
-      );
-      toggle.addEventListener('click', () => {
-        sessionsExpanded = !sessionsExpanded;
-        paintSessionCard();
-      });
-      rows.push(toggle);
-
-      if (sessionsExpanded) {
-        const recent = [...progress.sessions].slice(-10).reverse();
-        rows.push(
-          el(
-            'ul',
-            { class: 'flex flex-col gap-1 text-sm text-zinc-400' },
-            ...recent.map((run) =>
-              el(
-                'li',
-                {},
-                `${new Date(run.date).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'short',
-                })} · ${runSummary(run)}`,
-              ),
-            ),
-          ),
-        );
-      }
-    }
-
-    sessionSlot.replaceChildren(el('div', { class: 'flex flex-col gap-3' }, ...rows));
+  function repaint(): void {
+    const scoped = scopedSongs();
+    picker.refresh();
+    paintHeader(scoped);
+    paintCard(scoped);
+    paintList(scoped);
   }
-
-  function paintList(): void {
-    const visible = scopedSongs();
-    list.replaceChildren(
-      ...(visible.length === 0
-        ? [
-            el(
-              'p',
-              { class: 'text-sm text-zinc-500' },
-              'Cette setlist ne contient aucun morceau du répertoire actuel.',
-            ),
-          ]
-        : visible.map((song) => songRow(song, progress, context))),
-    );
-  }
-
-  // Identité en haut à droite : l'identifiant connecté, ou « Anonyme ».
-  const identity = accountMode() === 'sync' ? getSyncCode() ?? 'Compte' : 'Anonyme';
-  const accountLink = el(
-    'button',
-    {
-      type: 'button',
-      class: `${ui.button} max-w-[11rem]`,
-      title: 'Compte et synchronisation',
-    },
-    el('span', { class: 'truncate' }, identity),
-  );
-  accountLink.addEventListener('click', context.openAccount);
-
-  const aboutLink = el(
-    'button',
-    { type: 'button', class: ui.button, title: 'Les principes de mémorisation de l’app' },
-    'Comment ça marche ?',
-  );
-  aboutLink.addEventListener('click', context.openAbout);
 
   root.replaceChildren(
-    el(
-      'div',
-      { class: 'mx-auto flex max-w-4xl flex-col gap-8 px-4 py-8' },
-
-      el(
-        'header',
-        { class: 'flex flex-wrap items-start justify-between gap-4' },
-        el(
-          'div',
-          {},
-          el('h1', { class: 'text-3xl font-semibold text-zinc-100' }, 'Répertoire de choros'),
-          subtitle,
-        ),
-        el('div', { class: 'flex flex-wrap gap-2' }, aboutLink, accountLink),
-      ),
-
-      scopeRow,
-      sessionSlot,
-
-      el('section', { class: 'flex flex-col gap-4' }, list),
-    ),
+    sectionLayout(sectionHeader('Répertoire', subtitle, picker.element), cardSlot, listSlot),
   );
+  repaint();
 
-  repaintScope();
   return () => {
-    closeDropdown?.();
+    picker.close();
     closeModal?.();
   };
 }
 
-/**
- * Jauge de maîtrise : `MASTERY_LEVELS` pastilles, remplies jusqu'au niveau
- * atteint. La couleur porte le statut « dû/pas dû » (`badge`), le nombre de
- * pastilles pleines porte la profondeur de travail déjà accompli — deux axes
- * indépendants qu'un simple badge à deux couleurs ne distinguait pas.
- *
- * Le décompte « N/5 » à côté des pastilles est ce qui rend la jauge lisible
- * sans le tooltip (issue #60) : les pastilles seules ne disaient pas sur
- * quelle échelle elles se lisaient.
- */
-function masteryGauge(level: number, badge: Badge): HTMLElement {
-  const filledClass = badge === 'a-jour' ? 'bg-emerald-400' : 'bg-amber-400';
-  const dots = Array.from({ length: MASTERY_LEVELS }, (_, i) =>
-    el('span', {
-      class: `h-2 w-2 rounded-full ${i < level ? filledClass : 'bg-zinc-700/60'}`,
-    }),
-  );
+// --- Parcours ---------------------------------------------------------------
+
+const CASE_STYLES: Record<ParcoursCase, string> = {
+  partition: 'border-[1.5px] border-zinc-500',
+  partiel: 'border-[1.5px] border-zinc-500 bg-zinc-500/50',
+  'par-coeur': 'bg-emerald-400',
+  'par-coeur-rate': 'border-[1.5px] border-rose-400',
+  inconnu: 'bg-zinc-700/70',
+};
+
+const CASE_LABELS: Record<ParcoursCase, string> = {
+  partition: 'avec partition',
+  partiel: 'partition masquée',
+  'par-coeur': 'par cœur',
+  'par-coeur-rate': 'par cœur, raté',
+  inconnu: 'séance ancienne',
+};
+
+function parcoursCell(kind: ParcoursCase): HTMLElement {
+  return el('span', {
+    class: `h-2.5 w-2.5 shrink-0 rounded-[3px] ${CASE_STYLES[kind]}`,
+    'data-parcours': kind,
+  });
+}
+
+/** Les `PARCOURS_LONGUEUR` dernières séances, les plus récentes à droite. */
+function parcoursTrail(cases: ParcoursCase[]): HTMLElement {
+  const parCoeur = cases.filter((kind) => kind === 'par-coeur').length;
   return el(
     'span',
     {
-      class: 'flex shrink-0 items-center gap-1.5',
-      title: `${BADGE_LABELS[badge]} · maîtrise ${level}/${MASTERY_LEVELS}`,
-      'aria-label': `${BADGE_LABELS[badge]}, maîtrise ${level} sur ${MASTERY_LEVELS}`,
+      class: 'flex shrink-0 items-center gap-[3px]',
+      role: 'img',
+      'aria-label':
+        `${cases.length} dernière${cases.length > 1 ? 's' : ''} séance${cases.length > 1 ? 's' : ''}` +
+        ` : ${parCoeur} par cœur réussie${parCoeur > 1 ? 's' : ''}`,
+      title: cases.map((kind) => CASE_LABELS[kind]).join(' · '),
     },
-    el('span', { class: 'flex items-center gap-1' }, ...dots),
-    el('span', { class: 'text-xs tabular-nums text-zinc-500' }, `${level}/${MASTERY_LEVELS}`),
+    ...cases.map(parcoursCell),
+  );
+}
+
+function parcoursLegend(): HTMLElement {
+  const shown: ParcoursCase[] = ['partition', 'partiel', 'par-coeur', 'par-coeur-rate'];
+  return el(
+    'p',
+    { class: 'flex flex-wrap gap-x-4 gap-y-1 pt-3 text-[11px] text-zinc-500' },
+    el('span', {}, `${PARCOURS_LONGUEUR} dernières séances :`),
+    ...shown.map((kind) =>
+      el('span', { class: 'flex items-center gap-1.5' }, parcoursCell(kind), CASE_LABELS[kind]),
+    ),
   );
 }
 
 function songRow(song: Song, progress: Progress, context: DashboardContext): HTMLElement {
-  const badge = songBadge(song, progress);
+  const count = reviewCount(song, progress);
+  const cases = parcours(songCards(song, progress));
+  const meta = [song.composer || 'Compositeur inconnu'];
+  if (count > 0) meta.push(`${count} séance${count > 1 ? 's' : ''}`);
+
   const row = el(
     'button',
     {
       type: 'button',
       class:
-        'flex w-full min-h-16 items-center justify-between gap-4 rounded-xl border ' +
-        'border-zinc-800 bg-zinc-900/50 px-4 py-3 text-left transition ' +
-        'hover:border-zinc-600 hover:bg-zinc-800/60 focus:outline-none ' +
-        'focus-visible:ring-2 focus-visible:ring-amber-400',
+        'flex min-h-14 w-full items-center justify-between gap-3 rounded-lg px-1 py-2.5 text-left ' +
+        'transition hover:bg-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
     },
     el(
       'span',
       { class: 'min-w-0' },
-      el('span', { class: 'block text-lg font-medium text-zinc-100' }, song.title),
-      el(
-        'span',
-        { class: 'block text-sm text-zinc-400' },
-        song.composer || 'Compositeur inconnu',
-      ),
-      el('span', { class: 'block text-xs text-zinc-600' }, dueLabel(song, progress)),
+      el('span', { class: 'block truncate text-base font-medium text-zinc-100' }, song.title),
+      el('span', { class: 'block truncate text-xs text-zinc-500' }, meta.join(' · ')),
     ),
-    masteryGauge(songMasteryLevel(song, progress), badge),
+    cases.length > 0 ? parcoursTrail(cases) : null,
   );
   row.addEventListener('click', () => context.openSong(song.id));
   return row;

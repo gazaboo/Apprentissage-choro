@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/o-bom-filho-a-casa-torna-bonfiglio-de-oliveira/audio/reference.4af942b5.opus",
+    "duration": 234.51,
+    "source_url": "https://www.youtube.com/watch?v=6Uk8cyyP2Sg&list=RD6Uk8cyyP2Sg&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 90.7
+  },
+  "playback": {
+    "file": "data/o-bom-filho-a-casa-torna-bonfiglio-de-oliveira/audio/playback.8e4ac816.opus",
+    "duration": 197.01,
+    "source_url": "https://www.youtube.com/watch?v=ISY6gehIlD4&list=RDISY6gehIlD4&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 90.7
+  }
+}

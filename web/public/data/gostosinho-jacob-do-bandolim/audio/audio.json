@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/gostosinho-jacob-do-bandolim/audio/reference.28966996.opus",
+    "duration": 141.71,
+    "source_url": "https://www.youtube.com/watch?v=3kMsDK7XneM",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 123.0
+  },
+  "playback": {
+    "file": "data/gostosinho-jacob-do-bandolim/audio/playback.a5d1a5eb.opus",
+    "duration": 175.02,
+    "source_url": "https://www.youtube.com/watch?v=wtWr8ZohC7Q",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 112.3
+  }
+}

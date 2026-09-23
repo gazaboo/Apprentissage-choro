@@ -1,9 +1,37 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderFilageConfig, type FilageConfigContext } from './filage-config';
+import type { Progress } from '../store';
+
+function baseProgress(overrides: Partial<Progress['settings']> = {}): Progress {
+  return {
+    cards: {},
+    setlists: [],
+    activeSetlistId: null,
+    techniqueSetlists: [],
+    activeTechniqueSetlistId: null,
+    techniquePresetsSeeded: false,
+    sessions: [],
+    _rev: 0,
+    settings: {
+      blockMinutes: 5,
+      display: 'partition',
+      studyMode: 'mesures',
+      maskLevel: 50,
+      maskSeed: 1,
+      eclipseIntensity: 'moyennes',
+      instrumentDefault: 'c',
+      contrechant: 'sans',
+      panel: null,
+      fullpage: { zoom: 1, twoColumns: true, playerHidden: false },
+      ...overrides,
+    },
+  };
+}
 
 function mount(overrides: Partial<FilageConfigContext> = {}) {
   const root = document.createElement('div');
   const context: FilageConfigContext = {
+    progress: baseProgress(),
     setlistName: 'Concert du 12',
     songCount: 5,
     navigateHome: vi.fn(),

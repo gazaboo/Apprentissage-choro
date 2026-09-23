@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/rio-antigo-altamiro-carrilho/audio/reference.69fe1768.opus",
+    "duration": 152.28,
+    "source_url": "https://www.youtube.com/watch?v=CtJkhUeEqQY",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 103.4
+  },
+  "playback": {
+    "file": "data/rio-antigo-altamiro-carrilho/audio/playback.74e70b96.opus",
+    "duration": 157.11,
+    "source_url": "https://www.youtube.com/watch?v=PUXtBJ7Vjgc",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 90.7
+  }
+}

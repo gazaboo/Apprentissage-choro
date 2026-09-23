@@ -1,0 +1,11 @@
+{
+  "reference": {
+    "file": "data/tamoyo-chiquinha-gonzaga/audio/reference.323df8d0.opus",
+    "duration": 175.51,
+    "source_url": "https://www.youtube.com/watch?v=xAFvJ8W94M8",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 114.8
+  },
+  "playback": null
+}

@@ -14,7 +14,9 @@ describe('askSrs', () => {
     expect(dialog.textContent).toContain('Carinhoso');
     // 0 indice sur 10 mesures masquées → note suggérée 5 (voir suggestGrade).
     const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]');
-    expect(five?.className).toContain('amber');
+    // `data-state` plutôt que la couleur : « contient amber » matcherait de
+    // toute façon l'anneau de focus, que portent aussi les boutons inactifs.
+    expect(five?.getAttribute('data-state')).toBe('on');
 
     const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
     skip.click();
@@ -92,5 +94,25 @@ describe('askSrs', () => {
     const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
     expect(dialog.querySelector('.max-h-40')).toBeNull();
     expect(dialog.textContent).toContain('1 indice déclenché sur 10 mesures masquées.');
+  });
+
+  it('`maxSuggested` plafonne la présélection sans retirer les autres notes (#109)', async () => {
+    // 0 indice sur 10 mesures masquées suggérerait normalement 5 (voir test
+    // ci-dessus) : la partition rouverte via l'écran Consigne ne doit pas
+    // pousser vers cette note-là.
+    const promise = askSrs('Carinhoso', 'Ut', 0, 10, undefined, undefined, 3);
+    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
+    // `data-state` et non la classe de couleur : c'est la présélection qu'on
+    // vérifie, pas la palette qui l'exprime (#137).
+    const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
+    expect(three?.getAttribute('data-state')).toBe('on');
+    const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
+    expect(five.dataset.state).toBe('off');
+
+    // Le plafond ne bloque que la présélection : l'utilisateur choisit encore 5 à la main.
+    five.click();
+    const validate = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Enregistrer')!;
+    validate.click();
+    await expect(promise).resolves.toMatchObject({ grade: 5 });
   });
 });

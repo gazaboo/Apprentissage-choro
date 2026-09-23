@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/os-cinco-companheiros-pixinguinha/audio/reference.8dde4b65.opus",
+    "duration": 170.02,
+    "source_url": "https://www.youtube.com/watch?v=i35h-J8KwIQ&list=RDi35h-J8KwIQ&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 123.0
+  },
+  "playback": {
+    "file": "data/os-cinco-companheiros-pixinguinha/audio/playback.4bd55c90.opus",
+    "duration": 173.11,
+    "source_url": "https://www.youtube.com/watch?v=ThJwcl_48h8&list=RDThJwcl_48h8&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 123.0
+  }
+}

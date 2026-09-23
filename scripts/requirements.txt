@@ -2,3 +2,9 @@ PyMuPDF>=1.24
 opencv-python>=4.9
 numpy>=1.26
 Pillow>=10.2
+# Téléchargement des sources audio (fetch_audio.py).
+# ffmpeg/ffprobe sont attendus dans le PATH, eux ne s'installent pas par pip.
+yt-dlp>=2024.1
+
+# Détection du tempo des bandes audio (detect_bpm.py, #111).
+librosa>=0.10

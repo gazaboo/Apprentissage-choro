@@ -1,20 +1,25 @@
-/** Séance d'arpèges et de gammes : un chiffrage, un métronome, rien d'autre.
+/** Séance d'arpèges et de gammes : un chiffrage, une portée, un métronome.
  *
- * L'écran est volontairement nu. Ni portée, ni manche, ni tablature : le
- * chiffrage seul, en grand, et c'est au musicien de retrouver les notes — c'est
- * précisément ce qu'on cherche à acquérir. Les noms de notes existent, mais
- * comme **indice**, sur demande, et l'appui est compté comme il l'est pour la
- * partition à trous : il informe l'auto-évaluation.
+ * Le chiffrage reste le seul texte affiché en grand, et c'est au musicien de
+ * retrouver les notes — c'est précisément ce qu'on cherche à acquérir. La
+ * portée, dessous, ne montre d'abord que des **emplacements** : combien de
+ * notes, où l'on en est, où tourne le motif (montée et descente d'un
+ * aller-retour sont séparées d'un pointillé), et le degré attendu sous chaque
+ * note. Les têtes de note elles-mêmes sont un **indice**, sur demande, et
+ * l'appui est compté comme il l'est pour la partition à trous : il informe
+ * l'auto-évaluation.
  *
- * La rangée de pastilles sous le chiffrage tient le rôle d'une portée minimale.
- * Masquée, elle montre encore où l'on en est dans le motif ; révélée, elle
- * donne les noms. Dans les deux cas, la pastille courante suit l'horloge audio
- * — celle du métronome ou celle du bouton « Écouter », qui rejoue le motif à
- * la bonne hauteur —, non `Date.now()` : le surlignage ne dérive donc jamais
- * du son.
+ * La note allumée suit l'horloge audio — celle du métronome ou celle du
+ * bouton « Écouter », qui rejoue le motif à la bonne hauteur —, non
+ * `Date.now()` : le surlignage ne dérive donc jamais du son.
+ *
+ * Les commandes vivent dans un dock en bas d'écran, comme sur l'écran d'un
+ * morceau : tempo, évaluation au micro, métronome, puis « Noter et
+ * continuer », seule action en ambre plein.
  */
 
-import { el, ui } from '../dom';
+import { el, setState, ui } from '../dom';
+import * as icons from '../icons';
 import { Metronome, MAX_BPM, MIN_BPM, clampBpm, cycleOf } from '../metronome';
 import { SequencePlayer } from '../player';
 import type { Onset } from '../pitch';
@@ -25,7 +30,9 @@ import { getTechniqueCard, putTechniqueCard } from '../store';
 import type { ExerciceCarte } from '../technique/catalogue';
 import { DEFAULT_BPM, SENS_LABELS, dernierBpm } from '../technique/catalogue';
 import { detailLignes, meilleurDecalage, noter, resume } from '../technique/grader';
-import { nameFromMidi } from '../technique/theorie';
+import { mettreEnPortee, sommet, type MiseEnPortee } from '../technique/portee';
+import { chordRoot, degre, nameFromMidi, parseNote } from '../technique/theorie';
+import { dessinerPortee } from './portee';
 import { askSrs } from './srsModal';
 
 /** Pas des boutons de tempo — assez large pour se sentir, assez fin pour régler. */
@@ -80,7 +87,8 @@ export interface TechniqueContext {
   ordre: ExerciceCarte[];
   /** Consigne un exercice effectivement travaillé, pour le résumé de séance. */
   markWorked: (id: string) => void;
-  navigateHome: () => void;
+  /** Retour à la liste des exercices — pas à l'accueil, malgré le nom des autres écrans. */
+  navigateBack: () => void;
   onFinish: () => void;
 }
 
@@ -119,7 +127,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   let silenceTimer: number | null = null;
   /** Sur quelle note du motif on a réellement démarré ; voir `meilleurDecalage`. */
   let decalage = 0;
-  /** `true` entre l'appui sur « Écouter au micro » et la fin (notation auto ou annulation). */
+  /** `true` entre l'appui sur « Évaluation au micro » et la fin (notation auto ou annulation). */
   let evaluating = false;
   /** `true` tant que le décompte de préparation tourne (`onBeat` avec un index négatif). */
   let countingIn = false;
@@ -215,51 +223,140 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   // --- Nœuds --------------------------------------------------------------
 
-  const progressLabel = el('p', { class: ui.label });
-  const accordLabel = el('p', {
-    class: 'text-6xl font-semibold tracking-tight text-zinc-100 sm:text-7xl',
+  const progressLabel = el('p', {
+    class: 'text-xs font-semibold tracking-wide text-zinc-400',
   });
-  const sensLabel = el('p', { class: 'mt-2 text-sm uppercase tracking-widest text-zinc-500' });
+  /** Un segment par exercice : faits, en cours, à venir. */
+  const progressBar = el('div', {
+    class: 'flex w-32 gap-[3px] md:w-48',
+    'aria-hidden': 'true',
+  });
+  const accordLabel = el('p', {
+    class: 'text-7xl font-semibold leading-none tracking-tight text-zinc-100',
+  });
+  const sensLabel = el('p', {
+    class: 'text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500',
+  });
   // Décompte de préparation : prend temporairement la place du chiffrage,
   // bien visible, pour qu'il soit impossible de manquer le moment où
   // l'évaluation démarre réellement.
   const countdownLabel = el('p', {
-    class: 'hidden text-6xl font-semibold tracking-tight text-amber-300 sm:text-7xl',
+    class: 'hidden text-7xl font-semibold leading-none tracking-tight text-amber-300',
     'aria-live': 'assertive',
   });
-  const statusLabel = el('p', { class: 'text-xs text-zinc-600' });
-  // `w-max` + `mx-auto` : centré tant que ça tient, mais un motif trop long
-  // (gamme complète, aller-retour) déborde plutôt que de casser sur une
-  // ligne orpheline — `flex-wrap` isolait la dernière note sur une ligne à
-  // elle seule dès que la rangée dépassait la largeur de l'écran.
-  const notesRow = el('div', { class: 'mx-auto flex w-max flex-nowrap items-center gap-2' });
-  const workNote = el('p', { class: 'text-sm text-zinc-500 whitespace-pre-line' });
+  const statusLabel = el('p', {
+    class:
+      'rounded-full border border-zinc-700 px-2.5 py-1 text-[11px] font-semibold ' +
+      'uppercase tracking-wider text-zinc-400',
+  });
+  /**
+   * Hôte de la portée, redessinée à chaque changement (note allumée,
+   * verdict, révélation) : neuf notes au plus, le coût est nul. Le SVG y
+   * prend une largeur proportionnelle à la longueur du motif, voir
+   * `dessinerPortee`.
+   */
+  const porteeMount = el('div', { class: 'flex w-full justify-center' });
+  const workNote = el('p', { class: 'text-center text-sm text-zinc-400 whitespace-pre-line' });
 
   const bpmValue = el('span', {
-    class: 'min-w-[4.5rem] text-center font-mono text-3xl text-amber-300',
+    class: 'font-mono text-3xl font-semibold leading-none text-amber-300',
   });
   const bpmHint = el('p', { class: 'text-xs text-zinc-500' });
 
-  const minus = el('button', { type: 'button', class: ui.icon, 'aria-label': 'Moins vite' }, '−');
-  const plus = el('button', { type: 'button', class: ui.icon, 'aria-label': 'Plus vite' }, '+');
-  const playButton = el('button', { type: 'button', class: ui.primary }, 'Démarrer le métronome');
-  const revealButton = el('button', { type: 'button', class: ui.button }, 'Voir les notes');
-  const ecouterButton = el('button', { type: 'button', class: ui.button }, '▶ Écouter');
-  const boucleButton = el('button', { type: 'button', class: ui.chip }, '🔁 Boucle');
-  const finishButton = el('button', { type: 'button', class: ui.button }, 'Noter et continuer');
-  const stopButton = el('button', { type: 'button', class: ui.button }, 'Terminer la séance');
-  const backButton = el('button', { type: 'button', class: ui.button }, 'Retour');
-  const micButton = el('button', {
-    type: 'button',
-    class: ui.button,
-    'aria-pressed': 'false',
-  }, 'Écouter au micro');
+  const roundStep =
+    'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border ' +
+    'border-zinc-700 bg-zinc-800 text-zinc-200 transition hover:border-zinc-500 ' +
+    'hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'disabled:cursor-not-allowed disabled:opacity-40';
+  const minus = el('button', { type: 'button', class: roundStep, 'aria-label': 'Moins vite' }, icons.minus());
+  const plus = el('button', { type: 'button', class: roundStep, 'aria-label': 'Plus vite' }, icons.plus());
+
+  /**
+   * Bouton rond du dock, légendé dessous : le cercle porte l'icône, la
+   * légende dit l'action en un mot. Le bouton entier est la cible, légende
+   * comprise ; son nom accessible est l'`aria-label`, plus précis.
+   */
+  function dockButton(size: string): {
+    root: HTMLButtonElement;
+    disc: HTMLSpanElement;
+    caption: HTMLSpanElement;
+  } {
+    const disc = el('span', {
+      class: `inline-flex ${size} items-center justify-center rounded-full border transition`,
+    });
+    const caption = el('span', { class: 'text-[11px] font-medium leading-none' });
+    const root = el(
+      'button',
+      {
+        type: 'button',
+        class:
+          'group flex shrink-0 flex-col items-center gap-1.5 rounded-xl p-0.5 focus:outline-none ' +
+          'focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed ' +
+          'disabled:opacity-40',
+      },
+      disc,
+      caption,
+    );
+    return { root, disc, caption };
+  }
+
+  const play = dockButton('h-14 w-14');
+  const playButton = play.root;
+  const mic = dockButton('h-12 w-12');
+  const micButton = mic.root;
+  micButton.setAttribute('aria-pressed', 'false');
+
+  /** Pastille des bascules de l'exercice (voir les notes, écouter, boucle). */
+  const pill = (on: boolean, live: boolean, shape: string): string =>
+    'inline-flex min-h-11 items-center justify-center gap-2 border text-sm font-medium ' +
+    'transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
+    'disabled:cursor-not-allowed disabled:opacity-40 ' +
+    shape +
+    ' ' +
+    (on && live
+      ? 'border-amber-400/50 bg-amber-400/15 text-amber-200'
+      : on
+        ? 'border-zinc-300/70 bg-zinc-700 font-semibold text-white'
+        : 'border-zinc-800 bg-transparent text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900');
+
+  const revealButton = el(
+    'button',
+    { type: 'button', 'aria-pressed': 'false' },
+    icons.eye(),
+    el('span', {}, 'Voir les notes'),
+  );
+  const ecouterLabel = el('span', {}, 'Écouter');
+  const ecouterIcon = el('span', { class: 'inline-flex' }, icons.volume());
+  const ecouterButton = el('button', { type: 'button' }, ecouterIcon, ecouterLabel);
+  const boucleButton = el(
+    'button',
+    { type: 'button', 'aria-label': 'Boucle', 'aria-pressed': 'false' },
+    icons.repeat(),
+  );
+
+  const finishButton = el('button', { type: 'button', class: ui.primary }, 'Noter et continuer');
+  const textButton =
+    'inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-zinc-300 ' +
+    'transition hover:bg-zinc-900 hover:text-white focus:outline-none focus-visible:ring-2 ' +
+    'focus-visible:ring-amber-400';
+  const stopButton = el(
+    'button',
+    { type: 'button', class: textButton },
+    'Terminer',
+    el('span', { class: 'max-md:hidden' }, ' la séance'),
+  );
+  const backButton = el(
+    'button',
+    { type: 'button', class: `${textButton} min-w-11 justify-center md:pr-3` },
+    icons.chevronLeft(),
+    el('span', { class: 'max-md:sr-only' }, 'Retour'),
+  );
   // `aria-live` : le message d'état change sans que le bouton ne reprenne le
   // focus, il faut donc l'annoncer explicitement aux lecteurs d'écran.
-  const micHint = el('p', { class: 'text-xs text-zinc-500', 'aria-live': 'polite' });
+  const micHint = el('p', { class: 'text-center text-xs text-zinc-500', 'aria-live': 'polite' });
   /** Point animé : seul repère qui bouge en continu, preuve que l'écoute est active. */
-  const micStatusDot = el('span', { class: 'hidden h-2 w-2 rounded-full bg-amber-400 animate-pulse' });
-  const micStatusText = el('span', { class: 'hidden text-xs font-medium text-amber-300' }, 'Écoute en cours…');
+  const micStatusDot = el('span', { class: 'hidden h-2 w-2 rounded-full bg-rose-400 animate-pulse' });
+  const micStatusText = el('span', { class: 'hidden text-xs font-semibold text-rose-300' }, 'Écoute en cours…');
   /** VU-mètre minimal : la seule preuve continue que le micro capte du son. */
   const micLevelTrack = el(
     'div',
@@ -269,14 +366,29 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     class: 'h-full w-0 rounded-full bg-amber-400 transition-[width] duration-75',
   });
   micLevelTrack.append(micLevelFill);
+  const micStatusRow = el(
+    'div',
+    { class: 'hidden flex-wrap items-center justify-center gap-2' },
+    micStatusDot,
+    micStatusText,
+    micLevelTrack,
+  );
 
   // Test du micro : hors évaluation, pour lever le doute sur le matériel
   // (micro, distance, bruit ambiant) avant de s'engager dans 3 passes
   // chronométrées — sans quoi un mauvais score reste indécidable entre une
-  // erreur de jeu et une détection défaillante.
+  // erreur de jeu et une détection défaillante. Un simple lien du dock : on
+  // s'en sert une fois, pas à chaque exercice.
   const testMicButton = el(
     'button',
-    { type: 'button', class: ui.button, 'aria-pressed': 'false' },
+    {
+      type: 'button',
+      class:
+        'min-h-11 rounded text-xs text-zinc-400 max-md:-my-3 underline decoration-dotted underline-offset-4 ' +
+        'transition hover:text-zinc-200 focus:outline-none focus-visible:ring-2 ' +
+        'focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-40',
+      'aria-pressed': 'false',
+    },
     'Tester le micro',
   );
   const testHeardLabel = el('span', {
@@ -295,12 +407,12 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   testLevelTrack.append(testLevelFill);
   const testRow = el(
     'div',
-    { class: 'hidden flex-col gap-2' },
-    el('div', { class: 'flex flex-wrap items-center gap-3' }, testHeardLabel, testLevelTrack),
+    { class: 'hidden flex-col items-center gap-2', 'data-releve-micro': '' },
+    el('div', { class: 'flex flex-wrap items-center justify-center gap-3' }, testHeardLabel, testLevelTrack),
     testHistoryLabel,
     el(
       'p',
-      { class: 'text-xs text-zinc-500' },
+      { class: 'max-w-sm text-center text-xs text-zinc-500' },
       'Test libre : rien n’est chronométré ni noté. Jouez quelques notes et vérifiez '
         + 'qu’elles s’affichent à la bonne hauteur et à la bonne octave. L’écart en '
         + 'centièmes dit la justesse : s’il penche toujours du même côté, c’est la '
@@ -310,9 +422,22 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   // --- Peinture -----------------------------------------------------------
 
+  /** Mise en page de la carte courante et degrés de ses notes, recalculés à chaque carte. */
+  let mise: MiseEnPortee = mettreEnPortee([], []);
+  let degres: string[] = [];
+
   function paintCarte(): void {
     const current = carte();
-    progressLabel.textContent = `Technique — exercice ${index + 1} sur ${ordre.length}`;
+    progressLabel.textContent = `Exercice ${index + 1} sur ${ordre.length}`;
+    progressBar.replaceChildren(
+      ...ordre.map((_, position) =>
+        el('span', {
+          class:
+            'h-1 flex-1 rounded-full ' +
+            (position < index ? 'bg-amber-400' : position === index ? 'bg-amber-300/60' : 'bg-zinc-800'),
+        }),
+      ),
+    );
     accordLabel.textContent = current.accord;
     sensLabel.textContent = `${current.nom} · ${SENS_LABELS[current.sens]}`;
     workNote.textContent = current.noteDeTravail ?? '';
@@ -323,37 +448,19 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     statusLabel.textContent =
       status === 'jamais' ? 'Jamais travaillé' : status === 'a-reviser' ? 'À réviser' : 'À jour';
 
+    mise = mettreEnPortee(current.notes, current.midi, sommet(current.midi, current.sens));
+    const root = chordRoot(current.accord);
+    degres = current.notes.map((name) => {
+      const note = parseNote(name);
+      return note && root ? degre(note, root) : '';
+    });
+
     paintNotes();
   }
 
   function paintNotes(): void {
-    const current = carte();
-    notesRow.replaceChildren(
-      ...current.notes.map((name, position) => {
-        const active = position === lit;
-        const verdict = judged.get(position);
-        // L'anneau dit ce que le micro a entendu, le fond dit où l'on en est :
-        // les deux informations se superposent sans se cacher l'une l'autre.
-        const ring =
-          verdict === 'juste'
-            ? ' ring-1 ring-emerald-400/60'
-            : verdict === 'faux'
-              ? ' ring-1 ring-rose-400/60'
-              : active
-                ? ' ring-1 ring-amber-400/50'
-                : '';
-        return el(
-          'span',
-          {
-            class:
-              'inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg px-3 ' +
-              'font-mono text-lg transition ' +
-              (active ? 'bg-amber-400/20 text-amber-200' : 'bg-zinc-800/60 text-zinc-400') +
-              ring,
-          },
-          revealed ? name : '•',
-        );
-      }),
+    porteeMount.replaceChildren(
+      dessinerPortee(mise, { revelee: revealed, active: lit, verdicts: judged, degres }),
     );
   }
 
@@ -363,7 +470,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     countdownLabel.textContent = active ? String(remaining) : '';
     countdownLabel.classList.toggle('hidden', !active);
     accordLabel.classList.toggle('hidden', active);
-    sensLabel.classList.toggle('hidden', active);
+    sensLabel.classList.toggle('invisible', active);
   }
 
   function paintTempo(): void {
@@ -372,7 +479,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     plus.disabled = bpm >= MAX_BPM;
     const last = dernierBpm(getTechniqueCard(progress, carte().id));
     bpmHint.textContent =
-      last === null ? 'Jamais chronométré.' : `Dernière fois à ${last} BPM.`;
+      last === null ? 'Jamais chronométré' : `Dernière fois à ${last} BPM`;
   }
 
   /**
@@ -385,7 +492,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       : micTesting
         ? 'Arrêter le test'
         : 'Tester le micro';
-    testMicButton.className = micTesting ? ui.buttonActive : ui.button;
+    setState(testMicButton, micTesting);
     // Même micro physique, même règle d'exclusion que Play/Micro depuis #49 :
     // on ne teste pas pendant qu'une écoute ou une lecture tourne.
     testMicButton.disabled =
@@ -418,41 +525,64 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // les deux à la fois : `playRunning` ne reflète que le premier.
     const playRunning = metronome.running && !evaluating;
 
-    // Le métronome est l'action première tant qu'il est à l'arrêt ; une fois
-    // lancé, il s'efface au profit de « Terminer », qui devient la suite.
-    playButton.textContent = playRunning ? 'Arrêter le métronome' : 'Démarrer le métronome';
-    playButton.className = playRunning ? ui.buttonActive : ui.primary;
-    revealButton.className = revealed ? ui.buttonActive : ui.button;
+    // Ambre vivant quand il tourne (#137) ; au repos, une icône ambre sur
+    // fond neutre, pour laisser l'ambre plein à « Noter et continuer ».
+    play.disc.replaceChildren(playRunning ? icons.pause() : icons.play());
+    play.disc.className =
+      'inline-flex h-14 w-14 items-center justify-center rounded-full border transition ' +
+      (playRunning
+        ? 'border-amber-400 bg-amber-400 text-zinc-950 shadow-lg shadow-amber-400/20'
+        : 'border-amber-400/45 bg-zinc-800 text-amber-400 group-hover:bg-zinc-700');
+    play.caption.textContent = 'Métronome';
+    play.caption.className =
+      'text-[11px] font-medium leading-none ' + (playRunning ? 'text-amber-300' : 'text-zinc-400');
+    playButton.setAttribute('aria-label', playRunning ? 'Arrêter le métronome' : 'Démarrer le métronome');
+    setState(playButton, playRunning);
+
+    revealButton.className = pill(revealed, false, 'rounded-full px-4');
+    setState(revealButton, revealed);
+    revealButton.setAttribute('aria-pressed', String(revealed));
 
     // Écoute et métronome partagent le même surlignage : les lancer ensemble
-    // brouillerait la pastille allumée, donc l'un exclut l'autre.
+    // brouillerait la note allumée, donc l'un exclut l'autre.
     const ecouteEnCours = player?.playing ?? false;
-    ecouterButton.textContent = ecouteEnCours ? '❚❚ Arrêter l’écoute' : '▶ Écouter';
-    ecouterButton.className = ecouteEnCours ? ui.buttonActive : ui.button;
+    ecouterLabel.textContent = ecouteEnCours ? 'Arrêter l’écoute' : 'Écouter';
+    ecouterIcon.replaceChildren(ecouteEnCours ? icons.pause() : icons.volume());
+    ecouterButton.className = pill(ecouteEnCours, true, 'rounded-l-full border-r-0 pl-4 pr-3');
+    setState(ecouterButton, ecouteEnCours);
     // `evaluating` en plus de `metronome.running` : entre le dernier clic et
     // la notation, le métronome est déjà arrêté (voir `onBeat`) alors que
     // l'évaluation, elle, court toujours.
     ecouterButton.disabled = metronome.running || evaluating || micTesting || micTestActivating;
     playButton.disabled = ecouteEnCours || evaluating || micTesting || micTestActivating;
-    boucleButton.className = bouclerEcoute ? ui.chipActive : ui.chip;
+    boucleButton.className = pill(bouclerEcoute, true, 'w-12 rounded-r-full');
+    setState(boucleButton, bouclerEcoute);
+    boucleButton.setAttribute('aria-pressed', String(bouclerEcoute));
 
-    // L'évaluation se note elle-même après ses 3 passes : « Terminer et
-    // évaluer » n'a de sens que pour la pratique libre. `style.display`,
+    // L'évaluation se note elle-même après ses 3 passes : « Noter et
+    // continuer » n'a de sens que pour la pratique libre. `style.display`,
     // pas `classList` : `ui.primary`/`ui.button` posent `inline-flex`, qui
     // l'emporterait sur `.hidden` (même spécificité, déclarée après dans le
     // CSS généré par Tailwind).
-    finishButton.className = playRunning ? ui.button : ui.primary;
+    finishButton.className =
+      `${playRunning ? ui.button : ui.primary} min-h-12 w-full [grid-area:suite] md:w-auto md:px-8`;
     finishButton.style.display = evaluating ? 'none' : '';
 
     const listening = tracker?.listening ?? false;
-    micButton.textContent = micActivating
-      ? 'Activation du micro…'
-      : evaluating
-        ? 'Annuler l’évaluation'
-        : 'Écouter au micro';
-    // `ui.buttonActive` n'a pas de style désactivé : le réserver à l'écoute
-    // effective garde le bouton visiblement grisé pendant l'activation.
-    micButton.className = listening ? ui.buttonActive : ui.button;
+    mic.disc.replaceChildren(evaluating ? icons.x() : icons.mic());
+    mic.disc.className =
+      'inline-flex h-12 w-12 items-center justify-center rounded-full border transition ' +
+      (evaluating
+        ? 'border-rose-400/50 bg-rose-400/15 text-rose-300'
+        : 'border-zinc-700 bg-zinc-800 text-zinc-100 group-hover:bg-zinc-700');
+    mic.caption.textContent = micActivating ? 'Activation…' : evaluating ? 'Annuler' : 'Évaluer';
+    mic.caption.className =
+      'text-[11px] font-medium leading-none ' + (evaluating ? 'text-rose-300' : 'text-zinc-400');
+    micButton.setAttribute(
+      'aria-label',
+      micActivating ? 'Activation du micro…' : evaluating ? 'Annuler l’évaluation' : 'Évaluation au micro',
+    );
+    setState(micButton, listening);
     // Le métronome libre tourne déjà : le micro attend qu'il s'arrête plutôt
     // que de faire démarrer un second métronome par-dessus.
     micButton.disabled =
@@ -469,9 +599,16 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         ? `Passe ${currentPasse} / ${PASSES_REQUISES}`
         : 'Écoute en cours…';
     micLevelTrack.classList.toggle('hidden', !listening);
+    micStatusRow.classList.toggle('hidden', !listening);
+    micStatusRow.classList.toggle('flex', listening);
     if (!listening) micLevelFill.style.width = '0%';
 
-    micHint.textContent =
+    // L'explication de l'évaluation vit dans l'infobulle du bouton : l'écran
+    // ne parle que quand il y a quelque chose à dire.
+    const explication =
+      'Lance un compteur de 4 temps, puis évalue 3 passes complètes (notes et rythme).';
+    micButton.title = explication;
+    const message =
       micError ??
       (micActivating
         ? 'Autorisez le micro dans le navigateur pour continuer.'
@@ -481,11 +618,12 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
             : 'Notes et rythme sont évalués sur ces 3 passes. Un nouvel appui annule.'
           : playRunning
             ? 'Le métronome libre tourne déjà : arrêtez-le pour lancer l’évaluation.'
-            : 'Lance un compteur de 4 temps, puis évalue 3 passes complètes (notes et rythme).');
+            : null);
+    micHint.textContent = message ?? '';
+    micHint.classList.toggle('hidden', message === null);
     micHint.classList.toggle('text-rose-300', micError !== null || micSilence);
     micHint.classList.toggle('text-zinc-500', micError === null && !micSilence);
   }
-
   // --- Tempo et métronome -------------------------------------------------
 
   function setBpm(next: number): void {
@@ -562,6 +700,10 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   ecouterButton.addEventListener('click', () => void toggleEcouter());
   boucleButton.addEventListener('click', () => {
     bouclerEcoute = !bouclerEcoute;
+    // Une lecture déjà démarrée avec « Écouter » a capturé l'ancienne valeur
+    // au lancement ; sans ce réglage à chaud, activer Boucle en cours de
+    // route n'aurait d'effet qu'à la prochaine pression sur « Écouter ».
+    player?.setLoop(bouclerEcoute);
     paintTransport();
   });
 
@@ -803,6 +945,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     stopMetronome();
     stopEcouter();
     stopMicTest();
+    // Le minuteur d'alerte silence, armé par toggleMic(), continuerait sinon
+    // à courir et pourrait se déclencher sur l'exercice suivant.
+    clearSilenceTimer();
 
     // Une hauteur attendue par battue relevée : le motif se répète tant que le
     // métronome tourne, et l'on note tout ce qui a été joué. Le décalage est
@@ -890,74 +1035,133 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   finishButton.addEventListener('click', () => void finish());
   stopButton.addEventListener('click', () => void finish(true));
-  backButton.addEventListener('click', () => context.navigateHome());
+  backButton.addEventListener('click', () => context.navigateBack());
 
   // --- Assemblage ---------------------------------------------------------
+  //
+  // Coquille à trois bandes, comme l'écran d'entraînement : barre du haut,
+  // exercice au milieu (qui défile seul si l'écran est trop court), dock de
+  // transport en bas. Le dock ne recouvre donc jamais la portée.
+
+  const dock = el(
+    'div',
+    {
+      class:
+        'shrink-0 rounded-t-3xl border-t border-zinc-800 bg-zinc-900/80 px-4 pt-3 ' +
+        'pb-[calc(env(safe-area-inset-bottom)+1rem)] md:rounded-none md:px-8 md:py-4',
+    },
+    el(
+      'div',
+      {
+        // Mobile : l'info sur toute la largeur, puis tempo | transport, puis
+        // « Noter et continuer ». Au-delà de 768 px, une seule ligne.
+        class:
+          'mx-auto grid max-w-5xl grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 ' +
+          "[grid-template-areas:'info_info'_'tempo_transport'_'suite_suite'] " +
+          'md:grid-cols-[auto_1fr_auto_auto] md:gap-x-6 ' +
+          "md:[grid-template-areas:'tempo_info_transport_suite']",
+      },
+      el(
+        'div',
+        {
+          class:
+            'flex items-center justify-between gap-3 [grid-area:info] ' +
+            'md:flex-col md:items-start md:justify-center md:gap-0',
+        },
+        bpmHint,
+        testMicButton,
+      ),
+      el(
+        'div',
+        { class: 'flex items-center gap-1 [grid-area:tempo]' },
+        minus,
+        el(
+          'div',
+          { class: 'flex min-w-[4.5rem] flex-col items-center gap-1' },
+          bpmValue,
+          el('span', { class: 'text-[10px] font-semibold tracking-[0.12em] text-zinc-500' }, 'BPM'),
+        ),
+        plus,
+      ),
+      el(
+        'div',
+        { class: 'flex items-end gap-4 [grid-area:transport]' },
+        micButton,
+        playButton,
+      ),
+      finishButton,
+    ),
+  );
 
   root.replaceChildren(
     el(
       'div',
-      { class: 'mx-auto flex max-w-2xl flex-col gap-8 px-4 py-8' },
+      { class: 'flex h-dvh flex-col bg-zinc-950' },
 
       el(
         'header',
-        { class: 'flex flex-wrap items-center justify-between gap-3' },
-        el('div', {}, progressLabel, statusLabel),
-        backButton,
+        {
+          class:
+            'grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 py-2 ' +
+            '[padding-top:calc(env(safe-area-inset-top)+0.5rem)] md:px-6 md:py-4',
+        },
+        el('div', { class: 'justify-self-start' }, backButton),
+        el(
+          'div',
+          { class: 'flex flex-col items-center gap-1.5' },
+          progressLabel,
+          progressBar,
+        ),
+        el('div', { class: 'justify-self-end' }, stopButton),
       ),
 
       el(
-        'section',
-        { class: 'flex flex-col items-center rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-10' },
-        accordLabel,
-        countdownLabel,
-        sensLabel,
-        el('div', { class: 'mt-8 w-full overflow-x-auto' }, notesRow),
+        'main',
+        { class: 'min-h-0 flex-1 overflow-y-auto' },
         el(
           'div',
-          { class: 'mt-4 flex flex-wrap items-center justify-center gap-2' },
-          revealButton,
-          ecouterButton,
-          boucleButton,
+          {
+            class:
+              // Aligné en haut, pas centré : les messages du micro apparaissent
+              // et disparaissent sous les boutons, et un contenu centré ferait
+              // alors glisser la portée pendant qu'on la lit.
+              'mx-auto flex max-w-3xl flex-col items-center gap-5 px-4 pb-4 ' +
+              'pt-[max(1rem,4vh)] md:gap-6 md:pb-6',
+          },
+          el(
+            'div',
+            { class: 'flex flex-col items-center gap-3 text-center' },
+            sensLabel,
+            accordLabel,
+            countdownLabel,
+            statusLabel,
+          ),
+          el(
+            'section',
+            {
+              class:
+                'w-full rounded-2xl border border-zinc-800 bg-zinc-900/60 px-1 py-4 ' +
+                'sm:px-4 md:px-8 md:py-5',
+              'aria-label': 'Motif',
+            },
+            porteeMount,
+          ),
+          workNote,
+          el(
+            'div',
+            { class: 'flex flex-wrap items-center justify-center gap-2' },
+            revealButton,
+            el('div', { class: 'flex' }, ecouterButton, boucleButton),
+          ),
+          micStatusRow,
+          micHint,
+          testRow,
         ),
-        el('div', { class: 'mt-6 text-center' }, workNote),
       ),
 
-      el(
-        'section',
-        { class: `${ui.card} flex flex-col gap-3` },
-        el('p', { class: ui.label }, 'Tempo'),
-        el(
-          'div',
-          { class: 'flex items-center gap-3' },
-          minus,
-          bpmValue,
-          plus,
-          el('span', { class: 'text-sm text-zinc-500' }, 'BPM'),
-        ),
-        bpmHint,
-        el(
-          'div',
-          { class: 'mt-1 flex flex-wrap items-center gap-2' },
-          playButton,
-          micButton,
-          testMicButton,
-        ),
-        el(
-          'div',
-          { class: 'flex flex-wrap items-center gap-2' },
-          micStatusDot,
-          micStatusText,
-          micLevelTrack,
-        ),
-        micHint,
-        testRow,
-      ),
-
-      el('div', { class: 'flex flex-wrap gap-2' }, finishButton, stopButton),
+      dock,
     ),
   );
-
   bpm = dernierBpm(getTechniqueCard(progress, carte().id)) ?? DEFAULT_BPM;
   paintCarte();
   paintTempo();

@@ -19,6 +19,16 @@ beforeEach(() => {
   });
 });
 
+// jsdom n'implémente pas la capture de pointeur, dont se servent tous les
+// gestes de glissement du dock (défilement `transport.ts`, tracé de la frise,
+// déplacement du panneau Défi `sheet.ts`). Sans ces doublures, le premier
+// `pointerdown` lève et le test échoue avant d'avoir rien vérifié.
+Element.prototype.setPointerCapture ??= function setPointerCapture(): void {};
+Element.prototype.releasePointerCapture ??= function releasePointerCapture(): void {};
+Element.prototype.hasPointerCapture ??= function hasPointerCapture(): boolean {
+  return false;
+};
+
 afterEach(() => {
   localStorage.clear();
   document.body.innerHTML = '';

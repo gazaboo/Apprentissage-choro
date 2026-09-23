@@ -13,7 +13,9 @@ export const INSTRUMENT_SHORT_LABELS: Record<InstrumentId, string> = {
   eb: 'Mi♭',
 };
 
-/** Libellés « tonalité » pour le choix de partition (écran de préparation du filage). */
+/** Libellés « tonalité » pour le choix de partition (écran de préparation du
+ *  filage, menu « Affichage » de l'entraînement). À ne pas confondre avec
+ *  `INSTRUMENT_SHORT_LABELS`, qui nomme le *rôle* tenu pendant un filage. */
 export const INSTRUMENT_KEY_LABELS: Record<InstrumentId, string> = {
   c: 'Ut / C',
   bb: 'Si♭ / B♭',
@@ -47,9 +49,25 @@ export interface Instrument {
   pages: Page[];
 }
 
+/** Partition Ut avec une deuxième voix (contre-chant). Pas une tonalité :
+ *  volontairement hors de `Song.instruments`, voir `Song.contraponto`. */
+export interface ContrapontoScore {
+  page_count: number;
+  measure_count: number;
+  pages: Page[];
+}
+
 export interface AudioSource {
-  url: string;
-  youtube_id: string;
+  /** Fichier Opus local, relatif à la racine du site (#18). */
+  file: string;
+  /** Durée en secondes, relevée à l'encodage — évite d'attendre les métadonnées
+   *  du fichier pour afficher une barre de défilement juste. */
+  duration: number;
+  /** URL d'origine du transcodage, conservée pour l'attribution. */
+  source_url: string;
+  /** Tempo détecté automatiquement (#111), indicatif — absent tant que
+   *  `scripts/detect_bpm.py` n'a pas tourné sur cette source. */
+  bpm?: number;
 }
 
 export interface Song {
@@ -57,11 +75,15 @@ export interface Song {
   title: string;
   composer: string;
   audio: {
-    /** `null` quand `url.md` est absent ou vide — l'UI doit le tolérer. */
+    /** `null` quand aucun fichier local n'existe : `url.md` absent ou vide,
+     *  ou source devenue introuvable à l'encodage. L'UI doit le tolérer. */
     reference: AudioSource | null;
     playback: AudioSource | null;
   };
   instruments: Instrument[];
+  /** Partition Ut avec contre-chant, si disponible (#80). `null` pour tout
+   *  morceau sans contraponto, ou pour toute tonalité autre que Ut en V1. */
+  contraponto: ContrapontoScore | null;
 }
 
 /** Quelle source audio le lecteur joue actuellement. */
@@ -212,6 +234,21 @@ export interface Setlist {
 }
 
 /**
+ * Sélection prioritaire d'exercices de technique (gammes, arpèges) — distincte
+ * de la `Setlist` du répertoire. Sert à restreindre le vivier sur lequel
+ * `pickExercices` choisit quoi travailler, sans imposer d'ordre : contrairement
+ * au filage, la technique n'a pas de notion de « passage » séquencé.
+ */
+export interface TechniqueSetlist {
+  id: string;
+  name: string;
+  /** Références `ExerciceCarte.id` (une carte par tonalité et par sens). */
+  exerciceIds: string[];
+  /** Date ISO de création, pour trier la liste. */
+  createdAt: string;
+}
+
+/**
  * Mode d'une séance :
  * - `'deep'`   : toute la setlist dans l'ordre SRS, sans minuteur ;
  * - `'urgent'` : les 3 plus en retard, entrelacé (blocs de 5 min) ;
@@ -259,6 +296,31 @@ export interface SrsReview {
   justesse?: number;
   /** Arpèges et gammes : part de notes tombées dans la fenêtre du clic (0–1). */
   placement?: number;
+  /**
+   * Morceaux : présentation de la partition pendant la révision (partition
+   * entière, masquée en partie, ou par cœur). Absent sur les révisions
+   * antérieures à son enregistrement — le parcours les montre alors neutres.
+   */
+  mode?: StudyMode;
+}
+
+/**
+ * État FSRS d'une carte — cache dérivé de `history`, reconstruit par rejeu
+ * s'il manque (voir `ensureFsrs` dans `srs.ts`). Les dates y sont en ISO
+ * jour (AAAA-MM-JJ), comme partout ailleurs dans `Progress`.
+ */
+export interface FsrsState {
+  stability: number;
+  difficulty: number;
+  /** 0 New, 1 Learning, 2 Review, 3 Relearning (valeurs de `State` de ts-fsrs). */
+  state: 0 | 1 | 2 | 3;
+  reps: number;
+  lapses: number;
+  learningSteps: number;
+  /** Date ISO (AAAA-MM-JJ) de la dernière révision, `null` si aucune encore. */
+  lastReview: string | null;
+  /** Intervalle rendu par FSRS, avant application du facteur d'aisance technique. */
+  scheduledDays: number;
 }
 
 export interface SrsCard {
@@ -268,4 +330,6 @@ export interface SrsCard {
   /** Date ISO (AAAA-MM-JJ) de la prochaine révision. */
   due: string;
   history: SrsReview[];
+  /** Absent tant qu'une carte SM-2 antérieure n'a pas été migrée (voir `ensureFsrs`). */
+  fsrs?: FsrsState;
 }

@@ -1,0 +1,18 @@
+{
+  "reference": {
+    "file": "data/cheguei-pixinguinha/audio/reference.2ca43e2c.opus",
+    "duration": 145.93,
+    "source_url": "https://www.youtube.com/watch?v=voY9-ROJUP8&list=RDvoY9-ROJUP8&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 107.7
+  },
+  "playback": {
+    "file": "data/cheguei-pixinguinha/audio/playback.3b751426.opus",
+    "duration": 179.21,
+    "source_url": "https://www.youtube.com/watch?v=FEH4Q4uQsUg&list=RDFEH4Q4uQsUg&start_radio=1",
+    "encoded_with": "opus48k-mono48000-v1+loudnorm",
+    "encoded_on": "2026-09-20",
+    "bpm": 90.7
+  }
+}

@@ -1,6 +1,6 @@
 /** Métronome Web Audio, pour le travail des arpèges et gammes.
  *
- * Les horloges du reste de l'application (`youtube.ts`, `eclipse.ts`) sont des
+ * Les horloges du reste de l'application (`audio.ts`, `eclipse.ts`) sont des
  * `setInterval` à 100 ms : suffisant pour repeindre un compteur, inutilisable
  * pour un clic. `setTimeout` dérive de plusieurs dizaines de millisecondes sous
  * charge, et l'irrégularité s'entend immédiatement.

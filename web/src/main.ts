@@ -17,31 +17,93 @@
 
 import './style.css';
 
+import { initAnalytics } from './analytics';
 import { el, ui } from './dom';
 import { buildRotation, pickSessionItems } from './session';
 import type { SessionBlock, SessionItem } from './session';
-import { activeSetlist, lastSession, loadProgress, recordSession } from './store';
+import {
+  activeSetlist,
+  activeTechniqueSetlist,
+  isDemoActive,
+  lastSession,
+  loadProgress,
+  recordSession,
+  saveProgress,
+  stopDemo,
+  upsertTechniqueSetlist,
+} from './store';
 import type { Progress } from './store';
-import { accountMode, initSync, syncNow } from './sync';
+import {
+  accountMode,
+  hasCompletedOnboarding,
+  initSync,
+  markOnboardingComplete,
+  syncNow,
+} from './sync';
 import type { ExerciceCarte } from './technique/catalogue';
-import { chargerCatalogue, pickExercices } from './technique/catalogue';
+import { chargerCatalogue, pickExercices, presetsTechnique } from './technique/catalogue';
 import type { AudioKind, InstrumentId, Song } from './types';
-import { Player } from './youtube';
+import { Player } from './audio';
 import { renderAbout } from './views/about';
 import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';
+import { renderDemo } from './views/demo';
 import { renderFilage } from './views/filage';
 import { renderFilageConfig } from './views/filage-config';
+import { renderOnboarding } from './views/onboarding';
 // L'édition des setlists est une modale ouverte depuis le tableau de bord,
 // plus une route dédiée.
 import { renderTechnique } from './views/technique';
 import { renderTechniqueListe } from './views/technique-liste';
+import { mountSectionShell, techniqueDueToday } from './views/nav';
+import type { Section } from './views/nav';
 import { renderTrainer } from './views/trainer';
+import { initPwaInstallCapture } from './pwaInstall';
 
 const MANIFEST_URL = 'data/manifest.json';
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Élément #app introuvable.');
+
+// Au plus tôt : `beforeinstallprompt` peut survenir avant que `#/compte`
+// (qui en a besoin) ne soit jamais monté.
+initPwaInstallCapture();
+
+// Bandeau de rappel permanent en mode démonstration (#109, outil de QA,
+// route cachée `#/demo`) — hors de `root` pour survivre à ses
+// `replaceChildren()` et rester visible sur tous les écrans tant que le
+// mode est actif. Sticky plutôt que fixe : aucun conflit de z-index avec les
+// voiles plein écran/éclipses de `trainer.ts`.
+const demoQuitButton = el(
+  'button',
+  { type: 'button', class: 'underline underline-offset-2' },
+  'Quitter',
+);
+const demoBanner = el(
+  'div',
+  {
+    class:
+      'sticky top-0 z-[60] hidden items-center justify-between gap-3 bg-amber-400 ' +
+      'px-4 py-2 text-sm font-medium text-zinc-950',
+  },
+  el(
+    'span',
+    {},
+    '🔧 Mode démonstration — données de test, sans effet sur ta progression réelle.',
+  ),
+  demoQuitButton,
+);
+demoQuitButton.addEventListener('click', () => {
+  stopDemo();
+  progress = loadProgress();
+  navigate('#/');
+});
+document.body.prepend(demoBanner);
+function paintDemoBanner(): void {
+  const active = isDemoActive();
+  demoBanner.classList.toggle('hidden', !active);
+  demoBanner.classList.toggle('flex', active);
+}
 
 const player = new Player();
 let progress: Progress = loadProgress();
@@ -93,6 +155,21 @@ function navigate(hash: string): void {
   else window.location.hash = hash;
 }
 
+/**
+ * Une activité est en cours sur ces routes (lecture, plein écran, exercice au
+ * métronome) : un rafraîchissement en arrière-plan n'a pas à démonter la vue,
+ * sous peine de couper l'audio ou de réinitialiser sa progression locale
+ * (#79, #81). L'utilisateur récupère l'état à jour à la prochaine navigation.
+ */
+function isLiveActivityRoute(hash: string): boolean {
+  return (
+    hash === '#/session' ||
+    hash === '#/technique/run' ||
+    hash === '#/filage/run' ||
+    /^#\/song\/(.+)$/.test(hash)
+  );
+}
+
 /** Item (morceau + instrument) du bloc courant d'une session. */
 function currentSessionItem(state: SessionState): SessionItem {
   return state.kind === 'urgent'
@@ -123,14 +200,16 @@ function recordCurrentRun(): void {
     });
   }
   if (technique && technique.worked.size > 0) {
-    // Les arpèges ne relèvent d'aucune setlist : le champ porte ici le nom de
-    // la section, pour que l'historique reste lisible d'une ligne à l'autre.
+    // La technique a sa propre setlist, distincte de celle du répertoire
+    // (#127) : on y renvoie ici comme pour les autres modes, plutôt que de
+    // coder en dur un libellé de section.
+    const techniqueSet = activeTechniqueSetlist(progress);
     recordSession(progress, {
       date: new Date().toISOString(),
       kind: 'technique',
       instrumentId: null,
-      setlistId: null,
-      setlistName: 'Arpèges et gammes',
+      setlistId: techniqueSet?.id ?? null,
+      setlistName: techniqueSet ? techniqueSet.name : 'Tout le catalogue',
       songCount: technique.worked.size,
     });
   }
@@ -154,11 +233,22 @@ function poolForActiveSetlist(): Song[] {
   return set ? songs.filter((song) => set.songIds.includes(song.id)) : songs;
 }
 
-function startSession(kind: 'deep' | 'urgent'): void {
+/** Vivier technique courant : la setlist de technique active, ou tout le catalogue. */
+function techniquePoolForActiveSetlist(): ExerciceCarte[] {
+  const set = activeTechniqueSetlist(progress);
+  return set ? exercices.filter((carte) => set.exerciceIds.includes(carte.id)) : exercices;
+}
+
+/**
+ * `picked` : les morceaux prioritaires déjà annoncés par la carte du
+ * Répertoire — on les reprend tels quels plutôt que de refaire un tirage qui
+ * pourrait départager autrement les égalités.
+ */
+function startSession(kind: 'deep' | 'urgent', picked?: SessionItem[]): void {
   const scope = scopeFromActiveSetlist();
   const pool = poolForActiveSetlist();
   if (kind === 'urgent') {
-    const items = pickSessionItems(pool, progress, 3);
+    const items = picked?.length ? picked : pickSessionItems(pool, progress, 3);
     if (items.length === 0) return;
     session = { ...scope, kind, blocks: buildRotation(items), index: 0, worked: new Set() };
   } else {
@@ -186,15 +276,12 @@ function startFilage(): void {
   navigate('#/filage');
 }
 
-/** Ouvre la vue d'ensemble des arpèges et gammes. */
-function openTechnique(): void {
-  if (exercices.length === 0) return;
-  navigate('#/technique');
-}
-
-/** Lance la séance d'arpèges et gammes, dans l'ordre du sélecteur SRS. */
-function startTechnique(): void {
-  const ordre = pickExercices(exercices, progress);
+/**
+ * Lance la séance d'arpèges et gammes, dans l'ordre du sélecteur SRS — ou
+ * dans celui déjà annoncé par la carte de la page Technique (`annonce`).
+ */
+function startTechnique(annonce?: ExerciceCarte[]): void {
+  const ordre = annonce?.length ? annonce : pickExercices(techniquePoolForActiveSetlist(), progress);
   if (ordre.length === 0) return;
   session = null;
   filage = null;
@@ -280,7 +367,11 @@ function showSessionSummary(): void {
 }
 
 function backHome(): HTMLElement {
-  const button = el('button', { type: 'button', class: ui.primary }, 'Retour au répertoire');
+  const button = el(
+    'button',
+    { type: 'button', class: ui.icon, 'aria-label': 'Retour au répertoire' },
+    '←',
+  );
   button.addEventListener('click', goHome);
   return button;
 }
@@ -302,31 +393,82 @@ function showError(message: string): void {
   );
 }
 
+/** Habille une page de premier niveau de la navigation par sections. */
+function shell(active: Section): HTMLElement {
+  return mountSectionShell(root!, {
+    active,
+    hasTechnique: exercices.length > 0,
+    techniqueDue: techniqueDueToday(progress),
+  });
+}
+
 function render(): void {
   teardown?.();
   teardown = null;
+  paintDemoBanner();
 
   const hash = window.location.hash || '#/';
 
   // Passerelle d'accueil : tant qu'aucun choix n'est fait, elle passe avant tout.
   const account = accountMode();
   if (account === 'none' || hash === '#/compte') {
-    teardown = renderAccount(root!, {
-      gate: account === 'none',
+    const wasGate = account === 'none';
+    teardown = renderAccount(wasGate ? root! : shell('compte'), {
+      gate: wasGate,
+      progress: wasGate ? null : progress,
+      songs,
       onChange: () => {
         progress = loadProgress();
         // Un identifiant vient d'être saisi/créé depuis la page compte : on
         // ramène l'utilisateur au répertoire plutôt que de rester sur « Compte ».
-        if (hash === '#/compte' && accountMode() !== 'none') navigate('#/');
-        else render();
+        if (hash === '#/compte' && accountMode() !== 'none') {
+          navigate('#/');
+        } else if (wasGate && !hasCompletedOnboarding()) {
+          navigate('#/onboarding');
+        } else {
+          render();
+        }
       },
-      navigateHome: account === 'none' ? null : goHome,
+      // Hors passerelle, la navigation par sections tient lieu de retour.
+      navigateHome: null,
     });
     return;
   }
 
+  // Grandfathering : quiconque atteint ce point avait déjà un compte résolu
+  // avant l'apparition de l'assistant — on ne l'interrompt jamais après coup.
+  if (!hasCompletedOnboarding() && hash !== '#/onboarding') {
+    markOnboardingComplete();
+  }
+
+  if (hash === '#/onboarding') {
+    teardown = renderOnboarding(root!, {
+      songs,
+      onComplete: (values) => {
+        progress.settings.instrumentDefault = values.instrumentDefault;
+        progress.settings.display = values.display;
+        progress.settings.contrechant = values.contrechant;
+        saveProgress(progress);
+        markOnboardingComplete();
+        navigate('#/');
+      },
+    });
+    return;
+  }
+
+  if (hash === '#/demo') {
+    teardown = renderDemo(root!, { songs, navigate });
+    // `seedDemoProgress` (dans `renderDemo`) vient d'écrire dans
+    // `sessionStorage` : sans ce rechargement, `progress` garderait la vraie
+    // progression chargée au démarrage, et les écrans suivants (`#/song/:id`)
+    // ne verraient jamais les données de démo.
+    progress = loadProgress();
+    paintDemoBanner();
+    return;
+  }
+
   if (hash === '#/aide') {
-    teardown = renderAbout(root!, { navigateHome: goHome });
+    teardown = renderAbout(shell('aide'));
     return;
   }
 
@@ -343,8 +485,13 @@ function render(): void {
     const position = session.index + 1;
     const label =
       session.kind === 'urgent'
-        ? `Révision des urgences · ${session.setlistName} — bloc ${position} sur ${session.blocks.length}`
+        ? `Révision des urgences · ${session.setlistName} — morceau ${position} sur ${session.blocks.length}`
         : `Travail de fond · ${session.setlistName} — morceau ${position} sur ${session.order.length}`;
+    const total = session.kind === 'urgent' ? session.blocks.length : session.order.length;
+    const caption = {
+      kind: session.kind === 'urgent' ? 'Urgences' : 'Travail de fond',
+      position: `${position} sur ${total}`,
+    };
     teardown = renderTrainer(root!, ordered, {
       progress,
       player,
@@ -352,6 +499,7 @@ function render(): void {
       session: {
         kind: session.kind,
         label,
+        caption,
         blockMinutes: session.kind === 'urgent' ? progress.settings.blockMinutes : null,
         onBlockEnd: advanceSession,
         onStopSession: finishRun,
@@ -368,6 +516,7 @@ function render(): void {
     }
     const scope = scopeFromActiveSetlist();
     teardown = renderFilageConfig(root!, {
+      progress,
       setlistName: scope.setlistName,
       songCount: order.length,
       navigateHome: goHome,
@@ -395,10 +544,9 @@ function render(): void {
   }
 
   if (hash === '#/technique' && exercices.length > 0) {
-    teardown = renderTechniqueListe(root!, {
+    teardown = renderTechniqueListe(shell('technique'), {
       progress,
       cartes: exercices,
-      navigateHome: goHome,
       onStart: startTechnique,
       onStartTonalite: startTechniqueTonalite,
     });
@@ -410,7 +558,7 @@ function render(): void {
       progress,
       ordre: technique.ordre,
       markWorked: (id) => technique?.worked.add(id),
-      navigateHome: goHome,
+      navigateBack: () => navigate('#/technique'),
       onFinish: finishRun,
     });
     return;
@@ -429,15 +577,11 @@ function render(): void {
     }
   }
 
-  teardown = renderDashboard(root!, songs, {
+  teardown = renderDashboard(shell('repertoire'), songs, {
     progress,
     openSong: (songId) => navigate(`#/song/${songId}`),
-    openAccount: () => navigate('#/compte'),
-    openAbout: () => navigate('#/aide'),
     startSession,
     startFilage,
-    openTechnique: exercices.length > 0 ? openTechnique : null,
-    techniqueCount: exercices.length > 0 ? pickExercices(exercices, progress).length : 0,
   });
 }
 
@@ -465,9 +609,35 @@ async function boot(): Promise<void> {
     exercices = [];
   }
 
+  // Setlists de technique suggérées par défaut (#158) : proposées une seule
+  // fois, pour que l'utilisateur puisse ensuite les supprimer sans les voir
+  // revenir. Sans effet si le catalogue n'a pas pu être chargé cette fois-ci
+  // — retenté au prochain démarrage.
+  if (!progress.techniquePresetsSeeded && exercices.length > 0) {
+    progress.techniquePresetsSeeded = true;
+    for (const preset of presetsTechnique(exercices)) {
+      upsertTechniqueSetlist(progress, {
+        id: preset.id,
+        name: preset.name,
+        exerciceIds: preset.exerciceIds,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    saveProgress(progress);
+  }
+
+  initAnalytics();
+
   // Synchro entre appareils (silencieuse si aucun code n'est renseigné).
   initSync(() => {
-    progress = loadProgress();
+    const fresh = loadProgress();
+    if (isLiveActivityRoute(window.location.hash)) {
+      // On met à jour l'objet en place (même référence) pour que la vue
+      // active en tienne compte à sa prochaine écriture, sans la démonter.
+      Object.assign(progress, fresh);
+      return;
+    }
+    progress = fresh;
     render();
   });
   try {

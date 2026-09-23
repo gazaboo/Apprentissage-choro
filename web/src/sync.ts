@@ -12,11 +12,13 @@
 
 import type { Progress } from './store';
 import { loadProgress, persistMerged, setAfterSave } from './store';
+import { isFsrsState } from './srs';
 import type { SrsCard, SrsReview } from './types';
 
 const CODE_KEY = 'choro-sync-code';
 const LAST_SYNC_KEY = 'choro-sync-at';
 const ACCOUNT_KEY = 'choro-account';
+const ONBOARDING_KEY = 'choro-onboarding-done';
 const ENDPOINT = '/.netlify/functions/sync';
 const DEBOUNCE_MS = 3000;
 const CODE_PATTERN = /^[A-Za-z0-9_-]{3,64}$/;
@@ -89,6 +91,26 @@ export function signOut(): void {
   try {
     localStorage.removeItem(ACCOUNT_KEY);
     localStorage.removeItem(LAST_SYNC_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+// --- Assistant d'accueil (#86) -----------------------------------------
+
+/** `true` une fois l'assistant d'accueil complété (ou l'utilisateur
+ *  grandfathered, voir `main.ts`). */
+export function hasCompletedOnboarding(): boolean {
+  try {
+    return localStorage.getItem(ONBOARDING_KEY) === '1';
+  } catch {
+    return true; // stockage indisponible : ne jamais bloquer sur l'assistant
+  }
+}
+
+export function markOnboardingComplete(): void {
+  try {
+    localStorage.setItem(ONBOARDING_KEY, '1');
   } catch {
     /* ignore */
   }
@@ -191,6 +213,11 @@ function normalizeCard(value: Record<string, unknown>): SrsCard {
     repetitions: Number(value.repetitions),
     due: String(value.due),
     history,
+    // Un `fsrs` de forme invalide (appareil resté sur une version antérieure
+    // à la migration FSRS, ou champ corrompu) est simplement omis plutôt que
+    // propagé : `ensureFsrs` le reconstruira par rejeu au chargement suivant
+    // (voir `store.ts`), sans corrompre la progression.
+    ...(isFsrsState(value.fsrs) ? { fsrs: value.fsrs } : {}),
   };
 }
 
@@ -265,6 +292,7 @@ export function mergeProgress(local: Progress, remoteRaw: unknown): Progress {
   const takeRemoteMeta =
     remoteRev > local._rev &&
     Array.isArray(remote.setlists) &&
+    Array.isArray(remote.techniqueSetlists) &&
     typeof remote.settings === 'object' &&
     remote.settings !== null;
 
@@ -274,6 +302,15 @@ export function mergeProgress(local: Progress, remoteRaw: unknown): Progress {
     activeSetlistId: takeRemoteMeta
       ? (remote.activeSetlistId ?? null)
       : local.activeSetlistId,
+    techniqueSetlists: takeRemoteMeta
+      ? (remote.techniqueSetlists as Progress['techniqueSetlists'])
+      : local.techniqueSetlists,
+    activeTechniqueSetlistId: takeRemoteMeta
+      ? (remote.activeTechniqueSetlistId ?? null)
+      : local.activeTechniqueSetlistId,
+    techniquePresetsSeeded: takeRemoteMeta
+      ? remote.techniquePresetsSeeded === true
+      : local.techniquePresetsSeeded,
     sessions,
     settings: takeRemoteMeta
       ? { ...local.settings, ...(remote.settings as Progress['settings']) }
@@ -287,6 +324,12 @@ export function mergeProgress(local: Progress, remoteRaw: unknown): Progress {
     !merged.setlists.some((entry) => entry.id === merged.activeSetlistId)
   ) {
     merged.activeSetlistId = null;
+  }
+  if (
+    merged.activeTechniqueSetlistId &&
+    !merged.techniqueSetlists.some((entry) => entry.id === merged.activeTechniqueSetlistId)
+  ) {
+    merged.activeTechniqueSetlistId = null;
   }
 
   return merged;
