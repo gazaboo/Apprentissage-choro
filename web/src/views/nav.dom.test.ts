@@ -49,19 +49,19 @@ describe('mountSectionShell', () => {
 
   it('rend le rail et la barre du bas, et marque la section active', () => {
     const root = document.createElement('div');
-    const content = mountSectionShell(root, { active: 'aide', hasTechnique: true, techniqueDue: false });
+    const content = mountSectionShell(root, { active: 'compte', hasTechnique: true, techniqueDue: false });
     expect(root.querySelectorAll('nav')).toHaveLength(2);
-    expect(labels(root, 1)).toEqual(['Répertoire', 'Technique', 'Compte', 'Aide']);
+    expect(labels(root, 1)).toEqual(['Répertoire', 'Technique', 'Compte']);
     const current = [...root.querySelectorAll('a[aria-current="page"]')];
     expect(current).toHaveLength(2);
-    expect(current.every((a) => a.getAttribute('href') === '#/aide')).toBe(true);
+    expect(current.every((a) => a.getAttribute('href') === '#/compte')).toBe(true);
     expect(root.contains(content)).toBe(true);
   });
 
   it('masque « Technique » quand le catalogue est absent', () => {
     const root = document.createElement('div');
     mountSectionShell(root, { active: 'repertoire', hasTechnique: false, techniqueDue: true });
-    expect(labels(root, 1)).toEqual(['Répertoire', 'Compte', 'Aide']);
+    expect(labels(root, 1)).toEqual(['Répertoire', 'Compte']);
   });
 
   it('pose la pastille sur « Technique » seulement si elle est due et non active', () => {
