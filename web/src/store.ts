@@ -25,6 +25,7 @@ import {
   isStudyMode,
 } from './types';
 import { ensureFsrs, review } from './srs';
+import { nearestGrilleZoom } from './grilleZoom';
 
 const STORAGE_KEY = 'choro-srs-v1';
 const DEMO_ACTIVE_KEY = 'choro-demo';
@@ -101,6 +102,9 @@ export interface Progress {
       /** Barre de transport masquée au profit d'un lecteur minimal. */
       playerHidden: boolean;
     };
+    /** Taille de la grille d'accords (boutons − / +), parmi `GRILLE_ZOOM_LEVELS`.
+     *  Facultatif : les progressions enregistrées avant ce réglage n'en ont pas. */
+    grilleZoom?: number;
   };
 }
 
@@ -335,6 +339,10 @@ function migrateSettings(
     !Number.isFinite(panel.y)
   ) {
     settings.panel = null;
+  }
+
+  if (settings.grilleZoom !== undefined) {
+    settings.grilleZoom = nearestGrilleZoom(Number(settings.grilleZoom));
   }
 
   const fp = settings.fullpage as Partial<Progress['settings']['fullpage']> | undefined;

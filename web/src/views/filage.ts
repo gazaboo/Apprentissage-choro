@@ -47,6 +47,9 @@ export interface FilageContext {
   navigateHome: () => void;
   /** Termine le filage : enregistre la séance et montre le résumé. */
   onFinish: () => void;
+  /** Taille de la grille d'accords, partagée avec l'entraînement. */
+  grilleZoom?: number;
+  onGrilleZoom: (zoom: number) => void;
 }
 
 const COUNTDOWN_S = 5;
@@ -119,7 +122,11 @@ export function renderFilage(root: HTMLElement, context: FilageContext): () => v
   const scoreNote = el('p', { class: `${ui.card} hidden text-sm text-zinc-400` });
 
   const grilleContainer = el('div', { class: 'hidden' });
-  const grilleView = new GrilleView(grilleContainer, { onHintUsed: () => {} });
+  const grilleView = new GrilleView(grilleContainer, {
+    onHintUsed: () => {},
+    zoom: context.grilleZoom,
+    onZoomChange: context.onGrilleZoom,
+  });
 
   // Scène (partition masquée) : le morceau en cours, en grand, et la suite.
   const stagePosition = el('p', { class: 'text-sm uppercase tracking-wider text-zinc-500' });

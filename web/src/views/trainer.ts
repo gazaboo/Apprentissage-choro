@@ -127,7 +127,14 @@ export function renderTrainer(
   const scoreView = new ScoreView(scoreContainer, { onHintUsed });
 
   const grilleContainer = el('div', { class: 'hidden' });
-  const grilleView = new GrilleView(grilleContainer, { onHintUsed });
+  const grilleView = new GrilleView(grilleContainer, {
+    onHintUsed,
+    zoom: progress.settings.grilleZoom,
+    onZoomChange: (zoom) => {
+      progress.settings.grilleZoom = zoom;
+      saveProgress(progress);
+    },
+  });
 
   /** La grille est-elle disponible pour ce morceau ? */
   const grilleReady = (): boolean => grille !== null;
