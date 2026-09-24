@@ -11,12 +11,16 @@
  * `--base-url` ne répond pas, plutôt que de produire des captures vides.
  *
  * Usage :
- *   node scripts/capture-ui-verification.mjs [--base-url http://localhost:5173] [--out-dir chemin] [--mobile]
+ *   node scripts/capture-ui-verification.mjs [--base-url http://localhost:5173] [--out-dir chemin] [--mobile] [--theme light]
  *
  * `--mobile` : balaie l'intégralité des captures en viewport mobile
  * (375×800) au lieu du desktop (1400×1000) — les quelques captures déjà
  * dédiées au mobile (dock, séance, filage, technique) restent en 375px
  * dans les deux modes, sans effet visible.
+ *
+ * `--theme light` : balaie l'app en thème clair (#177), posé en
+ * `localStorage` avant chaque chargement de page — le thème sombre reste le
+ * défaut sans ce drapeau.
  *
  * Limites connues (documentées plutôt que contournées à tout prix) :
  * - L'écran Consigne (#109) est capturé via la route cachée `#/demo`
@@ -61,8 +65,9 @@ function flag(name, fallback) {
 
 const BASE_URL = (flag('base-url', 'http://localhost:5173') ?? '').replace(/\/$/, '');
 const MOBILE_ONLY = args.includes('--mobile');
+const THEME = flag('theme', 'dark');
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const OUT_DIR = flag('out-dir', join('docs', 'qa', 'ui-verification', `${timestamp}${MOBILE_ONLY ? '-mobile' : ''}`));
+const OUT_DIR = flag('out-dir', join('docs', 'qa', 'ui-verification', `${timestamp}${MOBILE_ONLY ? '-mobile' : ''}${THEME === 'light' ? '-clair' : ''}`));
 
 const DESKTOP = { width: 1400, height: 1000 };
 const MOBILE = { width: 375, height: 800 };
@@ -229,6 +234,10 @@ async function run() {
     const tab = await openTab(chromium.port, 'about:blank');
     const session = await connect(tab.webSocketDebuggerUrl);
     await setViewport(session, PRIMARY.width, PRIMARY.height);
+    if (THEME === 'light') {
+      // Avant tout script de la page : le thème est lu au premier rendu.
+      await addInitScript(session, `localStorage.setItem('choro-theme', 'light');`);
+    }
 
     // --- 1. Passerelle d'accueil (profil neuf, rien en localStorage) -----
     await goto(session, `${BASE_URL}/#/`);

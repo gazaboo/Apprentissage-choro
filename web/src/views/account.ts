@@ -10,7 +10,7 @@
  * différé après chaque enregistrement. Aucun bouton « synchroniser ».
  */
 
-import { el, ui } from '../dom';
+import { el, segmented, ui } from '../dom';
 import {
   chooseAnonymous,
   isValidCode,
@@ -21,6 +21,7 @@ import {
 import { saveProgress, type Progress } from '../store';
 import { renderDefaultSettingsFields } from './default-settings';
 import { clearInstallPrompt, getInstallPrompt, isStandalone } from '../pwaInstall';
+import { getTheme, setTheme, type Theme } from '../theme';
 import type { Song } from '../types';
 
 export interface AccountContext {
@@ -170,6 +171,23 @@ function installCard(): HTMLElement | null {
   return section;
 }
 
+function themeCard(): HTMLElement {
+  const themeGroup = segmented<Theme>(
+    [
+      { value: 'dark', label: 'Sombre' },
+      { value: 'light', label: 'Clair' },
+    ],
+    getTheme(),
+    (theme) => setTheme(theme),
+  );
+  return el(
+    'section',
+    { class: `${ui.card} flex flex-col gap-2` },
+    el('p', { class: ui.label }, 'Apparence'),
+    themeGroup,
+  );
+}
+
 function renderGate(context: AccountContext, connect: (code: string) => void): HTMLElement {
   const continueButton = el('button', { type: 'button', class: ui.button }, 'Continuer');
   continueButton.addEventListener('click', () => {
@@ -258,6 +276,8 @@ export function renderAccount(root: HTMLElement, context: AccountContext): () =>
 
   const install = installCard();
   if (install) blocks.push(install);
+
+  blocks.push(themeCard());
 
   if (context.progress) {
     const progress = context.progress;
