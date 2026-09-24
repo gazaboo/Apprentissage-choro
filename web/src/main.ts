@@ -9,7 +9,6 @@
  *   #/technique      arpèges et gammes : vue d'ensemble
  *   #/technique/run  séance d'arpèges et gammes, au métronome
  *   #/compte      accès au compte et à la synchro
- *   #/aide        principes de mémorisation expliqués à l'utilisateur
  *
  * Tant qu'aucun choix de compte n'a été fait, l'écran d'accueil (`#/compte` en
  * mode passerelle) s'impose avant toute autre vue.
@@ -44,7 +43,6 @@ import type { ExerciceCarte } from './technique/catalogue';
 import { chargerCatalogue, pickExercices, presetsTechnique } from './technique/catalogue';
 import type { AudioKind, InstrumentId, Song } from './types';
 import { Player } from './audio';
-import { renderAbout } from './views/about';
 import { renderAccount } from './views/account';
 import { renderDashboard } from './views/dashboard';
 import { renderDemo } from './views/demo';
@@ -58,6 +56,7 @@ import { renderTechniqueListe } from './views/technique-liste';
 import { mountSectionShell, techniqueDueToday } from './views/nav';
 import type { Section } from './views/nav';
 import { renderTrainer } from './views/trainer';
+import { holdScreenAwake } from './wakeLock';
 import { initPwaInstallCapture } from './pwaInstall';
 
 const MANIFEST_URL = 'data/manifest.json';
@@ -112,6 +111,15 @@ let songs: Song[] = [];
 let exercices: ExerciceCarte[] = [];
 /** Démontage de l'écran courant, à appeler avant d'en afficher un autre. */
 let teardown: (() => void) | null = null;
+
+/** Vue de jeu : garde l'écran allumé tant qu'elle est montée (#170). */
+function awake(dispose: () => void): () => void {
+  const releaseScreen = holdScreenAwake();
+  return () => {
+    releaseScreen();
+    dispose();
+  };
+}
 
 /** Contexte commun aux séances : d'où viennent les morceaux. */
 interface SessionScope {
@@ -467,11 +475,6 @@ function render(): void {
     return;
   }
 
-  if (hash === '#/aide') {
-    teardown = renderAbout(shell('aide'));
-    return;
-  }
-
   if (hash === '#/session' && session) {
     const { song, instrumentId } = currentSessionItem(session);
     // On force l'instrument choisi par la session en le plaçant en tête.
@@ -492,7 +495,7 @@ function render(): void {
       kind: session.kind === 'urgent' ? 'Urgences' : 'Travail de fond',
       position: `${position} sur ${total}`,
     };
-    teardown = renderTrainer(root!, ordered, {
+    teardown = awake(renderTrainer(root!, ordered, {
       progress,
       player,
       navigateHome: goHome,
@@ -504,7 +507,7 @@ function render(): void {
         onBlockEnd: advanceSession,
         onStopSession: finishRun,
       },
-    });
+    }));
     return;
   }
 
@@ -530,7 +533,7 @@ function render(): void {
   }
 
   if (hash === '#/filage/run' && filage) {
-    teardown = renderFilage(root!, {
+    teardown = awake(renderFilage(root!, {
       player,
       order: filage.order,
       instrumentId: filage.instrumentId,
@@ -539,7 +542,7 @@ function render(): void {
       markReached: (id) => filage?.reached.add(id),
       navigateHome: goHome,
       onFinish: finishRun,
-    });
+    }));
     return;
   }
 
@@ -554,13 +557,13 @@ function render(): void {
   }
 
   if (hash === '#/technique/run' && technique) {
-    teardown = renderTechnique(root!, {
+    teardown = awake(renderTechnique(root!, {
       progress,
       ordre: technique.ordre,
       markWorked: (id) => technique?.worked.add(id),
       navigateBack: () => navigate('#/technique'),
       onFinish: finishRun,
-    });
+    }));
     return;
   }
 
@@ -568,11 +571,11 @@ function render(): void {
   if (songMatch) {
     const song = songs.find((candidate) => candidate.id === songMatch[1]);
     if (song) {
-      teardown = renderTrainer(root!, song, {
+      teardown = awake(renderTrainer(root!, song, {
         progress,
         player,
         navigateHome: goHome,
-      });
+      }));
       return;
     }
   }

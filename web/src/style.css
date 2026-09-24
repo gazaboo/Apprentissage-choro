@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Téléphone en paysage, posé sur un pupitre (#170) : la hauteur manque, pas
+   la largeur. Les vues de jeu y repassent le dock sur une seule ligne. */
+@custom-variant paysage (@media (orientation: landscape) and (max-height: 500px));
+
 /* Dark mode assumé : l'application se travaille en répétition, souvent en
    lumière basse. */
 :root {
@@ -13,6 +17,9 @@ body {
 }
 
 body {
+  /* `viewport-fit=cover` : en paysage, l'encoche passe sur le côté. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   color: #e4e4e7; /* zinc-200 */
   -webkit-font-smoothing: antialiased;
 }
@@ -203,6 +210,11 @@ body {
     grid-template-columns: repeat(4, 1fr);
     font-size: 3.44cqi;
   }
+  /* Demi-rangée de pur bourrage : en quatre colonnes, elle ferait une rangée
+     entière de cases vides (#152). */
+  .chord-cell.pad-half {
+    display: none;
+  }
 }
 
 /* Le fond de la case masque le fond de la grille : seul le `gap` reste visible,
@@ -245,6 +257,16 @@ body {
   font-style: normal;
   font-size: var(--rt);
   letter-spacing: -0.01em;
+}
+/* L'altération, au corps de la lettre, pesait autant qu'elle et élargissait
+   le chiffrage : réduite et remontée contre la lettre, comme sur une grille
+   imprimée, elle se lit comme un accent de la fondamentale. */
+.chord-cell .ac {
+  font-style: normal;
+  font-size: calc(var(--rt) * 0.55);
+  vertical-align: 0.6em;
+  line-height: 0;
+  margin-left: 0.02em;
 }
 .chord-cell .qa {
   font-style: normal;
@@ -315,7 +337,9 @@ body {
   color: rgb(var(--mask-ink) / 0.75);
 }
 .chord-cell.simile .ch {
-  font-size: var(--rt);
+  /* Moitié du corps d'un chiffrage : le « % » dit seulement « rien ne
+     change », il ne doit pas attirer l'œil autant qu'un accord (#152). */
+  font-size: calc(var(--rt) * 0.5);
 }
 /* Bourrage de fin de ligne : une case vide du quadrillage, comme sur une
    grille écrite à la main — et non un trou dans le tracé. */

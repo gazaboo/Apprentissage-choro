@@ -39,6 +39,8 @@ import { isGrille } from '../types';
 import { INSTRUMENT_KEY_LABELS, MASK_LEVELS, STUDY_MODE_HINTS } from '../types';
 import { formatTime, Player } from '../audio';
 import { askSrs } from './srsModal';
+import type { PdfVersionId } from '../pdf';
+import { pdfVersions } from '../pdf';
 
 export interface TrainerContext {
   progress: Progress;
@@ -74,10 +76,6 @@ export function renderTrainer(
     song.instruments.find((i) => i.id === progress.settings.instrumentDefault)?.id ??
     song.instruments[0]!.id;
   let hints = 0;
-  /** Nombre de fois où l'écran Consigne a été sollicité pour révéler la
-   *  partition (mode « Sans partition » recommandé) — jamais compté comme un
-   *  indice classique, mais plafonne la note suggérée en fin de morceau. */
-  let aides = 0;
   /** Mode recommandé d'après l'historique du morceau (#109) : la partition ne
    *  se cache que si elle a déjà été maîtrisée plusieurs fois de suite, jamais
    *  sur un morceau nouveau ou juste après un échec. L'écran Consigne explique
@@ -109,6 +107,10 @@ export function renderTrainer(
     }
     return base;
   };
+
+  /** Version exportée en PDF (#171) : celle affichée, contre-chant compris. */
+  const pdfVersionId = (): PdfVersionId =>
+    contrechantAvailable() && contrechant === 'avec' ? 'contraponto' : instrumentId;
 
   /** La graine n'avance que sur « Mélanger » : le motif est sinon stable. */
   const maskSeed = () =>
@@ -340,6 +342,35 @@ export function renderTrainer(
     const tonaliteSection = menuSection('Tonalité', tonalite.root);
     if (song.instruments.length < 2) tonaliteSection.classList.add('hidden');
 
+    // Export PDF (#171) : la version choisie juste au-dessus, partition
+    // complète et sans masquage — un support d'impression, pas d'entraînement.
+    const pdfLabel = el('span');
+    const pdfButton = el(
+      'button',
+      { type: 'button', class: `${ui.button} w-full gap-2` },
+      el('span', { 'aria-hidden': 'true' }, '⤓'),
+      pdfLabel,
+    ) as HTMLButtonElement;
+    const pdfStatus = el('p', { class: 'hidden text-xs leading-relaxed text-zinc-500' });
+    const pdfSection = menuSection('Imprimer', pdfButton, pdfStatus);
+    pdfButton.addEventListener('click', async () => {
+      pdfButton.disabled = true;
+      pdfLabel.textContent = 'Préparation du PDF…';
+      pdfStatus.classList.add('hidden');
+      try {
+        const { downloadScorePdf } = await import('../pdfExport');
+        await downloadScorePdf(song, pdfVersionId());
+      } catch (error) {
+        console.error(error);
+        pdfStatus.textContent =
+          'Le PDF n’a pas pu être préparé. Vérifiez la connexion, puis réessayez.';
+        pdfStatus.classList.remove('hidden');
+      } finally {
+        pdfButton.disabled = false;
+        paintAffichage();
+      }
+    });
+
     const reglages = el(
       'button',
       { type: 'button', class: `${ui.button} w-full gap-2` },
@@ -366,7 +397,7 @@ export function renderTrainer(
     const menu = createTopBarMenu({
       trigger,
       label: 'Affichage',
-      content: [viewSection, contrechantSection, tonaliteSection, reglages],
+      content: [viewSection, contrechantSection, tonaliteSection, pdfSection, reglages],
     });
     reglages.addEventListener('click', () => {
       menu.setOpen(false);
@@ -385,6 +416,11 @@ export function renderTrainer(
         contrechantHint.classList.toggle('hidden', hasContrechant);
         contrechantChoice.set(contrechant);
         tonalite.set(instrumentId);
+        if (!pdfButton.disabled) {
+          const version = pdfVersions(song).find((candidate) => candidate.id === pdfVersionId());
+          pdfLabel.textContent = `Télécharger en PDF · ${version?.label ?? ''}`;
+        }
+        pdfSection.classList.toggle('hidden', mode === 'sans');
         value.textContent =
           mode === 'sans' ? 'Sans partition' : active === 'grille' ? 'Grille' : 'Partition';
       },
@@ -671,7 +707,6 @@ export function renderTrainer(
     progress.settings.display = next;
     saveProgress(progress);
     hints = 0;
-    aides = 0;
     if (fullpage) {
       // Le plein écran ne contient qu'un conteneur : on y place le nouvel
       // actif et on rend l'autre à `scoreHome`.
@@ -695,7 +730,6 @@ export function renderTrainer(
     progress.settings.contrechant = next;
     saveProgress(progress);
     hints = 0;
-    aides = 0;
     drawScore();
     paintAffichage();
   }
@@ -719,9 +753,6 @@ export function renderTrainer(
     if (options.persist !== false) {
       progress.settings.studyMode = next;
       saveProgress(progress);
-      // Un choix délibéré (dock, bouton Défi) repart de zéro ; une demande
-      // d'aide (persist: false) ne doit pas s'effacer elle-même.
-      aides = 0;
     }
     if (!changed) return;
     hints = 0;
@@ -737,7 +768,6 @@ export function renderTrainer(
   /**
    * Échelle d'aide de l'écran Consigne : ne modifie jamais les réglages
    * persistés (`maskLevel`/`studyMode`), seulement l'état local de cet écran.
-   * `aides` plafonne ensuite la note suggérée en fin de morceau (#109).
    */
   function applyAide(level: MaskLevel | 'entiere'): void {
     if (level === 'entiere') {
@@ -747,7 +777,6 @@ export function renderTrainer(
       setMode('mesures', { persist: false });
       activeView().setLevel(level, currentInstrument());
     }
-    aides += 1;
     paintCounters();
   }
 
@@ -854,17 +883,7 @@ export function renderTrainer(
         : mode === 'sans'
           ? [0, activeView().measureCount]
           : [hints, activeView().maskedCount];
-    // Une partition rouverte via l'écran Consigne n'a pas valu un Again : on
-    // plafonne juste la présélection, la note reste au choix de l'utilisateur.
-    const answer = await askSrs(
-      song.title,
-      instrument.name,
-      used,
-      total,
-      undefined,
-      undefined,
-      aides > 0 ? 3 : undefined,
-    );
+    const answer = await askSrs(song.title, instrument.name, used, total);
     // Annulation : ni note, ni changement de bloc/séance — on reste sur le morceau.
     if (answer === 'cancelled') return;
     if (answer) {
@@ -878,7 +897,6 @@ export function renderTrainer(
       putCard(progress, song.id, instrumentId, card);
     }
     hints = 0;
-    aides = 0;
     eclipses.reset();
     paintCounters();
     if (context.session) {

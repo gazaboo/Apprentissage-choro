@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fsrs, Rating } from 'ts-fsrs';
-import { ensureFsrs, newCard, review } from './srs';
+import { GRADES, PASSING_GRADE, ensureFsrs, newCard, review } from './srs';
 import type { SrsCard } from './types';
 
 const FIXED_TODAY = new Date(2026, 8, 14); // 2026-09-14, un lundi arbitraire
@@ -48,6 +48,23 @@ describe('review — correspondance des notes', () => {
     const easy = review(undefined, 5, 'fluide', 0);
     expect(hard.interval).toBeLessThanOrEqual(good.interval);
     expect(good.interval).toBeLessThanOrEqual(easy.interval);
+  });
+
+  it('les quatre notes du questionnaire couvrent les quatre notes FSRS, une chacune', () => {
+    const [rate, difficile, bien, facile] = GRADES.map((grade) => grade.value);
+    // Raté échoue ; les trois autres réussissent, dans l'ordre Hard < Good < Easy.
+    expect(rate).toBeLessThan(PASSING_GRADE);
+    expect([difficile, bien, facile]).toEqual([3, 4, 5]);
+
+    let card = review(undefined, bien!, 'fluide', 0);
+    card = review(card, bien!, 'fluide', 0);
+    const failed = review(card, rate!, 'fluide', 0);
+    expect(failed.fsrs!.lapses).toBe(card.fsrs!.lapses + 1);
+    expect(failed.interval).toBe(1);
+
+    const intervals = [difficile, bien, facile].map((grade) => review(card, grade!, 'fluide', 0).interval);
+    expect(intervals[0]).toBeLessThan(intervals[1]!);
+    expect(intervals[1]).toBeLessThan(intervals[2]!);
   });
 
   it('clampe la note comme avant (0..5, arrondie)', () => {

@@ -1,74 +1,131 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { askSrs } from './srsModal';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CONFIRM_DELAY_MS, askSrs } from './srsModal';
 
 afterEach(() => {
+  vi.useRealTimers();
   document.body.innerHTML = '';
 });
 
+function dialog(): HTMLElement {
+  return document.body.querySelector('[role="dialog"]') as HTMLElement;
+}
+
+function button(root: HTMLElement, text: string): HTMLButtonElement {
+  return [...root.querySelectorAll('button')].find((b) => b.textContent === text)!;
+}
+
+function grade(root: HTMLElement, value: number): HTMLButtonElement {
+  return root.querySelector(`button[data-grade="${value}"]`) as HTMLButtonElement;
+}
+
 describe('askSrs', () => {
-  it('affiche une modale accessible et pré-sélectionne la note suggérée', async () => {
+  it('affiche une modale accessible avec quatre notes, aucune présélectionnée ni suggérée', async () => {
     const promise = askSrs('Carinhoso', 'Ut', 0, 10);
-    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
-    expect(dialog).toBeTruthy();
-    expect(dialog.getAttribute('aria-modal')).toBe('true');
-    expect(dialog.textContent).toContain('Carinhoso');
-    // 0 indice sur 10 mesures masquées → note suggérée 5 (voir suggestGrade).
-    const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]');
-    // `data-state` plutôt que la couleur : « contient amber » matcherait de
-    // toute façon l'anneau de focus, que portent aussi les boutons inactifs.
-    expect(five?.getAttribute('data-state')).toBe('on');
+    const modal = dialog();
+    expect(modal).toBeTruthy();
+    expect(modal.getAttribute('aria-modal')).toBe('true');
+    expect(modal.textContent).toContain('Carinhoso');
 
-    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
-    skip.click();
+    const grades = [...modal.querySelectorAll<HTMLButtonElement>('button[data-grade]')];
+    expect(grades.map((b) => b.dataset.grade)).toEqual(['1', '3', '4', '5']);
+    expect(grades.map((b) => b.querySelector('span > span')!.textContent)).toEqual([
+      'Raté',
+      'Difficile',
+      'Bien',
+      'Facile',
+    ]);
+    expect(grades.every((b) => b.dataset.state === undefined)).toBe(true);
+    expect(modal.textContent).not.toMatch(/suggér/i);
+    // Un Entrée réflexe ne doit pas enregistrer de note : aucune n'a le focus.
+    expect(grades).not.toContain(document.activeElement);
+
+    button(modal, 'Passer sans noter').click();
     await expect(promise).resolves.toBeNull();
-    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    expect(dialog()).toBeNull();
   });
 
-  it('« Enregistrer » résout avec la note, le tempo et les indices choisis', async () => {
+  it('le tempo est présélectionné sur « crispé » et se change avant la note', () => {
+    void askSrs('Carinhoso', 'Ut', 0, 10);
+    const modal = dialog();
+    expect(button(modal, 'Réel, crispé').dataset.state).toBe('on');
+    button(modal, 'Réel, fluide').click();
+    expect(button(modal, 'Réel, fluide').dataset.state).toBe('on');
+    expect(button(modal, 'Réel, crispé').dataset.state).toBe('off');
+  });
+
+  it('un appui sur une note confirme, puis résout seul après le délai', async () => {
+    vi.useFakeTimers();
     const promise = askSrs('Carinhoso', 'Ut', 2, 10);
-    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
-    const gradeThree = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]') as HTMLButtonElement;
-    gradeThree.click();
-    const fluide = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Tempo réel, fluide')!;
-    fluide.click();
-    const validate = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Enregistrer')!;
-    validate.click();
+    const modal = dialog();
+    button(modal, 'Réel, fluide').click();
+    grade(modal, 3).click();
 
+    expect(modal.textContent).toContain('Enregistré : Difficile · tempo réel, fluide');
+    expect(dialog()).toBeTruthy();
+
+    vi.advanceTimersByTime(CONFIRM_DELAY_MS);
     await expect(promise).resolves.toEqual({ grade: 3, tempo: 'fluide', hints: 2 });
+    expect(dialog()).toBeNull();
   });
 
-  it('la croix annule : résout avec \'cancelled\', distinct de « Passer »', async () => {
+  it('« Continuer » résout tout de suite, sans attendre le délai', async () => {
     const promise = askSrs('Carinhoso', 'Ut', 0, 10);
-    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
-    const cancel = dialog.querySelector('button[aria-label*="Annuler"]') as HTMLButtonElement;
+    const modal = dialog();
+    grade(modal, 5).click();
+    button(modal, 'Continuer').click();
+    await expect(promise).resolves.toEqual({ grade: 5, tempo: 'crispe', hints: 0 });
+  });
+
+  it('« Annuler, je me suis trompé » revient au choix et arrête le délai', async () => {
+    vi.useFakeTimers();
+    const promise = askSrs('Carinhoso', 'Ut', 0, 10);
+    const modal = dialog();
+    grade(modal, 1).click();
+    button(modal, 'Annuler, je me suis trompé de note').click();
+
+    vi.advanceTimersByTime(CONFIRM_DELAY_MS * 2);
+    expect(dialog()).toBeTruthy();
+    expect(grade(modal, 4).closest('[hidden]')).toBeNull();
+
+    grade(modal, 4).click();
+    button(modal, 'Continuer').click();
+    await expect(promise).resolves.toMatchObject({ grade: 4 });
+  });
+
+  it('la croix annule : résout avec \'cancelled\', distinct de « Passer sans noter »', async () => {
+    const promise = askSrs('Carinhoso', 'Ut', 0, 10);
+    const cancel = dialog().querySelector('button[aria-label*="Annuler"]') as HTMLButtonElement;
     expect(cancel).toBeTruthy();
     cancel.click();
 
     await expect(promise).resolves.toBe('cancelled');
-    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    expect(dialog()).toBeNull();
   });
 
-  it('Échap annule la modale', async () => {
+  it('Échap annule, y compris pendant la confirmation', async () => {
+    vi.useFakeTimers();
     const promise = askSrs('Carinhoso', 'Ut', 0, 10);
-    expect(document.body.querySelector('[role="dialog"]')).toBeTruthy();
+    grade(dialog(), 4).click();
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 
     await expect(promise).resolves.toBe('cancelled');
-    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    expect(dialog()).toBeNull();
+    // Le délai ne doit pas résoudre une seconde fois ni relancer quoi que ce soit.
+    vi.advanceTimersByTime(CONFIRM_DELAY_MS);
   });
 
   it('un clic sur le voile annule, un clic dans la modale ne fait rien', async () => {
     const promise = askSrs('Carinhoso', 'Ut', 0, 10);
     const overlay = document.body.querySelector('.fixed.inset-0.z-50') as HTMLElement;
-    const dialog = overlay.querySelector('[role="dialog"]') as HTMLElement;
+    const modal = overlay.querySelector('[role="dialog"]') as HTMLElement;
 
-    dialog.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    expect(document.body.querySelector('[role="dialog"]')).toBeTruthy();
+    modal.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    expect(dialog()).toBeTruthy();
 
     overlay.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await expect(promise).resolves.toBe('cancelled');
-    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    expect(dialog()).toBeNull();
   });
 
   it('rend le détail note-à-note quand il est fourni, sous le contexte', async () => {
@@ -78,41 +135,21 @@ describe('askSrs', () => {
     detail.append(ligne);
     const promise = askSrs('Arpège m7', 'Dm7', 0, 4, 'Travaillé à 72 BPM.', detail);
 
-    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
-    expect(dialog.textContent).toContain('Travaillé à 72 BPM.');
-    expect(dialog.textContent).toContain('Passe 2, temps 4 — attendu E4, rien entendu');
+    const modal = dialog();
+    expect(modal.textContent).toContain('Travaillé à 72 BPM.');
+    expect(modal.textContent).toContain('Passe 2, temps 4 — attendu E4, rien entendu');
     // Bloc scrollable : un relevé de 27 lignes ne doit pas pousser les boutons
     // de notation hors de l'écran.
-    expect(dialog.querySelector('.max-h-40.overflow-y-auto')).toBeTruthy();
+    expect(modal.querySelector('.max-h-40.overflow-y-auto')).toBeTruthy();
 
-    [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!.click();
+    button(modal, 'Passer sans noter').click();
     await promise;
   });
 
   it('n’ajoute aucun bloc de détail pour un morceau (appelant sans détail)', () => {
     void askSrs('Carinhoso', 'Ut', 1, 10);
-    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
-    expect(dialog.querySelector('.max-h-40')).toBeNull();
-    expect(dialog.textContent).toContain('1 indice déclenché sur 10 mesures masquées.');
-  });
-
-  it('`maxSuggested` plafonne la présélection sans retirer les autres notes (#109)', async () => {
-    // 0 indice sur 10 mesures masquées suggérerait normalement 5 (voir test
-    // ci-dessus) : la partition rouverte via l'écran Consigne ne doit pas
-    // pousser vers cette note-là.
-    const promise = askSrs('Carinhoso', 'Ut', 0, 10, undefined, undefined, 3);
-    const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement;
-    // `data-state` et non la classe de couleur : c'est la présélection qu'on
-    // vérifie, pas la palette qui l'exprime (#137).
-    const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
-    expect(three?.getAttribute('data-state')).toBe('on');
-    const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
-    expect(five.dataset.state).toBe('off');
-
-    // Le plafond ne bloque que la présélection : l'utilisateur choisit encore 5 à la main.
-    five.click();
-    const validate = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Enregistrer')!;
-    validate.click();
-    await expect(promise).resolves.toMatchObject({ grade: 5 });
+    const modal = dialog();
+    expect(modal.querySelector('.max-h-40')).toBeNull();
+    expect(modal.textContent).toContain('1 indice déclenché sur 10 mesures masquées.');
   });
 });

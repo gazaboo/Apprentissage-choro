@@ -207,7 +207,7 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
     // permanence : seule la modale d'auto-évaluation est `aria-modal="true"`.
     const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
     expect(dialog).toBeTruthy();
-    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
+    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer sans noter')!;
     skip.click();
     await Promise.resolve();
 
@@ -215,7 +215,7 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
     expect(context.progress.cards['choro-a::c']).toBeUndefined();
   });
 
-  it('« Enregistrer » dans la modale écrit la carte SRS puis revient à l\'accueil', async () => {
+  it('une note dans la modale écrit la carte SRS puis revient à l\'accueil', async () => {
     const { root, context } = mount();
     const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
     finish.click();
@@ -224,10 +224,8 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
     // `controlBar` (réglages, sheet.ts) porte aussi `role="dialog"` en
     // permanence : seule la modale d'auto-évaluation est `aria-modal="true"`.
     const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
-    const gradeFive = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
-    gradeFive.click();
-    const validate = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Enregistrer')!;
-    validate.click();
+    (dialog.querySelector('button[data-grade="5"]') as HTMLButtonElement).click();
+    [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Continuer')!.click();
     await Promise.resolve();
 
     expect(context.progress.cards['choro-a::c']).toBeDefined();
@@ -257,7 +255,7 @@ describe('renderTrainer — évaluation de fin (askSrs)', () => {
     // `controlBar` (réglages, sheet.ts) porte aussi `role="dialog"` en
     // permanence : seule la modale d'auto-évaluation est `aria-modal="true"`.
     const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
-    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
+    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer sans noter')!;
     skip.click();
     await Promise.resolve();
 
@@ -295,7 +293,7 @@ describe('renderTrainer — barre du haut (#153)', () => {
     stop.click();
     await Promise.resolve();
     const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
-    [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!.click();
+    [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer sans noter')!.click();
     await Promise.resolve();
     expect(onStopSession).toHaveBeenCalledOnce();
   });
@@ -408,30 +406,5 @@ describe('renderTrainer — écran Consigne et mode recommandé (#109)', () => {
     // de jamais s'écrire dans `progress.settings.studyMode`.
     entiere.click();
     expect(context.progress.settings.studyMode).toBe('entiere');
-  });
-
-  it('demander de l\'aide plafonne la note présélectionnée à 3 en fin de morceau', async () => {
-    const { root, context } = mount({}, { progress: masteredProgress() });
-    const aideEntiere = [...root.querySelectorAll('button')].find(
-      (b) => b.textContent === 'Afficher la partition entière',
-    )!;
-    aideEntiere.click();
-
-    const finish = root.querySelector('button[aria-label="Terminer et évaluer"]') as HTMLButtonElement;
-    finish.click();
-    await Promise.resolve();
-
-    const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
-    // `data-state` et non la classe de couleur : l'état présélectionné est ce
-    // qu'on vérifie ici, pas la palette qui l'exprime (#137).
-    const three = dialog.querySelector('button[aria-label="Correct — quelques hésitations"]');
-    expect(three?.getAttribute('data-state')).toBe('on');
-    const five = dialog.querySelector('button[aria-label="Parfait — sans aucun indice"]') as HTMLButtonElement;
-    expect(five.dataset.state).toBe('off');
-
-    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
-    skip.click();
-    await Promise.resolve();
-    expect(context.navigateHome).toHaveBeenCalledOnce();
   });
 });
