@@ -79,7 +79,10 @@ export const ui = {
     'focus-visible:ring-2 focus-visible:ring-amber-400',
   primary:
     'inline-flex min-h-11 items-center justify-center rounded-lg bg-amber-400 ' +
-    'px-5 text-sm font-semibold text-zinc-950 transition hover:bg-amber-300 ' +
+    // Texte toujours quasi noir sur ce fond ambre plein, dans les deux thèmes
+    // (#177) — valeur littérale plutôt que `text-zinc-950`, qui s'éclaircit
+    // en thème clair.
+    'px-5 text-sm font-semibold text-[#09090b] transition hover:bg-amber-300 ' +
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ' +
     'focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 ' +
     'disabled:cursor-not-allowed disabled:opacity-40',
@@ -179,7 +182,8 @@ export function createPlayButton(options: {
       // (#153).
       class:
         'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
-        'bg-amber-400 pl-1 text-zinc-950 shadow-lg shadow-amber-400/20 ' +
+        // Texte quasi noir dans les deux thèmes (#177), voir `ui.primary`.
+        'bg-amber-400 pl-1 text-[#09090b] shadow-lg shadow-amber-400/20 ' +
         'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
         'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
         'focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed ' +

@@ -504,9 +504,10 @@ export function renderTrainer(
     'button',
     {
       type: 'button',
+      // Texte quasi noir dans les deux thèmes (#177), voir `ui.primary`.
       class:
         'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400 ' +
-        'pl-0.5 text-zinc-950',
+        'pl-0.5 text-[#09090b]',
       'aria-label': 'Lecture ou pause',
     },
     fpMiniIcon,

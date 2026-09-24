@@ -82,8 +82,9 @@ const demoBanner = el(
   'div',
   {
     class:
+      // Texte quasi noir dans les deux thèmes (#177), voir `ui.primary`.
       'sticky top-0 z-[60] hidden items-center justify-between gap-3 bg-amber-400 ' +
-      'px-4 py-2 text-sm font-medium text-zinc-950',
+      'px-4 py-2 text-sm font-medium text-[#09090b]',
   },
   el(
     'span',
