@@ -449,16 +449,18 @@ export function createPlayerDock(options: {
   settingsRowOnDesktop?: boolean;
 }): HTMLElement {
   const ownRow = options.settingsRowOnDesktop ?? false;
+  // `paysage:` (#170) : sur un téléphone couché, la disposition desktop — une
+  // seule ligne, piste au milieu — rend ~40 px à la partition.
   const transportGroup = el(
     'div',
-    { class: 'flex shrink-0 items-center gap-1 md:order-1' },
+    { class: 'flex shrink-0 items-center gap-1 md:order-1 paysage:order-1' },
     ...options.transport,
   );
   const settingsGroup = el(
     'div',
     {
       class:
-        'flex shrink-0 items-center gap-1.5 md:order-3 md:gap-3' +
+        'flex shrink-0 items-center gap-1.5 md:order-3 md:gap-3 paysage:order-3' +
         (ownRow ? ' md:basis-full md:flex-wrap' : ''),
     },
     ...options.settings,
@@ -467,13 +469,14 @@ export function createPlayerDock(options: {
     'div',
     {
       class:
-        'flex w-full flex-col gap-0.5 md:flex-row md:items-center md:gap-3' +
+        'flex w-full flex-col gap-0.5 md:flex-row md:items-center md:gap-3 ' +
+        'paysage:flex-row paysage:items-center paysage:gap-3' +
         (ownRow ? ' md:flex-wrap md:gap-y-2' : ''),
     },
-    el('div', { class: 'min-w-0 md:order-2 md:flex-1' }, options.seek),
+    el('div', { class: 'min-w-0 md:order-2 md:flex-1 paysage:order-2 paysage:flex-1' }, options.seek),
     el(
       'div',
-      { class: 'flex items-center justify-between gap-1.5 md:contents' },
+      { class: 'flex items-center justify-between gap-1.5 md:contents paysage:contents' },
       transportGroup,
       settingsGroup,
     ),

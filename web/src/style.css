@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Téléphone en paysage, posé sur un pupitre (#170) : la hauteur manque, pas
+   la largeur. Les vues de jeu y repassent le dock sur une seule ligne. */
+@custom-variant paysage (@media (orientation: landscape) and (max-height: 500px));
+
 /* Dark mode assumé : l'application se travaille en répétition, souvent en
    lumière basse. */
 :root {
@@ -13,6 +17,9 @@ body {
 }
 
 body {
+  /* `viewport-fit=cover` : en paysage, l'encoche passe sur le côté. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   color: #e4e4e7; /* zinc-200 */
   -webkit-font-smoothing: antialiased;
 }
