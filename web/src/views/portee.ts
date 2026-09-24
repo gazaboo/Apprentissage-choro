@@ -33,6 +33,7 @@ const COULEUR = {
   actifTexte: '#fcd34d', // amber-300
   juste: '#34d399', // emerald-400
   faux: '#fb7185', // rose-400
+  decale: '#fbbf24', // amber-400
   emplacement: '#3f3f46', // zinc-700
 };
 
@@ -47,6 +48,21 @@ export interface EtatPortee {
   verdicts: Map<number, Verdict>;
   /** Degré de chaque note (« 1 », « ♭3 »…), affiché sous la portée. */
   degres: string[];
+  /**
+   * Écart au clic de la note jugée, en ms (latence du matériel retirée), par
+   * position ; négatif = en avance. Montré sous les degrés : un point quand la
+   * note tombe dans `fenetreMs`, l'écart signé sinon.
+   */
+  placements?: Map<number, number>;
+  fenetreMs?: number;
+}
+
+/** « en place » ou l'écart signé, arrondi à 10 ms : au-delà, la précision
+ *  serait illusoire et le chiffre plus dur à lire d'un coup d'œil. */
+function libellePlacement(ecartMs: number, fenetreMs: number): { texte: string; enPlace: boolean } {
+  if (Math.abs(ecartMs) <= fenetreMs) return { texte: '•', enPlace: true };
+  const arrondi = Math.round(Math.abs(ecartMs) / 10) * 10;
+  return { texte: `${ecartMs < 0 ? '−' : '+'}${arrondi}`, enPlace: false };
 }
 
 function noeud<K extends keyof SVGElementTagNameMap>(
@@ -320,6 +336,27 @@ export function dessinerPortee(mise: MiseEnPortee, etat: EtatPortee): SVGSVGElem
         etat.degres[i] ?? '',
       ),
     );
+    const ecart = etat.placements?.get(i);
+    if (ecart !== undefined) {
+      const { texte, enPlace } = libellePlacement(ecart, etat.fenetreMs ?? Infinity);
+      svg.append(
+        noeud(
+          'text',
+          {
+            x: n.x,
+            y: mise.yPlacement,
+            'text-anchor': 'middle',
+            'font-size': enPlace ? TAILLE_TEXTE + 2 : TAILLE_TEXTE - 2,
+            'font-family': 'inherit',
+            'font-weight': 600,
+            fill: enPlace ? COULEUR.juste : COULEUR.decale,
+            'data-placement': enPlace ? 'en-place' : ecart < 0 ? 'en-avance' : 'en-retard',
+          },
+          noeud('title', {}, enPlace ? 'En place' : `${ecart < 0 ? 'En avance' : 'En retard'} de ${Math.round(Math.abs(ecart))} ms`),
+          texte,
+        ),
+      );
+    }
   });
   return svg;
 }

@@ -1,0 +1,103 @@
+{
+ "description": "Arpège Am aller-retour joué deux fois (A2 B2 C3 E3 A3 F3 E3 C3 A2), précédé d’une note brève. 60 bpm, jeu libre, Firefox, micro très saturé.",
+ "methode": "attaques repérées sur l’enveloppe (pas de 10 ms), hauteur par produit spectral harmonique sur 400 ms à partir de +350 ms (hors écrêtage), vérifiée à la main contre l’exercice.",
+ "notes": [
+  {
+   "t": 2.02,
+   "midi": 42,
+   "nom": "F#2"
+  },
+  {
+   "t": 2.77,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 3.75,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 4.71,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 5.65,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 6.59,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 7.49,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 8.43,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 9.37,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 10.2,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 11.28,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 12.26,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 13.22,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 14.18,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 15.15,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 16.09,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 17.03,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 18.02,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 18.96,
+   "midi": 45,
+   "nom": "A2"
+  }
+ ],
+ "sature": true,
+ "justesMin": 15
+}

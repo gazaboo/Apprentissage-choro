@@ -1,0 +1,217 @@
+{
+ "description": "Arpège Am aller-retour : un passage lent (~1 s par note) puis 4 enchaînés rapides (~0,2–0,3 s par note). Firefox, micro baissé (0,05 % d’échantillons ≥ 0,9).",
+ "methode": "attaques par flux spectral (trames 1024, pas 256), notes données par le motif joué, contrôlées par produit spectral harmonique sur les passages lents. Notes marquées « incertain » : le spectre contredit le motif sans pouvoir trancher (octave, ou corde grave qui résonne encore en jeu rapide) — ni justes ni fausses au score.",
+ "sature": false,
+ "notes": [
+  {
+   "t": 2.1,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 3.22,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 4.27,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 5.33,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 6.39,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 7.42,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 8.46,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 9.47,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 10.51,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 10.89,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 11.21,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 11.46,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 11.87,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 12.18,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 12.45,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 12.81,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 13.07,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 13.42,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 13.72,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 13.95,
+   "midi": 52,
+   "nom": "E3",
+   "incertain": true
+  },
+  {
+   "t": 14.32,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 14.61,
+   "midi": 53,
+   "nom": "F3",
+   "incertain": true
+  },
+  {
+   "t": 14.91,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 15.17,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 15.39,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 15.67,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 15.9,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 16.12,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 16.35,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 16.56,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 16.75,
+   "midi": 52,
+   "nom": "E3",
+   "incertain": true
+  },
+  {
+   "t": 16.97,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 17.23,
+   "midi": 45,
+   "nom": "A2"
+  },
+  {
+   "t": 17.39,
+   "midi": 47,
+   "nom": "B2"
+  },
+  {
+   "t": 17.62,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 17.85,
+   "midi": 52,
+   "nom": "E3",
+   "incertain": true
+  },
+  {
+   "t": 18.09,
+   "midi": 57,
+   "nom": "A3"
+  },
+  {
+   "t": 18.28,
+   "midi": 53,
+   "nom": "F3"
+  },
+  {
+   "t": 18.49,
+   "midi": 52,
+   "nom": "E3"
+  },
+  {
+   "t": 18.69,
+   "midi": 48,
+   "nom": "C3"
+  },
+  {
+   "t": 18.93,
+   "midi": 45,
+   "nom": "A2"
+  }
+ ],
+ "justesMin": 28
+}

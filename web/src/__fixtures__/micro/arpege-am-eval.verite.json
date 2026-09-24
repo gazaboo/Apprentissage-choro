@@ -1,0 +1,110 @@
+{
+ "description": "arp-m::A::aller-retour en mode évaluation à 60 bpm, métronome au haut-parleur (le micro entend les clics du décompte). Firefox, micro baissé.",
+ "methode": "attaques par flux spectral ; chaque battue est appariée à l’attaque la plus proche de battue + 90 ms ; notes données par le motif de l’exercice.",
+ "sature": false,
+ "notes": [
+  {
+   "t": 4.187,
+   "midi": 45,
+   "nom": "A2",
+   "battue": 0
+  },
+  {
+   "t": 5.232,
+   "midi": 47,
+   "nom": "B2",
+   "battue": 1
+  },
+  {
+   "t": 6.203,
+   "midi": 48,
+   "nom": "C3",
+   "battue": 2
+  },
+  {
+   "t": 7.189,
+   "midi": 52,
+   "nom": "E3",
+   "battue": 3
+  },
+  {
+   "t": 8.197,
+   "midi": 57,
+   "nom": "A3",
+   "battue": 4
+  },
+  {
+   "t": 9.141,
+   "midi": 53,
+   "nom": "F3",
+   "battue": 5
+  },
+  {
+   "t": 10.112,
+   "midi": 52,
+   "nom": "E3",
+   "battue": 6
+  },
+  {
+   "t": 11.147,
+   "midi": 48,
+   "nom": "C3",
+   "battue": 7
+  },
+  {
+   "t": 12.176,
+   "midi": 45,
+   "nom": "A2",
+   "battue": 8
+  },
+  {
+   "t": 13.157,
+   "midi": 47,
+   "nom": "B2",
+   "battue": 9
+  },
+  {
+   "t": 14.16,
+   "midi": 48,
+   "nom": "C3",
+   "battue": 10
+  },
+  {
+   "t": 15.168,
+   "midi": 52,
+   "nom": "E3",
+   "battue": 11
+  },
+  {
+   "t": 16.208,
+   "midi": 57,
+   "nom": "A3",
+   "battue": 12
+  },
+  {
+   "t": 17.157,
+   "midi": 53,
+   "nom": "F3",
+   "battue": 13
+  },
+  {
+   "t": 18.187,
+   "midi": 52,
+   "nom": "E3",
+   "battue": 14
+  },
+  {
+   "t": 19.195,
+   "midi": 48,
+   "nom": "C3",
+   "battue": 15
+  },
+  {
+   "t": 20.187,
+   "midi": 45,
+   "nom": "A2",
+   "battue": 16
+  }
+ ],
+ "justesMin": 16
+}

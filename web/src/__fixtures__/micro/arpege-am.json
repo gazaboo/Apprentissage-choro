@@ -1,0 +1,152 @@
+{
+  "sampleRate": 48000,
+  "debutAudio": 60.12266666666667,
+  "baseLatency": 0,
+  "outputLatency": 0.0514375,
+  "reglagesMicro": {
+    "autoGainControl": false,
+    "channelCount": 2,
+    "echoCancellation": false,
+    "noiseSuppression": false
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:156.0) Gecko/20100101 Firefox/156.0",
+  "date": "2026-09-23T20:17:04.688Z",
+  "meta": {
+    "mode": "test",
+    "exercice": "arp-m::A::aller-retour",
+    "notes": [
+      "A",
+      "B",
+      "C",
+      "E",
+      "A",
+      "F",
+      "E",
+      "C",
+      "A"
+    ],
+    "midi": [
+      45,
+      47,
+      48,
+      52,
+      57,
+      53,
+      52,
+      48,
+      45
+    ],
+    "bpm": 60
+  },
+  "onsets": [
+    {
+      "audioTime": 62.900875,
+      "midi": 57,
+      "frequency": 225.56728142554252,
+      "cents": 43,
+      "clarte": 0.8318891525268555,
+      "emisA": 62.95733333333333,
+      "emisPerf": 253609
+    },
+    {
+      "audioTime": 63.876104166666664,
+      "midi": 59,
+      "frequency": 243.44499161942488,
+      "cents": -25,
+      "clarte": 0.8833187222480774,
+      "emisA": 63.928,
+      "emisPerf": 254581
+    },
+    {
+      "audioTime": 64.83725,
+      "midi": 60,
+      "frequency": 254.42988195620566,
+      "cents": -48,
+      "clarte": 0.84159255027771,
+      "emisA": 64.888,
+      "emisPerf": 255540
+    },
+    {
+      "audioTime": 66.70833333333333,
+      "midi": 57,
+      "frequency": 224.03116791121866,
+      "cents": 31,
+      "clarte": 0.928363561630249,
+      "emisA": 66.76533333333333,
+      "emisPerf": 257417
+    },
+    {
+      "audioTime": 69.491,
+      "midi": 60,
+      "frequency": 257.7862897015395,
+      "cents": -26,
+      "clarte": 0.8363314867019653,
+      "emisA": 69.54933333333334,
+      "emisPerf": 260201
+    },
+    {
+      "audioTime": 70.3938125,
+      "midi": 45,
+      "frequency": 110.92891166824339,
+      "cents": 15,
+      "clarte": 0.833269476890564,
+      "emisA": 70.44533333333334,
+      "emisPerf": 261096
+    },
+    {
+      "audioTime": 71.39814583333333,
+      "midi": 57,
+      "frequency": 224.35721995239402,
+      "cents": 34,
+      "clarte": 0.8134382963180542,
+      "emisA": 71.45866666666667,
+      "emisPerf": 262114
+    },
+    {
+      "audioTime": 72.40316666666666,
+      "midi": 47,
+      "frequency": 123.38055461194607,
+      "cents": -1,
+      "clarte": 0.9689955711364746,
+      "emisA": 72.46133333333333,
+      "emisPerf": 263114
+    },
+    {
+      "audioTime": 73.34610416666666,
+      "midi": 59,
+      "frequency": 248.99701796187298,
+      "cents": 14,
+      "clarte": 0.837024450302124,
+      "emisA": 73.4,
+      "emisPerf": 264051
+    },
+    {
+      "audioTime": 75.26652083333333,
+      "midi": 57,
+      "frequency": 223.28043129597273,
+      "cents": 26,
+      "clarte": 0.9167776703834534,
+      "emisA": 75.32,
+      "emisPerf": 265971
+    },
+    {
+      "audioTime": 78.13133333333333,
+      "midi": 60,
+      "frequency": 256.29146096195853,
+      "cents": -36,
+      "clarte": 0.8307119011878967,
+      "emisA": 78.18933333333334,
+      "emisPerf": 268841
+    },
+    {
+      "audioTime": 79.0816875,
+      "midi": 57,
+      "frequency": 224.61212838933267,
+      "cents": 36,
+      "clarte": 0.8463156819343567,
+      "emisA": 79.13866666666667,
+      "emisPerf": 269791
+    }
+  ],
+  "battues": []
+}

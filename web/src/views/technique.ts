@@ -18,6 +18,7 @@
  * continuer », seule action en ambre plein.
  */
 
+import { JournalMicro, diagnosticMicroActif, telecharger } from '../diagnostic-micro';
 import { el, setState, ui } from '../dom';
 import * as icons from '../icons';
 import { Metronome, MAX_BPM, MIN_BPM, clampBpm, cycleOf } from '../metronome';
@@ -29,7 +30,13 @@ import type { Progress } from '../store';
 import { getTechniqueCard, putTechniqueCard } from '../store';
 import type { ExerciceCarte } from '../technique/catalogue';
 import { DEFAULT_BPM, SENS_LABELS, dernierBpm } from '../technique/catalogue';
-import { detailLignes, meilleurDecalage, noter, resume } from '../technique/grader';
+import {
+  detailLignes,
+  fenetrePlacementMs,
+  meilleurDecalage,
+  noter,
+  resume,
+} from '../technique/grader';
 import { mettreEnPortee, sommet, type MiseEnPortee } from '../technique/portee';
 import { chordRoot, degre, nameFromMidi, parseNote } from '../technique/theorie';
 import { dessinerPortee } from './portee';
@@ -62,6 +69,23 @@ function messageMicro(error: unknown): string {
     return 'Aucun micro détecté sur cet appareil.';
   }
   return 'Micro indisponible — l’évaluation reste manuelle.';
+}
+
+/** Fréquence mesurée, au dixième de hertz, à la française. */
+function formatHertz(frequency: number): string {
+  return `${frequency.toFixed(1).replace('.', ',')} Hz`;
+}
+
+/**
+ * Écart au demi-ton tempéré, en centièmes, signe compris.
+ *
+ * Le signe est ce qui compte : une note juste mais constamment à −20 dit une
+ * corde à remonter, là où un nom de note seul laisserait croire à un caprice
+ * de la détection.
+ */
+function formatCents(cents: number): string {
+  if (cents === 0) return 'juste';
+  return `${cents > 0 ? '+' : '−'}${Math.abs(cents)} ¢`;
 }
 
 export interface TechniqueContext {
@@ -101,6 +125,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   };
   /** Verdict en direct de la passe courante, par position dans le motif. */
   let judged = new Map<number, 'juste' | 'faux'>();
+  /** Écart au clic (ms, latence retirée) de la dernière attaque jugée, par position. */
+  let placements = new Map<number, number>();
   let tracker: PitchTracker | null = null;
   let micError: string | null = null;
   /** Le temps que `getUserMedia` réponde : sans cet état, le clic semble ignoré. */
@@ -126,14 +152,32 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
    * juger.
    */
   let testTracker: PitchTracker | null = null;
+  /** Journal de la dernière écoute (évaluation ou test), avec `?debug=micro` seulement. */
+  const diagnostic = diagnosticMicroActif();
+  let journal: JournalMicro | null = null;
+
+  /** Pose un journal neuf sur `cible` avant son démarrage, si le diagnostic est actif. */
+  function journaliser(cible: PitchTracker, mode: 'evaluation' | 'test'): void {
+    if (!diagnostic) return;
+    const current = carte();
+    journal = new JournalMicro();
+    journal.meta = {
+      mode,
+      exercice: current.id,
+      notes: current.notes,
+      midi: current.midi,
+      bpm,
+    };
+    cible.journal = journal;
+  }
   let micTesting = false;
   let micTestActivating = false;
   /** Incrémenté à chaque coupure du test (`stopMicTest`) : permet à une activation en
    *  cours (`toggleMicTest`) de se découvrir annulée à son réveil et de ne pas passer
    *  `micTesting` à `true` par-dessus une évaluation ou un métronome démarré entre-temps. */
   let micTestGeneration = 0;
-  /** Dernière hauteur entendue pendant le test, nommée, ou `null` avant la première. */
-  let testHeard: string | null = null;
+  /** Cinq dernières notes entendues pendant le test, la plus récente en tête. */
+  let testHeard: Onset[] = [];
 
   function carte(): ExerciceCarte {
     return ordre[index] ?? ordre[0]!;
@@ -152,6 +196,12 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         // clic : sans ça, le premier repaint arriverait après ce premier
         // `onBeat`, avec un bref retard visible.)
         if (evaluating) paintCountdown(-beatIndex);
+        // Le micro entend le clic du décompte : c'est ce qui mesure la
+        // latence du matériel, sans rien demander (voir `latence.ts`).
+        if (tracker?.listening) {
+          tracker.clicDecompte(audioTime);
+          journal?.battue(beatIndex, audioTime);
+        }
         return;
       }
       if (countingIn) {
@@ -160,12 +210,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
         countingIn = false;
         prise = { beats: [], onsets: [] };
         judged = new Map();
+        placements = new Map();
         paintCountdown(null);
         paintTransport();
       }
 
       // La prise, elle, garde tout : c'est la matière de la notation finale.
       if (tracker?.listening) prise.beats.push({ index: beatIndex, time: audioTime });
+      if (tracker?.listening) journal?.battue(beatIndex, audioTime);
 
       if (evaluating) {
         const motifLength = carte().notes.length;
@@ -337,6 +389,28 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   // `aria-live` : le message d'état change sans que le bouton ne reprenne le
   // focus, il faut donc l'annoncer explicitement aux lecteurs d'écran.
   const micHint = el('p', { class: 'text-center text-xs text-zinc-500', 'aria-live': 'polite' });
+  // Diagnostic (`?debug=micro`) : rapatrie la dernière écoute pour la rejouer
+  // hors ligne. Invisible pour qui n'a pas demandé ce mode.
+  const diagnosticButton = el(
+    'button',
+    {
+      type: 'button',
+      class: `${diagnostic ? '' : 'hidden '}self-center rounded border border-dashed border-amber-500/60 px-3 py-1 text-xs text-amber-300`,
+      'data-diagnostic-micro': '',
+    },
+    'Télécharger le diagnostic micro',
+  );
+  diagnosticButton.addEventListener('click', () => {
+    if (!journal || journal.vide()) {
+      diagnosticButton.textContent = 'Rien d’enregistré : écoutez d’abord (test ou évaluation)';
+      return;
+    }
+    const { wav, json } = journal.exporter();
+    const nom = `diagnostic-micro-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+    telecharger(`${nom}.wav`, wav, 'audio/wav');
+    telecharger(`${nom}.json`, json, 'application/json');
+    diagnosticButton.textContent = `Diagnostic téléchargé (${journal.duree.toFixed(0)} s)`;
+  });
   /** Point animé : seul repère qui bouge en continu, preuve que l'écoute est active. */
   const micStatusDot = el('span', { class: 'hidden h-2 w-2 rounded-full bg-rose-400 animate-pulse' });
   const micStatusText = el('span', { class: 'hidden text-xs font-semibold text-rose-300' }, 'Écoute en cours…');
@@ -356,6 +430,44 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micStatusText,
     micLevelTrack,
   );
+
+  // Micro qui sature : mesuré sur des prises réelles, c'est ce qui fait sortir
+  // les notes à l'octave au-dessus ou pas du tout. Le seul vrai remède est
+  // côté matériel, d'où un message qui dit quoi faire plutôt qu'un chiffre.
+  let sature = false;
+  const saturationAlert = el(
+    'p',
+    {
+      class:
+        'hidden max-w-sm self-center rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 ' +
+        'text-center text-xs text-rose-200',
+      role: 'status',
+      'aria-live': 'polite',
+      'data-saturation-micro': '',
+    },
+    'Le micro sature : le son est trop fort pour reconnaître les notes. Éloignez la guitare '
+      + 'du micro ou baissez le gain d’entrée dans les réglages son de l’appareil.',
+  );
+
+  function paintSaturation(): void {
+    const actif = sature && (Boolean(tracker?.listening) || micTesting);
+    saturationAlert.classList.toggle('hidden', !actif);
+    // Le VU-mètre passe au rouge : on remplace sa couleur plutôt que d'en
+    // empiler deux, dont l'ordre dans la feuille de style déciderait.
+    for (const [fill, couleur] of [
+      [micLevelFill, 'bg-amber-400'],
+      [testLevelFill, 'bg-emerald-400'],
+    ] as const) {
+      fill.classList.toggle('bg-rose-500', actif);
+      fill.classList.toggle(couleur, !actif);
+    }
+  }
+
+  function handleSaturation(etat: boolean): void {
+    if (etat === sature) return;
+    sature = etat;
+    paintSaturation();
+  }
 
   // Test du micro : hors évaluation, pour lever le doute sur le matériel
   // (micro, distance, bruit ambiant) avant de s'engager dans 3 passes
@@ -378,6 +490,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     class: 'font-mono text-sm text-amber-300',
     'aria-live': 'polite',
   });
+  const testHistoryLabel = el('span', {
+    class: 'font-mono text-xs text-zinc-500',
+  });
   const testLevelTrack = el('div', {
     class: 'h-1.5 w-32 overflow-hidden rounded-full bg-zinc-800',
   });
@@ -389,11 +504,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     'div',
     { class: 'hidden flex-col items-center gap-2', 'data-releve-micro': '' },
     el('div', { class: 'flex flex-wrap items-center justify-center gap-3' }, testHeardLabel, testLevelTrack),
+    testHistoryLabel,
     el(
       'p',
       { class: 'max-w-sm text-center text-xs text-zinc-500' },
       'Test libre : rien n’est chronométré ni noté. Jouez quelques notes et vérifiez '
-        + 'qu’elles s’affichent à la bonne hauteur et à la bonne octave.',
+        + 'qu’elles s’affichent à la bonne hauteur et à la bonne octave. L’écart en '
+        + 'centièmes dit la justesse : s’il penche toujours du même côté, c’est la '
+        + 'guitare qu’il faut accorder, pas la détection qui se trompe.',
     ),
   );
 
@@ -437,7 +555,14 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
   function paintNotes(): void {
     porteeMount.replaceChildren(
-      dessinerPortee(mise, { revelee: revealed, active: lit, verdicts: judged, degres }),
+      dessinerPortee(mise, {
+        revelee: revealed,
+        active: lit,
+        verdicts: judged,
+        degres,
+        placements,
+        fenetreMs: fenetrePlacementMs(60 / bpm),
+      }),
     );
   }
 
@@ -482,8 +607,18 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
     testRow.classList.toggle('hidden', !micTesting);
     testRow.classList.toggle('flex', micTesting);
+    const [dernier] = testHeard;
     testHeardLabel.textContent =
-      testHeard === null ? 'Micro : jouez une note…' : `Micro : ${testHeard}`;
+      dernier === undefined
+        ? 'Micro : jouez une note…'
+        : `Micro : ${nameFromMidi(dernier.midi)} · ${formatHertz(dernier.frequency)}`
+          + ` · ${formatCents(dernier.cents)}`;
+    // Les précédentes restent affichées : une note isolée ne dit pas si la
+    // détection suit, une suite le dit tout de suite.
+    testHistoryLabel.textContent =
+      testHeard.length > 1
+        ? `avant : ${testHeard.slice(1).map((o) => nameFromMidi(o.midi)).join('  ')}`
+        : '';
   }
 
   function paintTransport(): void {
@@ -569,6 +704,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     micStatusRow.classList.toggle('hidden', !listening);
     micStatusRow.classList.toggle('flex', listening);
     if (!listening) micLevelFill.style.width = '0%';
+    if (!listening && !micTesting) sature = false;
+    paintSaturation();
 
     // L'explication de l'évaluation vit dans l'infobulle du bouton : l'écran
     // ne parle que quand il y a quelque chose à dire.
@@ -614,6 +751,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     beats = [];
     prise = { beats: [], onsets: [] };
     judged = new Map();
+    placements = new Map();
     // L'accent tombe sur la première note du motif : on entend le cycle, ce
     // qui suffit à se repérer sans compter.
     await metronome.start(bpm, carte().notes.length);
@@ -690,7 +828,10 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     if (next !== lit) {
       // Chaque passe repart d'une ardoise vierge : le retour en direct montre
       // la passe en cours, pas l'accumulation depuis le début.
-      if (next === 0) judged = new Map();
+      if (next === 0) {
+        judged = new Map();
+        placements = new Map();
+      }
       lit = next;
       paintNotes();
     }
@@ -713,6 +854,19 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
    * qu'à la pastille allumée, car une note jouée un peu en avance appartient
    * déjà à la battue suivante.
    */
+  /**
+   * Attaques ramenées sur l'horloge des battues. Une battue est datée quand le
+   * clic est programmé, une attaque quand le micro la reçoit : entre les deux,
+   * toute la latence du matériel (~100 ms mesurées), qui ferait paraître en
+   * retard une note jouée pile sur le clic entendu. Les attaques restent
+   * gardées brutes dans la prise ; la latence, mesurée sur le décompte, n'est
+   * connue qu'une fois ses clics entendus.
+   */
+  function compenser(onsets: Onset[]): Onset[] {
+    const retard = tracker?.latence().secondes ?? 0;
+    return onsets.map((onset) => ({ ...onset, audioTime: onset.audioTime - retard }));
+  }
+
   function handleOnset(onset: Onset): void {
     if (silenceTimer !== null) {
       window.clearTimeout(silenceTimer);
@@ -728,12 +882,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // Une fois par passe : assez souvent pour se recaler vite, assez rare pour
     // que la recherche de décalage ne pèse pas sur chaque note.
     if (motif.length > 0 && prise.onsets.length % motif.length === 0) {
-      decalage = meilleurDecalage(motif, prise.beats, prise.onsets);
+      decalage = meilleurDecalage(motif, prise.beats, compenser(prise.onsets));
     }
 
+    const temps = (compenser([onset])[0] ?? onset).audioTime;
     let closest: { index: number; time: number } | null = null;
     for (const beat of prise.beats) {
-      if (!closest || Math.abs(beat.time - onset.audioTime) < Math.abs(closest.time - onset.audioTime)) {
+      if (!closest || Math.abs(beat.time - temps) < Math.abs(closest.time - temps)) {
         closest = beat;
       }
     }
@@ -744,11 +899,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     if (attendu === undefined) return;
 
     judged.set(position, onset.midi === attendu ? 'juste' : 'faux');
+    placements.set(position, (temps - closest.time) * 1000);
     paintNotes();
   }
 
-  function handleLevel(level: number): void {
+  function handleLevel(level: number, etatSaturation: boolean): void {
     micLevelFill.style.width = `${Math.round(level * 100)}%`;
+    handleSaturation(etatSaturation);
   }
 
   function clearSilenceTimer(): void {
@@ -787,9 +944,11 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     try {
       const context = await metronome.prepare();
       tracker ??= new PitchTracker(context, handleOnset, handleLevel);
+      journaliser(tracker, 'evaluation');
       await tracker.start();
       prise = { beats: [], onsets: [] };
       judged = new Map();
+      placements = new Map();
       decalage = 0;
       micSilence = false;
       clearSilenceTimer();
@@ -830,7 +989,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     }
     micError = null;
     micTestActivating = true;
-    testHeard = null;
+    testHeard = [];
     paintTransport();
     // Capturé avant les `await` : si `stopMicTest()` est appelé entre-temps (par
     // exemple parce que le micro ou le métronome a démarré ailleurs pendant que le
@@ -844,13 +1003,15 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       testTracker ??= new PitchTracker(
         context,
         (onset) => {
-          testHeard = nameFromMidi(onset.midi);
+          testHeard = [onset, ...testHeard].slice(0, 5);
           paintMicTest();
         },
-        (level) => {
+        (level, etatSaturation) => {
           testLevelFill.style.width = `${Math.round(level * 100)}%`;
+          handleSaturation(etatSaturation);
         },
       );
+      journaliser(testTracker, 'test');
       await testTracker.start();
       if (generation !== micTestGeneration) {
         // Annulé pendant l'activation : ne pas ressusciter le test par-dessus
@@ -873,7 +1034,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     if (!micTesting) return;
     testTracker?.stop();
     micTesting = false;
-    testHeard = null;
+    testHeard = [];
     testLevelFill.style.width = '0%';
     paintTransport();
   }
@@ -920,7 +1081,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     // métronome tourne, et l'on note tout ce qui a été joué. Le décalage est
     // recalculé une dernière fois sur la prise entière.
     if (current.midi.length > 0 && prise.onsets.length > 0) {
-      decalage = meilleurDecalage(current.midi, prise.beats, prise.onsets);
+      decalage = meilleurDecalage(current.midi, prise.beats, compenser(prise.onsets));
     }
     const attendues = prise.beats.map(
       (beat) => current.midi[(beat.index + decalage) % current.midi.length] ?? 0,
@@ -928,8 +1089,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     const resultat = noter(
       attendues,
       prise.beats.map((beat) => beat.time),
-      prise.onsets,
+      compenser(prise.onsets),
     );
+    const latence = tracker?.latence();
     const mesure =
       resultat.attendues > 0
         ? {
@@ -940,7 +1102,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
 
     const contexte =
       resultat.attendues > 0
-        ? resume(resultat, bpm)
+        ? `${resume(resultat, bpm)}${
+            latence
+              ? ` Latence du matériel retirée : ${Math.round(latence.secondes * 1000)} ms (${
+                  latence.mesuree ? 'mesurée sur le décompte' : 'estimée, clics non entendus'
+                }).`
+              : ''
+          }`
         : `Travaillé à ${bpm} BPM. ${
             hints === 0 ? 'Les notes n’ont pas été révélées.' : `Notes révélées ${hints} fois.`
           }`;
@@ -985,6 +1153,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     revealed = false;
     prise = { beats: [], onsets: [] };
     judged = new Map();
+    placements = new Map();
     decalage = 0;
 
     if (endSession || index + 1 >= ordre.length) {
@@ -1135,7 +1304,9 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
           ),
           micStatusRow,
           micHint,
+          saturationAlert,
           testRow,
+          diagnosticButton,
         ),
       ),
 

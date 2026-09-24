@@ -19,6 +19,11 @@ const trackers: FakeTracker[] = [];
 
 class FakeTracker {
   listening = false;
+  journal: unknown = null;
+  /** Latence du matériel que la vue doit retirer des attaques. */
+  retard = 0;
+  /** Clics du décompte annoncés par la vue, pour la mesure de latence. */
+  readonly clics: number[] = [];
   constructor(
     _context: unknown,
     readonly onOnset: (onset: Onset) => void,
@@ -33,6 +38,14 @@ class FakeTracker {
 
   stop(): void {
     this.listening = false;
+  }
+
+  clicDecompte(time: number): void {
+    this.clics.push(time);
+  }
+
+  latence(): { secondes: number; mesuree: boolean } {
+    return { secondes: this.retard, mesuree: true };
   }
 
   destroy(): void {
@@ -98,6 +111,11 @@ const BEAT_S = 60 / DEFAULT_BPM;
 /** Instant audio de la première battue jouée (après le décompte). */
 const PREMIERE_S = AMORCE_S + COUNT_IN * BEAT_S;
 
+/** Attaque de test : la notation ne lit que l'instant et la hauteur. */
+function onset(audioTime: number, midi: number): Onset {
+  return { audioTime, midi, frequency: 0, cents: 0, clarte: 1 };
+}
+
 let restoreAudio: () => void;
 
 beforeEach(() => {
@@ -147,11 +165,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
     // Une attaque juste sur chaque battue jouée, rien d'autre. Toutes d'un
     // coup : `noter()` ne lit que leurs instants.
     for (let i = 0; i < total; i += 1) {
-      trackers[0]?.onOnset({
-        audioTime: PREMIERE_S + i * BEAT_S,
-        midi: MOTIF[i % MOTIF.length]!,
-        clarte: 1,
-      });
+      trackers[0]?.onOnset(onset(PREMIERE_S + i * BEAT_S, MOTIF[i % MOTIF.length]!));
     }
 
     // Le délai de grâce (une battue) expire et déclenche la notation.
@@ -183,11 +197,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
       // bonne note, mais 400 ms en retard — une dérive, pas une faute.
       if (i === 5) continue;
       const retard = i === 8 ? 0.4 : 0;
-      trackers[0]?.onOnset({
-        audioTime: PREMIERE_S + i * BEAT_S + retard,
-        midi: MOTIF[i % MOTIF.length]!,
-        clarte: 1,
-      });
+      trackers[0]?.onOnset(onset(PREMIERE_S + i * BEAT_S + retard, MOTIF[i % MOTIF.length]!));
     }
 
     await vi.advanceTimersByTimeAsync(2 * BEAT_S * 1000);
@@ -198,6 +208,41 @@ describe('renderTechnique — décompte des battues évaluées', () => {
     expect(detail.textContent).toContain('Passe 3, temps 1 — D4 juste, mais décalé de 400 ms');
     // Les notes justes et en place ne sont pas listées : deux lignes, pas douze.
     expect(detail.querySelectorAll('p')).toHaveLength(2);
+
+    bouton(document.body, 'Passer').click();
+    await vi.advanceTimersByTimeAsync(0);
+    teardown();
+  });
+
+  it('retire la latence du matériel avant de juger le placement', async () => {
+    // Le micro reçoit tout 100 ms après le clic programmé (sortie + entrée
+    // audio) : une note jouée pile sur le clic entendu arrive avec ce retard.
+    // Sans compensation, l'écart de 400 ms deviendrait 500 et chaque note
+    // « juste » porterait 100 ms de retard qui ne sont pas au musicien.
+    const { root, teardown } = mount();
+    bouton(root, 'Évaluation au micro').click();
+    await vi.advanceTimersByTimeAsync(0);
+    trackers[0]!.retard = 0.1;
+
+    const total = PASSES * MOTIF.length;
+    await vi.advanceTimersByTimeAsync((PREMIERE_S + (total - 1) * BEAT_S) * 1000 + 50);
+    // Les quatre clics du décompte ont été confiés à la mesure de latence.
+    expect(trackers[0]?.clics).toHaveLength(COUNT_IN);
+
+    for (let i = 0; i < total; i += 1) {
+      if (i === 5) continue;
+      const retard = 0.1 + (i === 8 ? 0.4 : 0);
+      trackers[0]?.onOnset(onset(PREMIERE_S + i * BEAT_S + retard, MOTIF[i % MOTIF.length]!));
+    }
+    // En direct, sous la portée : les notes en place portent un point.
+    expect(root.querySelectorAll('[data-placement="en-place"]').length).toBeGreaterThan(0);
+
+    await vi.advanceTimersByTimeAsync(2 * BEAT_S * 1000);
+
+    const detail = document.body.querySelector('.max-h-40') as HTMLElement;
+    expect(detail.textContent).toContain('Passe 3, temps 1 — D4 juste, mais décalé de 400 ms');
+    expect(detail.querySelectorAll('p')).toHaveLength(2);
+    expect(document.body.textContent).toContain('Latence du matériel retirée : 100 ms');
 
     bouton(document.body, 'Passer').click();
     await vi.advanceTimersByTimeAsync(0);
