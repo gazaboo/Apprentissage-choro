@@ -178,11 +178,16 @@ describe('renderTechnique — décompte des battues évaluées', () => {
     const total = PASSES * MOTIF.length;
     await vi.advanceTimersByTimeAsync((PREMIERE_S + (total - 1) * BEAT_S) * 1000 + 50);
 
+    // Retard volontairement entre la fenêtre de placement (0,3 battue) et la
+    // limite d'appariement (0,5 battue) : une dérive détectée, pas une note
+    // manquée — quel que soit le tempo par défaut.
+    const RETARD_S = BEAT_S * 0.4;
+    const retardMs = Math.round(RETARD_S * 1000);
     for (let i = 0; i < total; i += 1) {
       // Passe 2 temps 2 (battue 5) : rien joué. Passe 3 temps 1 (battue 8) :
-      // bonne note, mais 400 ms en retard — une dérive, pas une faute.
+      // bonne note, mais en retard — une dérive, pas une faute.
       if (i === 5) continue;
-      const retard = i === 8 ? 0.4 : 0;
+      const retard = i === 8 ? RETARD_S : 0;
       trackers[0]?.onOnset({
         audioTime: PREMIERE_S + i * BEAT_S + retard,
         midi: MOTIF[i % MOTIF.length]!,
@@ -195,7 +200,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
     const detail = document.body.querySelector('.max-h-40') as HTMLElement;
     expect(detail).toBeTruthy();
     expect(detail.textContent).toContain('Passe 2, temps 2 — attendu F4, rien entendu');
-    expect(detail.textContent).toContain('Passe 3, temps 1 — D4 juste, mais décalé de 400 ms');
+    expect(detail.textContent).toContain(`Passe 3, temps 1 — D4 juste, mais décalé de ${retardMs} ms`);
     // Les notes justes et en place ne sont pas listées : deux lignes, pas douze.
     expect(detail.querySelectorAll('p')).toHaveLength(2);
 
