@@ -1,0 +1,319 @@
+{
+  "song_id": "gostosinho-jacob-do-bandolim",
+  "title": "Gostosinho",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Fa, reprise) — B (Rém, reprise) — D.S. al 1er ⊕ — C (Sib, reprise) — D.S. al 2e ⊕ (Fa)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "F",
+      "bars": "1–30 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "F6"
+        ],
+        [],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C7"
+        ],
+        [
+          "C/Bb"
+        ],
+        [
+          "F/A"
+        ],
+        [],
+        [
+          "F6"
+        ],
+        [
+          "F6/A",
+          "Fm6/Ab"
+        ],
+        [
+          "C/G"
+        ],
+        [
+          "C/E"
+        ],
+        [
+          "G7/D"
+        ],
+        [
+          "G7/B"
+        ],
+        [
+          "C7"
+        ],
+        [],
+        [
+          "F/A"
+        ],
+        [
+          "F"
+        ],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C7"
+        ],
+        [
+          "C/Bb"
+        ],
+        [
+          "F/A"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb6"
+        ],
+        [
+          "Bdim"
+        ],
+        [
+          "F6/C"
+        ],
+        [
+          "D7/A",
+          "D7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "F6"
+          ],
+          [
+            "C7"
+          ]
+        ],
+        "2": [
+          [
+            "F6"
+          ],
+          [
+            "A7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "35–48",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm",
+          "A7/E"
+        ],
+        [
+          "Dm/F",
+          "D7/F#"
+        ],
+        [
+          "Gm",
+          "D7/A"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "Dm/F",
+          "A7/E"
+        ],
+        [
+          "Dm",
+          "D/C"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "Gm6"
+        ],
+        [
+          "Dm/F"
+        ],
+        [
+          "A7/E"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ],
+          [
+            "A7"
+          ]
+        ],
+        "2": [
+          [
+            "Dm",
+            "Db7"
+          ],
+          [
+            "C7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Bb",
+      "bars": "55–84",
+      "repeat": true,
+      "transition_in": [
+        [
+          "F6"
+        ],
+        [
+          "F7"
+        ]
+      ],
+      "sequence": [
+        [
+          "Bb6"
+        ],
+        [],
+        [
+          "Gb7"
+        ],
+        [],
+        [
+          "F7"
+        ],
+        [],
+        [
+          "Bb6"
+        ],
+        [],
+        [
+          "Bb6"
+        ],
+        [],
+        [
+          "Dm/A"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm",
+          "Bdim"
+        ],
+        [
+          "Cm7",
+          "F7"
+        ],
+        [
+          "Bb6"
+        ],
+        [],
+        [
+          "Gb7"
+        ],
+        [],
+        [
+          "F7"
+        ],
+        [],
+        [
+          "Fm6/Ab"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm7"
+        ],
+        [
+          "C#dim"
+        ],
+        [
+          "Bb/D"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm7"
+        ],
+        [
+          "C7add9",
+          "F7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Bb6"
+          ],
+          [
+            "F7"
+          ]
+        ],
+        "2": [
+          [
+            "Bb6",
+            "B7"
+          ],
+          [
+            "C7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "C7"
+    ],
+    [
+      "F6"
+    ],
+    [],
+    []
+  ],
+  "notes": [
+    "Deux ⊕ dans A : le 1er (m. 29, G7) mène à F6 F7 puis à la partie C en Sib ; le 2e (m. 30, C7) mène à la coda finale.",
+    "Coda : C7 puis F6 en accents rythmiques."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/gostosinho-jacob-do-bandolim/c/page_1.webp",
+    "data/gostosinho-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

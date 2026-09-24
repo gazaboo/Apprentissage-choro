@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=coo3H5RlKG4",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 101.3
+    "bpm": 101.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 1.49,
+        "end": 40.36
+      },
+      {
+        "part": "B",
+        "start": 40.36,
+        "end": 59.35
+      },
+      {
+        "part": "B",
+        "start": 59.35,
+        "end": 78.3
+      },
+      {
+        "part": "A",
+        "start": 78.3,
+        "end": 116.1
+      },
+      {
+        "part": "C",
+        "start": 116.1,
+        "end": 135.19
+      },
+      {
+        "part": "C",
+        "start": 135.19,
+        "end": 154.11
+      },
+      {
+        "part": "A",
+        "start": 154.11,
+        "end": 191.47
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/assim-mesmo-luiz-americano/audio/playback.564a45bc.opus",
@@ -13,6 +51,39 @@
     "source_url": "https://www.youtube.com/watch?v=RvVfjdpkeBs",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 101.3
+    "bpm": 101.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 26.01,
+        "end": 63.92
+      },
+      {
+        "part": "B",
+        "start": 63.92,
+        "end": 82.9
+      },
+      {
+        "part": "B",
+        "start": 82.9,
+        "end": 101.87
+      },
+      {
+        "part": "A",
+        "start": 101.87,
+        "end": 139.2
+      },
+      {
+        "part": "C",
+        "start": 139.2,
+        "end": 158.75
+      },
+      {
+        "part": "A",
+        "start": 158.75,
+        "end": 180.56
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

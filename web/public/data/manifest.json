@@ -4191,13 +4191,94 @@
         "file": "data/apanhei-te-cavaquinho-ernesto-nazareth/audio/reference.28a0b7f3.opus",
         "duration": 119.31,
         "source_url": "https://www.youtube.com/watch?v=X5_3mgt4iYc",
-        "bpm": 117.5
+        "bpm": 117.5,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.56,
+            "end": 17.86
+          },
+          {
+            "part": "B",
+            "start": 17.86,
+            "end": 34.32
+          },
+          {
+            "part": "B",
+            "start": 34.32,
+            "end": 50.64
+          },
+          {
+            "part": "A",
+            "start": 50.64,
+            "end": 67.04
+          },
+          {
+            "part": "C",
+            "start": 67.04,
+            "end": 82.99
+          },
+          {
+            "part": "C",
+            "start": 82.99,
+            "end": 99.08
+          },
+          {
+            "part": "A",
+            "start": 99.08,
+            "end": 114.4
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/apanhei-te-cavaquinho-ernesto-nazareth/audio/playback.e8531d65.opus",
         "duration": 173.51,
         "source_url": "https://www.youtube.com/watch?v=XNu0oJmsINI",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.49,
+            "end": 22.64
+          },
+          {
+            "part": "A",
+            "start": 22.64,
+            "end": 44.14
+          },
+          {
+            "part": "B",
+            "start": 44.14,
+            "end": 65.64
+          },
+          {
+            "part": "B",
+            "start": 65.64,
+            "end": 86.66
+          },
+          {
+            "part": "A",
+            "start": 86.66,
+            "end": 107.97
+          },
+          {
+            "part": "C",
+            "start": 107.97,
+            "end": 129.47
+          },
+          {
+            "part": "C",
+            "start": 129.47,
+            "end": 150.47
+          },
+          {
+            "part": "A",
+            "start": 150.47,
+            "end": 171.48
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -9129,13 +9210,94 @@
         "file": "data/araponga-luiz-gonzaga/audio/reference.94570d13.opus",
         "duration": 171.04,
         "source_url": "https://www.youtube.com/watch?v=m1L6q945Elc",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 12.68,
+            "end": 28.56
+          },
+          {
+            "part": "A",
+            "start": 28.56,
+            "end": 48.37
+          },
+          {
+            "part": "A",
+            "start": 48.37,
+            "end": 68.13
+          },
+          {
+            "part": "B",
+            "start": 68.13,
+            "end": 88.05
+          },
+          {
+            "part": "B",
+            "start": 88.05,
+            "end": 107.97
+          },
+          {
+            "part": "A",
+            "start": 107.97,
+            "end": 127.92
+          },
+          {
+            "part": "B",
+            "start": 127.92,
+            "end": 147.82
+          },
+          {
+            "part": "A",
+            "start": 147.82,
+            "end": 167.11
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/araponga-luiz-gonzaga/audio/playback.987f1fad.opus",
         "duration": 188.41,
         "source_url": "https://www.youtube.com/watch?v=F5hQ7Xr00so",
-        "bpm": 94.0
+        "bpm": 94.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 8.43,
+            "end": 34.81
+          },
+          {
+            "part": "A",
+            "start": 34.81,
+            "end": 60.56
+          },
+          {
+            "part": "B",
+            "start": 60.56,
+            "end": 86.08
+          },
+          {
+            "part": "B",
+            "start": 86.08,
+            "end": 111.6
+          },
+          {
+            "part": "A",
+            "start": 111.6,
+            "end": 137.25
+          },
+          {
+            "part": "B",
+            "start": 137.25,
+            "end": 162.77
+          },
+          {
+            "part": "Coda",
+            "start": 162.77,
+            "end": 187.11
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -12481,13 +12643,84 @@
         "file": "data/assim-mesmo-luiz-americano/audio/reference.e911fadc.opus",
         "duration": 195.11,
         "source_url": "https://www.youtube.com/watch?v=coo3H5RlKG4",
-        "bpm": 101.3
+        "bpm": 101.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 1.49,
+            "end": 40.36
+          },
+          {
+            "part": "B",
+            "start": 40.36,
+            "end": 59.35
+          },
+          {
+            "part": "B",
+            "start": 59.35,
+            "end": 78.3
+          },
+          {
+            "part": "A",
+            "start": 78.3,
+            "end": 116.1
+          },
+          {
+            "part": "C",
+            "start": 116.1,
+            "end": 135.19
+          },
+          {
+            "part": "C",
+            "start": 135.19,
+            "end": 154.11
+          },
+          {
+            "part": "A",
+            "start": 154.11,
+            "end": 191.47
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/assim-mesmo-luiz-americano/audio/playback.564a45bc.opus",
         "duration": 181.11,
         "source_url": "https://www.youtube.com/watch?v=RvVfjdpkeBs",
-        "bpm": 101.3
+        "bpm": 101.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 26.01,
+            "end": 63.92
+          },
+          {
+            "part": "B",
+            "start": 63.92,
+            "end": 82.9
+          },
+          {
+            "part": "B",
+            "start": 82.9,
+            "end": 101.87
+          },
+          {
+            "part": "A",
+            "start": 101.87,
+            "end": 139.2
+          },
+          {
+            "part": "C",
+            "start": 139.2,
+            "end": 158.75
+          },
+          {
+            "part": "A",
+            "start": 158.75,
+            "end": 180.56
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -16283,13 +16516,59 @@
         "file": "data/benzinho-jacob-do-bandolim/audio/reference.0252893c.opus",
         "duration": 191.31,
         "source_url": "https://www.youtube.com/watch?v=Q6qNbJWKzNU&list=RDQ6qNbJWKzNU&start_radio=1",
-        "bpm": 110.0
+        "bpm": 110.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.42,
+            "end": 47.93
+          },
+          {
+            "part": "B",
+            "start": 47.93,
+            "end": 94.39
+          },
+          {
+            "part": "B",
+            "start": 94.39,
+            "end": 141.85
+          },
+          {
+            "part": "A",
+            "start": 141.85,
+            "end": 186.41
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/benzinho-jacob-do-bandolim/audio/playback.12efdad1.opus",
         "duration": 195.11,
         "source_url": "https://www.youtube.com/watch?v=W-UD-nkJjz4&list=RDW-UD-nkJjz4&start_radio=1",
-        "bpm": 112.3
+        "bpm": 112.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 8.68,
+            "end": 55.59
+          },
+          {
+            "part": "B",
+            "start": 55.59,
+            "end": 101.03
+          },
+          {
+            "part": "B",
+            "start": 101.03,
+            "end": 146.91
+          },
+          {
+            "part": "A",
+            "start": 146.91,
+            "end": 190.84
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -21070,7 +21349,50 @@
         "file": "data/bionne-chiquinha-gonzaga/audio/reference.feeab4f9.opus",
         "duration": 152.01,
         "source_url": "https://www.youtube.com/watch?v=xPPxQfmeoyY",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.09,
+            "end": 21.62
+          },
+          {
+            "part": "A",
+            "start": 21.62,
+            "end": 43.03
+          },
+          {
+            "part": "B",
+            "start": 43.03,
+            "end": 53.66
+          },
+          {
+            "part": "B",
+            "start": 53.66,
+            "end": 64.34
+          },
+          {
+            "part": "A",
+            "start": 64.34,
+            "end": 85.47
+          },
+          {
+            "part": "C",
+            "start": 85.47,
+            "end": 107.04
+          },
+          {
+            "part": "C",
+            "start": 107.04,
+            "end": 128.36
+          },
+          {
+            "part": "A",
+            "start": 128.36,
+            "end": 148.0
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": null
     },
@@ -22823,13 +23145,99 @@
         "file": "data/bola-preta-jacob-do-bandolim/audio/reference.043f933f.opus",
         "duration": 198.81,
         "source_url": "https://www.youtube.com/watch?v=lcE6xYMFps8",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 4.27,
+            "end": 35.76
+          },
+          {
+            "part": "B",
+            "start": 35.76,
+            "end": 51.46
+          },
+          {
+            "part": "B",
+            "start": 51.46,
+            "end": 67.15
+          },
+          {
+            "part": "A",
+            "start": 67.15,
+            "end": 98.59
+          },
+          {
+            "part": "C",
+            "start": 98.59,
+            "end": 129.71
+          },
+          {
+            "part": "C",
+            "start": 129.71,
+            "end": 160.82
+          },
+          {
+            "part": "A",
+            "start": 160.82,
+            "end": 191.61
+          },
+          {
+            "part": "Coda",
+            "start": 191.61,
+            "end": 195.44
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/bola-preta-jacob-do-bandolim/audio/playback.4b0520cb.opus",
         "duration": 203.21,
         "source_url": "https://www.youtube.com/watch?v=5_PuQlUfsOw",
-        "bpm": 126.0
+        "bpm": 126.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 4.83,
+            "end": 35.74
+          },
+          {
+            "part": "B",
+            "start": 35.74,
+            "end": 51.13
+          },
+          {
+            "part": "B",
+            "start": 51.13,
+            "end": 66.59
+          },
+          {
+            "part": "A",
+            "start": 66.59,
+            "end": 97.55
+          },
+          {
+            "part": "C",
+            "start": 97.55,
+            "end": 128.17
+          },
+          {
+            "part": "C",
+            "start": 128.17,
+            "end": 158.55
+          },
+          {
+            "part": "A",
+            "start": 158.55,
+            "end": 189.08
+          },
+          {
+            "part": "Coda",
+            "start": 189.08,
+            "end": 192.84
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -25692,13 +26100,74 @@
         "file": "data/cadencia-juventino-maciel/audio/reference.d8304051.opus",
         "duration": 220.91,
         "source_url": "https://www.youtube.com/watch?v=AAQesxN7rB4",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.72,
+            "end": 43.79
+          },
+          {
+            "part": "A",
+            "start": 43.79,
+            "end": 86.47
+          },
+          {
+            "part": "B",
+            "start": 86.47,
+            "end": 128.73
+          },
+          {
+            "part": "B",
+            "start": 128.73,
+            "end": 171.36
+          },
+          {
+            "part": "A",
+            "start": 171.36,
+            "end": 213.48
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/cadencia-juventino-maciel/audio/playback.9e82debc.opus",
         "duration": 239.31,
         "source_url": "https://www.youtube.com/watch?v=iJZNQwNRYzM",
-        "bpm": 87.6
+        "bpm": 87.6,
+        "sections": [
+          {
+            "part": "A",
+            "start": 11.03,
+            "end": 54.68
+          },
+          {
+            "part": "A",
+            "start": 54.68,
+            "end": 98.31
+          },
+          {
+            "part": "B",
+            "start": 98.31,
+            "end": 141.97
+          },
+          {
+            "part": "B",
+            "start": 141.97,
+            "end": 185.78
+          },
+          {
+            "part": "A",
+            "start": 185.78,
+            "end": 229.23
+          },
+          {
+            "part": "Coda",
+            "start": 229.23,
+            "end": 233.89
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -31321,13 +31790,74 @@
         "file": "data/carioquinha-waldyr-azevedo/audio/reference.a8f874bf.opus",
         "duration": 173.11,
         "source_url": "https://www.youtube.com/watch?v=vSZwmCKfNdo&list=RDvSZwmCKfNdo&start_radio=1",
-        "bpm": 97.5
+        "bpm": 97.5,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 0.23,
+            "end": 6.34
+          },
+          {
+            "part": "A",
+            "start": 6.34,
+            "end": 46.18
+          },
+          {
+            "part": "A",
+            "start": 46.18,
+            "end": 86.84
+          },
+          {
+            "part": "B",
+            "start": 86.84,
+            "end": 125.2
+          },
+          {
+            "part": "A",
+            "start": 125.2,
+            "end": 165.6
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/carioquinha-waldyr-azevedo/audio/playback.f35c6295.opus",
         "duration": 186.51,
         "source_url": "https://www.youtube.com/watch?v=zbXQR9ebNNw&list=RDzbXQR9ebNNw&start_radio=1",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 0.74,
+            "end": 7.08
+          },
+          {
+            "part": "A",
+            "start": 7.08,
+            "end": 51.41
+          },
+          {
+            "part": "A",
+            "start": 51.41,
+            "end": 94.09
+          },
+          {
+            "part": "B",
+            "start": 94.09,
+            "end": 135.74
+          },
+          {
+            "part": "A",
+            "start": 135.74,
+            "end": 176.89
+          },
+          {
+            "part": "Coda",
+            "start": 176.89,
+            "end": 183.21
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -35693,13 +36223,99 @@
         "file": "data/cheguei-pixinguinha/audio/reference.2ca43e2c.opus",
         "duration": 145.93,
         "source_url": "https://www.youtube.com/watch?v=voY9-ROJUP8&list=RDvoY9-ROJUP8&start_radio=1",
-        "bpm": 107.7
+        "bpm": 107.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.65,
+            "end": 19.46
+          },
+          {
+            "part": "A",
+            "start": 19.46,
+            "end": 37.66
+          },
+          {
+            "part": "B",
+            "start": 37.66,
+            "end": 56.75
+          },
+          {
+            "part": "B",
+            "start": 56.75,
+            "end": 73.47
+          },
+          {
+            "part": "A",
+            "start": 73.47,
+            "end": 90.86
+          },
+          {
+            "part": "C",
+            "start": 90.86,
+            "end": 108.55
+          },
+          {
+            "part": "C",
+            "start": 108.55,
+            "end": 127.04
+          },
+          {
+            "part": "A",
+            "start": 127.04,
+            "end": 144.29
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/cheguei-pixinguinha/audio/playback.3b751426.opus",
         "duration": 179.21,
         "source_url": "https://www.youtube.com/watch?v=FEH4Q4uQsUg&list=RDFEH4Q4uQsUg&start_radio=1",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 5.18,
+            "end": 26.45
+          },
+          {
+            "part": "A",
+            "start": 26.45,
+            "end": 47.69
+          },
+          {
+            "part": "B",
+            "start": 47.69,
+            "end": 68.94
+          },
+          {
+            "part": "B",
+            "start": 68.94,
+            "end": 90.21
+          },
+          {
+            "part": "A",
+            "start": 90.21,
+            "end": 111.46
+          },
+          {
+            "part": "C",
+            "start": 111.46,
+            "end": 132.05
+          },
+          {
+            "part": "C",
+            "start": 132.05,
+            "end": 153.97
+          },
+          {
+            "part": "A",
+            "start": 153.97,
+            "end": 173.89
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -39871,7 +40487,50 @@
         "file": "data/chorinho-na-gafieira-astor-silva/audio/reference.99790565.opus",
         "duration": 250.61,
         "source_url": "https://www.youtube.com/watch?v=EK2XbL_WRaY",
-        "bpm": 129.2
+        "bpm": 129.2,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.74,
+            "end": 31.42
+          },
+          {
+            "part": "A",
+            "start": 31.42,
+            "end": 61.58
+          },
+          {
+            "part": "B",
+            "start": 61.58,
+            "end": 91.46
+          },
+          {
+            "part": "B",
+            "start": 91.46,
+            "end": 121.44
+          },
+          {
+            "part": "A",
+            "start": 121.44,
+            "end": 151.14
+          },
+          {
+            "part": "B",
+            "start": 151.14,
+            "end": 181.19
+          },
+          {
+            "part": "B",
+            "start": 181.19,
+            "end": 210.95
+          },
+          {
+            "part": "A",
+            "start": 210.95,
+            "end": 240.42
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": null
     },
@@ -43774,7 +44433,30 @@
         "file": "data/cinema-mudo-waldyr-azevedo/audio/reference.1165e178.opus",
         "duration": 270.29,
         "source_url": "https://www.youtube.com/watch?v=o9dd7g79xv0",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 3.3,
+            "end": 10.7
+          },
+          {
+            "part": "A",
+            "start": 10.7,
+            "end": 69.13
+          },
+          {
+            "part": "B",
+            "start": 69.13,
+            "end": 136.14
+          },
+          {
+            "part": "B",
+            "start": 198.0,
+            "end": 263.06
+          }
+        ],
+        "sections_confidence": "low"
       },
       "playback": null
     },
@@ -45828,13 +46510,74 @@
         "file": "data/clarinete-melodia-guio-de-morais/audio/reference.9bff914a.opus",
         "duration": 198.45,
         "source_url": "https://www.youtube.com/watch?v=DePa_jnvWfE",
-        "bpm": 107.7
+        "bpm": 107.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 1.86,
+            "end": 25.05
+          },
+          {
+            "part": "A",
+            "start": 25.05,
+            "end": 49.6
+          },
+          {
+            "part": "B",
+            "start": 49.6,
+            "end": 97.45
+          },
+          {
+            "part": "A",
+            "start": 97.45,
+            "end": 120.74
+          },
+          {
+            "part": "A",
+            "start": 120.74,
+            "end": 144.71
+          },
+          {
+            "part": "B",
+            "start": 144.71,
+            "end": 194.54
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/clarinete-melodia-guio-de-morais/audio/playback.05057e53.opus",
         "duration": 154.41,
         "source_url": "https://www.youtube.com/watch?v=kNqY1VJxZoY",
-        "bpm": 79.5
+        "bpm": 79.5,
+        "sections": [
+          {
+            "part": "A",
+            "start": 16.35,
+            "end": 40.36
+          },
+          {
+            "part": "A",
+            "start": 40.36,
+            "end": 64.34
+          },
+          {
+            "part": "B",
+            "start": 64.34,
+            "end": 112.36
+          },
+          {
+            "part": "A",
+            "start": 112.36,
+            "end": 136.35
+          },
+          {
+            "part": "A",
+            "start": 136.35,
+            "end": 152.86
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -46411,13 +47154,94 @@
         "file": "data/cochichando-pixinguinha/audio/reference.3bdc3cb6.opus",
         "duration": 168.51,
         "source_url": "https://www.youtube.com/watch?v=woCyMZe2UXQ&list=RDwoCyMZe2UXQ&start_radio=1",
-        "bpm": 83.4
+        "bpm": 83.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.19,
+            "end": 23.89
+          },
+          {
+            "part": "A",
+            "start": 23.89,
+            "end": 46.83
+          },
+          {
+            "part": "B",
+            "start": 46.83,
+            "end": 69.47
+          },
+          {
+            "part": "A",
+            "start": 69.47,
+            "end": 92.07
+          },
+          {
+            "part": "C",
+            "start": 92.07,
+            "end": 112.78
+          },
+          {
+            "part": "C",
+            "start": 112.78,
+            "end": 138.76
+          },
+          {
+            "part": "A",
+            "start": 138.76,
+            "end": 161.94
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/cochichando-pixinguinha/audio/playback.a4a69a89.opus",
         "duration": 184.91,
         "source_url": "https://www.youtube.com/watch?v=KWQqPKMpafk&list=RDKWQqPKMpafk&start_radio=1",
-        "bpm": 84.7
+        "bpm": 84.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 3.6,
+            "end": 25.91
+          },
+          {
+            "part": "A",
+            "start": 25.91,
+            "end": 48.34
+          },
+          {
+            "part": "B",
+            "start": 48.34,
+            "end": 70.87
+          },
+          {
+            "part": "B",
+            "start": 70.87,
+            "end": 93.58
+          },
+          {
+            "part": "A",
+            "start": 93.58,
+            "end": 115.45
+          },
+          {
+            "part": "C",
+            "start": 115.45,
+            "end": 138.72
+          },
+          {
+            "part": "C",
+            "start": 138.72,
+            "end": 161.24
+          },
+          {
+            "part": "A",
+            "start": 161.24,
+            "end": 182.74
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -50031,13 +50855,164 @@
         "file": "data/comecando-siqueira-lima/audio/reference.92c8c710.opus",
         "duration": 331.61,
         "source_url": "https://www.youtube.com/watch?v=Sz6CrVpoMHA",
-        "bpm": 103.4
+        "bpm": 103.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 2.95,
+            "end": 22.2
+          },
+          {
+            "part": "A",
+            "start": 22.2,
+            "end": 41.01
+          },
+          {
+            "part": "B",
+            "start": 41.01,
+            "end": 59.77
+          },
+          {
+            "part": "B",
+            "start": 59.77,
+            "end": 78.3
+          },
+          {
+            "part": "A",
+            "start": 78.3,
+            "end": 96.55
+          },
+          {
+            "part": "A",
+            "start": 96.55,
+            "end": 115.03
+          },
+          {
+            "part": "B",
+            "start": 115.03,
+            "end": 133.05
+          },
+          {
+            "part": "B",
+            "start": 133.05,
+            "end": 151.65
+          },
+          {
+            "part": "B",
+            "start": 151.65,
+            "end": 169.64
+          },
+          {
+            "part": "B",
+            "start": 169.64,
+            "end": 187.92
+          },
+          {
+            "part": "B",
+            "start": 187.92,
+            "end": 206.26
+          },
+          {
+            "part": "B",
+            "start": 206.26,
+            "end": 224.89
+          },
+          {
+            "part": "B",
+            "start": 224.89,
+            "end": 243.6
+          },
+          {
+            "part": "B",
+            "start": 243.6,
+            "end": 262.41
+          },
+          {
+            "part": "A",
+            "start": 262.41,
+            "end": 281.22
+          },
+          {
+            "part": "A",
+            "start": 281.22,
+            "end": 300.05
+          },
+          {
+            "part": "Coda",
+            "start": 302.53,
+            "end": 308.45
+          }
+        ],
+        "sections_confidence": "low"
       },
       "playback": {
         "file": "data/comecando-siqueira-lima/audio/playback.2550fff6.opus",
         "duration": 245.01,
         "source_url": "https://www.youtube.com/watch?v=Z--RTaVjjJg",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 5.5,
+            "end": 16.63
+          },
+          {
+            "part": "A",
+            "start": 16.63,
+            "end": 37.78
+          },
+          {
+            "part": "A",
+            "start": 37.78,
+            "end": 59.09
+          },
+          {
+            "part": "B",
+            "start": 59.09,
+            "end": 80.43
+          },
+          {
+            "part": "B",
+            "start": 80.43,
+            "end": 101.96
+          },
+          {
+            "part": "A",
+            "start": 101.96,
+            "end": 123.3
+          },
+          {
+            "part": "A",
+            "start": 123.3,
+            "end": 144.61
+          },
+          {
+            "part": "B",
+            "start": 144.61,
+            "end": 165.95
+          },
+          {
+            "part": "B",
+            "start": 165.95,
+            "end": 187.29
+          },
+          {
+            "part": "A",
+            "start": 187.29,
+            "end": 208.63
+          },
+          {
+            "part": "A",
+            "start": 208.63,
+            "end": 229.95
+          },
+          {
+            "part": "Coda",
+            "start": 232.59,
+            "end": 239.28
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -50563,13 +51538,104 @@
         "file": "data/diabinho-maluco-jacob-do-bandolim/audio/reference.f2d0418b.opus",
         "duration": 169.51,
         "source_url": "https://www.youtube.com/watch?v=PazvcuwndVs&list=RDPazvcuwndVs&start_radio=1",
-        "bpm": 126.0
+        "bpm": 126.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.46,
+            "end": 16.32
+          },
+          {
+            "part": "A",
+            "start": 16.32,
+            "end": 31.74
+          },
+          {
+            "part": "B",
+            "start": 31.74,
+            "end": 47.16
+          },
+          {
+            "part": "B",
+            "start": 47.16,
+            "end": 62.9
+          },
+          {
+            "part": "A",
+            "start": 62.9,
+            "end": 77.25
+          },
+          {
+            "part": "C",
+            "start": 77.25,
+            "end": 93.58
+          },
+          {
+            "part": "C",
+            "start": 93.58,
+            "end": 107.97
+          },
+          {
+            "part": "A",
+            "start": 107.97,
+            "end": 123.27
+          },
+          {
+            "part": "C",
+            "start": 123.27,
+            "end": 139.64
+          },
+          {
+            "part": "A",
+            "start": 139.64,
+            "end": 153.51
+          },
+          {
+            "part": "Coda",
+            "start": 153.51,
+            "end": 158.31
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/diabinho-maluco-jacob-do-bandolim/audio/playback.206f8869.opus",
         "duration": 113.61,
         "source_url": "https://www.youtube.com/watch?v=VZXYb-JvCQM&list=RDVZXYb-JvCQM&start_radio=1",
-        "bpm": 110.0
+        "bpm": 110.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 18.3,
+            "end": 36.29
+          },
+          {
+            "part": "A",
+            "start": 36.29,
+            "end": 53.78
+          },
+          {
+            "part": "B",
+            "start": 53.78,
+            "end": 71.22
+          },
+          {
+            "part": "B",
+            "start": 71.22,
+            "end": 88.12
+          },
+          {
+            "part": "A",
+            "start": 88.12,
+            "end": 105.56
+          },
+          {
+            "part": "C",
+            "start": 105.56,
+            "end": 112.66
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -54900,13 +55966,99 @@
         "file": "data/diplomata-pixinguinha/audio/reference.67e5028f.opus",
         "duration": 179.41,
         "source_url": "https://www.youtube.com/watch?v=9cOe7W5eXDI",
-        "bpm": 107.7
+        "bpm": 107.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.07,
+            "end": 24.61
+          },
+          {
+            "part": "A",
+            "start": 24.61,
+            "end": 48.23
+          },
+          {
+            "part": "B",
+            "start": 48.23,
+            "end": 72.24
+          },
+          {
+            "part": "B",
+            "start": 72.24,
+            "end": 96.62
+          },
+          {
+            "part": "A",
+            "start": 96.62,
+            "end": 120.19
+          },
+          {
+            "part": "B",
+            "start": 120.19,
+            "end": 144.59
+          },
+          {
+            "part": "A",
+            "start": 144.59,
+            "end": 168.37
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/diplomata-pixinguinha/audio/playback.bbcb3d36.opus",
         "duration": 192.62,
         "source_url": "https://www.youtube.com/watch?v=317ED76pv0Q",
-        "bpm": 92.3
+        "bpm": 92.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 2.72,
+            "end": 23.96
+          },
+          {
+            "part": "A",
+            "start": 23.96,
+            "end": 45.09
+          },
+          {
+            "part": "B",
+            "start": 45.09,
+            "end": 66.29
+          },
+          {
+            "part": "B",
+            "start": 66.29,
+            "end": 87.35
+          },
+          {
+            "part": "A",
+            "start": 87.35,
+            "end": 108.23
+          },
+          {
+            "part": "A",
+            "start": 108.23,
+            "end": 129.08
+          },
+          {
+            "part": "B",
+            "start": 129.08,
+            "end": 149.91
+          },
+          {
+            "part": "B",
+            "start": 149.91,
+            "end": 170.67
+          },
+          {
+            "part": "A",
+            "start": 170.67,
+            "end": 190.47
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -56769,7 +57921,35 @@
         "file": "data/doce-de-coco-jacob-do-bandolim/audio/reference.b377e69d.opus",
         "duration": 173.81,
         "source_url": "https://www.youtube.com/watch?v=HaffqSKR_qI&list=RDHaffqSKR_qI&start_radio=1",
-        "bpm": 92.3
+        "bpm": 92.3,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 0.42,
+            "end": 5.74
+          },
+          {
+            "part": "A",
+            "start": 5.74,
+            "end": 47.44
+          },
+          {
+            "part": "B",
+            "start": 47.44,
+            "end": 88.7
+          },
+          {
+            "part": "B",
+            "start": 88.7,
+            "end": 129.17
+          },
+          {
+            "part": "A",
+            "start": 129.17,
+            "end": 170.04
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": null
     },
@@ -61540,13 +62720,99 @@
         "file": "data/e-do-que-ha-luiz-americano/audio/reference.bb6ff981.opus",
         "duration": 246.91,
         "source_url": "https://www.youtube.com/watch?v=0rgyCWdrzgA&list=RD0rgyCWdrzgA&start_radio=1",
-        "bpm": 95.7
+        "bpm": 95.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 1.74,
+            "end": 42.42
+          },
+          {
+            "part": "A",
+            "start": 42.42,
+            "end": 82.57
+          },
+          {
+            "part": "B",
+            "start": 82.57,
+            "end": 102.82
+          },
+          {
+            "part": "B",
+            "start": 102.82,
+            "end": 123.51
+          },
+          {
+            "part": "A",
+            "start": 123.51,
+            "end": 162.47
+          },
+          {
+            "part": "C",
+            "start": 162.47,
+            "end": 183.04
+          },
+          {
+            "part": "C",
+            "start": 183.04,
+            "end": 203.5
+          },
+          {
+            "part": "A",
+            "start": 203.5,
+            "end": 243.18
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/e-do-que-ha-luiz-americano/audio/playback.c8d3b93a.opus",
         "duration": 248.11,
         "source_url": "https://www.youtube.com/watch?v=Wn6U_26YvuI&list=RDWn6U_26YvuI&start_radio=1",
-        "bpm": 97.5
+        "bpm": 97.5,
+        "sections": [
+          {
+            "part": "A",
+            "start": 6.41,
+            "end": 46.63
+          },
+          {
+            "part": "A",
+            "start": 46.63,
+            "end": 86.87
+          },
+          {
+            "part": "B",
+            "start": 86.87,
+            "end": 106.21
+          },
+          {
+            "part": "B",
+            "start": 106.21,
+            "end": 126.53
+          },
+          {
+            "part": "A",
+            "start": 126.53,
+            "end": 165.63
+          },
+          {
+            "part": "C",
+            "start": 165.63,
+            "end": 185.36
+          },
+          {
+            "part": "C",
+            "start": 185.36,
+            "end": 205.61
+          },
+          {
+            "part": "A",
+            "start": 205.61,
+            "end": 244.95
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -65794,13 +67060,74 @@
         "file": "data/eu-quero-e-sossego-k-ximbinho/audio/reference.f7354476.opus",
         "duration": 198.11,
         "source_url": "https://www.youtube.com/watch?v=n5PXrvtbLI0",
-        "bpm": 112.3
+        "bpm": 112.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 9.45,
+            "end": 43.93
+          },
+          {
+            "part": "A",
+            "start": 43.93,
+            "end": 78.44
+          },
+          {
+            "part": "B",
+            "start": 78.44,
+            "end": 112.62
+          },
+          {
+            "part": "B",
+            "start": 112.62,
+            "end": 146.98
+          },
+          {
+            "part": "A",
+            "start": 146.98,
+            "end": 181.25
+          },
+          {
+            "part": "A",
+            "start": 181.25,
+            "end": 189.68
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/eu-quero-e-sossego-k-ximbinho/audio/playback.aa0d20b9.opus",
         "duration": 217.01,
         "source_url": "https://www.youtube.com/watch?v=ohFHvnLq_Ys",
-        "bpm": 107.7
+        "bpm": 107.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 23.75,
+            "end": 59.33
+          },
+          {
+            "part": "A",
+            "start": 59.33,
+            "end": 94.6
+          },
+          {
+            "part": "B",
+            "start": 94.6,
+            "end": 130.15
+          },
+          {
+            "part": "B",
+            "start": 130.15,
+            "end": 166.0
+          },
+          {
+            "part": "A",
+            "start": 166.0,
+            "end": 201.53
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -68070,13 +69397,179 @@
         "file": "data/feira-de-mangaio-sivuca/audio/reference.a760f10f.opus",
         "duration": 202.89,
         "source_url": "https://www.youtube.com/watch?v=M-38_POSU1M&list=RDM-38_POSU1M&start_radio=1",
-        "bpm": 139.7
+        "bpm": 139.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.63,
+            "end": 10.36
+          },
+          {
+            "part": "A",
+            "start": 18.83,
+            "end": 28.75
+          },
+          {
+            "part": "B",
+            "start": 28.75,
+            "end": 37.59
+          },
+          {
+            "part": "B",
+            "start": 37.59,
+            "end": 47.32
+          },
+          {
+            "part": "C",
+            "start": 47.32,
+            "end": 55.77
+          },
+          {
+            "part": "C",
+            "start": 55.77,
+            "end": 64.97
+          },
+          {
+            "part": "A",
+            "start": 64.97,
+            "end": 74.16
+          },
+          {
+            "part": "A",
+            "start": 74.16,
+            "end": 84.01
+          },
+          {
+            "part": "B",
+            "start": 84.01,
+            "end": 93.07
+          },
+          {
+            "part": "B",
+            "start": 93.07,
+            "end": 101.49
+          },
+          {
+            "part": "C",
+            "start": 101.49,
+            "end": 111.08
+          },
+          {
+            "part": "C",
+            "start": 111.08,
+            "end": 120.35
+          },
+          {
+            "part": "B",
+            "start": 137.42,
+            "end": 147.68
+          },
+          {
+            "part": "B",
+            "start": 147.68,
+            "end": 156.25
+          },
+          {
+            "part": "C",
+            "start": 156.25,
+            "end": 165.4
+          },
+          {
+            "part": "C",
+            "start": 165.4,
+            "end": 174.96
+          },
+          {
+            "part": "A",
+            "start": 174.96,
+            "end": 183.81
+          },
+          {
+            "part": "A",
+            "start": 183.81,
+            "end": 192.63
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/feira-de-mangaio-sivuca/audio/playback.4d9b100b.opus",
         "duration": 170.81,
         "source_url": "https://www.youtube.com/watch?v=KkxDqZCqttc&list=RDKkxDqZCqttc&start_radio=1",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 9.01,
+            "end": 20.18
+          },
+          {
+            "part": "A",
+            "start": 20.18,
+            "end": 30.84
+          },
+          {
+            "part": "B",
+            "start": 30.84,
+            "end": 41.52
+          },
+          {
+            "part": "B",
+            "start": 41.52,
+            "end": 52.18
+          },
+          {
+            "part": "C",
+            "start": 52.18,
+            "end": 62.83
+          },
+          {
+            "part": "C",
+            "start": 62.83,
+            "end": 73.33
+          },
+          {
+            "part": "A",
+            "start": 73.33,
+            "end": 84.17
+          },
+          {
+            "part": "A",
+            "start": 84.17,
+            "end": 94.83
+          },
+          {
+            "part": "B",
+            "start": 94.83,
+            "end": 105.51
+          },
+          {
+            "part": "B",
+            "start": 105.51,
+            "end": 116.17
+          },
+          {
+            "part": "C",
+            "start": 116.17,
+            "end": 126.85
+          },
+          {
+            "part": "C",
+            "start": 126.85,
+            "end": 137.11
+          },
+          {
+            "part": "A",
+            "start": 137.11,
+            "end": 148.17
+          },
+          {
+            "part": "A",
+            "start": 148.17,
+            "end": 158.15
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -69001,13 +70494,49 @@
         "file": "data/feitico-jacob-do-bandolim/audio/reference.47c21da6.opus",
         "duration": 270.51,
         "source_url": "https://www.youtube.com/watch?v=h5j404FOCKQ",
-        "bpm": 178.2
+        "bpm": 178.2,
+        "sections": [
+          {
+            "part": "B",
+            "start": 17.86,
+            "end": 54.36
+          },
+          {
+            "part": "B",
+            "start": 152.51,
+            "end": 189.52
+          },
+          {
+            "part": "Coda",
+            "start": 189.52,
+            "end": 194.77
+          }
+        ],
+        "sections_confidence": "low"
       },
       "playback": {
         "file": "data/feitico-jacob-do-bandolim/audio/playback.a5f66b7a.opus",
         "duration": 110.41,
         "source_url": "https://www.youtube.com/watch?v=Gp_h-LxgOrc",
-        "bpm": 97.5
+        "bpm": 97.5,
+        "sections": [
+          {
+            "part": "A",
+            "start": 14.91,
+            "end": 54.08
+          },
+          {
+            "part": "B",
+            "start": 54.08,
+            "end": 93.25
+          },
+          {
+            "part": "B",
+            "start": 93.25,
+            "end": 109.76
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -73221,13 +74750,69 @@
         "file": "data/gostosinho-jacob-do-bandolim/audio/reference.28966996.opus",
         "duration": 141.71,
         "source_url": "https://www.youtube.com/watch?v=3kMsDK7XneM",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.56,
+            "end": 31.53
+          },
+          {
+            "part": "B",
+            "start": 31.53,
+            "end": 46.95
+          },
+          {
+            "part": "A",
+            "start": 46.95,
+            "end": 77.9
+          },
+          {
+            "part": "C",
+            "start": 77.9,
+            "end": 108.99
+          },
+          {
+            "part": "A",
+            "start": 108.99,
+            "end": 140.09
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/gostosinho-jacob-do-bandolim/audio/playback.a5d1a5eb.opus",
         "duration": 175.02,
         "source_url": "https://www.youtube.com/watch?v=wtWr8ZohC7Q",
-        "bpm": 112.3
+        "bpm": 112.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 13.28,
+            "end": 47.58
+          },
+          {
+            "part": "B",
+            "start": 47.58,
+            "end": 64.69
+          },
+          {
+            "part": "A",
+            "start": 64.69,
+            "end": 98.99
+          },
+          {
+            "part": "C",
+            "start": 98.99,
+            "end": 133.28
+          },
+          {
+            "part": "A",
+            "start": 133.28,
+            "end": 167.81
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -78607,7 +80192,65 @@
         "file": "data/ja-te-digo-pixinguinha/audio/reference.72aff8b7.opus",
         "duration": 251.71,
         "source_url": "https://www.youtube.com/watch?v=RVz1watqTqE&list=RDRVz1watqTqE&start_radio=1",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.21,
+            "end": 24.82
+          },
+          {
+            "part": "A",
+            "start": 24.82,
+            "end": 48.9
+          },
+          {
+            "part": "B",
+            "start": 48.9,
+            "end": 70.24
+          },
+          {
+            "part": "B",
+            "start": 70.24,
+            "end": 91.07
+          },
+          {
+            "part": "C",
+            "start": 91.07,
+            "end": 112.92
+          },
+          {
+            "part": "A",
+            "start": 112.92,
+            "end": 137.3
+          },
+          {
+            "part": "A",
+            "start": 137.3,
+            "end": 160.87
+          },
+          {
+            "part": "B",
+            "start": 160.87,
+            "end": 182.02
+          },
+          {
+            "part": "B",
+            "start": 182.02,
+            "end": 203.45
+          },
+          {
+            "part": "C",
+            "start": 203.45,
+            "end": 224.37
+          },
+          {
+            "part": "A",
+            "start": 224.37,
+            "end": 247.69
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": null
     },
@@ -79716,13 +81359,89 @@
         "file": "data/lamentos-pixinguinha/audio/reference.a7b55d26.opus",
         "duration": 270.51,
         "source_url": "https://www.youtube.com/watch?v=tvtIsnxfLrA",
-        "bpm": 99.4
+        "bpm": 99.4,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 0.84,
+            "end": 7.73
+          },
+          {
+            "part": "A",
+            "start": 7.73,
+            "end": 48.51
+          },
+          {
+            "part": "A",
+            "start": 48.51,
+            "end": 87.61
+          },
+          {
+            "part": "B",
+            "start": 87.61,
+            "end": 139.48
+          },
+          {
+            "part": "B",
+            "start": 139.48,
+            "end": 191.68
+          },
+          {
+            "part": "A",
+            "start": 191.68,
+            "end": 242.3
+          },
+          {
+            "part": "Coda",
+            "start": 249.31,
+            "end": 258.93
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/lamentos-pixinguinha/audio/playback.dae12651.opus",
         "duration": 282.51,
         "source_url": "https://www.youtube.com/watch?v=4u6VGoSWqCY",
-        "bpm": 136.0
+        "bpm": 136.0,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 9.89,
+            "end": 16.9
+          },
+          {
+            "part": "A",
+            "start": 16.9,
+            "end": 59.28
+          },
+          {
+            "part": "A",
+            "start": 59.28,
+            "end": 101.4
+          },
+          {
+            "part": "B",
+            "start": 101.4,
+            "end": 157.87
+          },
+          {
+            "part": "B",
+            "start": 157.87,
+            "end": 214.55
+          },
+          {
+            "part": "A",
+            "start": 214.55,
+            "end": 256.63
+          },
+          {
+            "part": "Coda",
+            "start": 260.02,
+            "end": 267.77
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -83567,13 +85286,104 @@
         "file": "data/machucando-adalberto-de-souza/audio/reference.576abf9c.opus",
         "duration": 125.59,
         "source_url": "https://www.youtube.com/watch?v=u8M3h16AA30&list=RDu8M3h16AA30&start_radio=1",
-        "bpm": 94.0
+        "bpm": 94.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.28,
+            "end": 21.43
+          },
+          {
+            "part": "B",
+            "start": 21.43,
+            "end": 31.72
+          },
+          {
+            "part": "B",
+            "start": 31.72,
+            "end": 41.98
+          },
+          {
+            "part": "A",
+            "start": 41.98,
+            "end": 61.81
+          },
+          {
+            "part": "C",
+            "start": 61.81,
+            "end": 83.1
+          },
+          {
+            "part": "C",
+            "start": 83.1,
+            "end": 103.79
+          },
+          {
+            "part": "A",
+            "start": 103.79,
+            "end": 123.72
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/machucando-adalberto-de-souza/audio/playback.dd306403.opus",
         "duration": 169.61,
         "source_url": "https://www.youtube.com/watch?v=jQkHtgeSme0&list=RDjQkHtgeSme0&start_radio=1",
-        "bpm": 132.5
+        "bpm": 132.5,
+        "sections": [
+          {
+            "part": "A",
+            "start": 3.07,
+            "end": 23.92
+          },
+          {
+            "part": "A",
+            "start": 23.92,
+            "end": 44.44
+          },
+          {
+            "part": "B",
+            "start": 44.44,
+            "end": 54.66
+          },
+          {
+            "part": "B",
+            "start": 54.66,
+            "end": 64.9
+          },
+          {
+            "part": "B",
+            "start": 64.9,
+            "end": 75.14
+          },
+          {
+            "part": "B",
+            "start": 75.14,
+            "end": 85.4
+          },
+          {
+            "part": "A",
+            "start": 85.4,
+            "end": 105.91
+          },
+          {
+            "part": "C",
+            "start": 105.91,
+            "end": 126.36
+          },
+          {
+            "part": "C",
+            "start": 126.36,
+            "end": 146.68
+          },
+          {
+            "part": "A",
+            "start": 146.68,
+            "end": 166.65
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -86536,13 +88346,59 @@
         "file": "data/migalhas-de-amor-jacob-do-bandolim/audio/reference.d606dd3e.opus",
         "duration": 178.01,
         "source_url": "https://www.youtube.com/watch?v=Xv3m7JciGVc&list=RDXv3m7JciGVc&start_radio=1",
-        "bpm": 136.0
+        "bpm": 136.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.46,
+            "end": 57.75
+          },
+          {
+            "part": "B",
+            "start": 57.75,
+            "end": 86.12
+          },
+          {
+            "part": "B",
+            "start": 86.12,
+            "end": 114.82
+          },
+          {
+            "part": "A",
+            "start": 114.82,
+            "end": 171.87
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/migalhas-de-amor-jacob-do-bandolim/audio/playback.35aa1f1a.opus",
         "duration": 197.11,
         "source_url": "https://www.youtube.com/watch?v=7LNtZspRojk&list=RD7LNtZspRojk&start_radio=1",
-        "bpm": 126.0
+        "bpm": 126.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 5.8,
+            "end": 66.87
+          },
+          {
+            "part": "B",
+            "start": 66.87,
+            "end": 97.34
+          },
+          {
+            "part": "B",
+            "start": 97.34,
+            "end": 127.8
+          },
+          {
+            "part": "A",
+            "start": 127.8,
+            "end": 188.48
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -88136,13 +89992,84 @@
         "file": "data/murmurando-fon-fon/audio/reference.12eb9c43.opus",
         "duration": 289.61,
         "source_url": "https://www.youtube.com/watch?v=VF69EOBz2iQ",
-        "bpm": 95.7
+        "bpm": 95.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 2.21,
+            "end": 40.52
+          },
+          {
+            "part": "B",
+            "start": 40.52,
+            "end": 61.7
+          },
+          {
+            "part": "B",
+            "start": 61.7,
+            "end": 81.64
+          },
+          {
+            "part": "A",
+            "start": 81.64,
+            "end": 121.7
+          },
+          {
+            "part": "C",
+            "start": 121.7,
+            "end": 161.47
+          },
+          {
+            "part": "C",
+            "start": 161.47,
+            "end": 202.01
+          },
+          {
+            "part": "C",
+            "start": 202.01,
+            "end": 242.23
+          },
+          {
+            "part": "A",
+            "start": 242.23,
+            "end": 281.08
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/murmurando-fon-fon/audio/playback.49643c3b.opus",
         "duration": 173.57,
         "source_url": "https://www.youtube.com/watch?v=MSC8fBzVG9A",
-        "bpm": 110.0
+        "bpm": 110.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 20.74,
+            "end": 66.2
+          },
+          {
+            "part": "B",
+            "start": 66.2,
+            "end": 90.26
+          },
+          {
+            "part": "B",
+            "start": 90.26,
+            "end": 113.8
+          },
+          {
+            "part": "A",
+            "start": 113.8,
+            "end": 160.89
+          },
+          {
+            "part": "C",
+            "start": 160.89,
+            "end": 172.92
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -93817,13 +95744,104 @@
         "file": "data/na-gloria-raul-de-barros/audio/reference.3731390f.opus",
         "duration": 176.29,
         "source_url": "https://www.youtube.com/watch?v=-4RIi23Rrrw",
-        "bpm": 101.3
+        "bpm": 101.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.7,
+            "end": 19.6
+          },
+          {
+            "part": "A",
+            "start": 19.6,
+            "end": 38.31
+          },
+          {
+            "part": "B",
+            "start": 38.31,
+            "end": 57.42
+          },
+          {
+            "part": "B",
+            "start": 57.42,
+            "end": 76.51
+          },
+          {
+            "part": "A",
+            "start": 76.51,
+            "end": 95.41
+          },
+          {
+            "part": "C",
+            "start": 95.41,
+            "end": 114.68
+          },
+          {
+            "part": "C",
+            "start": 114.68,
+            "end": 133.7
+          },
+          {
+            "part": "A",
+            "start": 133.7,
+            "end": 152.56
+          },
+          {
+            "part": "A",
+            "start": 152.56,
+            "end": 171.22
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/na-gloria-raul-de-barros/audio/playback.1eaa5e5a.opus",
         "duration": 145.51,
         "source_url": "https://www.youtube.com/watch?v=nC8GsHLHo04&list=RDnC8GsHLHo04&start_radio=1",
-        "bpm": 99.4
+        "bpm": 99.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 2.48,
+            "end": 21.52
+          },
+          {
+            "part": "A",
+            "start": 21.52,
+            "end": 40.75
+          },
+          {
+            "part": "B",
+            "start": 40.75,
+            "end": 60.07
+          },
+          {
+            "part": "A",
+            "start": 60.07,
+            "end": 79.11
+          },
+          {
+            "part": "C",
+            "start": 79.11,
+            "end": 98.31
+          },
+          {
+            "part": "C",
+            "start": 98.31,
+            "end": 117.52
+          },
+          {
+            "part": "A",
+            "start": 117.52,
+            "end": 136.74
+          },
+          {
+            "part": "C",
+            "start": 136.74,
+            "end": 142.87
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -97293,13 +99311,114 @@
         "file": "data/nao-me-toques-zequinha-de-abreu/audio/reference.f947b495.opus",
         "duration": 147.51,
         "source_url": "https://www.youtube.com/watch?v=ofqreoTjPSM",
-        "bpm": 191.4
+        "bpm": 191.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 4.25,
+            "end": 23.89
+          },
+          {
+            "part": "A",
+            "start": 23.89,
+            "end": 43.7
+          },
+          {
+            "part": "B",
+            "start": 43.7,
+            "end": 53.38
+          },
+          {
+            "part": "B",
+            "start": 53.38,
+            "end": 63.09
+          },
+          {
+            "part": "A",
+            "start": 63.09,
+            "end": 82.83
+          },
+          {
+            "part": "C",
+            "start": 82.83,
+            "end": 102.33
+          },
+          {
+            "part": "C",
+            "start": 102.33,
+            "end": 122.3
+          },
+          {
+            "part": "A",
+            "start": 122.3,
+            "end": 141.71
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/nao-me-toques-zequinha-de-abreu/audio/playback.4906d79e.opus",
         "duration": 147.11,
         "source_url": "https://www.youtube.com/watch?v=m6Gb4T-UZuk",
-        "bpm": 114.8
+        "bpm": 114.8,
+        "sections": [
+          {
+            "part": "A",
+            "start": 3.88,
+            "end": 20.83
+          },
+          {
+            "part": "A",
+            "start": 20.83,
+            "end": 37.57
+          },
+          {
+            "part": "B",
+            "start": 37.57,
+            "end": 45.91
+          },
+          {
+            "part": "B",
+            "start": 45.91,
+            "end": 54.22
+          },
+          {
+            "part": "A",
+            "start": 54.22,
+            "end": 70.87
+          },
+          {
+            "part": "C",
+            "start": 70.87,
+            "end": 87.47
+          },
+          {
+            "part": "C",
+            "start": 87.47,
+            "end": 104.03
+          },
+          {
+            "part": "A",
+            "start": 104.03,
+            "end": 120.47
+          },
+          {
+            "part": "B",
+            "start": 120.47,
+            "end": 128.68
+          },
+          {
+            "part": "B",
+            "start": 128.68,
+            "end": 136.9
+          },
+          {
+            "part": "B",
+            "start": 136.9,
+            "end": 143.06
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -100487,7 +102606,40 @@
         "file": "data/naquele-tempo-pixinguinha/audio/reference.add30534.opus",
         "duration": 193.21,
         "source_url": "https://www.youtube.com/watch?v=AwryEdYhYGg&start_radio=1",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 3.09,
+            "end": 33.44
+          },
+          {
+            "part": "B",
+            "start": 33.44,
+            "end": 65.2
+          },
+          {
+            "part": "A",
+            "start": 65.2,
+            "end": 96.53
+          },
+          {
+            "part": "C",
+            "start": 96.53,
+            "end": 127.87
+          },
+          {
+            "part": "C",
+            "start": 127.87,
+            "end": 158.73
+          },
+          {
+            "part": "A",
+            "start": 158.73,
+            "end": 188.78
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": null
     },
@@ -104327,13 +106479,79 @@
         "file": "data/noites-cariocas-jacob-do-bandolim/audio/reference.f026b9e0.opus",
         "duration": 172.81,
         "source_url": "https://www.youtube.com/watch?v=GZt79hU5Pig&list=RDGZt79hU5Pig&start_radio=1",
-        "bpm": 103.4
+        "bpm": 103.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.39,
+            "end": 39.08
+          },
+          {
+            "part": "B",
+            "start": 39.08,
+            "end": 75.77
+          },
+          {
+            "part": "B",
+            "start": 75.77,
+            "end": 112.64
+          },
+          {
+            "part": "A",
+            "start": 112.64,
+            "end": 148.86
+          },
+          {
+            "part": "C",
+            "start": 148.86,
+            "end": 159.29
+          },
+          {
+            "part": "C",
+            "start": 159.29,
+            "end": 169.02
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/noites-cariocas-jacob-do-bandolim/audio/playback.6fa27472.opus",
         "duration": 225.71,
         "source_url": "https://www.youtube.com/watch?v=cGWvWZ9qGLk&list=RDcGWvWZ9qGLk&start_radio=1",
-        "bpm": 99.4
+        "bpm": 99.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 10.36,
+            "end": 49.3
+          },
+          {
+            "part": "A",
+            "start": 49.3,
+            "end": 87.75
+          },
+          {
+            "part": "B",
+            "start": 87.75,
+            "end": 126.8
+          },
+          {
+            "part": "B",
+            "start": 126.8,
+            "end": 164.68
+          },
+          {
+            "part": "A",
+            "start": 164.68,
+            "end": 203.29
+          },
+          {
+            "part": "C",
+            "start": 210.51,
+            "end": 221.75
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -109573,13 +111791,94 @@
         "file": "data/o-bom-filho-a-casa-torna-bonfiglio-de-oliveira/audio/reference.4af942b5.opus",
         "duration": 234.51,
         "source_url": "https://www.youtube.com/watch?v=6Uk8cyyP2Sg&list=RD6Uk8cyyP2Sg&start_radio=1",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 11.33,
+            "end": 32.51
+          },
+          {
+            "part": "A",
+            "start": 32.51,
+            "end": 53.78
+          },
+          {
+            "part": "B",
+            "start": 53.78,
+            "end": 74.47
+          },
+          {
+            "part": "B",
+            "start": 74.47,
+            "end": 96.32
+          },
+          {
+            "part": "A",
+            "start": 96.32,
+            "end": 116.47
+          },
+          {
+            "part": "C",
+            "start": 116.47,
+            "end": 164.4
+          },
+          {
+            "part": "C",
+            "start": 164.4,
+            "end": 212.11
+          },
+          {
+            "part": "A",
+            "start": 212.11,
+            "end": 232.27
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/o-bom-filho-a-casa-torna-bonfiglio-de-oliveira/audio/playback.8e4ac816.opus",
         "duration": 197.01,
         "source_url": "https://www.youtube.com/watch?v=ISY6gehIlD4&list=RDISY6gehIlD4&start_radio=1",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 11.73,
+            "end": 33.39
+          },
+          {
+            "part": "A",
+            "start": 44.07,
+            "end": 65.83
+          },
+          {
+            "part": "A",
+            "start": 65.83,
+            "end": 87.17
+          },
+          {
+            "part": "B",
+            "start": 87.17,
+            "end": 108.23
+          },
+          {
+            "part": "A",
+            "start": 108.23,
+            "end": 127.83
+          },
+          {
+            "part": "C",
+            "start": 127.83,
+            "end": 174.5
+          },
+          {
+            "part": "A",
+            "start": 174.5,
+            "end": 195.12
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -114039,13 +116338,84 @@
         "file": "data/o-corta-jaca-gaucho-chiquinha-gonzaga/audio/reference.92a3ad0d.opus",
         "duration": 146.81,
         "source_url": "https://www.youtube.com/watch?v=F9gWz59OPmw&list=RDF9gWz59OPmw&start_radio=1",
-        "bpm": 89.1
+        "bpm": 89.1,
+        "sections": [
+          {
+            "part": "A",
+            "start": 5.62,
+            "end": 38.43
+          },
+          {
+            "part": "B (Trio)",
+            "start": 38.43,
+            "end": 60.42
+          },
+          {
+            "part": "B (Trio)",
+            "start": 60.42,
+            "end": 79.57
+          },
+          {
+            "part": "A",
+            "start": 82.36,
+            "end": 113.99
+          },
+          {
+            "part": "A",
+            "start": 113.99,
+            "end": 140.34
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/o-corta-jaca-gaucho-chiquinha-gonzaga/audio/playback.e12fbf99.opus",
         "duration": 199.21,
         "source_url": "https://www.youtube.com/watch?v=cdoN5-4gDBE&list=RDcdoN5-4gDBE&start_radio=1",
-        "bpm": 89.1
+        "bpm": 89.1,
+        "sections": [
+          {
+            "part": "A",
+            "start": 13.31,
+            "end": 45.6
+          },
+          {
+            "part": "B (Trio)",
+            "start": 45.6,
+            "end": 66.94
+          },
+          {
+            "part": "B (Trio)",
+            "start": 66.94,
+            "end": 85.61
+          },
+          {
+            "part": "A",
+            "start": 88.28,
+            "end": 120.28
+          },
+          {
+            "part": "B (Trio)",
+            "start": 120.28,
+            "end": 141.6
+          },
+          {
+            "part": "B (Trio)",
+            "start": 141.6,
+            "end": 160.29
+          },
+          {
+            "part": "A",
+            "start": 160.29,
+            "end": 188.96
+          },
+          {
+            "part": "A",
+            "start": 188.96,
+            "end": 193.63
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -117028,13 +119398,94 @@
         "file": "data/os-cinco-companheiros-pixinguinha/audio/reference.8dde4b65.opus",
         "duration": 170.02,
         "source_url": "https://www.youtube.com/watch?v=i35h-J8KwIQ&list=RDi35h-J8KwIQ&start_radio=1",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 2.04,
+            "end": 23.29
+          },
+          {
+            "part": "A",
+            "start": 23.29,
+            "end": 43.72
+          },
+          {
+            "part": "B",
+            "start": 43.72,
+            "end": 65.32
+          },
+          {
+            "part": "B",
+            "start": 65.32,
+            "end": 86.19
+          },
+          {
+            "part": "A",
+            "start": 86.19,
+            "end": 107.3
+          },
+          {
+            "part": "C",
+            "start": 107.3,
+            "end": 130.24
+          },
+          {
+            "part": "A",
+            "start": 148.31,
+            "end": 169.04
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/os-cinco-companheiros-pixinguinha/audio/playback.4bd55c90.opus",
         "duration": 173.11,
         "source_url": "https://www.youtube.com/watch?v=ThJwcl_48h8&list=RDThJwcl_48h8&start_radio=1",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 4.02,
+            "end": 25.77
+          },
+          {
+            "part": "A",
+            "start": 25.77,
+            "end": 46.49
+          },
+          {
+            "part": "B",
+            "start": 46.49,
+            "end": 67.99
+          },
+          {
+            "part": "B",
+            "start": 67.99,
+            "end": 88.68
+          },
+          {
+            "part": "A",
+            "start": 88.68,
+            "end": 109.99
+          },
+          {
+            "part": "C",
+            "start": 109.99,
+            "end": 131.03
+          },
+          {
+            "part": "C",
+            "start": 131.03,
+            "end": 151.77
+          },
+          {
+            "part": "A",
+            "start": 151.77,
+            "end": 172.11
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -119991,13 +122442,104 @@
         "file": "data/proezas-de-solon-pixinguinha/audio/reference.82893dbe.opus",
         "duration": 183.81,
         "source_url": "https://www.youtube.com/watch?v=V0JQ2gwfamQ",
-        "bpm": 95.7
+        "bpm": 95.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 10.54,
+            "end": 30.56
+          },
+          {
+            "part": "A",
+            "start": 30.56,
+            "end": 50.85
+          },
+          {
+            "part": "B",
+            "start": 50.85,
+            "end": 70.87
+          },
+          {
+            "part": "B",
+            "start": 70.87,
+            "end": 90.88
+          },
+          {
+            "part": "A",
+            "start": 90.88,
+            "end": 110.94
+          },
+          {
+            "part": "C",
+            "start": 110.94,
+            "end": 131.15
+          },
+          {
+            "part": "C",
+            "start": 131.15,
+            "end": 151.09
+          },
+          {
+            "part": "A",
+            "start": 151.09,
+            "end": 170.76
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/proezas-de-solon-pixinguinha/audio/playback.acddc896.opus",
         "duration": 155.11,
         "source_url": "https://www.youtube.com/watch?v=CYjE5nS_c_c",
-        "bpm": 114.8
+        "bpm": 114.8,
+        "sections": [
+          {
+            "part": "A",
+            "start": 3.09,
+            "end": 20.06
+          },
+          {
+            "part": "A",
+            "start": 20.06,
+            "end": 36.9
+          },
+          {
+            "part": "B",
+            "start": 36.9,
+            "end": 53.68
+          },
+          {
+            "part": "B",
+            "start": 53.68,
+            "end": 70.45
+          },
+          {
+            "part": "A",
+            "start": 70.45,
+            "end": 87.31
+          },
+          {
+            "part": "C",
+            "start": 87.31,
+            "end": 103.98
+          },
+          {
+            "part": "C",
+            "start": 103.98,
+            "end": 120.67
+          },
+          {
+            "part": "A",
+            "start": 120.67,
+            "end": 137.32
+          },
+          {
+            "part": "A",
+            "start": 137.32,
+            "end": 152.39
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -123419,13 +125961,79 @@
         "file": "data/receita-de-samba-jacob-do-bandolim/audio/reference.a7cdceee.opus",
         "duration": 165.31,
         "source_url": "https://www.youtube.com/watch?v=xIykrXOTLtg&list=RDxIykrXOTLtg&start_radio=1",
-        "bpm": 105.5
+        "bpm": 105.5,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 0.84,
+            "end": 7.15
+          },
+          {
+            "part": "A",
+            "start": 7.15,
+            "end": 45.67
+          },
+          {
+            "part": "B",
+            "start": 45.67,
+            "end": 82.06
+          },
+          {
+            "part": "B",
+            "start": 82.06,
+            "end": 116.84
+          },
+          {
+            "part": "A",
+            "start": 116.84,
+            "end": 154.88
+          },
+          {
+            "part": "A",
+            "start": 154.88,
+            "end": 162.21
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/receita-de-samba-jacob-do-bandolim/audio/playback.c42af86a.opus",
         "duration": 208.41,
         "source_url": "https://www.youtube.com/watch?v=Jmu10RM7gPo&list=RDJmu10RM7gPo&start_radio=1",
-        "bpm": 105.5
+        "bpm": 105.5,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 5.57,
+            "end": 12.42
+          },
+          {
+            "part": "A",
+            "start": 13.58,
+            "end": 52.38
+          },
+          {
+            "part": "A",
+            "start": 52.38,
+            "end": 87.75
+          },
+          {
+            "part": "B",
+            "start": 87.75,
+            "end": 124.25
+          },
+          {
+            "part": "B",
+            "start": 124.25,
+            "end": 160.77
+          },
+          {
+            "part": "A",
+            "start": 160.77,
+            "end": 199.0
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -128564,13 +131172,124 @@
         "file": "data/rio-antigo-altamiro-carrilho/audio/reference.69fe1768.opus",
         "duration": 152.28,
         "source_url": "https://www.youtube.com/watch?v=CtJkhUeEqQY",
-        "bpm": 103.4
+        "bpm": 103.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 1.53,
+            "end": 10.94
+          },
+          {
+            "part": "B",
+            "start": 10.94,
+            "end": 29.56
+          },
+          {
+            "part": "A",
+            "start": 29.56,
+            "end": 38.87
+          },
+          {
+            "part": "C",
+            "start": 38.87,
+            "end": 57.38
+          },
+          {
+            "part": "A",
+            "start": 57.38,
+            "end": 66.94
+          },
+          {
+            "part": "B",
+            "start": 66.94,
+            "end": 85.4
+          },
+          {
+            "part": "A",
+            "start": 85.4,
+            "end": 94.71
+          },
+          {
+            "part": "C",
+            "start": 94.71,
+            "end": 113.29
+          },
+          {
+            "part": "A",
+            "start": 113.29,
+            "end": 122.67
+          },
+          {
+            "part": "B",
+            "start": 122.67,
+            "end": 141.18
+          },
+          {
+            "part": "A",
+            "start": 141.18,
+            "end": 149.86
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/rio-antigo-altamiro-carrilho/audio/playback.74e70b96.opus",
         "duration": 157.11,
         "source_url": "https://www.youtube.com/watch?v=PUXtBJ7Vjgc",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 6.06,
+            "end": 16.67
+          },
+          {
+            "part": "B",
+            "start": 16.67,
+            "end": 37.96
+          },
+          {
+            "part": "A",
+            "start": 37.96,
+            "end": 48.58
+          },
+          {
+            "part": "C",
+            "start": 48.58,
+            "end": 69.87
+          },
+          {
+            "part": "A",
+            "start": 69.87,
+            "end": 80.46
+          },
+          {
+            "part": "B",
+            "start": 80.46,
+            "end": 101.73
+          },
+          {
+            "part": "A",
+            "start": 101.73,
+            "end": 112.34
+          },
+          {
+            "part": "C",
+            "start": 112.34,
+            "end": 133.61
+          },
+          {
+            "part": "A",
+            "start": 133.61,
+            "end": 144.22
+          },
+          {
+            "part": "A",
+            "start": 144.22,
+            "end": 154.18
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -130168,13 +132887,54 @@
         "file": "data/rosa-pixinguinha/audio/reference.edc477ef.opus",
         "duration": 293.01,
         "source_url": "https://www.youtube.com/watch?v=zQ2ohMtNLl8",
-        "bpm": 184.6
+        "bpm": 184.6,
+        "sections": [
+          {
+            "part": "C",
+            "start": 27.33,
+            "end": 66.8
+          },
+          {
+            "part": "C",
+            "start": 161.7,
+            "end": 199.81
+          },
+          {
+            "part": "C",
+            "start": 215.78,
+            "end": 243.6
+          }
+        ],
+        "sections_confidence": "low"
       },
       "playback": {
         "file": "data/rosa-pixinguinha/audio/playback.08a08494.opus",
         "duration": 226.71,
         "source_url": "https://www.youtube.com/watch?v=GPpcaT7HDw0&list=RDGPpcaT7HDw0&start_radio=1",
-        "bpm": 95.7
+        "bpm": 95.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 27.03,
+            "end": 87.05
+          },
+          {
+            "part": "B",
+            "start": 87.05,
+            "end": 147.03
+          },
+          {
+            "part": "A",
+            "start": 147.03,
+            "end": 207.03
+          },
+          {
+            "part": "C",
+            "start": 207.03,
+            "end": 219.54
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -133129,13 +135889,99 @@
         "file": "data/santa-morena-jacob-do-bandolim/audio/reference.aeefca70.opus",
         "duration": 160.51,
         "source_url": "https://www.youtube.com/watch?v=DtdieOgaIPA&list=RDDtdieOgaIPA&start_radio=1",
-        "bpm": 117.5
+        "bpm": 117.5,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 6.9,
+            "end": 18.04
+          },
+          {
+            "part": "A",
+            "start": 18.04,
+            "end": 41.38
+          },
+          {
+            "part": "A",
+            "start": 41.38,
+            "end": 65.64
+          },
+          {
+            "part": "B",
+            "start": 65.64,
+            "end": 90.19
+          },
+          {
+            "part": "A",
+            "start": 90.19,
+            "end": 114.82
+          },
+          {
+            "part": "B",
+            "start": 114.82,
+            "end": 139.71
+          },
+          {
+            "part": "A",
+            "start": 139.71,
+            "end": 158.29
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/santa-morena-jacob-do-bandolim/audio/playback.75757c0e.opus",
         "duration": 191.11,
         "source_url": "https://www.youtube.com/watch?v=jlKsVdVNjtE&list=RDjlKsVdVNjtE&start_radio=1",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 3.67,
+            "end": 19.9
+          },
+          {
+            "part": "A",
+            "start": 19.9,
+            "end": 42.52
+          },
+          {
+            "part": "A",
+            "start": 42.52,
+            "end": 66.18
+          },
+          {
+            "part": "B",
+            "start": 66.18,
+            "end": 89.86
+          },
+          {
+            "part": "B",
+            "start": 89.86,
+            "end": 113.48
+          },
+          {
+            "part": "A",
+            "start": 113.48,
+            "end": 137.39
+          },
+          {
+            "part": "B",
+            "start": 137.39,
+            "end": 161.1
+          },
+          {
+            "part": "A",
+            "start": 161.1,
+            "end": 183.99
+          },
+          {
+            "part": "Coda",
+            "start": 183.99,
+            "end": 189.87
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -138898,7 +141744,50 @@
         "file": "data/saxofone-por-que-choras-ratinho/audio/playback.3c35c38b.opus",
         "duration": 312.31,
         "source_url": "https://www.youtube.com/watch?v=bWZvX2eOi-s",
-        "bpm": 90.7
+        "bpm": 90.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 8.85,
+            "end": 51.48
+          },
+          {
+            "part": "A",
+            "start": 51.48,
+            "end": 94.16
+          },
+          {
+            "part": "B",
+            "start": 94.16,
+            "end": 115.5
+          },
+          {
+            "part": "B",
+            "start": 115.5,
+            "end": 136.81
+          },
+          {
+            "part": "A",
+            "start": 136.81,
+            "end": 179.49
+          },
+          {
+            "part": "C",
+            "start": 179.49,
+            "end": 222.15
+          },
+          {
+            "part": "C",
+            "start": 222.15,
+            "end": 264.82
+          },
+          {
+            "part": "A",
+            "start": 264.82,
+            "end": 306.83
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -142654,13 +145543,104 @@
         "file": "data/sonhando-k-ximbinho/audio/reference.9d7223b2.opus",
         "duration": 226.41,
         "source_url": "https://www.youtube.com/watch?v=CFgYaQfPmO4",
-        "bpm": 147.7
+        "bpm": 147.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 10.98,
+            "end": 36.59
+          },
+          {
+            "part": "A",
+            "start": 36.59,
+            "end": 62.97
+          },
+          {
+            "part": "B",
+            "start": 62.97,
+            "end": 86.05
+          },
+          {
+            "part": "B",
+            "start": 86.05,
+            "end": 111.66
+          },
+          {
+            "part": "A",
+            "start": 111.66,
+            "end": 137.51
+          },
+          {
+            "part": "C",
+            "start": 137.51,
+            "end": 164.95
+          },
+          {
+            "part": "C",
+            "start": 164.95,
+            "end": 190.94
+          },
+          {
+            "part": "A",
+            "start": 190.94,
+            "end": 213.83
+          },
+          {
+            "part": "B",
+            "start": 213.83,
+            "end": 221.38
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/sonhando-k-ximbinho/audio/playback.429533e2.opus",
         "duration": 234.81,
         "source_url": "https://www.youtube.com/watch?v=U6Aqk8d4ZEM",
-        "bpm": 139.7
+        "bpm": 139.7,
+        "sections": [
+          {
+            "part": "A",
+            "start": 2.16,
+            "end": 29.86
+          },
+          {
+            "part": "A",
+            "start": 29.86,
+            "end": 57.68
+          },
+          {
+            "part": "B",
+            "start": 57.68,
+            "end": 85.5
+          },
+          {
+            "part": "B",
+            "start": 85.5,
+            "end": 113.34
+          },
+          {
+            "part": "A",
+            "start": 113.34,
+            "end": 141.15
+          },
+          {
+            "part": "C",
+            "start": 141.15,
+            "end": 168.99
+          },
+          {
+            "part": "C",
+            "start": 168.99,
+            "end": 196.81
+          },
+          {
+            "part": "A",
+            "start": 196.81,
+            "end": 224.63
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -146100,13 +149080,79 @@
         "file": "data/sonoroso-k-ximbinho/audio/reference.43cc041e.opus",
         "duration": 168.57,
         "source_url": "https://www.youtube.com/watch?v=nlALNf7C_mM&list=RDnlALNf7C_mM&start_radio=1",
-        "bpm": 110.0
+        "bpm": 110.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.39,
+            "end": 23.85
+          },
+          {
+            "part": "B",
+            "start": 23.85,
+            "end": 47.18
+          },
+          {
+            "part": "B",
+            "start": 47.18,
+            "end": 71.03
+          },
+          {
+            "part": "A",
+            "start": 71.03,
+            "end": 93.44
+          },
+          {
+            "part": "C",
+            "start": 93.44,
+            "end": 117.12
+          },
+          {
+            "part": "C",
+            "start": 117.12,
+            "end": 142.18
+          },
+          {
+            "part": "A",
+            "start": 142.18,
+            "end": 165.26
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/sonoroso-k-ximbinho/audio/playback.76e3e372.opus",
         "duration": 135.21,
         "source_url": "https://www.youtube.com/watch?v=_GS9uk9UmX0&list=RD_GS9uk9UmX0&start_radio=1",
-        "bpm": 156.6
+        "bpm": 156.6,
+        "sections": [
+          {
+            "part": "A",
+            "start": 25.43,
+            "end": 50.2
+          },
+          {
+            "part": "A",
+            "start": 50.2,
+            "end": 74.42
+          },
+          {
+            "part": "B",
+            "start": 74.42,
+            "end": 99.06
+          },
+          {
+            "part": "B",
+            "start": 99.06,
+            "end": 124.06
+          },
+          {
+            "part": "A",
+            "start": 124.06,
+            "end": 134.77
+          }
+        ],
+        "sections_confidence": "low"
       }
     },
     "instruments": [
@@ -148957,7 +152003,45 @@
         "file": "data/tamoyo-chiquinha-gonzaga/audio/reference.323df8d0.opus",
         "duration": 175.51,
         "source_url": "https://www.youtube.com/watch?v=xAFvJ8W94M8",
-        "bpm": 114.8
+        "bpm": 114.8,
+        "sections": [
+          {
+            "part": "A",
+            "start": 1.93,
+            "end": 35.29
+          },
+          {
+            "part": "B",
+            "start": 35.29,
+            "end": 51.9
+          },
+          {
+            "part": "B",
+            "start": 51.9,
+            "end": 68.41
+          },
+          {
+            "part": "A",
+            "start": 68.41,
+            "end": 101.29
+          },
+          {
+            "part": "C",
+            "start": 101.29,
+            "end": 117.77
+          },
+          {
+            "part": "C",
+            "start": 117.77,
+            "end": 134.33
+          },
+          {
+            "part": "A",
+            "start": 134.33,
+            "end": 167.42
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": null
     },
@@ -150350,13 +153434,299 @@
         "file": "data/ternura-k-ximbinho/audio/reference.62fe3516.opus",
         "duration": 333.41,
         "source_url": "https://www.youtube.com/watch?v=QDTfstNdOFY",
-        "bpm": 101.3
+        "bpm": 101.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 1.16,
+            "end": 9.73
+          },
+          {
+            "part": "A",
+            "start": 9.73,
+            "end": 20.85
+          },
+          {
+            "part": "A",
+            "start": 20.85,
+            "end": 33.11
+          },
+          {
+            "part": "C",
+            "start": 33.11,
+            "end": 43.24
+          },
+          {
+            "part": "A",
+            "start": 43.24,
+            "end": 54.71
+          },
+          {
+            "part": "A",
+            "start": 54.71,
+            "end": 64.41
+          },
+          {
+            "part": "A",
+            "start": 64.41,
+            "end": 73.54
+          },
+          {
+            "part": "A",
+            "start": 73.54,
+            "end": 83.2
+          },
+          {
+            "part": "A",
+            "start": 83.2,
+            "end": 92.25
+          },
+          {
+            "part": "A",
+            "start": 92.25,
+            "end": 101.1
+          },
+          {
+            "part": "A",
+            "start": 101.1,
+            "end": 109.99
+          },
+          {
+            "part": "A",
+            "start": 114.17,
+            "end": 123.76
+          },
+          {
+            "part": "A",
+            "start": 123.76,
+            "end": 133.51
+          },
+          {
+            "part": "A",
+            "start": 133.51,
+            "end": 141.99
+          },
+          {
+            "part": "A",
+            "start": 141.99,
+            "end": 152.79
+          },
+          {
+            "part": "A",
+            "start": 152.79,
+            "end": 162.28
+          },
+          {
+            "part": "A",
+            "start": 162.28,
+            "end": 174.17
+          },
+          {
+            "part": "A",
+            "start": 174.17,
+            "end": 183.07
+          },
+          {
+            "part": "A",
+            "start": 183.07,
+            "end": 192.56
+          },
+          {
+            "part": "B",
+            "start": 192.56,
+            "end": 202.5
+          },
+          {
+            "part": "A",
+            "start": 202.5,
+            "end": 211.37
+          },
+          {
+            "part": "C",
+            "start": 211.37,
+            "end": 223.05
+          },
+          {
+            "part": "A",
+            "start": 223.05,
+            "end": 232.41
+          },
+          {
+            "part": "A",
+            "start": 232.41,
+            "end": 242.28
+          },
+          {
+            "part": "B",
+            "start": 242.28,
+            "end": 252.28
+          },
+          {
+            "part": "A",
+            "start": 252.28,
+            "end": 261.67
+          },
+          {
+            "part": "C",
+            "start": 261.67,
+            "end": 271.58
+          },
+          {
+            "part": "A",
+            "start": 271.58,
+            "end": 280.45
+          },
+          {
+            "part": "A",
+            "start": 280.45,
+            "end": 292.34
+          },
+          {
+            "part": "A",
+            "start": 292.34,
+            "end": 301.67
+          },
+          {
+            "part": "A",
+            "start": 306.9,
+            "end": 315.56
+          },
+          {
+            "part": "A",
+            "start": 315.56,
+            "end": 324.68
+          }
+        ],
+        "sections_confidence": "low"
       },
       "playback": {
         "file": "data/ternura-k-ximbinho/audio/playback.4c06f49f.opus",
         "duration": 358.61,
         "source_url": "https://www.youtube.com/watch?v=iUWx7z5AsYg",
-        "bpm": 99.4
+        "bpm": 99.4,
+        "sections": [
+          {
+            "part": "A",
+            "start": 4.83,
+            "end": 14.12
+          },
+          {
+            "part": "A",
+            "start": 14.12,
+            "end": 23.13
+          },
+          {
+            "part": "A",
+            "start": 41.73,
+            "end": 51.32
+          },
+          {
+            "part": "A",
+            "start": 51.32,
+            "end": 59.72
+          },
+          {
+            "part": "A",
+            "start": 70.52,
+            "end": 81.32
+          },
+          {
+            "part": "A",
+            "start": 81.32,
+            "end": 89.72
+          },
+          {
+            "part": "A",
+            "start": 89.72,
+            "end": 98.1
+          },
+          {
+            "part": "A",
+            "start": 108.92,
+            "end": 119.72
+          },
+          {
+            "part": "A",
+            "start": 119.72,
+            "end": 131.1
+          },
+          {
+            "part": "C",
+            "start": 131.1,
+            "end": 141.92
+          },
+          {
+            "part": "A",
+            "start": 141.92,
+            "end": 153.93
+          },
+          {
+            "part": "C",
+            "start": 153.93,
+            "end": 163.54
+          },
+          {
+            "part": "A",
+            "start": 163.54,
+            "end": 173.71
+          },
+          {
+            "part": "A",
+            "start": 198.32,
+            "end": 207.91
+          },
+          {
+            "part": "C",
+            "start": 207.91,
+            "end": 218.71
+          },
+          {
+            "part": "A",
+            "start": 218.71,
+            "end": 227.72
+          },
+          {
+            "part": "C",
+            "start": 227.72,
+            "end": 237.31
+          },
+          {
+            "part": "A",
+            "start": 237.31,
+            "end": 246.32
+          },
+          {
+            "part": "C",
+            "start": 246.32,
+            "end": 256.53
+          },
+          {
+            "part": "A",
+            "start": 281.73,
+            "end": 291.92
+          },
+          {
+            "part": "A",
+            "start": 300.91,
+            "end": 311.12
+          },
+          {
+            "part": "A",
+            "start": 311.12,
+            "end": 320.11
+          },
+          {
+            "part": "A",
+            "start": 320.11,
+            "end": 329.12
+          },
+          {
+            "part": "A",
+            "start": 339.31,
+            "end": 347.72
+          }
+        ],
+        "sections_confidence": "low"
       }
     },
     "instruments": [
@@ -153626,7 +156996,55 @@
         "file": "data/tico-tico-no-fuba-zequinha-de-abreu/audio/playback.0a293586.opus",
         "duration": 133.11,
         "source_url": "https://www.youtube.com/watch?v=o54zy7HK-ic",
-        "bpm": 103.4
+        "bpm": 103.4,
+        "sections": [
+          {
+            "part": "C",
+            "start": 19.09,
+            "end": 30.67
+          },
+          {
+            "part": "C",
+            "start": 30.67,
+            "end": 43.4
+          },
+          {
+            "part": "C",
+            "start": 43.4,
+            "end": 55.57
+          },
+          {
+            "part": "C",
+            "start": 59.61,
+            "end": 71.17
+          },
+          {
+            "part": "C",
+            "start": 71.17,
+            "end": 82.76
+          },
+          {
+            "part": "C",
+            "start": 86.8,
+            "end": 98.99
+          },
+          {
+            "part": "C",
+            "start": 98.99,
+            "end": 111.15
+          },
+          {
+            "part": "C",
+            "start": 111.15,
+            "end": 123.27
+          },
+          {
+            "part": "C",
+            "start": 123.27,
+            "end": 132.54
+          }
+        ],
+        "sections_confidence": "low"
       }
     },
     "instruments": [
@@ -155942,13 +159360,89 @@
         "file": "data/um-a-zero-pixinguinha/audio/reference.ca4defee.opus",
         "duration": 135.61,
         "source_url": "https://www.youtube.com/watch?v=LjWBIl6IRBA",
-        "bpm": 117.5
+        "bpm": 117.5,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.19,
+            "end": 17.32
+          },
+          {
+            "part": "A",
+            "start": 17.32,
+            "end": 33.81
+          },
+          {
+            "part": "B",
+            "start": 33.81,
+            "end": 66.43
+          },
+          {
+            "part": "A",
+            "start": 66.43,
+            "end": 82.73
+          },
+          {
+            "part": "C",
+            "start": 82.73,
+            "end": 99.1
+          },
+          {
+            "part": "C",
+            "start": 99.1,
+            "end": 115.43
+          },
+          {
+            "part": "A",
+            "start": 115.43,
+            "end": 130.71
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/um-a-zero-pixinguinha/audio/playback.be0b258e.opus",
         "duration": 152.51,
         "source_url": "https://www.youtube.com/watch?v=NPKt_cR4vfM",
-        "bpm": 114.8
+        "bpm": 114.8,
+        "sections": [
+          {
+            "part": "A",
+            "start": 10.73,
+            "end": 27.42
+          },
+          {
+            "part": "A",
+            "start": 27.42,
+            "end": 44.14
+          },
+          {
+            "part": "B",
+            "start": 44.14,
+            "end": 77.53
+          },
+          {
+            "part": "A",
+            "start": 77.53,
+            "end": 94.2
+          },
+          {
+            "part": "C",
+            "start": 94.2,
+            "end": 110.92
+          },
+          {
+            "part": "C",
+            "start": 110.92,
+            "end": 127.59
+          },
+          {
+            "part": "A",
+            "start": 127.59,
+            "end": 142.73
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -162197,13 +165691,154 @@
         "file": "data/um-chorinho-em-cochabamba-eduardo-neves/audio/reference.8fa12d34.opus",
         "duration": 243.21,
         "source_url": "https://www.youtube.com/watch?v=4BxCuR1FhSA&list=RD4BxCuR1FhSA&start_radio=1",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 8.71,
+            "end": 17.53
+          },
+          {
+            "part": "A",
+            "start": 17.53,
+            "end": 38.57
+          },
+          {
+            "part": "A",
+            "start": 38.57,
+            "end": 60.21
+          },
+          {
+            "part": "B",
+            "start": 60.21,
+            "end": 80.67
+          },
+          {
+            "part": "B",
+            "start": 80.67,
+            "end": 103.0
+          },
+          {
+            "part": "B",
+            "start": 123.97,
+            "end": 145.26
+          },
+          {
+            "part": "B",
+            "start": 145.26,
+            "end": 166.02
+          },
+          {
+            "part": "B",
+            "start": 166.02,
+            "end": 188.17
+          },
+          {
+            "part": "A",
+            "start": 188.17,
+            "end": 207.87
+          },
+          {
+            "part": "C",
+            "start": 207.87,
+            "end": 213.21
+          },
+          {
+            "part": "C",
+            "start": 213.21,
+            "end": 218.89
+          },
+          {
+            "part": "B",
+            "start": 218.89,
+            "end": 230.67
+          }
+        ],
+        "sections_confidence": "low"
       },
       "playback": {
         "file": "data/um-chorinho-em-cochabamba-eduardo-neves/audio/playback.c823e9dc.opus",
         "duration": 317.71,
         "source_url": "https://www.youtube.com/watch?v=F1Rj9ZM7tAk&list=RDF1Rj9ZM7tAk&start_radio=1",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 9.4,
+            "end": 18.3
+          },
+          {
+            "part": "A",
+            "start": 18.3,
+            "end": 39.54
+          },
+          {
+            "part": "A",
+            "start": 39.54,
+            "end": 60.88
+          },
+          {
+            "part": "B",
+            "start": 60.88,
+            "end": 82.22
+          },
+          {
+            "part": "B",
+            "start": 82.22,
+            "end": 103.42
+          },
+          {
+            "part": "A",
+            "start": 103.42,
+            "end": 124.95
+          },
+          {
+            "part": "A",
+            "start": 124.95,
+            "end": 145.89
+          },
+          {
+            "part": "B",
+            "start": 145.89,
+            "end": 167.56
+          },
+          {
+            "part": "B",
+            "start": 167.56,
+            "end": 188.76
+          },
+          {
+            "part": "A",
+            "start": 188.76,
+            "end": 210.28
+          },
+          {
+            "part": "A",
+            "start": 210.28,
+            "end": 231.25
+          },
+          {
+            "part": "B",
+            "start": 231.25,
+            "end": 252.87
+          },
+          {
+            "part": "B",
+            "start": 252.87,
+            "end": 274.09
+          },
+          {
+            "part": "A",
+            "start": 274.09,
+            "end": 294.57
+          },
+          {
+            "part": "A",
+            "start": 294.57,
+            "end": 315.54
+          }
+        ],
+        "sections_confidence": "low"
       }
     },
     "instruments": [
@@ -163554,13 +167189,129 @@
         "file": "data/um-tom-pra-jobim-sivuca/audio/reference.0f3c1369.opus",
         "duration": 271.51,
         "source_url": "https://www.youtube.com/watch?v=1GXQKJsZ3nM",
-        "bpm": 152.0
+        "bpm": 152.0,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 0.77,
+            "end": 17.95
+          },
+          {
+            "part": "A",
+            "start": 17.95,
+            "end": 35.06
+          },
+          {
+            "part": "A",
+            "start": 35.06,
+            "end": 51.69
+          },
+          {
+            "part": "B",
+            "start": 51.69,
+            "end": 69.22
+          },
+          {
+            "part": "A",
+            "start": 69.22,
+            "end": 85.05
+          },
+          {
+            "part": "A",
+            "start": 85.05,
+            "end": 102.14
+          },
+          {
+            "part": "A",
+            "start": 102.14,
+            "end": 119.56
+          },
+          {
+            "part": "A",
+            "start": 119.56,
+            "end": 136.44
+          },
+          {
+            "part": "B",
+            "start": 136.44,
+            "end": 153.14
+          },
+          {
+            "part": "A",
+            "start": 153.14,
+            "end": 168.37
+          },
+          {
+            "part": "A",
+            "start": 168.37,
+            "end": 185.74
+          },
+          {
+            "part": "A",
+            "start": 185.74,
+            "end": 203.76
+          },
+          {
+            "part": "A",
+            "start": 203.76,
+            "end": 219.87
+          },
+          {
+            "part": "B",
+            "start": 219.87,
+            "end": 236.54
+          },
+          {
+            "part": "A",
+            "start": 236.54,
+            "end": 252.22
+          },
+          {
+            "part": "Coda",
+            "start": 252.22,
+            "end": 265.26
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/um-tom-pra-jobim-sivuca/audio/playback.f0c45344.opus",
         "duration": 110.81,
         "source_url": "https://www.youtube.com/watch?v=9JoL8XhGqWI",
-        "bpm": 147.7
+        "bpm": 147.7,
+        "sections": [
+          {
+            "part": "Intro",
+            "start": 1.21,
+            "end": 20.15
+          },
+          {
+            "part": "A",
+            "start": 20.15,
+            "end": 38.82
+          },
+          {
+            "part": "A",
+            "start": 38.82,
+            "end": 56.08
+          },
+          {
+            "part": "B",
+            "start": 56.08,
+            "end": 73.19
+          },
+          {
+            "part": "A",
+            "start": 73.19,
+            "end": 91.35
+          },
+          {
+            "part": "Coda",
+            "start": 91.35,
+            "end": 108.23
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -165748,13 +169499,64 @@
         "file": "data/vibracoes-jacob-do-bandolim/audio/reference.e5465e18.opus",
         "duration": 262.11,
         "source_url": "https://www.youtube.com/watch?v=EzUn9fPk5n4&list=RDEzUn9fPk5n4&start_radio=1",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.39,
+            "end": 59.0
+          },
+          {
+            "part": "B",
+            "start": 62.88,
+            "end": 125.64
+          },
+          {
+            "part": "B",
+            "start": 125.64,
+            "end": 187.71
+          },
+          {
+            "part": "A",
+            "start": 187.71,
+            "end": 246.27
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/vibracoes-jacob-do-bandolim/audio/playback.3d180139.opus",
         "duration": 277.51,
         "source_url": "https://www.youtube.com/watch?v=eMyojG5dUdQ&list=RDeMyojG5dUdQ&start_radio=1",
-        "bpm": 120.2
+        "bpm": 120.2,
+        "sections": [
+          {
+            "part": "A",
+            "start": 5.46,
+            "end": 65.48
+          },
+          {
+            "part": "B",
+            "start": 69.47,
+            "end": 133.47
+          },
+          {
+            "part": "B",
+            "start": 133.47,
+            "end": 197.49
+          },
+          {
+            "part": "A",
+            "start": 197.49,
+            "end": 257.51
+          },
+          {
+            "part": "B",
+            "start": 259.11,
+            "end": 268.89
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [
@@ -169959,7 +173761,45 @@
         "file": "data/voluvel-pattapio-silva/audio/reference.934a79c0.opus",
         "duration": 260.95,
         "source_url": "https://www.youtube.com/watch?v=LaAHxjWIDoI",
-        "bpm": 123.0
+        "bpm": 123.0,
+        "sections": [
+          {
+            "part": "A",
+            "start": 9.52,
+            "end": 56.77
+          },
+          {
+            "part": "B",
+            "start": 56.77,
+            "end": 80.32
+          },
+          {
+            "part": "B",
+            "start": 80.32,
+            "end": 103.93
+          },
+          {
+            "part": "A",
+            "start": 103.93,
+            "end": 151.14
+          },
+          {
+            "part": "C",
+            "start": 151.14,
+            "end": 175.24
+          },
+          {
+            "part": "C",
+            "start": 175.24,
+            "end": 198.37
+          },
+          {
+            "part": "A",
+            "start": 198.37,
+            "end": 244.55
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": null
     },
@@ -170601,13 +174441,94 @@
         "file": "data/vou-vivendo-pixinguinha/audio/reference.e4d8823a.opus",
         "duration": 150.61,
         "source_url": "https://www.youtube.com/watch?v=EgrCA6DhUdo",
-        "bpm": 89.1
+        "bpm": 89.1,
+        "sections": [
+          {
+            "part": "A",
+            "start": 0.49,
+            "end": 22.13
+          },
+          {
+            "part": "B",
+            "start": 22.13,
+            "end": 43.49
+          },
+          {
+            "part": "B",
+            "start": 43.49,
+            "end": 64.83
+          },
+          {
+            "part": "A",
+            "start": 64.83,
+            "end": 86.33
+          },
+          {
+            "part": "C",
+            "start": 86.33,
+            "end": 107.83
+          },
+          {
+            "part": "C",
+            "start": 107.83,
+            "end": 129.17
+          },
+          {
+            "part": "A",
+            "start": 129.17,
+            "end": 149.82
+          }
+        ],
+        "sections_confidence": "high"
       },
       "playback": {
         "file": "data/vou-vivendo-pixinguinha/audio/playback.077d1161.opus",
         "duration": 185.11,
         "source_url": "https://www.youtube.com/watch?v=dLRMFM_Q-FA",
-        "bpm": 112.3
+        "bpm": 112.3,
+        "sections": [
+          {
+            "part": "A",
+            "start": 2.69,
+            "end": 26.91
+          },
+          {
+            "part": "A",
+            "start": 26.91,
+            "end": 49.74
+          },
+          {
+            "part": "B",
+            "start": 49.74,
+            "end": 71.75
+          },
+          {
+            "part": "B",
+            "start": 71.75,
+            "end": 94.6
+          },
+          {
+            "part": "A",
+            "start": 94.6,
+            "end": 117.35
+          },
+          {
+            "part": "C",
+            "start": 117.35,
+            "end": 139.95
+          },
+          {
+            "part": "C",
+            "start": 139.95,
+            "end": 161.94
+          },
+          {
+            "part": "A",
+            "start": 161.94,
+            "end": 184.09
+          }
+        ],
+        "sections_confidence": "high"
       }
     },
     "instruments": [

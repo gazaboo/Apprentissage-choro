@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=9cOe7W5eXDI",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 107.7
+    "bpm": 107.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.07,
+        "end": 24.61
+      },
+      {
+        "part": "A",
+        "start": 24.61,
+        "end": 48.23
+      },
+      {
+        "part": "B",
+        "start": 48.23,
+        "end": 72.24
+      },
+      {
+        "part": "B",
+        "start": 72.24,
+        "end": 96.62
+      },
+      {
+        "part": "A",
+        "start": 96.62,
+        "end": 120.19
+      },
+      {
+        "part": "B",
+        "start": 120.19,
+        "end": 144.59
+      },
+      {
+        "part": "A",
+        "start": 144.59,
+        "end": 168.37
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/diplomata-pixinguinha/audio/playback.bbcb3d36.opus",
@@ -13,6 +51,54 @@
     "source_url": "https://www.youtube.com/watch?v=317ED76pv0Q",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 92.3
+    "bpm": 92.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 2.72,
+        "end": 23.96
+      },
+      {
+        "part": "A",
+        "start": 23.96,
+        "end": 45.09
+      },
+      {
+        "part": "B",
+        "start": 45.09,
+        "end": 66.29
+      },
+      {
+        "part": "B",
+        "start": 66.29,
+        "end": 87.35
+      },
+      {
+        "part": "A",
+        "start": 87.35,
+        "end": 108.23
+      },
+      {
+        "part": "A",
+        "start": 108.23,
+        "end": 129.08
+      },
+      {
+        "part": "B",
+        "start": 129.08,
+        "end": 149.91
+      },
+      {
+        "part": "B",
+        "start": 149.91,
+        "end": 170.67
+      },
+      {
+        "part": "A",
+        "start": 170.67,
+        "end": 190.47
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

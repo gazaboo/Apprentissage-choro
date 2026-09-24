@@ -1,0 +1,325 @@
+{
+  "song_id": "araponga-luiz-gonzaga",
+  "title": "Araponga",
+  "composer": "Luiz Gonzaga",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro — A (Lam, reprise) — B (Do, reprise) — D.S. : A — B — Coda (A variée, Lam)",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "Am",
+      "bars": "1–16",
+      "repeat": false,
+      "sequence": [
+        [
+          "E7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "E7"
+        ],
+        [],
+        [],
+        [
+          "E7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am",
+          "Am/C"
+        ],
+        [
+          "E7/B",
+          "E7"
+        ],
+        [
+          "Am",
+          "Am/C"
+        ],
+        [
+          "E7/B",
+          "E7"
+        ],
+        [
+          "Am",
+          "Am/C"
+        ],
+        [
+          "E7/B",
+          "E7"
+        ],
+        [
+          "Am",
+          "Am/C"
+        ],
+        [
+          "E7/B",
+          "E7"
+        ]
+      ]
+    },
+    {
+      "name": "A",
+      "tonic": "Am",
+      "bars": "17–35 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Am"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm",
+          "G7"
+        ],
+        [
+          "C",
+          "Fmaj7"
+        ],
+        [
+          "E7",
+          "E7/G#"
+        ],
+        [
+          "Am",
+          "Am/C"
+        ],
+        [
+          "Dm",
+          "Bm7b5"
+        ],
+        [
+          "Am/C",
+          "Am"
+        ],
+        [
+          "Bm7b5",
+          "E7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Am",
+            "F7",
+            "E7"
+          ]
+        ],
+        "2": [
+          [
+            "Am",
+            "F",
+            "F#dim"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "C",
+      "bars": "38–56",
+      "repeat": true,
+      "sequence": [
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G/D",
+          "D7/C"
+        ],
+        [
+          "G/B",
+          "G7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C",
+          "A7"
+        ],
+        [
+          "Dm",
+          "G7"
+        ],
+        [
+          "C",
+          "F"
+        ],
+        [
+          "Bm7b5",
+          "E7"
+        ],
+        [
+          "A7",
+          "D7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C",
+          "A7"
+        ],
+        [
+          "Dm7",
+          "G7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "C",
+            "F",
+            "F#dim"
+          ]
+        ],
+        "2": [
+          [
+            "C",
+            "F",
+            "E7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Am"
+    ],
+    [
+      "E7"
+    ],
+    [
+      "E7"
+    ],
+    [
+      "Am"
+    ],
+    [
+      "Am"
+    ],
+    [
+      "G"
+    ],
+    [
+      "F"
+    ],
+    [
+      "E7"
+    ],
+    [
+      "Am"
+    ],
+    [
+      "E7"
+    ],
+    [
+      "E7"
+    ],
+    [
+      "A7"
+    ],
+    [
+      "Dm",
+      "G7"
+    ],
+    [
+      "C",
+      "F"
+    ],
+    [
+      "Bm7b5",
+      "E7"
+    ],
+    [
+      "Am",
+      "Am/G"
+    ],
+    [
+      "Dm/F",
+      "Dm6"
+    ],
+    [
+      "Am"
+    ],
+    [
+      "E7"
+    ],
+    [
+      "Am"
+    ]
+  ],
+  "notes": [
+    "Forme indiquée sur la partition : Intro, AA BB A B, coda A.",
+    "Intro : mm. 5-6 passage des guitares sans chiffrage ; mm. 9-16 = vamp Am / E7 en reprises (9-12, 13-14, 15-16).",
+    "Coda (⊕ m. 59-78) : la partie A rejouée en variante rythmique, finit sur Am (Fim)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/araponga-luiz-gonzaga/c/page_1.webp",
+    "data/araponga-luiz-gonzaga/c/page_2.webp"
+  ]
+}

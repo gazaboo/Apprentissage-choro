@@ -5,7 +5,40 @@
     "source_url": "https://www.youtube.com/watch?v=n5PXrvtbLI0",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 112.3
+    "bpm": 112.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 9.45,
+        "end": 43.93
+      },
+      {
+        "part": "A",
+        "start": 43.93,
+        "end": 78.44
+      },
+      {
+        "part": "B",
+        "start": 78.44,
+        "end": 112.62
+      },
+      {
+        "part": "B",
+        "start": 112.62,
+        "end": 146.98
+      },
+      {
+        "part": "A",
+        "start": 146.98,
+        "end": 181.25
+      },
+      {
+        "part": "A",
+        "start": 181.25,
+        "end": 189.68
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/eu-quero-e-sossego-k-ximbinho/audio/playback.aa0d20b9.opus",
@@ -13,6 +46,34 @@
     "source_url": "https://www.youtube.com/watch?v=ohFHvnLq_Ys",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 107.7
+    "bpm": 107.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 23.75,
+        "end": 59.33
+      },
+      {
+        "part": "A",
+        "start": 59.33,
+        "end": 94.6
+      },
+      {
+        "part": "B",
+        "start": 94.6,
+        "end": 130.15
+      },
+      {
+        "part": "B",
+        "start": 130.15,
+        "end": 166.0
+      },
+      {
+        "part": "A",
+        "start": 166.0,
+        "end": 201.53
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

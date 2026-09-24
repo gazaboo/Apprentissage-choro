@@ -5,7 +5,170 @@
     "source_url": "https://www.youtube.com/watch?v=QDTfstNdOFY",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 101.3
+    "bpm": 101.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 1.16,
+        "end": 9.73
+      },
+      {
+        "part": "A",
+        "start": 9.73,
+        "end": 20.85
+      },
+      {
+        "part": "A",
+        "start": 20.85,
+        "end": 33.11
+      },
+      {
+        "part": "C",
+        "start": 33.11,
+        "end": 43.24
+      },
+      {
+        "part": "A",
+        "start": 43.24,
+        "end": 54.71
+      },
+      {
+        "part": "A",
+        "start": 54.71,
+        "end": 64.41
+      },
+      {
+        "part": "A",
+        "start": 64.41,
+        "end": 73.54
+      },
+      {
+        "part": "A",
+        "start": 73.54,
+        "end": 83.2
+      },
+      {
+        "part": "A",
+        "start": 83.2,
+        "end": 92.25
+      },
+      {
+        "part": "A",
+        "start": 92.25,
+        "end": 101.1
+      },
+      {
+        "part": "A",
+        "start": 101.1,
+        "end": 109.99
+      },
+      {
+        "part": "A",
+        "start": 114.17,
+        "end": 123.76
+      },
+      {
+        "part": "A",
+        "start": 123.76,
+        "end": 133.51
+      },
+      {
+        "part": "A",
+        "start": 133.51,
+        "end": 141.99
+      },
+      {
+        "part": "A",
+        "start": 141.99,
+        "end": 152.79
+      },
+      {
+        "part": "A",
+        "start": 152.79,
+        "end": 162.28
+      },
+      {
+        "part": "A",
+        "start": 162.28,
+        "end": 174.17
+      },
+      {
+        "part": "A",
+        "start": 174.17,
+        "end": 183.07
+      },
+      {
+        "part": "A",
+        "start": 183.07,
+        "end": 192.56
+      },
+      {
+        "part": "B",
+        "start": 192.56,
+        "end": 202.5
+      },
+      {
+        "part": "A",
+        "start": 202.5,
+        "end": 211.37
+      },
+      {
+        "part": "C",
+        "start": 211.37,
+        "end": 223.05
+      },
+      {
+        "part": "A",
+        "start": 223.05,
+        "end": 232.41
+      },
+      {
+        "part": "A",
+        "start": 232.41,
+        "end": 242.28
+      },
+      {
+        "part": "B",
+        "start": 242.28,
+        "end": 252.28
+      },
+      {
+        "part": "A",
+        "start": 252.28,
+        "end": 261.67
+      },
+      {
+        "part": "C",
+        "start": 261.67,
+        "end": 271.58
+      },
+      {
+        "part": "A",
+        "start": 271.58,
+        "end": 280.45
+      },
+      {
+        "part": "A",
+        "start": 280.45,
+        "end": 292.34
+      },
+      {
+        "part": "A",
+        "start": 292.34,
+        "end": 301.67
+      },
+      {
+        "part": "A",
+        "start": 306.9,
+        "end": 315.56
+      },
+      {
+        "part": "A",
+        "start": 315.56,
+        "end": 324.68
+      }
+    ],
+    "sections_confidence": "low"
   },
   "playback": {
     "file": "data/ternura-k-ximbinho/audio/playback.4c06f49f.opus",
@@ -13,6 +176,129 @@
     "source_url": "https://www.youtube.com/watch?v=iUWx7z5AsYg",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 99.4
+    "bpm": 99.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 4.83,
+        "end": 14.12
+      },
+      {
+        "part": "A",
+        "start": 14.12,
+        "end": 23.13
+      },
+      {
+        "part": "A",
+        "start": 41.73,
+        "end": 51.32
+      },
+      {
+        "part": "A",
+        "start": 51.32,
+        "end": 59.72
+      },
+      {
+        "part": "A",
+        "start": 70.52,
+        "end": 81.32
+      },
+      {
+        "part": "A",
+        "start": 81.32,
+        "end": 89.72
+      },
+      {
+        "part": "A",
+        "start": 89.72,
+        "end": 98.1
+      },
+      {
+        "part": "A",
+        "start": 108.92,
+        "end": 119.72
+      },
+      {
+        "part": "A",
+        "start": 119.72,
+        "end": 131.1
+      },
+      {
+        "part": "C",
+        "start": 131.1,
+        "end": 141.92
+      },
+      {
+        "part": "A",
+        "start": 141.92,
+        "end": 153.93
+      },
+      {
+        "part": "C",
+        "start": 153.93,
+        "end": 163.54
+      },
+      {
+        "part": "A",
+        "start": 163.54,
+        "end": 173.71
+      },
+      {
+        "part": "A",
+        "start": 198.32,
+        "end": 207.91
+      },
+      {
+        "part": "C",
+        "start": 207.91,
+        "end": 218.71
+      },
+      {
+        "part": "A",
+        "start": 218.71,
+        "end": 227.72
+      },
+      {
+        "part": "C",
+        "start": 227.72,
+        "end": 237.31
+      },
+      {
+        "part": "A",
+        "start": 237.31,
+        "end": 246.32
+      },
+      {
+        "part": "C",
+        "start": 246.32,
+        "end": 256.53
+      },
+      {
+        "part": "A",
+        "start": 281.73,
+        "end": 291.92
+      },
+      {
+        "part": "A",
+        "start": 300.91,
+        "end": 311.12
+      },
+      {
+        "part": "A",
+        "start": 311.12,
+        "end": 320.11
+      },
+      {
+        "part": "A",
+        "start": 320.11,
+        "end": 329.12
+      },
+      {
+        "part": "A",
+        "start": 339.31,
+        "end": 347.72
+      }
+    ],
+    "sections_confidence": "low"
   }
 }

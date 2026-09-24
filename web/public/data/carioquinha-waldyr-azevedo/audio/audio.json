@@ -5,7 +5,35 @@
     "source_url": "https://www.youtube.com/watch?v=vSZwmCKfNdo&list=RDvSZwmCKfNdo&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 97.5
+    "bpm": 97.5,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 0.23,
+        "end": 6.34
+      },
+      {
+        "part": "A",
+        "start": 6.34,
+        "end": 46.18
+      },
+      {
+        "part": "A",
+        "start": 46.18,
+        "end": 86.84
+      },
+      {
+        "part": "B",
+        "start": 86.84,
+        "end": 125.2
+      },
+      {
+        "part": "A",
+        "start": 125.2,
+        "end": 165.6
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/carioquinha-waldyr-azevedo/audio/playback.f35c6295.opus",
@@ -13,6 +41,39 @@
     "source_url": "https://www.youtube.com/watch?v=zbXQR9ebNNw&list=RDzbXQR9ebNNw&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 0.74,
+        "end": 7.08
+      },
+      {
+        "part": "A",
+        "start": 7.08,
+        "end": 51.41
+      },
+      {
+        "part": "A",
+        "start": 51.41,
+        "end": 94.09
+      },
+      {
+        "part": "B",
+        "start": 94.09,
+        "end": 135.74
+      },
+      {
+        "part": "A",
+        "start": 135.74,
+        "end": 176.89
+      },
+      {
+        "part": "Coda",
+        "start": 176.89,
+        "end": 183.21
+      }
+    ],
+    "sections_confidence": "high"
   }
 }
