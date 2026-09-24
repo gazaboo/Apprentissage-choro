@@ -244,7 +244,7 @@ export function renderTrainer(
   const fpPrefs = progress.settings.fullpage;
   const FP_ZOOM_MIN = 0.4;
   const FP_ZOOM_MAX = 3;
-  const FP_ZOOM_STEP = 0.2;
+  const FP_ZOOM_STEP = 0.05;
   const fpWide = window.matchMedia('(min-width: 1024px)');
 
   let fullpage = false;
