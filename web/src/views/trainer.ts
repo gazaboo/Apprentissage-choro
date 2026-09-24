@@ -1093,9 +1093,9 @@ export function renderTrainer(
   const scoreScroll = el(
     'div',
     { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto' },
-    noAudio,
     consigne,
     scoreHome,
+    noAudio,
   );
   const page = el(
     'div',
