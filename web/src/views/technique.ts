@@ -35,8 +35,8 @@ import { chordRoot, degre, nameFromMidi, parseNote } from '../technique/theorie'
 import { dessinerPortee } from './portee';
 import { askSrs } from './srsModal';
 
-/** Pas des boutons de tempo — assez large pour se sentir, assez fin pour régler. */
-const BPM_STEP = 4;
+/** Pas des boutons de tempo — un cran par appui, pour un réglage précis. */
+const BPM_STEP = 1;
 
 /** Délai d'écoute sans attaque détectée avant d'alerter : le temps de se mettre en place. */
 const SILENCE_WARNING_MS = 4000;
@@ -320,7 +320,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const finishButton = el('button', { type: 'button', class: ui.primary }, 'Noter et continuer');
   const textButton =
     'inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-zinc-300 ' +
-    'transition hover:bg-zinc-900 hover:text-white focus:outline-none focus-visible:ring-2 ' +
+    'transition hover:bg-zinc-900 hover:text-zinc-50 focus:outline-none focus-visible:ring-2 ' +
     'focus-visible:ring-amber-400';
   const stopButton = el(
     'button',
@@ -498,7 +498,8 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     play.disc.className =
       'inline-flex h-14 w-14 items-center justify-center rounded-full border transition ' +
       (playRunning
-        ? 'border-amber-400 bg-amber-400 text-zinc-950 shadow-lg shadow-amber-400/20'
+        // Texte quasi noir dans les deux thèmes (#177), voir `ui.primary`.
+        ? 'border-amber-400 bg-amber-400 text-[#09090b] shadow-lg shadow-amber-400/20'
         : 'border-amber-400/45 bg-zinc-800 text-amber-400 group-hover:bg-zinc-700');
     play.caption.textContent = 'Métronome';
     play.caption.className =

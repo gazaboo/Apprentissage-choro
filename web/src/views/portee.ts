@@ -24,16 +24,26 @@ const NS = 'http://www.w3.org/2000/svg';
 /** Échelle maximale : au-delà, un interligne dépasserait 13,5 px. */
 const ECHELLE_MAX = 1.35;
 
+/**
+ * Couleurs de la portée : les variables de l'échelle Tailwind plutôt que des
+ * valeurs littérales, pour suivre le thème clair (#177, voir `style.css`).
+ * Elles passent par l'attribut `style` (voir `noeud`) : `var()` n'est pas
+ * garanti dans les attributs de présentation SVG sur tous les navigateurs.
+ */
 const COULEUR = {
-  ligne: '#52525b', // zinc-600
-  encre: '#f4f4f5', // zinc-100
-  discret: '#71717a', // zinc-500
-  cle: '#d4d4d8', // zinc-300
-  actif: '#fbbf24', // amber-400
-  actifTexte: '#fcd34d', // amber-300
-  juste: '#34d399', // emerald-400
-  faux: '#fb7185', // rose-400
-  emplacement: '#3f3f46', // zinc-700
+  ligne: 'var(--color-zinc-600)',
+  encre: 'var(--color-zinc-100)',
+  discret: 'var(--color-zinc-500)',
+  cle: 'var(--color-zinc-300)',
+  actif: 'var(--color-amber-400)',
+  actifTexte: 'var(--color-amber-300)',
+  juste: 'var(--color-emerald-400)',
+  faux: 'var(--color-rose-400)',
+  emplacement: 'var(--color-zinc-700)',
+  /** Fonds translucides : halo de la note en cours, verdicts du micro. */
+  halo: 'color-mix(in oklab, var(--color-amber-400) 13%, transparent)',
+  fondJuste: 'color-mix(in oklab, var(--color-emerald-400) 16%, transparent)',
+  fondFaux: 'color-mix(in oklab, var(--color-rose-400) 16%, transparent)',
 };
 
 export type Verdict = 'juste' | 'faux';
@@ -55,7 +65,10 @@ function noeud<K extends keyof SVGElementTagNameMap>(
   ...enfants: (SVGElement | string)[]
 ): SVGElementTagNameMap[K] {
   const n = document.createElementNS(NS, tag);
-  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v));
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'fill' || k === 'stroke') n.style.setProperty(k, String(v));
+    else n.setAttribute(k, String(v));
+  }
   for (const e of enfants) n.append(e);
   return n;
 }
@@ -171,7 +184,7 @@ function note(n: NotePlacee, i: number, mise: MiseEnPortee, etat: EtatPortee): S
         width: 30,
         height: mise.yPied - haut + 26,
         rx: 7,
-        fill: 'rgba(251,191,36,0.13)',
+        fill: COULEUR.halo,
       }),
     );
   }
@@ -185,7 +198,7 @@ function note(n: NotePlacee, i: number, mise: MiseEnPortee, etat: EtatPortee): S
     const trait =
       i === etat.active ? COULEUR.actif : v === 'juste' ? COULEUR.juste : v === 'faux' ? COULEUR.faux : COULEUR.emplacement;
     const fond =
-      v === 'juste' ? 'rgba(52,211,153,0.16)' : v === 'faux' ? 'rgba(251,113,133,0.16)' : 'none';
+      v === 'juste' ? COULEUR.fondJuste : v === 'faux' ? COULEUR.fondFaux : 'none';
     g.append(
       noeud('rect', {
         x: n.x - 8,

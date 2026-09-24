@@ -6,12 +6,35 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <!-- L'app gère elle-même son thème sombre : ce signal, disponible avant le
-         CSS, empêche l'assombrissement automatique des navigateurs mobiles
-         (Chrome « Auto dark theme », Samsung Internet) qui vire l'ambre en brun
-         et rend les masques opaques. -->
+    <!-- L'app gère elle-même son thème (sombre par défaut, clair en option,
+         #177) : ce signal, disponible avant le CSS, empêche l'assombrissement
+         automatique des navigateurs mobiles (Chrome « Auto dark theme »,
+         Samsung Internet) qui vire l'ambre en brun et rend les masques
+         opaques. Le script ci-dessous le met à jour avant le premier rendu,
+         selon la préférence enregistrée — sans lui ce serait toujours
+         « dark », y compris en thème clair. -->
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#09090b" />
+    <script>
+      (function () {
+        // Doit rester un script bloquant, avant tout rendu : lu une seconde
+        // fois par `theme.ts` (`getTheme`/`setTheme`), qui garde la même
+        // logique pour la suite de la session.
+        try {
+          if (localStorage.getItem('choro-theme') === 'light') {
+            document.documentElement.dataset.theme = 'light';
+            document
+              .querySelector('meta[name="color-scheme"]')
+              .setAttribute('content', 'light');
+            document
+              .querySelector('meta[name="theme-color"]')
+              .setAttribute('content', '#f3efe6');
+          }
+        } catch (_e) {
+          /* stockage indisponible : reste en sombre, le défaut du CSS */
+        }
+      })();
+    </script>
     <link rel="icon" type="image/png" href="/icons/icon-512.png" />
     <link rel="apple-touch-icon" href="/icons/icon-512.png" />
     <meta

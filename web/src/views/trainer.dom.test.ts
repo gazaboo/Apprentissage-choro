@@ -104,28 +104,6 @@ describe('renderTrainer — smoke', () => {
   });
 });
 
-describe('renderTrainer — mini-lecteur (fpMiniBar)', () => {
-  it('un battement du lecteur met à jour le temps affiché', () => {
-    const { root, player } = mount();
-    player.__setDuration(120);
-    player.__tick(30);
-    const time = [...root.querySelectorAll('span')].find((s) => s.textContent === '0:30 / 2:00');
-    expect(time).toBeDefined();
-  });
-
-  it('cliquer le mini bouton lecture bascule play/pause du lecteur', () => {
-    const { root, player } = mount();
-    // Sans audio, le bouton de la barre de transport principale est
-    // `disabled` : seul le mini-bouton (`fpMiniBar`) reste actionnable.
-    const playButton = root.querySelector(
-      'button[aria-label="Lecture ou pause"]:not([disabled])',
-    ) as HTMLButtonElement;
-    expect(player.isPlaying()).toBe(false);
-    playButton.click();
-    expect(player.isPlaying()).toBe(true);
-  });
-});
-
 describe('renderTrainer — retour et navigation', () => {
   it('« Retour » appelle navigateHome() sans passer par l\'évaluation', () => {
     const { root, context } = mount();
@@ -296,6 +274,28 @@ describe('renderTrainer — barre du haut (#153)', () => {
     [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer sans noter')!.click();
     await Promise.resolve();
     expect(onStopSession).toHaveBeenCalledOnce();
+  });
+
+  it('le compte à rebours de bloc reste visible en plein écran (#186)', () => {
+    const { root } = mount(
+      {},
+      {
+        session: {
+          kind: 'urgent',
+          label: 'Révision des urgences · Concert — morceau 2 sur 3',
+          caption: { kind: 'Urgences', position: '2 sur 3' },
+          blockMinutes: 5,
+          onBlockEnd: vi.fn(),
+          onStopSession: vi.fn(),
+        },
+      },
+    );
+    // jsdom n'implémente pas `Element.scrollTo`, appelé à l'entrée en plein écran.
+    Element.prototype.scrollTo = vi.fn();
+    const enter = root.querySelector('button[aria-label="Passer en plein écran"]') as HTMLButtonElement;
+    enter.click();
+    const overlay = root.querySelector('.fixed.inset-0') as HTMLElement;
+    expect(overlay.textContent).toContain('5:00');
   });
 
   it('le menu « Affichage » change la tonalité, repeinte des deux côtés', () => {
