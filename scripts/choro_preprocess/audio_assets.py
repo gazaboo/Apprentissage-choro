@@ -21,7 +21,7 @@ EXTENSION = ".opus"
 
 # Champs du sidecar repris tels quels dans le manifeste. `encoded_with` et
 # `encoded_on` restent internes au pipeline : le frontend n'en a que faire.
-PUBLISHED_FIELDS = ("file", "duration", "source_url", "bpm")
+PUBLISHED_FIELDS = ("file", "duration", "source_url", "bpm", "sections", "sections_confidence")
 
 
 def audio_dir(out_dir: Path, song_id: str) -> Path:
