@@ -1,0 +1,257 @@
+{
+  "song_id": "assim-mesmo-luiz-americano",
+  "title": "Assim mesmo",
+  "composer": "Luiz Americano",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Do) — B (Fa→Do, reprise) — D.S. al ❋ — C (Dom, reprise) — D.S. al Coda (Do)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "C",
+      "bars": "1–32 (Segno)",
+      "repeat": false,
+      "sequence": [
+        [
+          "C"
+        ],
+        [],
+        [
+          "Bm7b5"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "F"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "F"
+        ],
+        [
+          "Fm"
+        ],
+        [
+          "C"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "G7"
+        ],
+        [
+          "G7(#5)"
+        ],
+        [
+          "Cm"
+        ],
+        [],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "Fm"
+        ],
+        [
+          "Bb7"
+        ],
+        [
+          "Eb"
+        ],
+        [
+          "Edim7"
+        ],
+        [
+          "F#dim7"
+        ],
+        [
+          "Fm6"
+        ],
+        [
+          "C"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "C7"
+        ]
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "C",
+      "bars": "33–46",
+      "repeat": true,
+      "sequence": [
+        [
+          "F",
+          "Fm"
+        ],
+        [],
+        [
+          "C/G"
+        ],
+        [
+          "F#dim7"
+        ],
+        [
+          "F"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F"
+        ],
+        [
+          "Fm"
+        ],
+        [
+          "C/G"
+        ],
+        [
+          "F#dim7"
+        ],
+        [
+          "F"
+        ],
+        [
+          "G7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "C"
+          ],
+          [
+            "C7"
+          ]
+        ],
+        "2": [
+          [
+            "C"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Cm",
+      "bars": "53–67",
+      "repeat": true,
+      "transition_in": [
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ]
+      ],
+      "sequence": [
+        [
+          "Cm"
+        ],
+        [
+          "Cm/Bb"
+        ],
+        [
+          "Fm/Ab"
+        ],
+        [
+          "Fm"
+        ],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "Cm"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "Fm"
+        ],
+        [
+          "Dm7b5"
+        ],
+        [
+          "Cm/Eb"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "G7"
+          ]
+        ],
+        "2": [
+          [
+            "G7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "C"
+    ],
+    []
+  ],
+  "notes": [
+    "Version Jacob do Bandolim transposée (Casa de Choro).",
+    "A sans reprise ; m. 31 porte à la fois ❋ (vers la partie C) et ⊕ (vers la coda).",
+    "mm. 51-52 (C, G7) : enchaînement vers la partie C en Do mineur.",
+    "Coda (m. 70) : C tenu, puis coup final percussif."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/assim-mesmo-luiz-americano/c/page_1.webp",
+    "data/assim-mesmo-luiz-americano/c/page_2.webp"
+  ]
+}

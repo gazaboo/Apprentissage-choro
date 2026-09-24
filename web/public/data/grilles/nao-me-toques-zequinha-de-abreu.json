@@ -1,0 +1,260 @@
+{
+  "song_id": "nao-me-toques-zequinha-de-abreu",
+  "title": "Nao me toques",
+  "composer": "Zequinha de Abreu",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Rém, reprise) — D.S. al ⊕1 — C (Ré, reprise) — D.S. al ⊕2 : coda en vamp (Rém)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm",
+          "A7/E"
+        ],
+        [
+          "Dm/F",
+          "A7"
+        ],
+        [
+          "Dm",
+          "Dm/F"
+        ],
+        [
+          "A7/E"
+        ],
+        [
+          "A7/E",
+          "Gm6/D"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "A7",
+          "A/G"
+        ],
+        [
+          "Dm/F"
+        ],
+        [
+          "Dm",
+          "A7/E"
+        ],
+        [
+          "Dm/F",
+          "A7"
+        ],
+        [
+          "D7",
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Gm",
+          "Em7b5"
+        ],
+        [
+          "Dm/F",
+          "Dm"
+        ],
+        [
+          "A7/E",
+          "A7/C#"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "19–25",
+      "repeat": true,
+      "sequence": [
+        [
+          "A7/C#",
+          "A7"
+        ],
+        [
+          "Dm",
+          "Dm/F"
+        ],
+        [
+          "A7/E",
+          "A7"
+        ],
+        [
+          "Dm",
+          "Dm/C"
+        ],
+        [
+          "Gm",
+          "Gm/Bb"
+        ],
+        [
+          "Dm",
+          "Dm/F"
+        ],
+        [
+          "A7/E",
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "D",
+      "bars": "29–43",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Dm"
+        ]
+      ],
+      "sequence": [
+        [
+          "D",
+          "A7/E"
+        ],
+        [
+          "D/F#"
+        ],
+        [
+          "D",
+          "D/F#"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "Em",
+          "Em/D"
+        ],
+        [
+          "A7/C#",
+          "A7/B"
+        ],
+        [
+          "A7",
+          "A/G"
+        ],
+        [
+          "D/F#"
+        ],
+        [
+          "D",
+          "A7/E"
+        ],
+        [
+          "D/F#"
+        ],
+        [
+          "D/F#",
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        [
+          "G",
+          "G#dim7"
+        ],
+        [
+          "D/A",
+          "B7"
+        ],
+        [
+          "E7",
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "D"
+          ]
+        ],
+        "2": [
+          [
+            "D"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "D7"
+    ],
+    [
+      "Gm",
+      "Em7b5"
+    ],
+    [
+      "Dm/F",
+      "Dm"
+    ],
+    [
+      "A7/E",
+      "A7/C#"
+    ],
+    [
+      "D7"
+    ],
+    [
+      "Gm",
+      "Em7b5"
+    ],
+    [
+      "Dm/F",
+      "Dm"
+    ],
+    [
+      "A7/E",
+      "A7/C#"
+    ],
+    [
+      "D7"
+    ]
+  ],
+  "notes": [
+    "Version de l'album Jacob do Bandolim « Chorinhos e Chorões » (Casa de Choro, 2024).",
+    "⊕1 (m. 28, Dm) mène à la partie C en Ré majeur ; ⊕2 (m. 46) à la coda.",
+    "Coda : vamp Gm Em7b5 | Dm/F Dm | A7/E A7/C# | D7, reprise en solo ad lib qui disparaît en fondu.",
+    "C m. 34 : « A7/C# » puis « /B » (même accord, basse Si)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/nao-me-toques-zequinha-de-abreu/c/page_1.webp",
+    "data/nao-me-toques-zequinha-de-abreu/c/page_2.webp"
+  ]
+}

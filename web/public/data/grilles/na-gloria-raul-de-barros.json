@@ -1,0 +1,243 @@
+{
+  "song_id": "na-gloria-raul-de-barros",
+  "title": "Na Glória",
+  "composer": "Raul de Barros",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Fa, reprise) — B (Rém, reprise) — D.C. al Coda — C (Sib, reprise) — Coda (Fa)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "F",
+      "bars": "1–15",
+      "repeat": true,
+      "sequence": [
+        [
+          "F",
+          "Bdim"
+        ],
+        [
+          "F/C",
+          "C7"
+        ],
+        [
+          "F",
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Gm",
+          "Gm(maj7)"
+        ],
+        [
+          "Gm7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F",
+          "C7"
+        ],
+        [
+          "F",
+          "Bdim"
+        ],
+        [
+          "F/C",
+          "C7"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "Bb",
+          "Bdim"
+        ],
+        [
+          "F/C",
+          "D7"
+        ],
+        [
+          "Gm",
+          "C7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "F"
+          ]
+        ],
+        "2": [
+          [
+            "F"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "E7/G#"
+        ],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "E7",
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm",
+            "C7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Bb",
+      "bars": "36–50 (⊕)",
+      "repeat": true,
+      "transition_in": [
+        [
+          "F"
+        ]
+      ],
+      "sequence": [
+        [
+          "Bb"
+        ],
+        [],
+        [
+          "Bb",
+          "G#dim"
+        ],
+        [
+          "F7/A"
+        ],
+        [
+          "Cm",
+          "Cm/Bb"
+        ],
+        [
+          "F7/A"
+        ],
+        [
+          "Bb",
+          "F7"
+        ],
+        [
+          "Bb"
+        ],
+        [],
+        [],
+        [
+          "Bb7"
+        ],
+        [
+          "Eb"
+        ],
+        [
+          "Edim",
+          "A7"
+        ],
+        [
+          "Dm",
+          "Eb"
+        ],
+        [
+          "Bb",
+          "F7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "F7",
+            "Bb"
+          ]
+        ],
+        "2": [
+          [
+            "F7",
+            "Bb",
+            "C7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "F"
+    ],
+    [],
+    [
+      "F7"
+    ]
+  ],
+  "notes": [
+    "« Gm7M » (m. 5) = Gm(maj7).",
+    "⊕ au-dessus de la m. 15 : la reprise de A s'arrête là pour enchaîner F (m. 35) puis la partie C en Sib.",
+    "Coda (2e ⊕, m. 53-55) : F puis F7 tenu."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/na-gloria-raul-de-barros/c/page_1.webp",
+    "data/na-gloria-raul-de-barros/c/page_2.webp",
+    "data/na-gloria-raul-de-barros/c/page_3.webp"
+  ]
+}

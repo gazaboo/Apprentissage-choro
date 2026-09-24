@@ -1,0 +1,336 @@
+{
+  "song_id": "murmurando-fon-fon",
+  "title": "Murmurando",
+  "composer": "Fon fon",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Fa, reprise) — D.S. al Coda — C (Ré, reprise) — D.S. al Coda (Rém)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–30 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm",
+          "A7/C#"
+        ],
+        [
+          "Dm/F",
+          "D7/F#"
+        ],
+        [
+          "Gm",
+          "D7/A"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "E7/G#",
+          "A7/G"
+        ],
+        [
+          "Dm/F"
+        ],
+        [
+          "Bm7b5"
+        ],
+        [
+          "A"
+        ],
+        [
+          "A/C#",
+          "Cdim"
+        ],
+        [
+          "Bm7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Gm6/Bb"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm",
+          "A7/E"
+        ],
+        [
+          "Dm/F",
+          "D7/F#"
+        ],
+        [
+          "Gm",
+          "D7/A"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "Am7b5"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Dm/C"
+        ],
+        [
+          "E7/B"
+        ],
+        [
+          "Gm6/Bb",
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ],
+          [
+            "A7"
+          ]
+        ],
+        "2": [
+          [
+            "Dm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "35–49",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Bb7"
+        ]
+      ],
+      "sequence": [
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Cm6/Eb"
+        ],
+        [
+          "D7",
+          "D/C"
+        ],
+        [
+          "G7/B"
+        ],
+        [
+          "C/Bb"
+        ],
+        [
+          "F/A"
+        ],
+        [
+          "Dm7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Bb7"
+          ]
+        ],
+        "2": [
+          [
+            "A7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "D",
+      "bars": "54–84 (⊕)",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Dm"
+        ],
+        [
+          "A7"
+        ]
+      ],
+      "sequence": [
+        [
+          "D",
+          "D/C"
+        ],
+        [
+          "G/B",
+          "Gm6/Bb"
+        ],
+        [
+          "D/A"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D"
+        ],
+        [
+          "D",
+          "Fdim"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "F#7"
+        ],
+        [],
+        [
+          "Bm"
+        ],
+        [
+          "G#m7b5"
+        ],
+        [
+          "F#m/A"
+        ],
+        [
+          "C#7/G#"
+        ],
+        [
+          "F#m",
+          "C#7/E#"
+        ],
+        [
+          "A7/E",
+          "A7"
+        ],
+        [
+          "D",
+          "D/C"
+        ],
+        [
+          "G/B",
+          "Gm6/Bb"
+        ],
+        [
+          "D/A"
+        ],
+        [
+          "D"
+        ],
+        [
+          "Am6/C"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "Em"
+        ],
+        [],
+        [
+          "C7add9"
+        ],
+        [],
+        [
+          "D"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "E7add9"
+        ],
+        [
+          "Gm6/Bb",
+          "A7"
+        ],
+        [
+          "D"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "A7"
+          ]
+        ],
+        "2": [
+          [
+            "A7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Dm"
+    ],
+    []
+  ],
+  "notes": [
+    "m. 34 (Bb7, après la 2e fin de A) amène la reprise de B ; la 1re fin de B revient sur Bb7.",
+    "1er ⊕ (m. 52-53) : Dm A7 puis la partie C en Ré majeur ; 2e ⊕ (m. 87-88) : coda finale sur Dm."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/murmurando-fon-fon/c/page_1.webp",
+    "data/murmurando-fon-fon/c/page_2.webp",
+    "data/murmurando-fon-fon/c/page_3.webp"
+  ]
+}

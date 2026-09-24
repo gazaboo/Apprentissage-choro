@@ -1,0 +1,137 @@
+{
+  "song_id": "feira-de-mangaio-sivuca",
+  "title": "Feira de Mangaio",
+  "composer": "Sivuca",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Lam, reprise) — B (Lam, 4 passes) — C (Rém→Lam, reprise) — D.S. al Coda",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Am",
+      "bars": "1–7 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "E7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Am"
+          ]
+        ],
+        "2": [
+          [
+            "Am"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Am",
+      "bars": "10–19",
+      "repeat": true,
+      "sequence": [
+        [
+          "Am"
+        ],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "Am"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "Am"
+        ]
+      ]
+    },
+    {
+      "name": "C",
+      "tonic": "Dm",
+      "bars": "20–26",
+      "repeat": true,
+      "sequence": [
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C6"
+        ],
+        [
+          "Fmaj7"
+        ],
+        [
+          "Bm7b5"
+        ],
+        [
+          "E7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Am"
+          ]
+        ],
+        "2": [
+          [
+            "Am"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "E7"
+    ],
+    [
+      "Am"
+    ]
+  ],
+  "notes": [
+    "Baião-choro : A de 8 mesures avec reprise, ⊕ au-dessus de la m. 6.",
+    "B : vamp Am / E7 de 4 mesures joué quatre fois (mm. 10-14 puis 15-19, la 2e fois à l'octave inférieure) ; noté ici comme 8 mesures reprises.",
+    "Coda (⊕) : E7 → Am, point d'orgue."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/feira-de-mangaio-sivuca/c/page_1.webp"
+  ]
+}

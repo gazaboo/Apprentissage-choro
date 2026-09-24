@@ -1,0 +1,236 @@
+{
+  "song_id": "proezas-de-solon-pixinguinha",
+  "title": "Proezas de solon",
+  "composer": "Pixinguinha",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Fa, reprise) — B (Rém, reprise) — D.S. al ❋ — C (Sib, reprise) — D.S. al Coda (Fa)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "F",
+      "bars": "2–16 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "F6",
+          "D7/F#"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F6"
+        ],
+        [
+          "F6",
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F6",
+          "D7/F#"
+        ],
+        [
+          "Gm7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Bdim7"
+        ],
+        [
+          "F/C",
+          "D7"
+        ],
+        [
+          "G7",
+          "C7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "F"
+          ]
+        ],
+        "2": [
+          [
+            "F"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "19–33",
+      "repeat": true,
+      "sequence": [
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Dm/F"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F6"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Am7b5",
+          "D7"
+        ],
+        [
+          "Gm",
+          "Em7b5"
+        ],
+        [
+          "Dm/F"
+        ],
+        [
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm",
+            "C7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Bb",
+      "bars": "37–51",
+      "repeat": true,
+      "transition_in": [
+        [
+          "F",
+          "F7"
+        ]
+      ],
+      "sequence": [
+        [
+          "Bb6"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "Gb7",
+          "F7"
+        ],
+        [
+          "Bb6",
+          "G7"
+        ],
+        [
+          "F7/C"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb6"
+        ],
+        [
+          "Bb/Ab"
+        ],
+        [
+          "Eb/G"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "Ebm6/Gb"
+        ],
+        [
+          "Bb/F",
+          "Gm7"
+        ],
+        [
+          "C7",
+          "F7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Bb"
+          ]
+        ],
+        "2": [
+          [
+            "Bb",
+            "C7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "F"
+    ]
+  ],
+  "notes": [
+    "Casa de Choro (Olivier Lob, 2012). A de 15 mesures + fins, B et C idem.",
+    "❋ et ⊕ à la fin de la m. 16 : la 1re D.S. mène à F F7 (m. 36) puis C en Sib ; la 2e à la coda (F)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/proezas-de-solon-pixinguinha/c/page_1.webp",
+    "data/proezas-de-solon-pixinguinha/c/page_2.webp"
+  ]
+}
