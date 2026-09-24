@@ -522,10 +522,13 @@ export function renderTrainer(
         'p',
         { class: 'text-xs text-zinc-400' },
         'Plein écran',
+        // Même style que le compte à rebours de la barre du haut normale
+        // (`createTopBarIdentity`, accent ambre) : un seul repère de temps,
+        // visuellement identique des deux côtés (#186).
         blockMinutes !== null
           ? el(
               'span',
-              { class: 'shrink-0' },
+              { class: 'shrink-0 font-medium text-amber-300' },
               el('span', { class: 'sr-only' }, 'Temps restant : '),
               ' · ',
               fpBlockLabel,
