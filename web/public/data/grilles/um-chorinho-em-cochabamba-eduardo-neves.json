@@ -1,0 +1,195 @@
+{
+  "song_id": "um-chorinho-em-cochabamba-eduardo-neves",
+  "title": "Um Chorinho em Cochabamba",
+  "composer": "Eduardo Neves",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro (reprise) — A (Rém, reprise) — B (Rém, reprise) — Ao ❋ (2 fois) e ⊕ — C (Rém, reprise) — D.C. e Fim",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "Dm",
+      "bars": "1–6",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm6"
+        ],
+        [],
+        [],
+        [],
+        [
+          "Dm6"
+        ],
+        []
+      ]
+    },
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "7–21 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "C7"
+        ],
+        [
+          "C#dim"
+        ],
+        [
+          "Dm6"
+        ],
+        [],
+        [
+          "C7"
+        ],
+        [
+          "Bb7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D7(b9)"
+        ],
+        [
+          "Gm7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb7"
+        ],
+        [
+          "Eb7(9)"
+        ],
+        [
+          "Dm6"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm6"
+          ]
+        ],
+        "2": [
+          [
+            "Dm6"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "24–38",
+      "repeat": true,
+      "sequence": [
+        [
+          "Bb7"
+        ],
+        [
+          "Bb7"
+        ],
+        [
+          "Dm7"
+        ],
+        [],
+        [
+          "C7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F6"
+        ],
+        [
+          "F6"
+        ],
+        [
+          "F6",
+          "F#m6",
+          "Gm6"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm7"
+        ],
+        [
+          "F/Eb"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Dm",
+      "bars": "41–42 (⊕)",
+      "repeat": true,
+      "sequence": [
+        [
+          "F7"
+        ],
+        [
+          "Bb7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Eb7(9)"
+          ],
+          [
+            "Dm6"
+          ]
+        ],
+        "2": [
+          [
+            "Eb7(9)"
+          ]
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "Projeto Mão na Roda. Intro (mm. 1-4, reprise) sans chiffrage : pédale de ré à deux voix ; « Fim » sur la m. 5 (Dm6).",
+    "« C#° » = C#dim.",
+    "Après B : retour au ❋ deux fois, puis ⊕ vers une courte partie C (F7 Bb7 Eb7(9) Dm6) qui reprend la fin de A ; D.C. e Fim."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/um-chorinho-em-cochabamba-eduardo-neves/c/page_1.webp",
+    "data/um-chorinho-em-cochabamba-eduardo-neves/c/page_2.webp"
+  ]
+}

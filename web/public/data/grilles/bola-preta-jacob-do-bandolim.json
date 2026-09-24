@@ -1,0 +1,327 @@
+{
+  "song_id": "bola-preta-jacob-do-bandolim",
+  "title": "Bola preta",
+  "composer": "Jacob do bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Fa, reprise) — D.S. al Coda — C (Ré, reprise) — D.S. al Coda (Rém)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–30 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Bbdim"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "Bm7b5"
+        ],
+        [
+          "Am/C"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "E7/G#"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F6"
+        ],
+        [
+          "Dm",
+          "Dm/C"
+        ],
+        [
+          "E7/B",
+          "Bb7"
+        ],
+        [
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ],
+          [
+            "A7"
+          ]
+        ],
+        "2": [
+          [
+            "Dm"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "35–47",
+      "repeat": true,
+      "sequence": [
+        [
+          "Gm6"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F6"
+        ],
+        [
+          "F6",
+          "Eb7"
+        ],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Bb/D"
+        ],
+        [
+          "Bbm6/Db"
+        ],
+        [
+          "F6/C"
+        ],
+        [
+          "Bdim"
+        ],
+        [
+          "Gm/Bb"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "C7"
+          ],
+          [
+            "F6"
+          ],
+          [
+            "Am7",
+            "Abm6"
+          ]
+        ],
+        "2": [
+          [
+            "C7"
+          ],
+          [
+            "F"
+          ],
+          [
+            "A7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "D",
+      "bars": "56–78 (⊕)",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Dm"
+        ],
+        [
+          "Dm",
+          "A7"
+        ]
+      ],
+      "sequence": [
+        [
+          "D6"
+        ],
+        [],
+        [
+          "Em7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [
+          "A7/G"
+        ],
+        [
+          "Fdim"
+        ],
+        [
+          "D6/F#",
+          "A7"
+        ],
+        [
+          "D6"
+        ],
+        [],
+        [
+          "A/C#"
+        ],
+        [
+          "F#m"
+        ],
+        [
+          "Bm7",
+          "Bm/A"
+        ],
+        [
+          "E7/G#",
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "D6"
+        ],
+        [],
+        [
+          "Em7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "F#7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [],
+          [
+            "B7"
+          ],
+          [],
+          [
+            "E7"
+          ],
+          [],
+          [
+            "A7"
+          ],
+          [],
+          [
+            "D6"
+          ],
+          [
+            "D6",
+            "A7"
+          ]
+        ],
+        "2": [
+          [],
+          [
+            "B7"
+          ],
+          [],
+          [
+            "E7"
+          ],
+          [],
+          [
+            "A7"
+          ],
+          [],
+          [
+            "D6"
+          ],
+          [
+            "A7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Dm6"
+    ],
+    [
+      "A7b13"
+    ],
+    [
+      "Dm6"
+    ],
+    [
+      "A7b13"
+    ]
+  ],
+  "notes": [
+    "mm. 54-55 (⊕) : Dm, Dm A7 amènent la partie C en Ré majeur.",
+    "Les deux fins de C font 9 mesures chacune (B7 → E7 → A7 → D6).",
+    "Coda (2e ⊕, m. 97-100) : vamp Dm6 / A7b13 ad libitum."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/bola-preta-jacob-do-bandolim/c/page_1.webp",
+    "data/bola-preta-jacob-do-bandolim/c/page_2.webp"
+  ]
+}
