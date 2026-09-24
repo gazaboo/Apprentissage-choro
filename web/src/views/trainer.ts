@@ -37,7 +37,7 @@ import type {
 } from '../types';
 import { isGrille } from '../types';
 import { INSTRUMENT_KEY_LABELS, MASK_LEVELS, STUDY_MODE_HINTS } from '../types';
-import { formatTime, Player } from '../audio';
+import { Player } from '../audio';
 import { askSrs } from './srsModal';
 import type { PdfVersionId } from '../pdf';
 import { pdfVersions } from '../pdf';
@@ -236,10 +236,9 @@ export function renderTrainer(
   // --- Plein écran de la partition --------------------------------------
   //
   // Un mode lecture : la partition prend tout l'écran. On règle son
-  // agrandissement, on la met en une ou deux colonnes (écran large), et l'on
-  // peut réduire la barre de transport à un lecteur minimal. On y entre et
-  // on en sort d'un bouton — ou avec Échap. Le voile des éclipses (z-20)
-  // reste au-dessus de tout.
+  // agrandissement et on la met en une ou deux colonnes (écran large). On y
+  // entre et on en sort d'un bouton — ou avec Échap. Le voile des éclipses
+  // (z-20) reste au-dessus de tout.
 
   const fpPrefs = progress.settings.fullpage;
   const FP_ZOOM_MIN = 0.4;
@@ -250,7 +249,6 @@ export function renderTrainer(
   let fullpage = false;
   let fpZoom = fpPrefs.zoom;
   let fpTwoCol = fpPrefs.twoColumns;
-  let fpPlayerHidden = anySource && fpPrefs.playerHidden;
 
   // Sans objet sur mobile : le plein écran n'apporte rien sur un écran déjà
   // plein (retour du 2026-09-23, #153) — seul le point d'entrée disparaît,
@@ -445,10 +443,30 @@ export function renderTrainer(
     paintAffichage();
   }
 
+  // --- Minuteur de bloc (mode « urgences » uniquement) --------------------
+  //
+  // Défini avant la barre de plein écran, qui l'affiche aussi (#186) : perdre
+  // le compte à rebours en y entrant privait la séance urgences de repère.
+
+  const blockLabel = el('span', { class: 'font-mono tabular-nums' }, '');
+  const fpBlockLabel = el('span', { class: 'font-mono tabular-nums' }, '');
+  let timer: BlockTimer | null = null;
+  const blockMinutes = context.session?.blockMinutes ?? null;
+  if (blockMinutes !== null) {
+    timer = new BlockTimer(
+      (secondsLeft) => {
+        const text = formatCountdown(secondsLeft);
+        blockLabel.textContent = text;
+        fpBlockLabel.textContent = text;
+      },
+      () => void finish(),
+    );
+    timer.start(blockMinutes);
+  }
+
   // --- Barre de plein écran ----------------------------------------------
   //
-  // Mêmes mots qu'en mode normal (#153) : « Taille », « 1 page | 2 pages »,
-  // « Masquer le lecteur », là où elle alignait ▥ et ▾ à deviner.
+  // Mêmes mots qu'en mode normal (#153) : « Taille », « 1 page | 2 pages ».
 
   const fullpageExit = el(
     'button',
@@ -489,37 +507,6 @@ export function renderTrainer(
   );
   const fpColumnsSlot = el('div', { class: 'hidden shrink-0' }, fpColumns.root);
 
-  // Repli du lecteur : réservé au plein écran, où gagner de la hauteur sur la
-  // partition est tout l'objet du mode. Hors plein écran le dock est dans le
-  // flux et ne recouvre plus rien — le replier n'apporte plus assez pour
-  // justifier un contrôle de plus à comprendre (#132).
-  const fpPlayerToggle = el('button', { type: 'button', class: ui.button }, 'Masquer le lecteur');
-  if (!anySource) fpPlayerToggle.classList.add('hidden');
-
-  // Lecteur minimal, visible seulement quand le dock est replié. Il se range
-  // dans la barre plutôt que de flotter en bas à droite, où il cachait des
-  // mesures (#153).
-  const fpMiniIcon = el('span', { class: 'text-base leading-none' }, '▶');
-  const fpMiniPlay = el(
-    'button',
-    {
-      type: 'button',
-      class:
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400 ' +
-        'pl-0.5 text-zinc-950',
-      'aria-label': 'Lecture ou pause',
-    },
-    fpMiniIcon,
-  );
-  fpMiniPlay.addEventListener('click', () => player.togglePlay());
-  const fpMiniTime = el('span', { class: 'font-mono text-xs text-zinc-300 tabular-nums' }, '0:00');
-  const fpMiniBar = el(
-    'div',
-    { class: 'hidden shrink-0 items-center gap-2' },
-    fpMiniPlay,
-    fpMiniTime,
-  );
-
   const fullpageBar = el(
     'div',
     {
@@ -531,7 +518,20 @@ export function renderTrainer(
     el(
       'div',
       { class: 'flex min-w-0 flex-1 flex-col justify-center' },
-      el('p', { class: 'text-xs text-zinc-400' }, 'Plein écran'),
+      el(
+        'p',
+        { class: 'text-xs text-zinc-400' },
+        'Plein écran',
+        blockMinutes !== null
+          ? el(
+              'span',
+              { class: 'shrink-0' },
+              el('span', { class: 'sr-only' }, 'Temps restant : '),
+              ' · ',
+              fpBlockLabel,
+            )
+          : null,
+      ),
       el('p', { class: 'truncate text-lg font-semibold leading-tight text-zinc-100' }, song.title),
     ),
     fpDisplaySelector.root,
@@ -539,9 +539,6 @@ export function renderTrainer(
     el('span', { class: 'h-6 w-px bg-zinc-800', 'aria-hidden': 'true' }),
     fpZoomGroup,
     fpColumnsSlot,
-    el('span', { class: 'h-6 w-px bg-zinc-800', 'aria-hidden': 'true' }),
-    fpMiniBar,
-    fpPlayerToggle,
   );
 
   const fullpageSlot = el('div', { class: 'fp-slot p-2 sm:p-4' });
@@ -556,11 +553,6 @@ export function renderTrainer(
     fullpageBar,
     fullpageScroll,
   );
-
-  const fpTickUnsub = player.onTick((tick) => {
-    fpMiniIcon.textContent = tick.playing ? '❚❚' : '▶';
-    fpMiniTime.textContent = `${formatTime(tick.currentTime)} / ${formatTime(tick.duration)}`;
-  });
 
   /** Là où partition et grille vivent hors du plein écran, avec leur en-tête. */
   const scoreHome = el(
@@ -593,7 +585,6 @@ export function renderTrainer(
   function saveFp(): void {
     fpPrefs.zoom = fpZoom;
     fpPrefs.twoColumns = fpTwoCol;
-    fpPrefs.playerHidden = fpPlayerHidden;
     saveProgress(progress);
   }
 
@@ -605,23 +596,6 @@ export function renderTrainer(
   fpZoomOut.addEventListener('click', () => setFpZoom(fpZoom - FP_ZOOM_STEP));
   fpZoomIn.addEventListener('click', () => setFpZoom(fpZoom + FP_ZOOM_STEP));
   fpZoomLabel.addEventListener('click', () => setFpZoom(1));
-
-  function applyFpPlayer(): void {
-    // Le repli ne vaut qu'en plein écran : le lecteur minimal vit dans sa
-    // barre, et hors plein écran rien ne le remplacerait (#132, #153).
-    const mini = fpPlayerHidden && fullpage;
-    controlBar.root.classList.toggle('hidden', mini);
-    fpMiniBar.classList.toggle('hidden', !mini);
-    fpMiniBar.classList.toggle('flex', mini);
-    fpPlayerToggle.textContent = fpPlayerHidden ? 'Afficher le lecteur' : 'Masquer le lecteur';
-    paintToggle(fpPlayerToggle, false, 'button', anySource ? '' : 'hidden');
-  }
-  function setFpPlayer(shown: boolean): void {
-    fpPlayerHidden = anySource && !shown;
-    applyFpPlayer();
-    saveFp();
-  }
-  fpPlayerToggle.addEventListener('click', () => setFpPlayer(fpPlayerHidden));
 
   function setFullpage(on: boolean): void {
     if (on === fullpage) return;
@@ -654,7 +628,6 @@ export function renderTrainer(
       scoreContainer.classList.toggle('hidden', onGrille);
       grilleContainer.classList.toggle('hidden', !onGrille);
     }
-    applyFpPlayer();
   }
   fullpageEnter.addEventListener('click', () => setFullpage(true));
   fullpageExit.addEventListener('click', () => setFullpage(false));
@@ -680,7 +653,6 @@ export function renderTrainer(
     paintAffichage();
     if (mode === 'sans') setFullpage(false);
     onFpViewport();
-    applyFpPlayer();
   }
 
   // --- Défi -----------------------------------------------------------------
@@ -940,21 +912,6 @@ export function renderTrainer(
     el('span', { class: 'max-lg:hidden' }, 'Retour'),
   );
   backButton.addEventListener('click', () => context.navigateHome());
-
-  // --- Minuteur de bloc (mode « urgences » uniquement) -------------------
-
-  const blockLabel = el('span', { class: 'font-mono tabular-nums' }, '');
-  let timer: BlockTimer | null = null;
-  const blockMinutes = context.session?.blockMinutes ?? null;
-  if (blockMinutes !== null) {
-    timer = new BlockTimer(
-      (secondsLeft) => {
-        blockLabel.textContent = formatCountdown(secondsLeft);
-      },
-      () => void finish(),
-    );
-    timer.start(blockMinutes);
-  }
 
   // --- Barre du haut -------------------------------------------------------
   //
@@ -1217,7 +1174,6 @@ export function renderTrainer(
     window.removeEventListener('keydown', onFullpageKey);
     window.removeEventListener('resize', onFpViewport);
     fpWide.removeEventListener('change', onFpViewport);
-    fpTickUnsub();
     document.body.style.overflow = '';
     transport.destroy();
     controlBar.destroy();
