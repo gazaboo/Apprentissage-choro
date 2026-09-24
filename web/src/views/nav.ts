@@ -1,5 +1,6 @@
 /**
- * Navigation par sections : Répertoire, Technique, Compte, Aide.
+ * Navigation par sections : Répertoire, Technique, Compte.
+ * (« Aide » masquée le temps de sa refonte — `views/about.ts` reste en place.)
  *
  * Barre fixe en bas sous `md` (pouce), rail vertical à gauche au-dessus. Elle
  * n'habille que les pages de premier niveau : les écrans d'activité (morceau,
@@ -11,10 +12,10 @@
  */
 
 import { el } from '../dom';
-import { activity, help, music, user } from '../icons';
+import { activity, music, user } from '../icons';
 import type { Progress } from '../store';
 
-export type Section = 'repertoire' | 'technique' | 'compte' | 'aide';
+export type Section = 'repertoire' | 'technique' | 'compte';
 
 export interface SectionShellOptions {
   active: Section;
@@ -35,7 +36,6 @@ const ENTRIES: Entry[] = [
   { section: 'repertoire', label: 'Répertoire', href: '#/', icon: music },
   { section: 'technique', label: 'Technique', href: '#/technique', icon: activity },
   { section: 'compte', label: 'Compte', href: '#/compte', icon: user },
-  { section: 'aide', label: 'Aide', href: '#/aide', icon: help },
 ];
 
 /**

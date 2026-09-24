@@ -42,7 +42,7 @@ const CHIP_BASE =
   'inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border px-3 text-sm ' +
   'font-medium transition hover:border-zinc-500 focus:outline-none focus-visible:ring-2 ' +
   'focus-visible:ring-amber-400';
-const CHIP_SELECTED = 'border-amber-400/60 bg-amber-400/15 text-amber-100';
+const CHIP_SELECTED = `bg-zinc-800/60 ${ui.selected}`;
 const CHIP_UNSELECTED = 'border-zinc-700 bg-zinc-800/60 text-zinc-400';
 
 /** Ouvre la modale. Retourne une fonction qui la retire sans rien enregistrer. */
