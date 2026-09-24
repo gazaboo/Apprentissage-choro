@@ -7,7 +7,6 @@ import {
   newCard,
   review,
   statusOf,
-  suggestGrade,
 } from './srs';
 import type { SrsCard } from './types';
 
@@ -160,19 +159,5 @@ describe('masteryLevel', () => {
     const after = masteryLevel(afterFailure);
     expect(after).toBeGreaterThanOrEqual(1);
     expect(after).toBeLessThanOrEqual(before);
-  });
-});
-
-describe('suggestGrade', () => {
-  it('4 par défaut quand rien n\'était masqué', () => {
-    expect(suggestGrade(0, 0)).toBe(4);
-  });
-
-  it('suit la table ratio indices/masquées : 0 → 5, ≤0.15 → 4, ≤0.35 → 3, ≤0.6 → 2, sinon 1', () => {
-    expect(suggestGrade(0, 10)).toBe(5);
-    expect(suggestGrade(1, 10)).toBe(4); // 0.10
-    expect(suggestGrade(3, 10)).toBe(3); // 0.30
-    expect(suggestGrade(5, 10)).toBe(2); // 0.50
-    expect(suggestGrade(8, 10)).toBe(1); // 0.80
   });
 });

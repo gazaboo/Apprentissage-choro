@@ -74,10 +74,6 @@ export function renderTrainer(
     song.instruments.find((i) => i.id === progress.settings.instrumentDefault)?.id ??
     song.instruments[0]!.id;
   let hints = 0;
-  /** Nombre de fois où l'écran Consigne a été sollicité pour révéler la
-   *  partition (mode « Sans partition » recommandé) — jamais compté comme un
-   *  indice classique, mais plafonne la note suggérée en fin de morceau. */
-  let aides = 0;
   /** Mode recommandé d'après l'historique du morceau (#109) : la partition ne
    *  se cache que si elle a déjà été maîtrisée plusieurs fois de suite, jamais
    *  sur un morceau nouveau ou juste après un échec. L'écran Consigne explique
@@ -671,7 +667,6 @@ export function renderTrainer(
     progress.settings.display = next;
     saveProgress(progress);
     hints = 0;
-    aides = 0;
     if (fullpage) {
       // Le plein écran ne contient qu'un conteneur : on y place le nouvel
       // actif et on rend l'autre à `scoreHome`.
@@ -695,7 +690,6 @@ export function renderTrainer(
     progress.settings.contrechant = next;
     saveProgress(progress);
     hints = 0;
-    aides = 0;
     drawScore();
     paintAffichage();
   }
@@ -719,9 +713,6 @@ export function renderTrainer(
     if (options.persist !== false) {
       progress.settings.studyMode = next;
       saveProgress(progress);
-      // Un choix délibéré (dock, bouton Défi) repart de zéro ; une demande
-      // d'aide (persist: false) ne doit pas s'effacer elle-même.
-      aides = 0;
     }
     if (!changed) return;
     hints = 0;
@@ -737,7 +728,6 @@ export function renderTrainer(
   /**
    * Échelle d'aide de l'écran Consigne : ne modifie jamais les réglages
    * persistés (`maskLevel`/`studyMode`), seulement l'état local de cet écran.
-   * `aides` plafonne ensuite la note suggérée en fin de morceau (#109).
    */
   function applyAide(level: MaskLevel | 'entiere'): void {
     if (level === 'entiere') {
@@ -747,7 +737,6 @@ export function renderTrainer(
       setMode('mesures', { persist: false });
       activeView().setLevel(level, currentInstrument());
     }
-    aides += 1;
     paintCounters();
   }
 
@@ -854,17 +843,7 @@ export function renderTrainer(
         : mode === 'sans'
           ? [0, activeView().measureCount]
           : [hints, activeView().maskedCount];
-    // Une partition rouverte via l'écran Consigne n'a pas valu un Again : on
-    // plafonne juste la présélection, la note reste au choix de l'utilisateur.
-    const answer = await askSrs(
-      song.title,
-      instrument.name,
-      used,
-      total,
-      undefined,
-      undefined,
-      aides > 0 ? 3 : undefined,
-    );
+    const answer = await askSrs(song.title, instrument.name, used, total);
     // Annulation : ni note, ni changement de bloc/séance — on reste sur le morceau.
     if (answer === 'cancelled') return;
     if (answer) {
@@ -878,7 +857,6 @@ export function renderTrainer(
       putCard(progress, song.id, instrumentId, card);
     }
     hints = 0;
-    aides = 0;
     eclipses.reset();
     paintCounters();
     if (context.session) {

@@ -165,7 +165,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
     // Tout est juste et en place : aucune ligne de détail à montrer.
     expect(dialog.querySelector('.max-h-40')).toBeNull();
 
-    bouton(dialog, 'Passer').click();
+    bouton(dialog, 'Passer sans noter').click();
     await vi.advanceTimersByTimeAsync(0);
     teardown();
   });
@@ -199,7 +199,7 @@ describe('renderTechnique — décompte des battues évaluées', () => {
     // Les notes justes et en place ne sont pas listées : deux lignes, pas douze.
     expect(detail.querySelectorAll('p')).toHaveLength(2);
 
-    bouton(document.body, 'Passer').click();
+    bouton(document.body, 'Passer sans noter').click();
     await vi.advanceTimersByTimeAsync(0);
     teardown();
   });
