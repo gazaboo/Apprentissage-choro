@@ -35,8 +35,8 @@ import { chordRoot, degre, nameFromMidi, parseNote } from '../technique/theorie'
 import { dessinerPortee } from './portee';
 import { askSrs } from './srsModal';
 
-/** Pas des boutons de tempo — assez large pour se sentir, assez fin pour régler. */
-const BPM_STEP = 4;
+/** Pas des boutons de tempo — un cran par appui, pour un réglage précis. */
+const BPM_STEP = 1;
 
 /** Délai d'écoute sans attaque détectée avant d'alerter : le temps de se mettre en place. */
 const SILENCE_WARNING_MS = 4000;
