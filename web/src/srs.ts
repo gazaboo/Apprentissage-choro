@@ -34,13 +34,23 @@ export const TEMPO_LABELS: Record<Tempo, string> = {
   fluide: 'Tempo réel, fluide',
 };
 
-export const GRADE_LABELS: string[] = [
-  'Néant — rien ne revient',
-  'Bribes — il a fallu la partition',
-  'Difficile — nombreux indices',
-  'Correct — quelques hésitations',
-  'Bon — fluide, un indice ou deux',
-  'Parfait — sans aucun indice',
+/**
+ * Les quatre notes du questionnaire, dans l'ordre de l'écran. Elles portent
+ * sur la **mémoire seule** — le tempo a sa propre question — et se décrivent
+ * par ce qui s'est passé plutôt que par une impression, pour qu'on puisse
+ * trancher instrument en main.
+ *
+ * FSRS ne connaît que quatre notes (voir `toRating`) ; l'ancienne échelle
+ * 0–5 (héritée de SM-2) en écrasait trois sur « Again ». Les valeurs stockées
+ * restent dans cette échelle — 1, 3, 4, 5 — pour que l'historique déjà
+ * enregistré se rejoue à l'identique (`ensureFsrs`) et que les seuils
+ * `PASSING_GRADE` et « ≥ 4 » de `recommendedMode` gardent leur sens.
+ */
+export const GRADES: { value: number; name: string; description: string }[] = [
+  { value: 1, name: 'Raté', description: "Il a fallu la partition, ou j'ai lâché en route." },
+  { value: 3, name: 'Difficile', description: 'Au bout, mais avec des arrêts ou des trous.' },
+  { value: 4, name: 'Bien', description: 'Au bout, une hésitation ou deux.' },
+  { value: 5, name: 'Facile', description: 'Au bout, sans hésiter, sans y penser.' },
 ];
 
 /**
@@ -190,7 +200,7 @@ export function ensureFsrs(card: SrsCard): SrsCard & { fsrs: FsrsState } {
 /**
  * Applique une évaluation et retourne la carte mise à jour.
  * `hints` (indices éphémères déclenchés) n'entre pas dans le calcul : il n'est
- * conservé que comme trace, et sert à suggérer une note dans le questionnaire.
+ * conservé que comme trace, et rappelé dans le questionnaire.
  *
  * `mesures` porte ce que les arpèges et gammes savent chiffrer — BPM tenu,
  * justesse et placement relevés au micro — et, pour un morceau, le mode de
@@ -284,15 +294,4 @@ export function recommendedMode(card: SrsCard | undefined): StudyMode {
   const goodCount = card.history.filter((h) => h.grade >= 4).length;
   if (goodCount < 2) return 'entiere';
   return card.history.length % 2 === 0 ? 'sans' : 'entiere';
-}
-
-/** Note suggérée dans le questionnaire, d'après les indices déclenchés. */
-export function suggestGrade(hints: number, maskedCount: number): number {
-  if (maskedCount === 0) return 4;
-  const ratio = hints / maskedCount;
-  if (ratio === 0) return 5;
-  if (ratio <= 0.15) return 4;
-  if (ratio <= 0.35) return 3;
-  if (ratio <= 0.6) return 2;
-  return 1;
 }

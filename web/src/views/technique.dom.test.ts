@@ -107,7 +107,7 @@ describe('renderTechnique — évaluation de fin', () => {
 
     const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
     expect(dialog).toBeTruthy();
-    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer')!;
+    const skip = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Passer sans noter')!;
     skip.click();
     await Promise.resolve();
 
@@ -115,15 +115,15 @@ describe('renderTechnique — évaluation de fin', () => {
     expect(context.markWorked).not.toHaveBeenCalled();
   });
 
-  it('« Enregistrer » avec une note marque l\'exercice comme travaillé', async () => {
+  it('une note marque l\'exercice comme travaillé', async () => {
     const { root, context } = mount([carte()]);
     const finish = [...root.querySelectorAll('button')].find((b) => b.textContent === 'Noter et continuer')!;
     finish.click();
     await Promise.resolve();
 
     const dialog = document.body.querySelector('[role="dialog"][aria-modal="true"]') as HTMLElement;
-    const validate = [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Enregistrer')!;
-    validate.click();
+    (dialog.querySelector('button[data-grade="4"]') as HTMLButtonElement).click();
+    [...dialog.querySelectorAll('button')].find((b) => b.textContent === 'Continuer')!.click();
     await Promise.resolve();
 
     expect(context.markWorked).toHaveBeenCalledWith('arp-m7::D::montant');
