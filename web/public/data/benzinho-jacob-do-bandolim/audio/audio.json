@@ -5,7 +5,30 @@
     "source_url": "https://www.youtube.com/watch?v=Q6qNbJWKzNU&list=RDQ6qNbJWKzNU&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 110.0
+    "bpm": 110.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.42,
+        "end": 47.93
+      },
+      {
+        "part": "B",
+        "start": 47.93,
+        "end": 94.39
+      },
+      {
+        "part": "B",
+        "start": 94.39,
+        "end": 141.85
+      },
+      {
+        "part": "A",
+        "start": 141.85,
+        "end": 186.41
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/benzinho-jacob-do-bandolim/audio/playback.12efdad1.opus",
@@ -13,6 +36,29 @@
     "source_url": "https://www.youtube.com/watch?v=W-UD-nkJjz4&list=RDW-UD-nkJjz4&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 112.3
+    "bpm": 112.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 8.68,
+        "end": 55.59
+      },
+      {
+        "part": "B",
+        "start": 55.59,
+        "end": 101.03
+      },
+      {
+        "part": "B",
+        "start": 101.03,
+        "end": 146.91
+      },
+      {
+        "part": "A",
+        "start": 146.91,
+        "end": 190.84
+      }
+    ],
+    "sections_confidence": "high"
   }
 }
