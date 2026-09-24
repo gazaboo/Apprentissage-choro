@@ -46,7 +46,7 @@ function isSens(value: unknown): value is Sens {
 export const DEFAULT_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 /** BPM proposé sur une carte jamais travaillée. */
-export const DEFAULT_BPM = 60;
+export const DEFAULT_BPM = 80;
 
 /** Un motif tel qu'il est écrit dans le fichier. */
 interface MotifSource {
