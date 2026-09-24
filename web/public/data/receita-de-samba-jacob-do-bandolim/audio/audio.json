@@ -5,7 +5,40 @@
     "source_url": "https://www.youtube.com/watch?v=xIykrXOTLtg&list=RDxIykrXOTLtg&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 105.5
+    "bpm": 105.5,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 0.84,
+        "end": 7.15
+      },
+      {
+        "part": "A",
+        "start": 7.15,
+        "end": 45.67
+      },
+      {
+        "part": "B",
+        "start": 45.67,
+        "end": 82.06
+      },
+      {
+        "part": "B",
+        "start": 82.06,
+        "end": 116.84
+      },
+      {
+        "part": "A",
+        "start": 116.84,
+        "end": 154.88
+      },
+      {
+        "part": "A",
+        "start": 154.88,
+        "end": 162.21
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/receita-de-samba-jacob-do-bandolim/audio/playback.c42af86a.opus",
@@ -13,6 +46,39 @@
     "source_url": "https://www.youtube.com/watch?v=Jmu10RM7gPo&list=RDJmu10RM7gPo&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 105.5
+    "bpm": 105.5,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 5.57,
+        "end": 12.42
+      },
+      {
+        "part": "A",
+        "start": 13.58,
+        "end": 52.38
+      },
+      {
+        "part": "A",
+        "start": 52.38,
+        "end": 87.75
+      },
+      {
+        "part": "B",
+        "start": 87.75,
+        "end": 124.25
+      },
+      {
+        "part": "B",
+        "start": 124.25,
+        "end": 160.77
+      },
+      {
+        "part": "A",
+        "start": 160.77,
+        "end": 199.0
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

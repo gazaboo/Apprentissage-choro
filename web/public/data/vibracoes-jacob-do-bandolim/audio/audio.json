@@ -5,7 +5,30 @@
     "source_url": "https://www.youtube.com/watch?v=EzUn9fPk5n4&list=RDEzUn9fPk5n4&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 123.0
+    "bpm": 123.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.39,
+        "end": 59.0
+      },
+      {
+        "part": "B",
+        "start": 62.88,
+        "end": 125.64
+      },
+      {
+        "part": "B",
+        "start": 125.64,
+        "end": 187.71
+      },
+      {
+        "part": "A",
+        "start": 187.71,
+        "end": 246.27
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/vibracoes-jacob-do-bandolim/audio/playback.3d180139.opus",
@@ -13,6 +36,34 @@
     "source_url": "https://www.youtube.com/watch?v=eMyojG5dUdQ&list=RDeMyojG5dUdQ&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "A",
+        "start": 5.46,
+        "end": 65.48
+      },
+      {
+        "part": "B",
+        "start": 69.47,
+        "end": 133.47
+      },
+      {
+        "part": "B",
+        "start": 133.47,
+        "end": 197.49
+      },
+      {
+        "part": "A",
+        "start": 197.49,
+        "end": 257.51
+      },
+      {
+        "part": "B",
+        "start": 259.11,
+        "end": 268.89
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

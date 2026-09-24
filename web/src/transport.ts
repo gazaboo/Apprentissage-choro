@@ -115,6 +115,61 @@ export function createTransport(options: TransportOptions): Transport {
     '0:00',
   );
 
+  // --- Parties repérées dans l'audio -------------------------------------
+  //
+  // Une pastille par passe (A, A, B…) repérée par `detect_sections.py` : la
+  // toucher saute au début de la passe et lance la lecture. Volontairement
+  // brut : de quoi juger à l'oreille la qualité du découpage avant d'en
+  // soigner l'allure.
+  const partsBar = el('div', { class: 'hidden flex-wrap items-center gap-1' });
+  const ACTIVE_PART = ['ring-1', 'ring-amber-400', 'text-amber-300'];
+  let partButtons: HTMLButtonElement[] = [];
+  let activePart = -1;
+
+  const currentParts = () => song.audio[source]?.sections ?? [];
+
+  function paintParts(): void {
+    const audio = song.audio[source];
+    const parts = currentParts();
+    partButtons = parts.map((part) => {
+      const button = el(
+        'button',
+        {
+          type: 'button',
+          class:
+            'rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-300 ' +
+            'transition hover:bg-zinc-700 focus:outline-none focus-visible:ring-2 ' +
+            'focus-visible:ring-amber-400',
+          'aria-label': `Aller à la partie ${part.part}, ${formatTime(part.start)}`,
+        },
+        part.part,
+        el('span', { class: 'ml-1 font-mono font-normal text-zinc-500' }, formatTime(part.start)),
+      );
+      button.addEventListener('click', () => {
+        player.seekTo(part.start);
+        if (!player.isPlaying()) player.togglePlay();
+      });
+      return button;
+    });
+    const doubt =
+      audio?.sections_confidence === 'low'
+        ? el('span', { class: 'text-[11px] text-amber-300' }, 'découpage douteux')
+        : null;
+    partsBar.replaceChildren(...partButtons, ...(doubt ? [doubt] : []));
+    partsBar.classList.toggle('hidden', parts.length === 0);
+    partsBar.classList.toggle('flex', parts.length > 0);
+    activePart = -1;
+  }
+
+  /** Souligne la passe en cours d'écoute. */
+  function paintActivePart(seconds: number): void {
+    const index = currentParts().findIndex((part) => seconds >= part.start && seconds < part.end);
+    if (index === activePart) return;
+    partButtons[activePart]?.classList.remove(...ACTIVE_PART);
+    partButtons[index]?.classList.add(...ACTIVE_PART);
+    activePart = index;
+  }
+
   // Géométrie et geste viennent de `dom.ts`, partagés avec le filage ; les
   // décorations de boucle restent propres à l'entraînement et se rangent
   // dans la piste que la primitive expose (#137).
@@ -123,6 +178,7 @@ export function createTransport(options: TransportOptions): Transport {
     onPaint: (ratio, seconds) => {
       currentLabel.textContent = formatTime(seconds);
       lanePlayhead.style.left = `${ratio * 100}%`;
+      paintActivePart(seconds);
     },
     decorations: [loopBand, scrimBefore, scrimAfter, tickA, tickB],
   });
@@ -160,6 +216,7 @@ export function createTransport(options: TransportOptions): Transport {
     'div',
     { class: 'flex min-w-0 flex-1 flex-col gap-0.5' },
     createSeekRow(seekBar, currentLabel, durationLabel),
+    partsBar,
     laneSlotBar,
     loopBadge,
   );
@@ -201,6 +258,7 @@ export function createTransport(options: TransportOptions): Transport {
     if (audio) player.load(audio.file, autoplay, audio.duration);
     player.clearLoop();
     paintLoop();
+    paintParts();
   }
 
   const sourceToggle = createSourceToggle({
@@ -545,6 +603,7 @@ export function createTransport(options: TransportOptions): Transport {
   });
 
   paintLoop();
+  paintParts();
 
   return {
     primary,

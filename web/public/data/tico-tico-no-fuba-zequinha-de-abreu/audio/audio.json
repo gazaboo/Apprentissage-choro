@@ -6,6 +6,54 @@
     "source_url": "https://www.youtube.com/watch?v=o54zy7HK-ic",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 103.4
+    "bpm": 103.4,
+    "sections": [
+      {
+        "part": "C",
+        "start": 19.09,
+        "end": 30.67
+      },
+      {
+        "part": "C",
+        "start": 30.67,
+        "end": 43.4
+      },
+      {
+        "part": "C",
+        "start": 43.4,
+        "end": 55.57
+      },
+      {
+        "part": "C",
+        "start": 59.61,
+        "end": 71.17
+      },
+      {
+        "part": "C",
+        "start": 71.17,
+        "end": 82.76
+      },
+      {
+        "part": "C",
+        "start": 86.8,
+        "end": 98.99
+      },
+      {
+        "part": "C",
+        "start": 98.99,
+        "end": 111.15
+      },
+      {
+        "part": "C",
+        "start": 111.15,
+        "end": 123.27
+      },
+      {
+        "part": "C",
+        "start": 123.27,
+        "end": 132.54
+      }
+    ],
+    "sections_confidence": "low"
   }
 }
