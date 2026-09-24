@@ -5,7 +5,65 @@
     "source_url": "https://www.youtube.com/watch?v=PazvcuwndVs&list=RDPazvcuwndVs&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 126.0
+    "bpm": 126.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.46,
+        "end": 16.32
+      },
+      {
+        "part": "A",
+        "start": 16.32,
+        "end": 31.74
+      },
+      {
+        "part": "B",
+        "start": 31.74,
+        "end": 47.16
+      },
+      {
+        "part": "B",
+        "start": 47.16,
+        "end": 62.9
+      },
+      {
+        "part": "A",
+        "start": 62.9,
+        "end": 77.25
+      },
+      {
+        "part": "C",
+        "start": 77.25,
+        "end": 93.58
+      },
+      {
+        "part": "C",
+        "start": 93.58,
+        "end": 107.97
+      },
+      {
+        "part": "A",
+        "start": 107.97,
+        "end": 123.27
+      },
+      {
+        "part": "C",
+        "start": 123.27,
+        "end": 139.64
+      },
+      {
+        "part": "A",
+        "start": 139.64,
+        "end": 153.51
+      },
+      {
+        "part": "Coda",
+        "start": 153.51,
+        "end": 158.31
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/diabinho-maluco-jacob-do-bandolim/audio/playback.206f8869.opus",
@@ -13,6 +71,39 @@
     "source_url": "https://www.youtube.com/watch?v=VZXYb-JvCQM&list=RDVZXYb-JvCQM&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 110.0
+    "bpm": 110.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 18.3,
+        "end": 36.29
+      },
+      {
+        "part": "A",
+        "start": 36.29,
+        "end": 53.78
+      },
+      {
+        "part": "B",
+        "start": 53.78,
+        "end": 71.22
+      },
+      {
+        "part": "B",
+        "start": 71.22,
+        "end": 88.12
+      },
+      {
+        "part": "A",
+        "start": 88.12,
+        "end": 105.56
+      },
+      {
+        "part": "C",
+        "start": 105.56,
+        "end": 112.66
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

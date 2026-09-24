@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=nlALNf7C_mM&list=RDnlALNf7C_mM&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 110.0
+    "bpm": 110.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.39,
+        "end": 23.85
+      },
+      {
+        "part": "B",
+        "start": 23.85,
+        "end": 47.18
+      },
+      {
+        "part": "B",
+        "start": 47.18,
+        "end": 71.03
+      },
+      {
+        "part": "A",
+        "start": 71.03,
+        "end": 93.44
+      },
+      {
+        "part": "C",
+        "start": 93.44,
+        "end": 117.12
+      },
+      {
+        "part": "C",
+        "start": 117.12,
+        "end": 142.18
+      },
+      {
+        "part": "A",
+        "start": 142.18,
+        "end": 165.26
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/sonoroso-k-ximbinho/audio/playback.76e3e372.opus",
@@ -13,6 +51,34 @@
     "source_url": "https://www.youtube.com/watch?v=_GS9uk9UmX0&list=RD_GS9uk9UmX0&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 156.6
+    "bpm": 156.6,
+    "sections": [
+      {
+        "part": "A",
+        "start": 25.43,
+        "end": 50.2
+      },
+      {
+        "part": "A",
+        "start": 50.2,
+        "end": 74.42
+      },
+      {
+        "part": "B",
+        "start": 74.42,
+        "end": 99.06
+      },
+      {
+        "part": "B",
+        "start": 99.06,
+        "end": 124.06
+      },
+      {
+        "part": "A",
+        "start": 124.06,
+        "end": 134.77
+      }
+    ],
+    "sections_confidence": "low"
   }
 }

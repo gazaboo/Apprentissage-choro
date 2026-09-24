@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=i35h-J8KwIQ&list=RDi35h-J8KwIQ&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 123.0
+    "bpm": 123.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 2.04,
+        "end": 23.29
+      },
+      {
+        "part": "A",
+        "start": 23.29,
+        "end": 43.72
+      },
+      {
+        "part": "B",
+        "start": 43.72,
+        "end": 65.32
+      },
+      {
+        "part": "B",
+        "start": 65.32,
+        "end": 86.19
+      },
+      {
+        "part": "A",
+        "start": 86.19,
+        "end": 107.3
+      },
+      {
+        "part": "C",
+        "start": 107.3,
+        "end": 130.24
+      },
+      {
+        "part": "A",
+        "start": 148.31,
+        "end": 169.04
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/os-cinco-companheiros-pixinguinha/audio/playback.4bd55c90.opus",
@@ -13,6 +51,49 @@
     "source_url": "https://www.youtube.com/watch?v=ThJwcl_48h8&list=RDThJwcl_48h8&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 123.0
+    "bpm": 123.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 4.02,
+        "end": 25.77
+      },
+      {
+        "part": "A",
+        "start": 25.77,
+        "end": 46.49
+      },
+      {
+        "part": "B",
+        "start": 46.49,
+        "end": 67.99
+      },
+      {
+        "part": "B",
+        "start": 67.99,
+        "end": 88.68
+      },
+      {
+        "part": "A",
+        "start": 88.68,
+        "end": 109.99
+      },
+      {
+        "part": "C",
+        "start": 109.99,
+        "end": 131.03
+      },
+      {
+        "part": "C",
+        "start": 131.03,
+        "end": 151.77
+      },
+      {
+        "part": "A",
+        "start": 151.77,
+        "end": 172.11
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

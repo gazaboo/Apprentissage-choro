@@ -5,7 +5,40 @@
     "source_url": "https://www.youtube.com/watch?v=GZt79hU5Pig&list=RDGZt79hU5Pig&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 103.4
+    "bpm": 103.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.39,
+        "end": 39.08
+      },
+      {
+        "part": "B",
+        "start": 39.08,
+        "end": 75.77
+      },
+      {
+        "part": "B",
+        "start": 75.77,
+        "end": 112.64
+      },
+      {
+        "part": "A",
+        "start": 112.64,
+        "end": 148.86
+      },
+      {
+        "part": "C",
+        "start": 148.86,
+        "end": 159.29
+      },
+      {
+        "part": "C",
+        "start": 159.29,
+        "end": 169.02
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/noites-cariocas-jacob-do-bandolim/audio/playback.6fa27472.opus",
@@ -13,6 +46,39 @@
     "source_url": "https://www.youtube.com/watch?v=cGWvWZ9qGLk&list=RDcGWvWZ9qGLk&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 99.4
+    "bpm": 99.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 10.36,
+        "end": 49.3
+      },
+      {
+        "part": "A",
+        "start": 49.3,
+        "end": 87.75
+      },
+      {
+        "part": "B",
+        "start": 87.75,
+        "end": 126.8
+      },
+      {
+        "part": "B",
+        "start": 126.8,
+        "end": 164.68
+      },
+      {
+        "part": "A",
+        "start": 164.68,
+        "end": 203.29
+      },
+      {
+        "part": "C",
+        "start": 210.51,
+        "end": 221.75
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

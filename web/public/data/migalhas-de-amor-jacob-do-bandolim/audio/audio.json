@@ -5,7 +5,30 @@
     "source_url": "https://www.youtube.com/watch?v=Xv3m7JciGVc&list=RDXv3m7JciGVc&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 136.0
+    "bpm": 136.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.46,
+        "end": 57.75
+      },
+      {
+        "part": "B",
+        "start": 57.75,
+        "end": 86.12
+      },
+      {
+        "part": "B",
+        "start": 86.12,
+        "end": 114.82
+      },
+      {
+        "part": "A",
+        "start": 114.82,
+        "end": 171.87
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/migalhas-de-amor-jacob-do-bandolim/audio/playback.35aa1f1a.opus",
@@ -13,6 +36,29 @@
     "source_url": "https://www.youtube.com/watch?v=7LNtZspRojk&list=RD7LNtZspRojk&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 126.0
+    "bpm": 126.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 5.8,
+        "end": 66.87
+      },
+      {
+        "part": "B",
+        "start": 66.87,
+        "end": 97.34
+      },
+      {
+        "part": "B",
+        "start": 97.34,
+        "end": 127.8
+      },
+      {
+        "part": "A",
+        "start": 127.8,
+        "end": 188.48
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

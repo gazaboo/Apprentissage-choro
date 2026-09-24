@@ -5,7 +5,35 @@
     "source_url": "https://www.youtube.com/watch?v=F9gWz59OPmw&list=RDF9gWz59OPmw&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 89.1
+    "bpm": 89.1,
+    "sections": [
+      {
+        "part": "A",
+        "start": 5.62,
+        "end": 38.43
+      },
+      {
+        "part": "B (Trio)",
+        "start": 38.43,
+        "end": 60.42
+      },
+      {
+        "part": "B (Trio)",
+        "start": 60.42,
+        "end": 79.57
+      },
+      {
+        "part": "A",
+        "start": 82.36,
+        "end": 113.99
+      },
+      {
+        "part": "A",
+        "start": 113.99,
+        "end": 140.34
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/o-corta-jaca-gaucho-chiquinha-gonzaga/audio/playback.e12fbf99.opus",
@@ -13,6 +41,49 @@
     "source_url": "https://www.youtube.com/watch?v=cdoN5-4gDBE&list=RDcdoN5-4gDBE&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 89.1
+    "bpm": 89.1,
+    "sections": [
+      {
+        "part": "A",
+        "start": 13.31,
+        "end": 45.6
+      },
+      {
+        "part": "B (Trio)",
+        "start": 45.6,
+        "end": 66.94
+      },
+      {
+        "part": "B (Trio)",
+        "start": 66.94,
+        "end": 85.61
+      },
+      {
+        "part": "A",
+        "start": 88.28,
+        "end": 120.28
+      },
+      {
+        "part": "B (Trio)",
+        "start": 120.28,
+        "end": 141.6
+      },
+      {
+        "part": "B (Trio)",
+        "start": 141.6,
+        "end": 160.29
+      },
+      {
+        "part": "A",
+        "start": 160.29,
+        "end": 188.96
+      },
+      {
+        "part": "A",
+        "start": 188.96,
+        "end": 193.63
+      }
+    ],
+    "sections_confidence": "high"
   }
 }
