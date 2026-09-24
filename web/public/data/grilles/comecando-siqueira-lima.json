@@ -1,0 +1,208 @@
+{
+  "song_id": "comecando-siqueira-lima",
+  "title": "Começando",
+  "composer": "Siqueira Lima",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro — A (Rém, reprise) — B (Rém, reprise) — D.S. al Coda (Rém)",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "Dm",
+      "bars": "1–9",
+      "repeat": false,
+      "sequence": [
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Bb7"
+        ],
+        [
+          "Em7b5"
+        ],
+        []
+      ]
+    },
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "10–22 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm"
+        ],
+        [
+          "Dm7"
+        ],
+        [
+          "Abdim"
+        ],
+        [
+          "Fdim"
+        ],
+        [
+          "Cm9"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Gm7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Dm7"
+        ],
+        [
+          "Abdim"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "E7"
+          ],
+          [
+            "Em7b5"
+          ],
+          []
+        ],
+        "2": [
+          [
+            "A7"
+          ],
+          [
+            "Dm",
+            "A7"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "29–40",
+      "repeat": true,
+      "sequence": [
+        [
+          "A"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Dm7"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "D",
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Gm7"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Dm7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Abdim"
+          ],
+          [
+            "E7"
+          ],
+          [
+            "A7"
+          ],
+          []
+        ],
+        "2": [
+          [
+            "Abdim"
+          ],
+          [
+            "A7"
+          ],
+          [
+            "Dm"
+          ],
+          []
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Dm"
+    ],
+    [
+      "Dm7"
+    ],
+    [
+      "E7"
+    ],
+    [
+      "A7"
+    ],
+    [
+      "Dm7"
+    ]
+  ],
+  "notes": [
+    "Arrangement Ely Rodrigues (flûte) ; chiffrages sous la portée, « Eø » = Em7b5, « Ab° » = Abdim.",
+    "Les fins de A et de B se terminent par une mesure N.C. (anacrouse de la reprise).",
+    "Coda (⊕ m. 49-53) : Dm Dm7 E7 A7 en reprise, puis Dm7 final."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/comecando-siqueira-lima/c/page_1.webp"
+  ]
+}

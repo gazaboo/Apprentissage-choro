@@ -5,7 +5,50 @@
     "source_url": "https://www.youtube.com/watch?v=V0JQ2gwfamQ",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 95.7
+    "bpm": 95.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 10.54,
+        "end": 30.56
+      },
+      {
+        "part": "A",
+        "start": 30.56,
+        "end": 50.85
+      },
+      {
+        "part": "B",
+        "start": 50.85,
+        "end": 70.87
+      },
+      {
+        "part": "B",
+        "start": 70.87,
+        "end": 90.88
+      },
+      {
+        "part": "A",
+        "start": 90.88,
+        "end": 110.94
+      },
+      {
+        "part": "C",
+        "start": 110.94,
+        "end": 131.15
+      },
+      {
+        "part": "C",
+        "start": 131.15,
+        "end": 151.09
+      },
+      {
+        "part": "A",
+        "start": 151.09,
+        "end": 170.76
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/proezas-de-solon-pixinguinha/audio/playback.acddc896.opus",
@@ -13,6 +56,54 @@
     "source_url": "https://www.youtube.com/watch?v=CYjE5nS_c_c",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 114.8
+    "bpm": 114.8,
+    "sections": [
+      {
+        "part": "A",
+        "start": 3.09,
+        "end": 20.06
+      },
+      {
+        "part": "A",
+        "start": 20.06,
+        "end": 36.9
+      },
+      {
+        "part": "B",
+        "start": 36.9,
+        "end": 53.68
+      },
+      {
+        "part": "B",
+        "start": 53.68,
+        "end": 70.45
+      },
+      {
+        "part": "A",
+        "start": 70.45,
+        "end": 87.31
+      },
+      {
+        "part": "C",
+        "start": 87.31,
+        "end": 103.98
+      },
+      {
+        "part": "C",
+        "start": 103.98,
+        "end": 120.67
+      },
+      {
+        "part": "A",
+        "start": 120.67,
+        "end": 137.32
+      },
+      {
+        "part": "A",
+        "start": 137.32,
+        "end": 152.39
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

@@ -1,0 +1,189 @@
+{
+  "song_id": "eu-quero-e-sossego-k-ximbinho",
+  "title": "Eu quero é sossego",
+  "composer": "K Ximbinho",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Fa→Rém, reprise) — D.S. al Coda (Rém)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm"
+        ],
+        [
+          "Gm6"
+        ],
+        [
+          "Bb7",
+          "Bb/Ab"
+        ],
+        [
+          "A7",
+          "Eb7"
+        ],
+        [
+          "Dm",
+          "Bm7b5",
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Gm6/Bb",
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Gm6"
+        ],
+        [
+          "Bb/Ab"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Cm6/Eb",
+          "D7"
+        ],
+        [
+          "Gm",
+          "G#dim7"
+        ],
+        [
+          "Dm/A",
+          "A7/C#"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm",
+            "A7"
+          ]
+        ],
+        "2": [
+          [
+            "Dm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        [
+          "Gm7",
+          "C7"
+        ],
+        [
+          "F"
+        ],
+        [
+          "Bm7b5",
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "Dm7",
+          "G7"
+        ],
+        [
+          "C",
+          "A7"
+        ],
+        [
+          "Dm7",
+          "G7"
+        ],
+        [
+          "Gm7",
+          "D7/F#"
+        ],
+        [
+          "Gm",
+          "G#dim7"
+        ],
+        [
+          "Am7",
+          "Dm7"
+        ],
+        [
+          "Gm",
+          "Gm/F"
+        ],
+        [
+          "Em7b5",
+          "A7"
+        ],
+        [
+          "Cm6/Eb",
+          "D7"
+        ],
+        [
+          "Gm",
+          "G#dim7"
+        ],
+        [
+          "Dm/A",
+          "A7/C#"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm",
+            "A7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Dm",
+      "A7"
+    ],
+    [
+      "Dm",
+      "Em7b5"
+    ],
+    [
+      "Gm6/Bb",
+      "A7"
+    ],
+    [
+      "Dm(add9)"
+    ]
+  ],
+  "notes": [
+    "Casa de Choro (Olivier Lob) ; accords repris du texte du PDF.",
+    "m. 5 : trois accords (Dm, Bm7b5, E7) dans la mesure.",
+    "Coda (⊕ m. 35-38) après D.S. : A jusqu'à la m. 15 puis la coda."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/eu-quero-e-sossego-k-ximbinho/c/page_1.webp"
+  ]
+}

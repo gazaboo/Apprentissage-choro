@@ -5,7 +5,35 @@
     "source_url": "https://www.youtube.com/watch?v=AAQesxN7rB4",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 90.7
+    "bpm": 90.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.72,
+        "end": 43.79
+      },
+      {
+        "part": "A",
+        "start": 43.79,
+        "end": 86.47
+      },
+      {
+        "part": "B",
+        "start": 86.47,
+        "end": 128.73
+      },
+      {
+        "part": "B",
+        "start": 128.73,
+        "end": 171.36
+      },
+      {
+        "part": "A",
+        "start": 171.36,
+        "end": 213.48
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/cadencia-juventino-maciel/audio/playback.9e82debc.opus",
@@ -13,6 +41,39 @@
     "source_url": "https://www.youtube.com/watch?v=iJZNQwNRYzM",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 87.6
+    "bpm": 87.6,
+    "sections": [
+      {
+        "part": "A",
+        "start": 11.03,
+        "end": 54.68
+      },
+      {
+        "part": "A",
+        "start": 54.68,
+        "end": 98.31
+      },
+      {
+        "part": "B",
+        "start": 98.31,
+        "end": 141.97
+      },
+      {
+        "part": "B",
+        "start": 141.97,
+        "end": 185.78
+      },
+      {
+        "part": "A",
+        "start": 185.78,
+        "end": 229.23
+      },
+      {
+        "part": "Coda",
+        "start": 229.23,
+        "end": 233.89
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

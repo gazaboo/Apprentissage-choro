@@ -1,0 +1,220 @@
+{
+  "song_id": "feitico-jacob-do-bandolim",
+  "title": "Feitiço",
+  "composer": "Jacob do Bandolim",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Fa, reprise) — B (Rém, reprise) — D.S. al Coda (Fa)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "F",
+      "bars": "1–31 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "F6"
+        ],
+        [],
+        [],
+        [],
+        [
+          "F6"
+        ],
+        [
+          "F#dim7"
+        ],
+        [
+          "C7/G"
+        ],
+        [
+          "C7/G",
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [],
+        [],
+        [],
+        [
+          "Gm"
+        ],
+        [
+          "Bbm6"
+        ],
+        [
+          "F6"
+        ],
+        [
+          "G7/B",
+          "C/Bb"
+        ],
+        [
+          "F/A"
+        ],
+        [],
+        [
+          "F6"
+        ],
+        [],
+        [
+          "Am7b5"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm7"
+        ],
+        [],
+        [
+          "Bb6"
+        ],
+        [
+          "Bbm6"
+        ],
+        [
+          "F6/A"
+        ],
+        [
+          "Abdim7"
+        ],
+        [
+          "Gm7b5"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F6"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "C7"
+          ]
+        ],
+        "2": [
+          [
+            "F6"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "34–64",
+      "repeat": true,
+      "sequence": [
+        [
+          "A7/C#"
+        ],
+        [
+          "A/G"
+        ],
+        [
+          "Dm/F"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "D7/F#"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Gm6"
+        ],
+        [],
+        [
+          "Dm6"
+        ],
+        [],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [
+          "A/G"
+        ],
+        [
+          "Dm/F"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "D7/F#"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Gm6"
+        ],
+        [],
+        [
+          "Dm6"
+        ],
+        [],
+        [
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ]
+      ],
+      "endings": {
+        "1": [
+          []
+        ],
+        "2": [
+          [
+            "Dm",
+            "C7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "C7"
+    ],
+    [
+      "F6"
+    ],
+    [],
+    [
+      "Fmaj9"
+    ]
+  ],
+  "notes": [
+    "Casa de Choro (Olivier Lob, 2024) ; accords repris du texte du PDF.",
+    "⊕ au-dessus de la m. 30 (C7) : après D.S., A jusqu'à la m. 29 puis la coda m. 67-70."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/feitico-jacob-do-bandolim/c/page_1.webp",
+    "data/feitico-jacob-do-bandolim/c/page_2.webp"
+  ]
+}

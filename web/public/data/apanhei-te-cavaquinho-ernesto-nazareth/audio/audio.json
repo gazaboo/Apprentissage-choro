@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=X5_3mgt4iYc",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 117.5
+    "bpm": 117.5,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.56,
+        "end": 17.86
+      },
+      {
+        "part": "B",
+        "start": 17.86,
+        "end": 34.32
+      },
+      {
+        "part": "B",
+        "start": 34.32,
+        "end": 50.64
+      },
+      {
+        "part": "A",
+        "start": 50.64,
+        "end": 67.04
+      },
+      {
+        "part": "C",
+        "start": 67.04,
+        "end": 82.99
+      },
+      {
+        "part": "C",
+        "start": 82.99,
+        "end": 99.08
+      },
+      {
+        "part": "A",
+        "start": 99.08,
+        "end": 114.4
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/apanhei-te-cavaquinho-ernesto-nazareth/audio/playback.e8531d65.opus",
@@ -13,6 +51,49 @@
     "source_url": "https://www.youtube.com/watch?v=XNu0oJmsINI",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.49,
+        "end": 22.64
+      },
+      {
+        "part": "A",
+        "start": 22.64,
+        "end": 44.14
+      },
+      {
+        "part": "B",
+        "start": 44.14,
+        "end": 65.64
+      },
+      {
+        "part": "B",
+        "start": 65.64,
+        "end": 86.66
+      },
+      {
+        "part": "A",
+        "start": 86.66,
+        "end": 107.97
+      },
+      {
+        "part": "C",
+        "start": 107.97,
+        "end": 129.47
+      },
+      {
+        "part": "C",
+        "start": 129.47,
+        "end": 150.47
+      },
+      {
+        "part": "A",
+        "start": 150.47,
+        "end": 171.48
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

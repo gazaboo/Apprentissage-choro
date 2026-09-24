@@ -5,7 +5,65 @@
     "source_url": "https://www.youtube.com/watch?v=CtJkhUeEqQY",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 103.4
+    "bpm": 103.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 1.53,
+        "end": 10.94
+      },
+      {
+        "part": "B",
+        "start": 10.94,
+        "end": 29.56
+      },
+      {
+        "part": "A",
+        "start": 29.56,
+        "end": 38.87
+      },
+      {
+        "part": "C",
+        "start": 38.87,
+        "end": 57.38
+      },
+      {
+        "part": "A",
+        "start": 57.38,
+        "end": 66.94
+      },
+      {
+        "part": "B",
+        "start": 66.94,
+        "end": 85.4
+      },
+      {
+        "part": "A",
+        "start": 85.4,
+        "end": 94.71
+      },
+      {
+        "part": "C",
+        "start": 94.71,
+        "end": 113.29
+      },
+      {
+        "part": "A",
+        "start": 113.29,
+        "end": 122.67
+      },
+      {
+        "part": "B",
+        "start": 122.67,
+        "end": 141.18
+      },
+      {
+        "part": "A",
+        "start": 141.18,
+        "end": 149.86
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/rio-antigo-altamiro-carrilho/audio/playback.74e70b96.opus",
@@ -13,6 +71,59 @@
     "source_url": "https://www.youtube.com/watch?v=PUXtBJ7Vjgc",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 90.7
+    "bpm": 90.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 6.06,
+        "end": 16.67
+      },
+      {
+        "part": "B",
+        "start": 16.67,
+        "end": 37.96
+      },
+      {
+        "part": "A",
+        "start": 37.96,
+        "end": 48.58
+      },
+      {
+        "part": "C",
+        "start": 48.58,
+        "end": 69.87
+      },
+      {
+        "part": "A",
+        "start": 69.87,
+        "end": 80.46
+      },
+      {
+        "part": "B",
+        "start": 80.46,
+        "end": 101.73
+      },
+      {
+        "part": "A",
+        "start": 101.73,
+        "end": 112.34
+      },
+      {
+        "part": "C",
+        "start": 112.34,
+        "end": 133.61
+      },
+      {
+        "part": "A",
+        "start": 133.61,
+        "end": 144.22
+      },
+      {
+        "part": "A",
+        "start": 144.22,
+        "end": 154.18
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

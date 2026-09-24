@@ -5,7 +5,100 @@
     "source_url": "https://www.youtube.com/watch?v=M-38_POSU1M&list=RDM-38_POSU1M&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 139.7
+    "bpm": 139.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.63,
+        "end": 10.36
+      },
+      {
+        "part": "A",
+        "start": 18.83,
+        "end": 28.75
+      },
+      {
+        "part": "B",
+        "start": 28.75,
+        "end": 37.59
+      },
+      {
+        "part": "B",
+        "start": 37.59,
+        "end": 47.32
+      },
+      {
+        "part": "C",
+        "start": 47.32,
+        "end": 55.77
+      },
+      {
+        "part": "C",
+        "start": 55.77,
+        "end": 64.97
+      },
+      {
+        "part": "A",
+        "start": 64.97,
+        "end": 74.16
+      },
+      {
+        "part": "A",
+        "start": 74.16,
+        "end": 84.01
+      },
+      {
+        "part": "B",
+        "start": 84.01,
+        "end": 93.07
+      },
+      {
+        "part": "B",
+        "start": 93.07,
+        "end": 101.49
+      },
+      {
+        "part": "C",
+        "start": 101.49,
+        "end": 111.08
+      },
+      {
+        "part": "C",
+        "start": 111.08,
+        "end": 120.35
+      },
+      {
+        "part": "B",
+        "start": 137.42,
+        "end": 147.68
+      },
+      {
+        "part": "B",
+        "start": 147.68,
+        "end": 156.25
+      },
+      {
+        "part": "C",
+        "start": 156.25,
+        "end": 165.4
+      },
+      {
+        "part": "C",
+        "start": 165.4,
+        "end": 174.96
+      },
+      {
+        "part": "A",
+        "start": 174.96,
+        "end": 183.81
+      },
+      {
+        "part": "A",
+        "start": 183.81,
+        "end": 192.63
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/feira-de-mangaio-sivuca/audio/playback.4d9b100b.opus",
@@ -13,6 +106,79 @@
     "source_url": "https://www.youtube.com/watch?v=KkxDqZCqttc&list=RDKkxDqZCqttc&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 123.0
+    "bpm": 123.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 9.01,
+        "end": 20.18
+      },
+      {
+        "part": "A",
+        "start": 20.18,
+        "end": 30.84
+      },
+      {
+        "part": "B",
+        "start": 30.84,
+        "end": 41.52
+      },
+      {
+        "part": "B",
+        "start": 41.52,
+        "end": 52.18
+      },
+      {
+        "part": "C",
+        "start": 52.18,
+        "end": 62.83
+      },
+      {
+        "part": "C",
+        "start": 62.83,
+        "end": 73.33
+      },
+      {
+        "part": "A",
+        "start": 73.33,
+        "end": 84.17
+      },
+      {
+        "part": "A",
+        "start": 84.17,
+        "end": 94.83
+      },
+      {
+        "part": "B",
+        "start": 94.83,
+        "end": 105.51
+      },
+      {
+        "part": "B",
+        "start": 105.51,
+        "end": 116.17
+      },
+      {
+        "part": "C",
+        "start": 116.17,
+        "end": 126.85
+      },
+      {
+        "part": "C",
+        "start": 126.85,
+        "end": 137.11
+      },
+      {
+        "part": "A",
+        "start": 137.11,
+        "end": 148.17
+      },
+      {
+        "part": "A",
+        "start": 148.17,
+        "end": 158.15
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

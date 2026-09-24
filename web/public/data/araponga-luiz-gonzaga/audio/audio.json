@@ -5,7 +5,50 @@
     "source_url": "https://www.youtube.com/watch?v=m1L6q945Elc",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 12.68,
+        "end": 28.56
+      },
+      {
+        "part": "A",
+        "start": 28.56,
+        "end": 48.37
+      },
+      {
+        "part": "A",
+        "start": 48.37,
+        "end": 68.13
+      },
+      {
+        "part": "B",
+        "start": 68.13,
+        "end": 88.05
+      },
+      {
+        "part": "B",
+        "start": 88.05,
+        "end": 107.97
+      },
+      {
+        "part": "A",
+        "start": 107.97,
+        "end": 127.92
+      },
+      {
+        "part": "B",
+        "start": 127.92,
+        "end": 147.82
+      },
+      {
+        "part": "A",
+        "start": 147.82,
+        "end": 167.11
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/araponga-luiz-gonzaga/audio/playback.987f1fad.opus",
@@ -13,6 +56,44 @@
     "source_url": "https://www.youtube.com/watch?v=F5hQ7Xr00so",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 94.0
+    "bpm": 94.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 8.43,
+        "end": 34.81
+      },
+      {
+        "part": "A",
+        "start": 34.81,
+        "end": 60.56
+      },
+      {
+        "part": "B",
+        "start": 60.56,
+        "end": 86.08
+      },
+      {
+        "part": "B",
+        "start": 86.08,
+        "end": 111.6
+      },
+      {
+        "part": "A",
+        "start": 111.6,
+        "end": 137.25
+      },
+      {
+        "part": "B",
+        "start": 137.25,
+        "end": 162.77
+      },
+      {
+        "part": "Coda",
+        "start": 162.77,
+        "end": 187.11
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

@@ -5,7 +5,25 @@
     "source_url": "https://www.youtube.com/watch?v=h5j404FOCKQ",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 178.2
+    "bpm": 178.2,
+    "sections": [
+      {
+        "part": "B",
+        "start": 17.86,
+        "end": 54.36
+      },
+      {
+        "part": "B",
+        "start": 152.51,
+        "end": 189.52
+      },
+      {
+        "part": "Coda",
+        "start": 189.52,
+        "end": 194.77
+      }
+    ],
+    "sections_confidence": "low"
   },
   "playback": {
     "file": "data/feitico-jacob-do-bandolim/audio/playback.a5f66b7a.opus",
@@ -13,6 +31,24 @@
     "source_url": "https://www.youtube.com/watch?v=Gp_h-LxgOrc",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 97.5
+    "bpm": 97.5,
+    "sections": [
+      {
+        "part": "A",
+        "start": 14.91,
+        "end": 54.08
+      },
+      {
+        "part": "B",
+        "start": 54.08,
+        "end": 93.25
+      },
+      {
+        "part": "B",
+        "start": 93.25,
+        "end": 109.76
+      }
+    ],
+    "sections_confidence": "high"
   }
 }
