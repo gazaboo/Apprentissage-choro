@@ -320,7 +320,7 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
   const finishButton = el('button', { type: 'button', class: ui.primary }, 'Noter et continuer');
   const textButton =
     'inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-medium text-zinc-300 ' +
-    'transition hover:bg-zinc-900 hover:text-white focus:outline-none focus-visible:ring-2 ' +
+    'transition hover:bg-zinc-900 hover:text-zinc-50 focus:outline-none focus-visible:ring-2 ' +
     'focus-visible:ring-amber-400';
   const stopButton = el(
     'button',

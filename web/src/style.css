@@ -13,10 +13,25 @@
  * pas dupliquées avec des variantes `light:` : Tailwind v4 génère chaque
  * utilitaire de couleur comme `background-color: var(--color-zinc-800)`, il
  * suffit donc de réassigner ces variables ici pour que tout l'habillage
- * suive, sans toucher aux ~370 usages dans les vues. L'échelle est inversée
- * terme à terme (50↔950, 100↔900…), ce qui préserve le sens relatif de
- * chaque usage (fond profond → fond clair, survol qui s'éclaircit en sombre
- * → qui s'assombrit en clair, etc.).
+ * suive, sans toucher aux ~370 usages dans les vues.
+ *
+ * Chaque cran de l'échelle garde en clair le *rôle* qu'il tient en sombre,
+ * plutôt qu'une simple inversion de luminosité (qui donnait un gris froid
+ * délavé, fond et cartes presque confondus) :
+ *   950 fond de page · 900 cartes et panneaux · 800 contrôles, filets ·
+ *   700 bordures · 600 traits discrets · 500 texte atténué ·
+ *   400 texte secondaire · 300–50 texte courant et titres.
+ * Les neutres sont chauds (papier crème, encre brune très sombre) : ils
+ * s'accordent à l'ambre et aux pages de partition, blanches, posées dessus.
+ * Seul écart à l'ordre : les cartes (900) sont *plus claires* que la page
+ * (950), comme une feuille posée sur un bureau.
+ *
+ * L'ambre tient deux rôles qui divergent en clair : remplissage (`400`,
+ * bouton principal, pastilles, anneaux de focus) et texte d'accent (`300`,
+ * `200`). En sombre les deux sont clairs ; en clair le remplissage reste un
+ * jaune d'or franc, mais le texte passe à un ambre brûlé, seul lisible sur
+ * fond crème. Les quelques usages de `text-amber-400` sont ramenés au rôle
+ * texte plus bas.
  *
  * `text-zinc-950` fait exception : posé sur les remplissages ambre pleins
  * (bouton principal, pastilles), il doit rester quasi noir dans les deux
@@ -33,36 +48,59 @@
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --color-zinc-50: oklch(14.1% 0.005 285.823);
-  --color-zinc-100: oklch(21% 0.006 285.885);
-  --color-zinc-200: oklch(27.4% 0.006 286.033);
-  --color-zinc-300: oklch(37% 0.013 285.805);
-  --color-zinc-400: oklch(44.2% 0.017 285.786);
-  --color-zinc-600: oklch(70.5% 0.015 286.067);
-  --color-zinc-700: oklch(87.1% 0.006 286.286);
-  --color-zinc-800: oklch(92% 0.004 286.32);
-  --color-zinc-900: oklch(96.7% 0.001 286.375);
-  --color-zinc-950: oklch(98.5% 0 none);
+  --color-zinc-50: #16130f;
+  --color-zinc-100: #1f1b16;
+  --color-zinc-200: #2d2822;
+  --color-zinc-300: #433d35;
+  --color-zinc-400: #5d564c;
+  --color-zinc-500: #7a7266;
+  --color-zinc-600: #a49c8f;
+  --color-zinc-700: #d8d1c4;
+  --color-zinc-800: #ebe5da;
+  --color-zinc-900: #fffdf8;
+  --color-zinc-950: #f3efe6;
 
-  --color-amber-200: oklch(47.3% 0.137 46.201);
-  --color-amber-300: oklch(55.5% 0.163 48.998);
-  --color-amber-400: oklch(66.6% 0.179 58.318);
+  --color-amber-200: #874108;
+  --color-amber-300: #a3530b;
+  --color-amber-400: #eea31b;
 
-  --color-emerald-300: oklch(50.8% 0.118 165.612);
-  --color-emerald-400: oklch(59.6% 0.145 163.225);
+  --color-emerald-300: #047857;
+  --color-emerald-400: #10a371;
+  --color-emerald-500: #059669;
 
-  --color-red-300: oklch(50.5% 0.213 27.518);
+  --color-red-300: #b91c1c;
 
-  --color-rose-200: oklch(45.5% 0.188 13.697);
-  --color-rose-300: oklch(51.4% 0.222 16.935);
-  --color-rose-400: oklch(58.6% 0.253 17.585);
+  --color-rose-200: #9f1239;
+  --color-rose-300: #be123c;
+  --color-rose-400: #e11d48;
+  --color-rose-500: #e11d48;
 
-  --color-sky-200: oklch(44.3% 0.11 240.79);
-  --color-sky-300: oklch(50% 0.134 242.749);
-  --color-sky-400: oklch(58.8% 0.158 241.966);
+  --color-sky-200: #075985;
+  --color-sky-300: #0369a1;
+  --color-sky-400: #0284c7;
 
-  --transport-shell-bg: 255 255 255; /* zinc-50 */
-  --transport-shell-border: 0 0 0;
+  /* Ombres : un brun translucide plutôt que du noir, qui salit le crème. */
+  --color-black: rgb(84 60 30 / 0.45);
+
+  --transport-shell-bg: 255 253 248; /* zinc-900 en clair */
+  --transport-shell-border: 60 45 25;
+}
+
+/* Rôle « texte » de l'ambre (voir plus haut) : le jaune d'or des
+   remplissages ne se lit pas en lettres fines sur fond crème. */
+:root[data-theme='light'] .text-amber-400,
+:root[data-theme='light'] .text-amber-400\/90 {
+  color: var(--color-amber-300);
+}
+
+/* Survol du bouton principal et case en cours d'une progression : un or plus
+   clair que le remplissage, et non l'ambre brûlé du texte d'accent. */
+:root[data-theme='light'] .hover\:bg-amber-300:hover {
+  background-color: #f6b93b;
+}
+
+:root[data-theme='light'] .bg-amber-300\/60 {
+  background-color: rgb(238 163 27 / 0.45);
 }
 
 html,

@@ -35,5 +35,5 @@ function applyTheme(theme: Theme): void {
     ?.setAttribute('content', theme);
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'light' ? '#fafafa' : '#09090b');
+    ?.setAttribute('content', theme === 'light' ? '#f3efe6' : '#09090b');
 }
