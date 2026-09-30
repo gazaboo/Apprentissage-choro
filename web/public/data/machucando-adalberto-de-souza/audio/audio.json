@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=u8M3h16AA30&list=RDu8M3h16AA30&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 94.0
+    "bpm": 94.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.28,
+        "end": 21.43
+      },
+      {
+        "part": "B",
+        "start": 21.43,
+        "end": 31.72
+      },
+      {
+        "part": "B",
+        "start": 31.72,
+        "end": 41.98
+      },
+      {
+        "part": "A",
+        "start": 41.98,
+        "end": 61.81
+      },
+      {
+        "part": "C",
+        "start": 61.81,
+        "end": 83.1
+      },
+      {
+        "part": "C",
+        "start": 83.1,
+        "end": 103.79
+      },
+      {
+        "part": "A",
+        "start": 103.79,
+        "end": 123.72
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/machucando-adalberto-de-souza/audio/playback.dd306403.opus",
@@ -13,6 +51,59 @@
     "source_url": "https://www.youtube.com/watch?v=jQkHtgeSme0&list=RDjQkHtgeSme0&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 132.5
+    "bpm": 132.5,
+    "sections": [
+      {
+        "part": "A",
+        "start": 3.07,
+        "end": 23.92
+      },
+      {
+        "part": "A",
+        "start": 23.92,
+        "end": 44.44
+      },
+      {
+        "part": "B",
+        "start": 44.44,
+        "end": 54.66
+      },
+      {
+        "part": "B",
+        "start": 54.66,
+        "end": 64.9
+      },
+      {
+        "part": "B",
+        "start": 64.9,
+        "end": 75.14
+      },
+      {
+        "part": "B",
+        "start": 75.14,
+        "end": 85.4
+      },
+      {
+        "part": "A",
+        "start": 85.4,
+        "end": 105.91
+      },
+      {
+        "part": "C",
+        "start": 105.91,
+        "end": 126.36
+      },
+      {
+        "part": "C",
+        "start": 126.36,
+        "end": 146.68
+      },
+      {
+        "part": "A",
+        "start": 146.68,
+        "end": 166.65
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

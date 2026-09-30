@@ -5,7 +5,50 @@
     "source_url": "https://www.youtube.com/watch?v=6Uk8cyyP2Sg&list=RD6Uk8cyyP2Sg&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 90.7
+    "bpm": 90.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 11.33,
+        "end": 32.51
+      },
+      {
+        "part": "A",
+        "start": 32.51,
+        "end": 53.78
+      },
+      {
+        "part": "B",
+        "start": 53.78,
+        "end": 74.47
+      },
+      {
+        "part": "B",
+        "start": 74.47,
+        "end": 96.32
+      },
+      {
+        "part": "A",
+        "start": 96.32,
+        "end": 116.47
+      },
+      {
+        "part": "C",
+        "start": 116.47,
+        "end": 164.4
+      },
+      {
+        "part": "C",
+        "start": 164.4,
+        "end": 212.11
+      },
+      {
+        "part": "A",
+        "start": 212.11,
+        "end": 232.27
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/o-bom-filho-a-casa-torna-bonfiglio-de-oliveira/audio/playback.8e4ac816.opus",
@@ -13,6 +56,44 @@
     "source_url": "https://www.youtube.com/watch?v=ISY6gehIlD4&list=RDISY6gehIlD4&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 90.7
+    "bpm": 90.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 11.73,
+        "end": 33.39
+      },
+      {
+        "part": "A",
+        "start": 44.07,
+        "end": 65.83
+      },
+      {
+        "part": "A",
+        "start": 65.83,
+        "end": 87.17
+      },
+      {
+        "part": "B",
+        "start": 87.17,
+        "end": 108.23
+      },
+      {
+        "part": "A",
+        "start": 108.23,
+        "end": 127.83
+      },
+      {
+        "part": "C",
+        "start": 127.83,
+        "end": 174.5
+      },
+      {
+        "part": "A",
+        "start": 174.5,
+        "end": 195.12
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

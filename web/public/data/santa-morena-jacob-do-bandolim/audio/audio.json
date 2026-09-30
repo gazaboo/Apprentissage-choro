@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=DtdieOgaIPA&list=RDDtdieOgaIPA&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 117.5
+    "bpm": 117.5,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 6.9,
+        "end": 18.04
+      },
+      {
+        "part": "A",
+        "start": 18.04,
+        "end": 41.38
+      },
+      {
+        "part": "A",
+        "start": 41.38,
+        "end": 65.64
+      },
+      {
+        "part": "B",
+        "start": 65.64,
+        "end": 90.19
+      },
+      {
+        "part": "A",
+        "start": 90.19,
+        "end": 114.82
+      },
+      {
+        "part": "B",
+        "start": 114.82,
+        "end": 139.71
+      },
+      {
+        "part": "A",
+        "start": 139.71,
+        "end": 158.29
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/santa-morena-jacob-do-bandolim/audio/playback.75757c0e.opus",
@@ -13,6 +51,54 @@
     "source_url": "https://www.youtube.com/watch?v=jlKsVdVNjtE&list=RDjlKsVdVNjtE&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 3.67,
+        "end": 19.9
+      },
+      {
+        "part": "A",
+        "start": 19.9,
+        "end": 42.52
+      },
+      {
+        "part": "A",
+        "start": 42.52,
+        "end": 66.18
+      },
+      {
+        "part": "B",
+        "start": 66.18,
+        "end": 89.86
+      },
+      {
+        "part": "B",
+        "start": 89.86,
+        "end": 113.48
+      },
+      {
+        "part": "A",
+        "start": 113.48,
+        "end": 137.39
+      },
+      {
+        "part": "B",
+        "start": 137.39,
+        "end": 161.1
+      },
+      {
+        "part": "A",
+        "start": 161.1,
+        "end": 183.99
+      },
+      {
+        "part": "Coda",
+        "start": 183.99,
+        "end": 189.87
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

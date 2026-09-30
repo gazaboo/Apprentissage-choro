@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=woCyMZe2UXQ&list=RDwoCyMZe2UXQ&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 83.4
+    "bpm": 83.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.19,
+        "end": 23.89
+      },
+      {
+        "part": "A",
+        "start": 23.89,
+        "end": 46.83
+      },
+      {
+        "part": "B",
+        "start": 46.83,
+        "end": 69.47
+      },
+      {
+        "part": "A",
+        "start": 69.47,
+        "end": 92.07
+      },
+      {
+        "part": "C",
+        "start": 92.07,
+        "end": 112.78
+      },
+      {
+        "part": "C",
+        "start": 112.78,
+        "end": 138.76
+      },
+      {
+        "part": "A",
+        "start": 138.76,
+        "end": 161.94
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/cochichando-pixinguinha/audio/playback.a4a69a89.opus",
@@ -13,6 +51,49 @@
     "source_url": "https://www.youtube.com/watch?v=KWQqPKMpafk&list=RDKWQqPKMpafk&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 84.7
+    "bpm": 84.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 3.6,
+        "end": 25.91
+      },
+      {
+        "part": "A",
+        "start": 25.91,
+        "end": 48.34
+      },
+      {
+        "part": "B",
+        "start": 48.34,
+        "end": 70.87
+      },
+      {
+        "part": "B",
+        "start": 70.87,
+        "end": 93.58
+      },
+      {
+        "part": "A",
+        "start": 93.58,
+        "end": 115.45
+      },
+      {
+        "part": "C",
+        "start": 115.45,
+        "end": 138.72
+      },
+      {
+        "part": "C",
+        "start": 138.72,
+        "end": 161.24
+      },
+      {
+        "part": "A",
+        "start": 161.24,
+        "end": 182.74
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

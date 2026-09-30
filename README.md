@@ -85,6 +85,32 @@ d'encodage devient un jour nécessaire, cela passe par une réécriture
 d'historique (`git filter-repo`) ou un commit orphelin — jamais par un simple
 passage du script.
 
+### 1 ter. Parties A / B / C dans l'audio (Python + librosa)
+
+```bash
+python scripts/detect_sections.py --dry-run   # affiche les découpages
+python scripts/detect_sections.py             # écrit sections dans les sidecars
+python scripts/detect_sections.py --only cheguei --force
+```
+
+Pour chaque morceau qui a une grille (`web/public/data/grilles/`), le script
+**aligne** chaque bande sur la grille au lieu de deviner la structure : chroma
+par temps (librosa), gabarits tirés des accords de chaque mesure, puis
+décodage de Viterbi où la fin d'une partie peut enchaîner sur n'importe quelle
+autre (reprise sautée, chorus improvisé et transposition sont tolérés). Le
+sidecar reçoit, par bande :
+
+```json
+"sections": [{ "part": "A", "start": 0.65, "end": 19.46 }, …],
+"sections_confidence": "high"
+```
+
+`low` signale un alignement douteux (une partie de la grille jamais
+reconnue, trop de temps hors grille, une partie qui revient en boucle) : à
+vérifier à l'oreille avant de s'en servir. Les morceaux sans grille sont
+ignorés. Comme `detect_bpm.py`, le script ne fait que lire les `.opus`.
+Tests : `python -m unittest discover -s scripts/tests`.
+
 ### 2. Application web
 
 ```bash
@@ -476,9 +502,13 @@ l'onglet suffit à tout effacer, même si on oublie de cliquer « Quitter ».
 scripts/
   preprocess_all.py           CLI du prétraitement des partitions
   fetch_audio.py              CLI du téléchargement et transcodage audio
+  detect_bpm.py               tempo des bandes audio → sidecar
+  detect_sections.py          parties A/B/C des bandes audio → sidecar
   choro_preprocess/
     scan.py                   arborescence → morceaux, URLs, PDF catégorisés
     audio_assets.py           convention de stockage des Opus + sidecar
+    tempo.py                  détection du BPM (librosa)
+    sections.py               alignement grille ↔ audio (Viterbi)
     vector_geometry.py        détection vectorielle (PyMuPDF) — moteur principal
     raster_geometry.py        détection OpenCV (Hough + morphologie) — repli
     measures.py               portées → boîtes composites normalisées

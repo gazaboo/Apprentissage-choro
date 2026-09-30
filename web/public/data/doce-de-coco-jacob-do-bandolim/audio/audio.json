@@ -5,7 +5,35 @@
     "source_url": "https://www.youtube.com/watch?v=HaffqSKR_qI&list=RDHaffqSKR_qI&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 92.3
+    "bpm": 92.3,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 0.42,
+        "end": 5.74
+      },
+      {
+        "part": "A",
+        "start": 5.74,
+        "end": 47.44
+      },
+      {
+        "part": "B",
+        "start": 47.44,
+        "end": 88.7
+      },
+      {
+        "part": "B",
+        "start": 88.7,
+        "end": 129.17
+      },
+      {
+        "part": "A",
+        "start": 129.17,
+        "end": 170.04
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": null
 }

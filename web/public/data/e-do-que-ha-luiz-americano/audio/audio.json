@@ -5,7 +5,50 @@
     "source_url": "https://www.youtube.com/watch?v=0rgyCWdrzgA&list=RD0rgyCWdrzgA&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 95.7
+    "bpm": 95.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 1.74,
+        "end": 42.42
+      },
+      {
+        "part": "A",
+        "start": 42.42,
+        "end": 82.57
+      },
+      {
+        "part": "B",
+        "start": 82.57,
+        "end": 102.82
+      },
+      {
+        "part": "B",
+        "start": 102.82,
+        "end": 123.51
+      },
+      {
+        "part": "A",
+        "start": 123.51,
+        "end": 162.47
+      },
+      {
+        "part": "C",
+        "start": 162.47,
+        "end": 183.04
+      },
+      {
+        "part": "C",
+        "start": 183.04,
+        "end": 203.5
+      },
+      {
+        "part": "A",
+        "start": 203.5,
+        "end": 243.18
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/e-do-que-ha-luiz-americano/audio/playback.c8d3b93a.opus",
@@ -13,6 +56,49 @@
     "source_url": "https://www.youtube.com/watch?v=Wn6U_26YvuI&list=RDWn6U_26YvuI&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 97.5
+    "bpm": 97.5,
+    "sections": [
+      {
+        "part": "A",
+        "start": 6.41,
+        "end": 46.63
+      },
+      {
+        "part": "A",
+        "start": 46.63,
+        "end": 86.87
+      },
+      {
+        "part": "B",
+        "start": 86.87,
+        "end": 106.21
+      },
+      {
+        "part": "B",
+        "start": 106.21,
+        "end": 126.53
+      },
+      {
+        "part": "A",
+        "start": 126.53,
+        "end": 165.63
+      },
+      {
+        "part": "C",
+        "start": 165.63,
+        "end": 185.36
+      },
+      {
+        "part": "C",
+        "start": 185.36,
+        "end": 205.61
+      },
+      {
+        "part": "A",
+        "start": 205.61,
+        "end": 244.95
+      }
+    ],
+    "sections_confidence": "high"
   }
 }
