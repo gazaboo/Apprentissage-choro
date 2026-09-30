@@ -14,6 +14,8 @@
  * mode passerelle) s'impose avant toute autre vue.
  */
 
+// Fonte des chiffrages de la grille d'accords (graisse 700, latin seul).
+import '@fontsource/barlow-semi-condensed/latin-700.css';
 import './style.css';
 
 import { initAnalytics } from './analytics';
@@ -543,6 +545,11 @@ function render(): void {
       markReached: (id) => filage?.reached.add(id),
       navigateHome: goHome,
       onFinish: finishRun,
+      grilleZoom: progress.settings.grilleZoom,
+      onGrilleZoom: (zoom) => {
+        progress.settings.grilleZoom = zoom;
+        saveProgress(progress);
+      },
     }));
     return;
   }
