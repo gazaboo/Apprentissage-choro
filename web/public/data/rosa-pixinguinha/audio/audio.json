@@ -5,7 +5,25 @@
     "source_url": "https://www.youtube.com/watch?v=zQ2ohMtNLl8",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 184.6
+    "bpm": 184.6,
+    "sections": [
+      {
+        "part": "C",
+        "start": 27.33,
+        "end": 66.8
+      },
+      {
+        "part": "C",
+        "start": 161.7,
+        "end": 199.81
+      },
+      {
+        "part": "C",
+        "start": 215.78,
+        "end": 243.6
+      }
+    ],
+    "sections_confidence": "low"
   },
   "playback": {
     "file": "data/rosa-pixinguinha/audio/playback.08a08494.opus",
@@ -13,6 +31,29 @@
     "source_url": "https://www.youtube.com/watch?v=GPpcaT7HDw0&list=RDGPpcaT7HDw0&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 95.7
+    "bpm": 95.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 27.03,
+        "end": 87.05
+      },
+      {
+        "part": "B",
+        "start": 87.05,
+        "end": 147.03
+      },
+      {
+        "part": "A",
+        "start": 147.03,
+        "end": 207.03
+      },
+      {
+        "part": "C",
+        "start": 207.03,
+        "end": 219.54
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

@@ -5,7 +5,40 @@
     "source_url": "https://www.youtube.com/watch?v=DePa_jnvWfE",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 107.7
+    "bpm": 107.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 1.86,
+        "end": 25.05
+      },
+      {
+        "part": "A",
+        "start": 25.05,
+        "end": 49.6
+      },
+      {
+        "part": "B",
+        "start": 49.6,
+        "end": 97.45
+      },
+      {
+        "part": "A",
+        "start": 97.45,
+        "end": 120.74
+      },
+      {
+        "part": "A",
+        "start": 120.74,
+        "end": 144.71
+      },
+      {
+        "part": "B",
+        "start": 144.71,
+        "end": 194.54
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/clarinete-melodia-guio-de-morais/audio/playback.05057e53.opus",
@@ -13,6 +46,34 @@
     "source_url": "https://www.youtube.com/watch?v=kNqY1VJxZoY",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 79.5
+    "bpm": 79.5,
+    "sections": [
+      {
+        "part": "A",
+        "start": 16.35,
+        "end": 40.36
+      },
+      {
+        "part": "A",
+        "start": 40.36,
+        "end": 64.34
+      },
+      {
+        "part": "B",
+        "start": 64.34,
+        "end": 112.36
+      },
+      {
+        "part": "A",
+        "start": 112.36,
+        "end": 136.35
+      },
+      {
+        "part": "A",
+        "start": 136.35,
+        "end": 152.86
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

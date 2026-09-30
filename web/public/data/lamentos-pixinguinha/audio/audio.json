@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=tvtIsnxfLrA",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 99.4
+    "bpm": 99.4,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 0.84,
+        "end": 7.73
+      },
+      {
+        "part": "A",
+        "start": 7.73,
+        "end": 48.51
+      },
+      {
+        "part": "A",
+        "start": 48.51,
+        "end": 87.61
+      },
+      {
+        "part": "B",
+        "start": 87.61,
+        "end": 139.48
+      },
+      {
+        "part": "B",
+        "start": 139.48,
+        "end": 191.68
+      },
+      {
+        "part": "A",
+        "start": 191.68,
+        "end": 242.3
+      },
+      {
+        "part": "Coda",
+        "start": 249.31,
+        "end": 258.93
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/lamentos-pixinguinha/audio/playback.dae12651.opus",
@@ -13,6 +51,44 @@
     "source_url": "https://www.youtube.com/watch?v=4u6VGoSWqCY",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 136.0
+    "bpm": 136.0,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 9.89,
+        "end": 16.9
+      },
+      {
+        "part": "A",
+        "start": 16.9,
+        "end": 59.28
+      },
+      {
+        "part": "A",
+        "start": 59.28,
+        "end": 101.4
+      },
+      {
+        "part": "B",
+        "start": 101.4,
+        "end": 157.87
+      },
+      {
+        "part": "B",
+        "start": 157.87,
+        "end": 214.55
+      },
+      {
+        "part": "A",
+        "start": 214.55,
+        "end": 256.63
+      },
+      {
+        "part": "Coda",
+        "start": 260.02,
+        "end": 267.77
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

@@ -5,7 +5,45 @@
     "source_url": "https://www.youtube.com/watch?v=EgrCA6DhUdo",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 89.1
+    "bpm": 89.1,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.49,
+        "end": 22.13
+      },
+      {
+        "part": "B",
+        "start": 22.13,
+        "end": 43.49
+      },
+      {
+        "part": "B",
+        "start": 43.49,
+        "end": 64.83
+      },
+      {
+        "part": "A",
+        "start": 64.83,
+        "end": 86.33
+      },
+      {
+        "part": "C",
+        "start": 86.33,
+        "end": 107.83
+      },
+      {
+        "part": "C",
+        "start": 107.83,
+        "end": 129.17
+      },
+      {
+        "part": "A",
+        "start": 129.17,
+        "end": 149.82
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/vou-vivendo-pixinguinha/audio/playback.077d1161.opus",
@@ -13,6 +51,49 @@
     "source_url": "https://www.youtube.com/watch?v=dLRMFM_Q-FA",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 112.3
+    "bpm": 112.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 2.69,
+        "end": 26.91
+      },
+      {
+        "part": "A",
+        "start": 26.91,
+        "end": 49.74
+      },
+      {
+        "part": "B",
+        "start": 49.74,
+        "end": 71.75
+      },
+      {
+        "part": "B",
+        "start": 71.75,
+        "end": 94.6
+      },
+      {
+        "part": "A",
+        "start": 94.6,
+        "end": 117.35
+      },
+      {
+        "part": "C",
+        "start": 117.35,
+        "end": 139.95
+      },
+      {
+        "part": "C",
+        "start": 139.95,
+        "end": 161.94
+      },
+      {
+        "part": "A",
+        "start": 161.94,
+        "end": 184.09
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

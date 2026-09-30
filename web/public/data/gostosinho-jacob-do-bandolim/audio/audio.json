@@ -5,7 +5,35 @@
     "source_url": "https://www.youtube.com/watch?v=3kMsDK7XneM",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 123.0
+    "bpm": 123.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.56,
+        "end": 31.53
+      },
+      {
+        "part": "B",
+        "start": 31.53,
+        "end": 46.95
+      },
+      {
+        "part": "A",
+        "start": 46.95,
+        "end": 77.9
+      },
+      {
+        "part": "C",
+        "start": 77.9,
+        "end": 108.99
+      },
+      {
+        "part": "A",
+        "start": 108.99,
+        "end": 140.09
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/gostosinho-jacob-do-bandolim/audio/playback.a5d1a5eb.opus",
@@ -13,6 +41,34 @@
     "source_url": "https://www.youtube.com/watch?v=wtWr8ZohC7Q",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 112.3
+    "bpm": 112.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 13.28,
+        "end": 47.58
+      },
+      {
+        "part": "B",
+        "start": 47.58,
+        "end": 64.69
+      },
+      {
+        "part": "A",
+        "start": 64.69,
+        "end": 98.99
+      },
+      {
+        "part": "C",
+        "start": 98.99,
+        "end": 133.28
+      },
+      {
+        "part": "A",
+        "start": 133.28,
+        "end": 167.81
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

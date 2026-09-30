@@ -5,7 +5,95 @@
     "source_url": "https://www.youtube.com/watch?v=Sz6CrVpoMHA",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 103.4
+    "bpm": 103.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 2.95,
+        "end": 22.2
+      },
+      {
+        "part": "A",
+        "start": 22.2,
+        "end": 41.01
+      },
+      {
+        "part": "B",
+        "start": 41.01,
+        "end": 59.77
+      },
+      {
+        "part": "B",
+        "start": 59.77,
+        "end": 78.3
+      },
+      {
+        "part": "A",
+        "start": 78.3,
+        "end": 96.55
+      },
+      {
+        "part": "A",
+        "start": 96.55,
+        "end": 115.03
+      },
+      {
+        "part": "B",
+        "start": 115.03,
+        "end": 133.05
+      },
+      {
+        "part": "B",
+        "start": 133.05,
+        "end": 151.65
+      },
+      {
+        "part": "B",
+        "start": 151.65,
+        "end": 169.64
+      },
+      {
+        "part": "B",
+        "start": 169.64,
+        "end": 187.92
+      },
+      {
+        "part": "B",
+        "start": 187.92,
+        "end": 206.26
+      },
+      {
+        "part": "B",
+        "start": 206.26,
+        "end": 224.89
+      },
+      {
+        "part": "B",
+        "start": 224.89,
+        "end": 243.6
+      },
+      {
+        "part": "B",
+        "start": 243.6,
+        "end": 262.41
+      },
+      {
+        "part": "A",
+        "start": 262.41,
+        "end": 281.22
+      },
+      {
+        "part": "A",
+        "start": 281.22,
+        "end": 300.05
+      },
+      {
+        "part": "Coda",
+        "start": 302.53,
+        "end": 308.45
+      }
+    ],
+    "sections_confidence": "low"
   },
   "playback": {
     "file": "data/comecando-siqueira-lima/audio/playback.2550fff6.opus",
@@ -13,6 +101,69 @@
     "source_url": "https://www.youtube.com/watch?v=Z--RTaVjjJg",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 90.7
+    "bpm": 90.7,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 5.5,
+        "end": 16.63
+      },
+      {
+        "part": "A",
+        "start": 16.63,
+        "end": 37.78
+      },
+      {
+        "part": "A",
+        "start": 37.78,
+        "end": 59.09
+      },
+      {
+        "part": "B",
+        "start": 59.09,
+        "end": 80.43
+      },
+      {
+        "part": "B",
+        "start": 80.43,
+        "end": 101.96
+      },
+      {
+        "part": "A",
+        "start": 101.96,
+        "end": 123.3
+      },
+      {
+        "part": "A",
+        "start": 123.3,
+        "end": 144.61
+      },
+      {
+        "part": "B",
+        "start": 144.61,
+        "end": 165.95
+      },
+      {
+        "part": "B",
+        "start": 165.95,
+        "end": 187.29
+      },
+      {
+        "part": "A",
+        "start": 187.29,
+        "end": 208.63
+      },
+      {
+        "part": "A",
+        "start": 208.63,
+        "end": 229.95
+      },
+      {
+        "part": "Coda",
+        "start": 232.59,
+        "end": 239.28
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

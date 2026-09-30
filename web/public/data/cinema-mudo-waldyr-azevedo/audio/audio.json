@@ -5,7 +5,30 @@
     "source_url": "https://www.youtube.com/watch?v=o9dd7g79xv0",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 123.0
+    "bpm": 123.0,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 3.3,
+        "end": 10.7
+      },
+      {
+        "part": "A",
+        "start": 10.7,
+        "end": 69.13
+      },
+      {
+        "part": "B",
+        "start": 69.13,
+        "end": 136.14
+      },
+      {
+        "part": "B",
+        "start": 198.0,
+        "end": 263.06
+      }
+    ],
+    "sections_confidence": "low"
   },
   "playback": null
 }

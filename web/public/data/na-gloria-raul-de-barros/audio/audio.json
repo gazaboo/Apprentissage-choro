@@ -5,7 +5,55 @@
     "source_url": "https://www.youtube.com/watch?v=-4RIi23Rrrw",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 101.3
+    "bpm": 101.3,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.7,
+        "end": 19.6
+      },
+      {
+        "part": "A",
+        "start": 19.6,
+        "end": 38.31
+      },
+      {
+        "part": "B",
+        "start": 38.31,
+        "end": 57.42
+      },
+      {
+        "part": "B",
+        "start": 57.42,
+        "end": 76.51
+      },
+      {
+        "part": "A",
+        "start": 76.51,
+        "end": 95.41
+      },
+      {
+        "part": "C",
+        "start": 95.41,
+        "end": 114.68
+      },
+      {
+        "part": "C",
+        "start": 114.68,
+        "end": 133.7
+      },
+      {
+        "part": "A",
+        "start": 133.7,
+        "end": 152.56
+      },
+      {
+        "part": "A",
+        "start": 152.56,
+        "end": 171.22
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/na-gloria-raul-de-barros/audio/playback.1eaa5e5a.opus",
@@ -13,6 +61,49 @@
     "source_url": "https://www.youtube.com/watch?v=nC8GsHLHo04&list=RDnC8GsHLHo04&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 99.4
+    "bpm": 99.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 2.48,
+        "end": 21.52
+      },
+      {
+        "part": "A",
+        "start": 21.52,
+        "end": 40.75
+      },
+      {
+        "part": "B",
+        "start": 40.75,
+        "end": 60.07
+      },
+      {
+        "part": "A",
+        "start": 60.07,
+        "end": 79.11
+      },
+      {
+        "part": "C",
+        "start": 79.11,
+        "end": 98.31
+      },
+      {
+        "part": "C",
+        "start": 98.31,
+        "end": 117.52
+      },
+      {
+        "part": "A",
+        "start": 117.52,
+        "end": 136.74
+      },
+      {
+        "part": "C",
+        "start": 136.74,
+        "end": 142.87
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

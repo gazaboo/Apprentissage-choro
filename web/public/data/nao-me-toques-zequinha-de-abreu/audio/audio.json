@@ -5,7 +5,50 @@
     "source_url": "https://www.youtube.com/watch?v=ofqreoTjPSM",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 191.4
+    "bpm": 191.4,
+    "sections": [
+      {
+        "part": "A",
+        "start": 4.25,
+        "end": 23.89
+      },
+      {
+        "part": "A",
+        "start": 23.89,
+        "end": 43.7
+      },
+      {
+        "part": "B",
+        "start": 43.7,
+        "end": 53.38
+      },
+      {
+        "part": "B",
+        "start": 53.38,
+        "end": 63.09
+      },
+      {
+        "part": "A",
+        "start": 63.09,
+        "end": 82.83
+      },
+      {
+        "part": "C",
+        "start": 82.83,
+        "end": 102.33
+      },
+      {
+        "part": "C",
+        "start": 102.33,
+        "end": 122.3
+      },
+      {
+        "part": "A",
+        "start": 122.3,
+        "end": 141.71
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/nao-me-toques-zequinha-de-abreu/audio/playback.4906d79e.opus",
@@ -13,6 +56,64 @@
     "source_url": "https://www.youtube.com/watch?v=m6Gb4T-UZuk",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 114.8
+    "bpm": 114.8,
+    "sections": [
+      {
+        "part": "A",
+        "start": 3.88,
+        "end": 20.83
+      },
+      {
+        "part": "A",
+        "start": 20.83,
+        "end": 37.57
+      },
+      {
+        "part": "B",
+        "start": 37.57,
+        "end": 45.91
+      },
+      {
+        "part": "B",
+        "start": 45.91,
+        "end": 54.22
+      },
+      {
+        "part": "A",
+        "start": 54.22,
+        "end": 70.87
+      },
+      {
+        "part": "C",
+        "start": 70.87,
+        "end": 87.47
+      },
+      {
+        "part": "C",
+        "start": 87.47,
+        "end": 104.03
+      },
+      {
+        "part": "A",
+        "start": 104.03,
+        "end": 120.47
+      },
+      {
+        "part": "B",
+        "start": 120.47,
+        "end": 128.68
+      },
+      {
+        "part": "B",
+        "start": 128.68,
+        "end": 136.9
+      },
+      {
+        "part": "B",
+        "start": 136.9,
+        "end": 143.06
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

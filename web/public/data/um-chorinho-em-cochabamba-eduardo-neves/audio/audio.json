@@ -5,7 +5,70 @@
     "source_url": "https://www.youtube.com/watch?v=4BxCuR1FhSA&list=RD4BxCuR1FhSA&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 8.71,
+        "end": 17.53
+      },
+      {
+        "part": "A",
+        "start": 17.53,
+        "end": 38.57
+      },
+      {
+        "part": "A",
+        "start": 38.57,
+        "end": 60.21
+      },
+      {
+        "part": "B",
+        "start": 60.21,
+        "end": 80.67
+      },
+      {
+        "part": "B",
+        "start": 80.67,
+        "end": 103.0
+      },
+      {
+        "part": "B",
+        "start": 123.97,
+        "end": 145.26
+      },
+      {
+        "part": "B",
+        "start": 145.26,
+        "end": 166.02
+      },
+      {
+        "part": "B",
+        "start": 166.02,
+        "end": 188.17
+      },
+      {
+        "part": "A",
+        "start": 188.17,
+        "end": 207.87
+      },
+      {
+        "part": "C",
+        "start": 207.87,
+        "end": 213.21
+      },
+      {
+        "part": "C",
+        "start": 213.21,
+        "end": 218.89
+      },
+      {
+        "part": "B",
+        "start": 218.89,
+        "end": 230.67
+      }
+    ],
+    "sections_confidence": "low"
   },
   "playback": {
     "file": "data/um-chorinho-em-cochabamba-eduardo-neves/audio/playback.c823e9dc.opus",
@@ -13,6 +76,84 @@
     "source_url": "https://www.youtube.com/watch?v=F1Rj9ZM7tAk&list=RDF1Rj9ZM7tAk&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "Intro",
+        "start": 9.4,
+        "end": 18.3
+      },
+      {
+        "part": "A",
+        "start": 18.3,
+        "end": 39.54
+      },
+      {
+        "part": "A",
+        "start": 39.54,
+        "end": 60.88
+      },
+      {
+        "part": "B",
+        "start": 60.88,
+        "end": 82.22
+      },
+      {
+        "part": "B",
+        "start": 82.22,
+        "end": 103.42
+      },
+      {
+        "part": "A",
+        "start": 103.42,
+        "end": 124.95
+      },
+      {
+        "part": "A",
+        "start": 124.95,
+        "end": 145.89
+      },
+      {
+        "part": "B",
+        "start": 145.89,
+        "end": 167.56
+      },
+      {
+        "part": "B",
+        "start": 167.56,
+        "end": 188.76
+      },
+      {
+        "part": "A",
+        "start": 188.76,
+        "end": 210.28
+      },
+      {
+        "part": "A",
+        "start": 210.28,
+        "end": 231.25
+      },
+      {
+        "part": "B",
+        "start": 231.25,
+        "end": 252.87
+      },
+      {
+        "part": "B",
+        "start": 252.87,
+        "end": 274.09
+      },
+      {
+        "part": "A",
+        "start": 274.09,
+        "end": 294.57
+      },
+      {
+        "part": "A",
+        "start": 294.57,
+        "end": 315.54
+      }
+    ],
+    "sections_confidence": "low"
   }
 }

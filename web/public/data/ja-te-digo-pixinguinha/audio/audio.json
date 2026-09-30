@@ -5,7 +5,65 @@
     "source_url": "https://www.youtube.com/watch?v=RVz1watqTqE&list=RDRVz1watqTqE&start_radio=1",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 120.2
+    "bpm": 120.2,
+    "sections": [
+      {
+        "part": "A",
+        "start": 0.21,
+        "end": 24.82
+      },
+      {
+        "part": "A",
+        "start": 24.82,
+        "end": 48.9
+      },
+      {
+        "part": "B",
+        "start": 48.9,
+        "end": 70.24
+      },
+      {
+        "part": "B",
+        "start": 70.24,
+        "end": 91.07
+      },
+      {
+        "part": "C",
+        "start": 91.07,
+        "end": 112.92
+      },
+      {
+        "part": "A",
+        "start": 112.92,
+        "end": 137.3
+      },
+      {
+        "part": "A",
+        "start": 137.3,
+        "end": 160.87
+      },
+      {
+        "part": "B",
+        "start": 160.87,
+        "end": 182.02
+      },
+      {
+        "part": "B",
+        "start": 182.02,
+        "end": 203.45
+      },
+      {
+        "part": "C",
+        "start": 203.45,
+        "end": 224.37
+      },
+      {
+        "part": "A",
+        "start": 224.37,
+        "end": 247.69
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": null
 }

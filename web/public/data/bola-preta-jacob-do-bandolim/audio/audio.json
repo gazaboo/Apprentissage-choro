@@ -5,7 +5,50 @@
     "source_url": "https://www.youtube.com/watch?v=lcE6xYMFps8",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 123.0
+    "bpm": 123.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 4.27,
+        "end": 35.76
+      },
+      {
+        "part": "B",
+        "start": 35.76,
+        "end": 51.46
+      },
+      {
+        "part": "B",
+        "start": 51.46,
+        "end": 67.15
+      },
+      {
+        "part": "A",
+        "start": 67.15,
+        "end": 98.59
+      },
+      {
+        "part": "C",
+        "start": 98.59,
+        "end": 129.71
+      },
+      {
+        "part": "C",
+        "start": 129.71,
+        "end": 160.82
+      },
+      {
+        "part": "A",
+        "start": 160.82,
+        "end": 191.61
+      },
+      {
+        "part": "Coda",
+        "start": 191.61,
+        "end": 195.44
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/bola-preta-jacob-do-bandolim/audio/playback.4b0520cb.opus",
@@ -13,6 +56,49 @@
     "source_url": "https://www.youtube.com/watch?v=5_PuQlUfsOw",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 126.0
+    "bpm": 126.0,
+    "sections": [
+      {
+        "part": "A",
+        "start": 4.83,
+        "end": 35.74
+      },
+      {
+        "part": "B",
+        "start": 35.74,
+        "end": 51.13
+      },
+      {
+        "part": "B",
+        "start": 51.13,
+        "end": 66.59
+      },
+      {
+        "part": "A",
+        "start": 66.59,
+        "end": 97.55
+      },
+      {
+        "part": "C",
+        "start": 97.55,
+        "end": 128.17
+      },
+      {
+        "part": "C",
+        "start": 128.17,
+        "end": 158.55
+      },
+      {
+        "part": "A",
+        "start": 158.55,
+        "end": 189.08
+      },
+      {
+        "part": "Coda",
+        "start": 189.08,
+        "end": 192.84
+      }
+    ],
+    "sections_confidence": "high"
   }
 }

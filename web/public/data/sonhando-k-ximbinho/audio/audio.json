@@ -5,7 +5,55 @@
     "source_url": "https://www.youtube.com/watch?v=CFgYaQfPmO4",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 147.7
+    "bpm": 147.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 10.98,
+        "end": 36.59
+      },
+      {
+        "part": "A",
+        "start": 36.59,
+        "end": 62.97
+      },
+      {
+        "part": "B",
+        "start": 62.97,
+        "end": 86.05
+      },
+      {
+        "part": "B",
+        "start": 86.05,
+        "end": 111.66
+      },
+      {
+        "part": "A",
+        "start": 111.66,
+        "end": 137.51
+      },
+      {
+        "part": "C",
+        "start": 137.51,
+        "end": 164.95
+      },
+      {
+        "part": "C",
+        "start": 164.95,
+        "end": 190.94
+      },
+      {
+        "part": "A",
+        "start": 190.94,
+        "end": 213.83
+      },
+      {
+        "part": "B",
+        "start": 213.83,
+        "end": 221.38
+      }
+    ],
+    "sections_confidence": "high"
   },
   "playback": {
     "file": "data/sonhando-k-ximbinho/audio/playback.429533e2.opus",
@@ -13,6 +61,49 @@
     "source_url": "https://www.youtube.com/watch?v=U6Aqk8d4ZEM",
     "encoded_with": "opus48k-mono48000-v1+loudnorm",
     "encoded_on": "2026-09-20",
-    "bpm": 139.7
+    "bpm": 139.7,
+    "sections": [
+      {
+        "part": "A",
+        "start": 2.16,
+        "end": 29.86
+      },
+      {
+        "part": "A",
+        "start": 29.86,
+        "end": 57.68
+      },
+      {
+        "part": "B",
+        "start": 57.68,
+        "end": 85.5
+      },
+      {
+        "part": "B",
+        "start": 85.5,
+        "end": 113.34
+      },
+      {
+        "part": "A",
+        "start": 113.34,
+        "end": 141.15
+      },
+      {
+        "part": "C",
+        "start": 141.15,
+        "end": 168.99
+      },
+      {
+        "part": "C",
+        "start": 168.99,
+        "end": 196.81
+      },
+      {
+        "part": "A",
+        "start": 196.81,
+        "end": 224.63
+      }
+    ],
+    "sections_confidence": "high"
   }
 }
