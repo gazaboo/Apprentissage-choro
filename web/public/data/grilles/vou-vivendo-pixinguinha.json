@@ -1,0 +1,222 @@
+{
+  "song_id": "vou-vivendo-pixinguinha",
+  "title": "Vou vivendo",
+  "composer": "Pixinguinha",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Fa, reprise) — B (Rém, reprise) — D.C. e ⊕ — C (Sib, reprise) — D.C. e Fim",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "F",
+      "bars": "1–15",
+      "repeat": true,
+      "sequence": [
+        [
+          "F",
+          "F#dim"
+        ],
+        [
+          "Gm",
+          "C7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Bb",
+          "G#dim"
+        ],
+        [
+          "F/A"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "Fm"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "Bbm7",
+          "Eb7"
+        ],
+        [
+          "Ab"
+        ],
+        [
+          "Bbm",
+          "Bdim"
+        ],
+        [
+          "F/C",
+          "Dm"
+        ],
+        [
+          "Gm7",
+          "C7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "F"
+          ]
+        ],
+        "2": [
+          [
+            "F"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm"
+        ],
+        [
+          "A7/E"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "E7/G#"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "Cdim"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Gm/Bb",
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm",
+            "C7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Bb",
+      "bars": "36–51",
+      "repeat": true,
+      "transition_in": [
+        [
+          "F"
+        ]
+      ],
+      "sequence": [
+        [
+          "Bb"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "Fm6/Ab",
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "Eb",
+          "C#dim"
+        ],
+        [
+          "Bb/D",
+          "G7"
+        ],
+        [
+          "Cm7",
+          "F7"
+        ],
+        [
+          "Bb"
+        ]
+      ]
+    }
+  ],
+  "notes": [
+    "Pixinguinha / Benedito Lacerda. « F#° », « G#° », « B° », « C° », « C#° » = accords diminués.",
+    "⊕ sur la m. 15 : après D.C., F (m. 35) puis la partie C en Sib ; fin sur la 1re fin de A (FIM)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/vou-vivendo-pixinguinha/c/page_1.webp"
+  ]
+}

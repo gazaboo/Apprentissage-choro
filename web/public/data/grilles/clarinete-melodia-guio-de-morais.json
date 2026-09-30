@@ -1,0 +1,180 @@
+{
+  "song_id": "clarinete-melodia-guio-de-morais",
+  "title": "Clarinete melodia",
+  "composer": "Guio de Morais",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Solm, reprise) — B (Sol → Solm, 32 mesures) — D.S. al Fine",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Gm",
+      "bars": "1–12 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "D7/F#"
+        ],
+        [],
+        [
+          "E#dim7"
+        ],
+        [],
+        [
+          "C/E"
+        ],
+        [],
+        [
+          "Cm/Eb"
+        ],
+        [
+          "Am7b5",
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        []
+      ],
+      "endings": {
+        "1": [
+          [
+            "A7"
+          ],
+          [
+            "A/G"
+          ],
+          [
+            "D7"
+          ],
+          []
+        ],
+        "2": [
+          [
+            "A7"
+          ],
+          [
+            "D7"
+          ],
+          [
+            "G",
+            "E7"
+          ],
+          [
+            "Am7",
+            "D7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "G",
+      "bars": "21–52",
+      "repeat": false,
+      "sequence": [
+        [
+          "G"
+        ],
+        [
+          "D/F#"
+        ],
+        [
+          "Dm6/F"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "Am/G#"
+        ],
+        [
+          "Am/G"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "G/B"
+        ],
+        [
+          "A#dim7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "F#7",
+          "G7",
+          "Ab7"
+        ],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Cm"
+        ],
+        [],
+        [
+          "F7"
+        ],
+        [],
+        [
+          "Bb"
+        ],
+        [],
+        [
+          "Am7b5"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G",
+          "F7"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am7"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        [
+          "D7"
+        ]
+      ]
+    }
+  ],
+  "notes": [
+    "Transcription de la version Pitanga, avec contrechant ; chiffrages lus sur l'image (texte du PDF inexploitable).",
+    "Partie B : 16 mesures en Sol puis, après une double barre, 16 mesures sur Gm / Cm / F7 / Bb qui finissent en Sol (Fine).",
+    "B m. 12 : F#7 G7 Ab7 resserrés, montée chromatique vers A7 — découpage à confirmer."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/clarinete-melodia-guio-de-morais/c/page_1.webp",
+    "data/clarinete-melodia-guio-de-morais/c/page_2.webp"
+  ]
+}

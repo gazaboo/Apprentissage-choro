@@ -1,0 +1,235 @@
+{
+  "song_id": "cinema-mudo-waldyr-azevedo",
+  "title": "Cinema Mudo",
+  "composer": "Waldyr Azevedo",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro — A (Solm) — B (Sol) — D.S. al Coda (Solm)",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "Gm",
+      "bars": "1–4",
+      "repeat": false,
+      "sequence": [
+        [
+          "Gm",
+          "Gm#5"
+        ],
+        [
+          "Gm6",
+          "Gm#5"
+        ],
+        [
+          "Gm",
+          "Gm#5"
+        ],
+        [
+          "Gm6",
+          "Gm#5"
+        ]
+      ]
+    },
+    {
+      "name": "A",
+      "tonic": "Gm",
+      "bars": "5–34 (Segno)",
+      "repeat": false,
+      "sequence": [
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Cm"
+        ],
+        [],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [
+          "Gm",
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Cm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Dm7b5"
+        ],
+        [
+          "G7/B"
+        ],
+        [
+          "Cm"
+        ],
+        [],
+        [
+          "F7"
+        ],
+        [],
+        [
+          "Bb",
+          "Ab7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "Am7b5",
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Bb7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D7"
+        ]
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "G",
+      "bars": "35–68",
+      "repeat": false,
+      "sequence": [
+        [
+          "G"
+        ],
+        [
+          "Am7",
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        [],
+        [
+          "B7"
+        ],
+        [],
+        [
+          "Em"
+        ],
+        [],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C"
+        ],
+        [],
+        [
+          "Cm6"
+        ],
+        [
+          "D/C"
+        ],
+        [
+          "G/B"
+        ],
+        [
+          "G#dim"
+        ],
+        [
+          "D7/A"
+        ],
+        [],
+        [
+          "G"
+        ],
+        [],
+        [
+          "B7"
+        ],
+        [],
+        [
+          "Em"
+        ],
+        [],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C"
+        ],
+        [
+          "Cm6"
+        ],
+        [
+          "G"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        [
+          "D7"
+        ]
+      ]
+    }
+  ],
+  "coda": [
+    [
+      "D7"
+    ],
+    [
+      "Gm"
+    ],
+    [
+      "Cm6/G"
+    ],
+    [
+      "Gm"
+    ]
+  ],
+  "notes": [
+    "Intro : Gm / Gm6 avec Gm#5 écrit en petit entre les temps.",
+    "Pas de reprise écrite ; D.S. après B, saut au ⊕ (m. 33) vers la coda m. 69-72."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/cinema-mudo-waldyr-azevedo/c/page_1.webp",
+    "data/cinema-mudo-waldyr-azevedo/c/page_2.webp"
+  ]
+}

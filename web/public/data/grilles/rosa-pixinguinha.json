@@ -1,0 +1,325 @@
+{
+  "song_id": "rosa-pixinguinha",
+  "title": "Rosa",
+  "composer": "Pixinguinha",
+  "transposition": "c",
+  "meter": "3/4",
+  "form": "A (Fa) — B (Rém, reprise) — Ao ❋ e ⊕ : A — C (Sib, reprise) — Ao ❋ e Fim : A",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "F",
+      "bars": "1–32 (Segno, ⊕ et Fim m. 32)",
+      "repeat": false,
+      "sequence": [
+        [
+          "F"
+        ],
+        [],
+        [
+          "C7/E"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F/A"
+        ],
+        [],
+        [
+          "C7/G"
+        ],
+        [],
+        [
+          "A7/C#"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "D7/C"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "C7"
+        ],
+        [],
+        [
+          "F"
+        ],
+        [],
+        [
+          "C7/G"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "F7/Eb"
+        ],
+        [
+          "Bb/D"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "Bbm"
+        ],
+        [],
+        [
+          "F"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F"
+        ],
+        []
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "33–63",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm"
+        ],
+        [
+          "Dm/C"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "A7/E"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "D7/F#"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "Dm/C"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "C7"
+        ],
+        [],
+        [
+          "F"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [
+          "Em7b5"
+        ],
+        [
+          "Dm/F"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Gm/Bb"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "Dm"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Bb",
+      "bars": "67–97",
+      "repeat": true,
+      "transition_in": [
+        [
+          "F7"
+        ]
+      ],
+      "sequence": [
+        [
+          "Bb"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "F7",
+          "Gb"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "F7",
+          "Gb"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "A7/E"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "F7"
+        ],
+        [],
+        [
+          "G7"
+        ],
+        [
+          "G7/B"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "Cm/Bb"
+        ],
+        [
+          "F7/A"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb/D"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "Gb"
+        ],
+        [
+          "Gb/Db"
+        ],
+        [
+          "Bb/D"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Bb"
+          ]
+        ],
+        "2": [
+          [
+            "Bb"
+          ]
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "Valse (3/4).",
+    "⊕ (m. 66, F7) : enchaîne sur la partie C en Sib ; le morceau finit sur la m. 32 (FIM).",
+    "Les fins 1/2 de B et de C répètent la mesure précédente (signe %)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/rosa-pixinguinha/c/page_1.webp",
+    "data/rosa-pixinguinha/c/page_2.webp"
+  ]
+}

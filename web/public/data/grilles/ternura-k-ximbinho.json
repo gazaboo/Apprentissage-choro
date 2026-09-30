@@ -1,0 +1,261 @@
+{
+  "song_id": "ternura-k-ximbinho",
+  "title": "Ternura",
+  "composer": "K-Ximbinho",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Fa, reprise) — D.S. al Coda — C (Sib, reprise) — D.S. al Coda (Rém)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Em7b5",
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Cm6/G",
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Bbm6",
+          "C7"
+        ],
+        [
+          "F",
+          "E7/G#"
+        ],
+        [
+          "A",
+          "E7"
+        ],
+        [
+          "A"
+        ],
+        [
+          "Gm6",
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "E7/B",
+          "A7"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm",
+          "G#dim"
+        ],
+        [
+          "Dm/A",
+          "Gm/Bb"
+        ],
+        [
+          "E7",
+          "A7/C#"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ]
+        ],
+        "2": [
+          [
+            "Dm",
+            "C7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        [
+          "F",
+          "D7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C7",
+          "C/Bb"
+        ],
+        [
+          "F/A",
+          "C7"
+        ],
+        [
+          "F",
+          "Db7/Ab"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Gm",
+          "Eb7"
+        ],
+        [
+          "C7/E"
+        ],
+        [
+          "F",
+          "D7"
+        ],
+        [
+          "Gm",
+          "Bb7"
+        ],
+        [
+          "Em7",
+          "A7"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Bbm",
+          "C7"
+        ],
+        [
+          "F",
+          "Dm"
+        ],
+        [
+          "Gm",
+          "C7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "F",
+            "C7"
+          ]
+        ],
+        "2": [
+          [
+            "F"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "Bb",
+      "bars": "36–50",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Dm"
+        ]
+      ],
+      "sequence": [
+        [
+          "Bb"
+        ],
+        [
+          "Cm",
+          "D7"
+        ],
+        [
+          "Gm",
+          "Gm/F"
+        ],
+        [
+          "Cm6/Eb",
+          "D7"
+        ],
+        [
+          "Eb",
+          "Edim"
+        ],
+        [
+          "Bb/F"
+        ],
+        [
+          "Em7",
+          "A7"
+        ],
+        [
+          "Dm",
+          "F7"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "Fm6/Ab",
+          "G7"
+        ],
+        [
+          "C7/E"
+        ],
+        [
+          "F/Eb",
+          "F7"
+        ],
+        [
+          "Bb",
+          "Ab7",
+          "G7"
+        ],
+        [
+          "C7",
+          "Gb7",
+          "F7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Bb",
+            "F7"
+          ]
+        ],
+        "2": [
+          [
+            "Bb"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Dm"
+    ]
+  ],
+  "notes": [
+    "La partition porte « Jacob do Bandolim » en en-tête.",
+    "⊕ sur la m. 15 : après D.S., Dm (m. 35) puis la partie C en Sib ; après la 2e D.S., fin sur Dm.",
+    "C mm. 49-50 : Bb Ab7 G7 puis C7 Gb7 F7 (accords de passage en coups secs)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/ternura-k-ximbinho/c/page_1.webp",
+    "data/ternura-k-ximbinho/c/page_2.webp"
+  ]
+}

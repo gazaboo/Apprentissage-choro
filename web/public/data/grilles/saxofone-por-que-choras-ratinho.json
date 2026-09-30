@@ -1,0 +1,262 @@
+{
+  "song_id": "saxofone-por-que-choras-ratinho",
+  "title": "Saxofone por que choras",
+  "composer": "Ratinho",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém, reprise) — B (Fa→Rém, reprise) — Ao ❋ e ⊕1 — C (Ré, reprise) — Ao ❋ e ⊕2 (Rém)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–30 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "Dm",
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Dm",
+          "Bm7b5"
+        ],
+        [
+          "Am"
+        ],
+        [],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "E7"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "Dm",
+          "Dm/C"
+        ],
+        [
+          "E7/B",
+          "Bb7"
+        ],
+        [
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ],
+          []
+        ],
+        "2": [
+          [
+            "Dm"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "35–48",
+      "repeat": true,
+      "sequence": [
+        [
+          "C7"
+        ],
+        [],
+        [
+          "F"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "Em7b5"
+        ],
+        [
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Dm"
+          ],
+          []
+        ],
+        "2": [
+          [
+            "Dm"
+          ],
+          []
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "D",
+      "bars": "55–85",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Dm"
+        ],
+        []
+      ],
+      "sequence": [
+        [
+          "D"
+        ],
+        [],
+        [],
+        [],
+        [
+          "D"
+        ],
+        [],
+        [
+          "Em"
+        ],
+        [],
+        [
+          "Em"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [],
+        [],
+        [
+          "D"
+        ],
+        [],
+        [
+          "D"
+        ],
+        [],
+        [],
+        [
+          "D7",
+          "C#7",
+          "C7"
+        ],
+        [
+          "B7"
+        ],
+        [],
+        [
+          "Em"
+        ],
+        [],
+        [
+          "Gm6"
+        ],
+        [],
+        [
+          "D"
+        ],
+        [],
+        [
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "D"
+          ]
+        ],
+        "2": [
+          [
+            "D"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Dm"
+    ],
+    []
+  ],
+  "notes": [
+    "⊕1 (m. 53-54, Dm) amène la partie C en Ré majeur ; ⊕2 : coda d'une phrase sur Dm.",
+    "C m. 74 : D7 C#7 C7 descente chromatique vers B7."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/saxofone-por-que-choras-ratinho/c/page_1.webp",
+    "data/saxofone-por-que-choras-ratinho/c/page_2.webp"
+  ]
+}

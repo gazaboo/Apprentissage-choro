@@ -33,6 +33,7 @@ function mount(order: Song[], overrides: Partial<FilageContext> = {}) {
     markReached: vi.fn(),
     navigateHome: vi.fn(),
     onFinish: vi.fn(),
+    onGrilleZoom: vi.fn(),
     ...overrides,
   };
   const teardown = renderFilage(root, context);

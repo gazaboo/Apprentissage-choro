@@ -1,0 +1,149 @@
+{
+  "song_id": "rio-antigo-altamiro-carrilho",
+  "title": "Rio Antigo",
+  "composer": "Altamiro Carrilho",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Rém) — B (Rém) — A — C (Ré) — Ao ❋ e Fim : A — B (Fim)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Dm",
+      "bars": "1–8 (Segno) ; 25–32",
+      "repeat": false,
+      "sequence": [
+        [
+          "Gm"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ]
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "Dm",
+      "bars": "9–24",
+      "repeat": false,
+      "sequence": [
+        [
+          "Dm"
+        ],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [],
+        [
+          "Dm"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "Gm",
+          "A7"
+        ],
+        [
+          "Dm"
+        ]
+      ]
+    },
+    {
+      "name": "C",
+      "tonic": "D",
+      "bars": "33–48",
+      "repeat": false,
+      "sequence": [
+        [
+          "D"
+        ],
+        [],
+        [],
+        [
+          "Em"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "Bm"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D"
+        ],
+        [],
+        [
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        [
+          "G",
+          "G#dim"
+        ],
+        [
+          "D/A"
+        ],
+        [
+          "Em",
+          "A7"
+        ],
+        [
+          "D"
+        ]
+      ]
+    }
+  ],
+  "notes": [
+    "Pas de reprise écrite : A (1-8), B (9-24), A rejoué en entier (25-32, finit sur Dm A7), puis C en Ré majeur.",
+    "« Ao ❋ e Fim » : retour au début, fin sur la case FIM (m. 13, dans B)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/rio-antigo-altamiro-carrilho/c/page_1.webp"
+  ]
+}
