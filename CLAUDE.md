@@ -36,7 +36,10 @@
   avant/après : `node scripts/capture-avant-apres.mjs avant.png apres.png
   docs/fixes/nom.png` (bordure orange = avant, verte = après ; capture
   simple sinon). Joindre le résultat dans `docs/fixes/` et le référencer via
-  l'URL `raw.githubusercontent.com` de la branche. Si la PR ne touche à rien
+  l'URL `raw.githubusercontent.com` **épinglée au SHA du commit** qui
+  l'ajoute (`…/Apprentissage-choro/<sha>/docs/fixes/nom.png`), jamais au
+  nom de la branche : les branches sont supprimées automatiquement à la
+  fusion, ce qui casserait l'image. Si la PR ne touche à rien
   de visible (refacto pur, script, doc, données sans effet visuel), l'omettre
   est acceptable — mais le dire explicitement dans la description de la PR
   plutôt que de l'oublier silencieusement.
