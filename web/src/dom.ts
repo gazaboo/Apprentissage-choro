@@ -172,7 +172,10 @@ export function createPlayButton(options: {
   onToggle: () => void;
   disabled?: boolean;
 }): { root: HTMLButtonElement; set(playing: boolean): void } {
-  const icon = el('span', { class: 'text-xl leading-none' }, '▶');
+  // Icône dessinée, pas un glyphe : « ▶ » tombait sur la police emoji (le
+  // carré bleu de Noto Color Emoji / Segoe UI Emoji) dès que la police du
+  // texte ne l'avait pas (#197).
+  const icon = playPauseIcon();
   const root = el(
     'button',
     {
@@ -183,7 +186,7 @@ export function createPlayButton(options: {
       class:
         'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full ' +
         // Texte quasi noir dans les deux thèmes (#177), voir `ui.primary`.
-        'bg-amber-400 pl-1 text-[#09090b] shadow-lg shadow-amber-400/20 ' +
+        'bg-amber-400 text-[#09090b] shadow-lg shadow-amber-400/20 ' +
         'transition hover:bg-amber-300 focus:outline-none focus-visible:ring-2 ' +
         'focus-visible:ring-amber-400 focus-visible:ring-offset-2 ' +
         'focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed ' +
@@ -197,11 +200,29 @@ export function createPlayButton(options: {
   return {
     root,
     set(playing) {
-      icon.textContent = playing ? '❚❚' : '▶';
-      // Le triangle n'est pas centré optiquement ; la pause l'est.
-      root.classList.toggle('pl-1', !playing);
+      icon.dataset.icon = playing ? 'pause' : 'play';
+      icon.firstElementChild?.setAttribute('d', playing ? PAUSE_PATH : PLAY_PATH);
     },
   };
+}
+
+// Le triangle est décalé à droite de sa boîte : centré optiquement, pas
+// géométriquement — sinon il paraît collé à gauche du rond.
+const PLAY_PATH = 'M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z';
+const PAUSE_PATH = 'M6 5h4v14H6zM14 5h4v14h-4z';
+
+function playPauseIcon(): SVGSVGElement {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'h-6 w-6');
+  svg.setAttribute('fill', 'currentColor');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.dataset.icon = 'play';
+  const path = document.createElementNS(ns, 'path');
+  path.setAttribute('d', PLAY_PATH);
+  svg.append(path);
+  return svg;
 }
 
 /** Barre de défilement du dock : la piste, le geste, et rien d'autre. */
