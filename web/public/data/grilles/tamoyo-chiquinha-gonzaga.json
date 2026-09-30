@@ -1,0 +1,173 @@
+{
+  "song_id": "tamoyo-chiquinha-gonzaga",
+  "title": "Tamoyo",
+  "composer": "Chiquinha Gonzaga",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Mim) — B (Sol→Mim, reprise) — D.S. al Coda — C (Mi, reprise) — D.S. al Fine",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Em",
+      "bars": "2–17 (Segno, ⊕ et Fine m. 17)",
+      "repeat": false,
+      "sequence": [
+        [
+          "Em"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "B7/F#"
+        ],
+        [
+          "Em",
+          "E7"
+        ],
+        [
+          "F#m7b5"
+        ],
+        [
+          "Em/G"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "B7/F#"
+        ],
+        [
+          "Em",
+          "E7"
+        ],
+        [
+          "F#m7b5"
+        ],
+        [
+          "Em/G"
+        ],
+        [
+          "F#m7b5",
+          "B7"
+        ],
+        [
+          "Em"
+        ]
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "G",
+      "bars": "18–23",
+      "repeat": true,
+      "sequence": [
+        [
+          "D7/A"
+        ],
+        [
+          "G"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "G"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "Em",
+          "C#m7b5"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "C7",
+            "F#7"
+          ],
+          [
+            "B7"
+          ]
+        ],
+        "2": [
+          [
+            "Am6/C",
+            "B7"
+          ],
+          [
+            "Em"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "E",
+      "bars": "29–35",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Em"
+        ]
+      ],
+      "sequence": [
+        [
+          "E"
+        ],
+        [
+          "F#m"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "E"
+        ],
+        [],
+        [
+          "F#m"
+        ],
+        [
+          "E/B",
+          "B7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Cdim",
+            "E"
+          ]
+        ],
+        "2": [
+          [
+            "Cdim",
+            "E"
+          ]
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "Partition à deux voix (Ut) ; m. 1 : introduction de la 2e voix seule, sans chiffrage.",
+    "« C° » (fins de C) = Cdim.",
+    "Fin sur la m. 17 (Fine), après le D.S. qui suit la partie C."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/tamoyo-chiquinha-gonzaga/c/page_1.webp",
+    "data/tamoyo-chiquinha-gonzaga/c/page_2.webp"
+  ]
+}

@@ -1,0 +1,266 @@
+{
+  "song_id": "cadencia-juventino-maciel",
+  "title": "Cadencia",
+  "composer": "Juventino Maciel",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Sol, reprise) — B (Solm, reprise) — Ao ❋ e ⊕ (Sol)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "G",
+      "bars": "1–30 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "G",
+          "Bm/F#"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "C#m7"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "G"
+        ],
+        [],
+        [
+          "Bm7b5"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D",
+          "B7"
+        ],
+        [
+          "Em",
+          "A7"
+        ],
+        [
+          "D7",
+          "G7"
+        ],
+        [
+          "C7",
+          "F7"
+        ],
+        [
+          "Bb",
+          "Dm/A"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Dm7b5"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "Cm/Eb",
+          "D7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "G",
+            "Bm"
+          ],
+          [
+            "Am",
+            "D7"
+          ]
+        ],
+        "2": [
+          [
+            "G"
+          ],
+          [
+            "D7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Gm",
+      "bars": "35–64",
+      "repeat": true,
+      "sequence": [
+        [
+          "Gm"
+        ],
+        [
+          "Gm",
+          "Eb7"
+        ],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "Gm",
+          "Gm(maj7)"
+        ],
+        [
+          "Gm7",
+          "Gm6"
+        ],
+        [
+          "Cm"
+        ],
+        [],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "Gm"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "E7",
+          "A7"
+        ],
+        [
+          "Cm/Eb"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Gm",
+          "Eb7"
+        ],
+        [
+          "D7"
+        ],
+        [],
+        [
+          "Fm6/Ab"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [],
+        [
+          "F7"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [],
+        [
+          "A7"
+        ],
+        [
+          "D7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Gm"
+          ],
+          [
+            "D7"
+          ]
+        ],
+        "2": [
+          [
+            "G",
+            "Bm"
+          ],
+          [
+            "Am",
+            "D7"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "G"
+    ],
+    [
+      "F7"
+    ],
+    [
+      "Gmaj7"
+    ],
+    []
+  ],
+  "notes": [
+    "Partition scannée (mélodie + basse chiffrée) ; chiffrages lus sur l'image, « % » = mesure répétée.",
+    "A module en passant (mm. 16-24 : C7 F7, Bb, Gm, Dm7b5, G7, Cm) avant de revenir en Sol.",
+    "« Gm(7M) » (m. 39) = Gm(maj7) ; « G7M » (coda) = Gmaj7."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/cadencia-juventino-maciel/c/page_1.webp",
+    "data/cadencia-juventino-maciel/c/page_2.webp"
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "song_id": "ja-te-digo-pixinguinha",
+  "title": "Já Te Digo",
+  "composer": "Pixinguinha",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Do) — B (Do, 2 × 4 mesures reprises) — C (Do, 2 × 4 mesures reprises) — D.S. al Coda",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "C",
+      "bars": "1–18 (Segno)",
+      "repeat": false,
+      "sequence": [
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "F",
+          "F#dim"
+        ],
+        [
+          "C/G"
+        ],
+        [],
+        [],
+        [],
+        [],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "E7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "F",
+          "F#dim"
+        ],
+        [
+          "C/G"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ]
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "C",
+      "bars": "19–26",
+      "repeat": false,
+      "sequence": [
+        [
+          "C"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "C"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "C"
+        ]
+      ]
+    },
+    {
+      "name": "C",
+      "tonic": "C",
+      "bars": "27–35",
+      "repeat": false,
+      "sequence": [
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C"
+        ],
+        [
+          "C"
+        ],
+        [
+          "G7"
+        ],
+        [],
+        [
+          "C"
+        ]
+      ]
+    }
+  ],
+  "coda": [
+    [
+      "C"
+    ]
+  ],
+  "notes": [
+    "Samba. mm. 6-10 : break chromatique sur C/G, sans chiffrage.",
+    "B et C sont des phrases de 4 mesures écrites avec reprise (19-22, 23-26, 27-30, 31-35 avec 1re/2e fin) ; notées ici déroulées.",
+    "⊕ sur la m. 17 : après D.S., A puis coda d'une mesure (C)."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/ja-te-digo-pixinguinha/c/page_1.webp",
+    "data/ja-te-digo-pixinguinha/c/page_2.webp"
+  ]
+}

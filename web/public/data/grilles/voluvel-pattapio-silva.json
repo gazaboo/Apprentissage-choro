@@ -1,0 +1,231 @@
+{
+  "song_id": "voluvel-pattapio-silva",
+  "title": "Volúvel",
+  "composer": "Pattápio Silva",
+  "transposition": "c",
+  "meter": "3/4",
+  "form": "A (Mim, reprise) — B (Mim, reprise) — D.C. e ⊕ — C (Sol, reprise) — D.C. e Fim",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Em",
+      "bars": "1–32",
+      "repeat": true,
+      "sequence": [
+        [
+          "Em6/B"
+        ],
+        [
+          "Adim"
+        ],
+        [
+          "Em/G"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "Em/D"
+        ],
+        [
+          "Am6/C"
+        ],
+        [
+          "C#m7b5"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "Am6/E"
+        ],
+        [
+          "B7/D#"
+        ],
+        [
+          "F#dim"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "B7b9"
+        ],
+        [
+          "Em6"
+        ],
+        [
+          "B7/E"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "Em/G"
+        ],
+        [
+          "Dm6/F"
+        ],
+        [
+          "E7/G#"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "Am/G"
+        ],
+        [
+          "F#m7b5"
+        ],
+        [
+          "F#7b5"
+        ],
+        [
+          "Em/G"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "B7b9"
+        ],
+        [
+          "Em"
+        ],
+        []
+      ]
+    },
+    {
+      "name": "B",
+      "tonic": "Em",
+      "bars": "33–48",
+      "repeat": true,
+      "sequence": [
+        [
+          "F#m7b5"
+        ],
+        [
+          "Am6/C"
+        ],
+        [
+          "Em/B"
+        ],
+        [
+          "Em/D"
+        ],
+        [
+          "F/C"
+        ],
+        [
+          "F/A"
+        ],
+        [
+          "Em/G"
+        ],
+        [
+          "Em/D"
+        ],
+        [
+          "Am6/C"
+        ],
+        [
+          "B/A"
+        ],
+        [
+          "Em/G"
+        ],
+        [
+          "Em/D"
+        ],
+        [
+          "Am6/C"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "Em"
+        ],
+        []
+      ]
+    },
+    {
+      "name": "C",
+      "tonic": "G",
+      "bars": "49–64 (⊕)",
+      "repeat": true,
+      "sequence": [
+        [
+          "G6"
+        ],
+        [
+          "Am7",
+          "Bbdim"
+        ],
+        [
+          "G/B"
+        ],
+        [
+          "D/C"
+        ],
+        [
+          "G/B"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "A7(9)"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "D#dim"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "Em/D"
+        ],
+        [
+          "A7/C#"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G"
+        ],
+        []
+      ]
+    }
+  ],
+  "notes": [
+    "Valse (3/4), adaptation Marcílio Lopes (Casa do Choro) ; chiffrages manuscrits lus sur l'image (texte du PDF inexploitable).",
+    "« A° », « F#° », « Bb° », « D#° » = accords diminués.",
+    "« FIM » est placé à la m. 38 (dans B) ; D.C. e ⊕ après B, D.C. e FIM après C."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/voluvel-pattapio-silva/c/page_1.webp",
+    "data/voluvel-pattapio-silva/c/page_2.webp"
+  ]
+}

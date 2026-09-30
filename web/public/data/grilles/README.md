@@ -1,7 +1,12 @@
 # Grilles d'accords — transposition Ut / C
 
-Une grille par morceau (`<song-id>.json`), transcrite **à la vue** depuis les
-partitions `data/<song-id>/c/page_*.webp` par Claude (Sonnet 5).
+Une grille par morceau (`<song-id>.json`), relevée par Claude sur les
+partitions `data/<song-id>/c/page_*.webp`. Les 19 premières (Sonnet 5) sont
+transcrites **à la vue** ; les 33 suivantes (Opus 5.5) reprennent les
+chiffrages du **texte du PDF** quand la partition est vectorielle, rangés
+mesure par mesure, la structure (parties, reprises, fins, coda) étant lue sur
+l'image. Six partitions sans texte exploitable (scans, chiffrages manuscrits)
+sont lues à la vue ; elles portent `confidence: "medium"`.
 
 > ⚠️ **À vérifier avant de s'y fier.** La suite et la nature des accords sont
 > fiables ; l'**alignement mesure par mesure** et le **découpage des barres à

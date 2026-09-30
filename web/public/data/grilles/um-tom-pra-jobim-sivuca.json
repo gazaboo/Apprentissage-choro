@@ -1,0 +1,240 @@
+{
+  "song_id": "um-tom-pra-jobim-sivuca",
+  "title": "Um tom pra jobim",
+  "composer": "Sivuca",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro — A (Sol, reprise) — B (Dom→Sol) — A — Coda (Sol)",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "G",
+      "bars": "1–16",
+      "repeat": false,
+      "sequence": [
+        [
+          "D7sus4",
+          "D7"
+        ],
+        [
+          "D7sus4",
+          "D7"
+        ],
+        [
+          "Am",
+          "D7"
+        ],
+        [],
+        [
+          "D7sus4",
+          "D7"
+        ],
+        [
+          "D7sus4",
+          "D7"
+        ],
+        [
+          "Am",
+          "D7"
+        ],
+        [],
+        [
+          "D7sus4",
+          "D7"
+        ],
+        [
+          "D7sus4",
+          "D7"
+        ],
+        [
+          "Am",
+          "D7"
+        ],
+        [],
+        [
+          "D7sus4"
+        ],
+        [],
+        [
+          "D7"
+        ],
+        []
+      ]
+    },
+    {
+      "name": "A",
+      "tonic": "G",
+      "bars": "17–31 ; 50–64",
+      "repeat": true,
+      "sequence": [
+        [
+          "G6"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "F#m7b5"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "Em7",
+          "Ebm7"
+        ],
+        [
+          "Dm7"
+        ],
+        [
+          "G7",
+          "Db7(9)"
+        ],
+        [
+          "C6/9"
+        ],
+        [
+          "D/C"
+        ],
+        [
+          "Bm7"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "A7(#11)"
+        ],
+        [],
+        [
+          "Am7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "D7"
+          ]
+        ],
+        "2": [
+          [
+            "D7",
+            "G7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "C",
+      "bars": "34–49",
+      "repeat": false,
+      "sequence": [
+        [
+          "Cm7"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bbmaj7"
+        ],
+        [
+          "Bb6"
+        ],
+        [
+          "Dm7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cmaj7"
+        ],
+        [
+          "C6"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "Dmaj7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cmaj7"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb6"
+        ],
+        [
+          "Am7",
+          "D7"
+        ]
+      ]
+    }
+  ],
+  "coda": [
+    [
+      "D7sus4",
+      "D7"
+    ],
+    [
+      "D7sus4",
+      "D7"
+    ],
+    [
+      "Am",
+      "D7"
+    ],
+    [],
+    [
+      "D7sus4",
+      "D7"
+    ],
+    [
+      "D7sus4",
+      "D7"
+    ],
+    [
+      "Am",
+      "D7"
+    ],
+    [],
+    [
+      "D7sus4"
+    ],
+    [],
+    [
+      "D7"
+    ],
+    [],
+    [
+      "G6"
+    ],
+    [
+      "Gmaj9"
+    ]
+  ],
+  "notes": [
+    "Casa de Choro (Olivier Lob, 2024). A en baião.",
+    "Le dernier A (mm. 50-64) finit autrement : A7 Eb7 | D7 | G6, puis ⊕.",
+    "Coda (mm. 65-78) : reprend l'intro D7sus4 / D7, finit sur G6 puis Gmaj9 (point d'orgue)."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/um-tom-pra-jobim-sivuca/c/page_1.webp",
+    "data/um-tom-pra-jobim-sivuca/c/page_2.webp"
+  ]
+}

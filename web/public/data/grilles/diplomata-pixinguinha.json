@@ -1,0 +1,165 @@
+{
+  "song_id": "diplomata-pixinguinha",
+  "title": "Diplomata",
+  "composer": "Pixinguinha",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Solm, reprise) — B (Fa, reprise) — D.S. al Coda (Solm)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Gm",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Gm",
+          "Gm/Bb"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "G7/B"
+        ],
+        [
+          "C7"
+        ],
+        [
+          "F/A"
+        ],
+        [
+          "Bb/D",
+          "D7"
+        ],
+        [
+          "Gm",
+          "Gm/Bb"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "C7",
+          "F7"
+        ],
+        [
+          "Bb7",
+          "Eb7"
+        ],
+        [
+          "Ab7",
+          "D7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Gm"
+          ]
+        ],
+        "2": [
+          [
+            "Gm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "F",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        [
+          "F"
+        ],
+        [
+          "Bb/D"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Cm/Eb",
+          "C7/E"
+        ],
+        [
+          "Gm/F",
+          "G7"
+        ],
+        [
+          "C7/E"
+        ],
+        [
+          "F7/Eb"
+        ],
+        [
+          "F/A"
+        ],
+        [
+          "Bb/D"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Cm/Eb",
+          "C7/E"
+        ],
+        [
+          "Gm/F",
+          "G7"
+        ],
+        [
+          "C7",
+          "F"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Bb"
+          ]
+        ],
+        "2": [
+          [
+            "Bb"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Gm"
+    ]
+  ],
+  "notes": [
+    "Partition scannée (transcription Denis7cordas, mélodie + 7 cordes), sans numéros de mesure : plages approximatives ; chiffrages lus sur l'image.",
+    "Le ⊕ de départ n'est pas marqué dans A ; la coda (Gm) suit le D.S. après B."
+  ],
+  "confidence": "medium",
+  "source": [
+    "data/diplomata-pixinguinha/c/page_1.webp",
+    "data/diplomata-pixinguinha/c/page_2.webp"
+  ]
+}

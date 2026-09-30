@@ -38,7 +38,9 @@ export default defineConfig({
         // Pas d'offline-first pour l'instant (#112) : on précache seulement le
         // shell applicatif (JS/CSS/HTML), pas web/public/data/ (~200 Mo de
         // partitions, audio, images) qui reste chargé à la demande.
-        globPatterns: ['index.html', 'assets/**/*.{js,css}'],
+        // La fonte de la grille d'accords (~20 Ko) aussi : sans elle, hors
+        // ligne, les chiffrages retomberaient sur une fonte plus large.
+        globPatterns: ['index.html', 'assets/**/*.{js,css,woff2}'],
         globIgnores: ['data/**'],
       },
     }),
