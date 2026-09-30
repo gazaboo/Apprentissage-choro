@@ -1011,15 +1011,6 @@ export function renderTrainer(
     finishButton,
   );
 
-  const noAudio = !anySource
-    ? el(
-        'p',
-        { class: `${ui.card} text-sm text-zinc-400` },
-        'Aucune vidéo disponible pour ce morceau — l’entraînement sur partition ' +
-          'reste utilisable.',
-      )
-    : null;
-
   // Grands boutons tactiles : en « Sans partition », l'écran Consigne est le
   // seul contenu affiché (la partition et la grille restent masquées, cf.
   // `drawScore`) — autant lui donner tout l'espace laissé libre plutôt que de
@@ -1100,7 +1091,6 @@ export function renderTrainer(
   const scoreScroll = el(
     'div',
     { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto' },
-    noAudio,
     consigne,
     scoreHome,
   );

@@ -91,9 +91,10 @@ describe('renderTrainer — smoke', () => {
     expect(root.querySelector('h1')?.textContent).toBe('Choro de test');
   });
 
-  it("affiche l'avertissement d'absence d'audio quand le morceau n'a ni référence ni playback", () => {
+  it("annonce l'absence d'audio dans le dock, pas dans la zone de partition (#175)", () => {
     const { root } = mount();
-    expect(root.textContent).toContain('Aucune vidéo disponible pour ce morceau');
+    expect(root.textContent).toContain('Pas d’enregistrement pour ce morceau');
+    expect(root.querySelector('.overflow-y-auto')?.textContent).not.toContain('enregistrement');
   });
 
   it('teardown ne lève pas et ne laisse aucun abonné du ticker du lecteur', async () => {

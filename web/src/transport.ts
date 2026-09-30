@@ -300,11 +300,21 @@ export function createTransport(options: TransportOptions): Transport {
 
   const settings: HTMLElement[] = [];
   if (sourceCycle.length > 1) settings.push(sourceButton);
-  settings.push(rateGroup, rateStepper.compact);
-  if (anySource) settings.push(loopToggle);
+  // Vitesse et boucle n'agissent que sur un enregistrement : sans, le dock
+  // se réduit au message qui l'annonce (#175).
+  if (anySource) settings.push(rateGroup, rateStepper.compact, loopToggle);
+
+  // Sans enregistrement, une piste vide et « 0:00 / 0:00 » ne disent rien :
+  // le dock l'annonce à la place de la piste, là où l'on cherche l'audio,
+  // plutôt qu'une carte au-dessus de la partition (#175).
+  const noAudioNote = el(
+    'p',
+    { class: 'truncate py-1 text-xs text-zinc-500 max-md:text-center' },
+    'Pas d’enregistrement pour ce morceau',
+  );
 
   const primary = createPlayerDock({
-    seek: seekRow,
+    seek: anySource ? seekRow : noAudioNote,
     transport: [backButton, playButton, forwardButton],
     settings,
   });
