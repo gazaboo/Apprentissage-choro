@@ -89,10 +89,10 @@ describe('createTransport — lecture', () => {
     const { primary, player } = mount();
     player.__setPlaying(true);
     player.__tick();
-    expect(playButton(primary).textContent).toBe('❚❚');
+    expect(playButton(primary).querySelector('svg')?.dataset.icon).toBe('pause');
     player.__setPlaying(false);
     player.__tick();
-    expect(playButton(primary).textContent).toBe('▶');
+    expect(playButton(primary).querySelector('svg')?.dataset.icon).toBe('play');
   });
 });
 
