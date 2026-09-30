@@ -68,6 +68,19 @@ export interface AudioSource {
   /** Tempo détecté automatiquement (#111), indicatif — absent tant que
    *  `scripts/detect_bpm.py` n'a pas tourné sur cette source. */
   bpm?: number;
+  /** Passes des parties (A, B, C…) repérées dans la bande par
+   *  `scripts/detect_sections.py` — absent sans grille pour le morceau. */
+  sections?: AudioSection[];
+  /** `low` : alignement douteux, à vérifier à l'oreille. */
+  sections_confidence?: 'high' | 'low';
+}
+
+export interface AudioSection {
+  /** Nom de la partie tel qu'écrit dans la grille : « A », « Intro », « Coda »… */
+  part: string;
+  /** Bornes en secondes dans le fichier encodé. */
+  start: number;
+  end: number;
 }
 
 export interface Song {

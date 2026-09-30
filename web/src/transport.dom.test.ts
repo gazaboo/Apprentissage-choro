@@ -253,3 +253,60 @@ describe('createTransport — tempo', () => {
     expect(primary.textContent).toContain('0,95×');
   });
 });
+
+describe('createTransport — parties repérées dans l\'audio', () => {
+  const withParts = (confidence: 'high' | 'low' = 'high'): Partial<Song> => ({
+    audio: {
+      reference: {
+        ...source('reference.opus'),
+        sections: [
+          { part: 'A', start: 0.5, end: 19.4 },
+          { part: 'A', start: 19.4, end: 37.6 },
+          { part: 'B', start: 37.6, end: 56.7 },
+        ],
+        sections_confidence: confidence,
+      },
+      playback: source('playback.opus'),
+    },
+  });
+  const partButton = (root: HTMLElement, index: number) =>
+    [...root.querySelectorAll('button')].filter((b) =>
+      b.getAttribute('aria-label')?.startsWith('Aller à la partie'),
+    )[index];
+
+  it('saute au début de la passe touchée et lance la lecture', () => {
+    const { primary, player } = mount(withParts());
+    const seekTo = vi.spyOn(player, 'seekTo');
+
+    partButton(primary, 2)!.click();
+
+    expect(seekTo).toHaveBeenCalledWith(37.6);
+    expect(player.isPlaying()).toBe(true);
+    expect(partButton(primary, 2)!.textContent).toBe('B0:37');
+  });
+
+  it('ne relance pas une lecture déjà en cours', () => {
+    const { primary, player } = mount(withParts());
+    player.__setPlaying(true);
+    partButton(primary, 1)!.click();
+    expect(player.isPlaying()).toBe(true);
+  });
+
+  it('souligne la passe en cours d\'écoute', () => {
+    const { primary, player } = mount(withParts());
+    player.__tick(25);
+    expect(partButton(primary, 1)!.classList.contains('ring-amber-400')).toBe(true);
+    expect(partButton(primary, 0)!.classList.contains('ring-amber-400')).toBe(false);
+  });
+
+  it('suit la bande choisie et signale un découpage douteux', () => {
+    const { primary } = mount(withParts('low'));
+    expect(partButton(primary, 0)).toBeDefined();
+    expect(primary.textContent).toContain('découpage douteux');
+
+    chipByLabel(primary, 'Enregistrement original').click();
+
+    expect(partButton(primary, 0)).toBeUndefined();
+    expect(primary.textContent).not.toContain('découpage douteux');
+  });
+});
