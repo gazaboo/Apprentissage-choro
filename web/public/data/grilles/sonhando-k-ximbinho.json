@@ -1,0 +1,238 @@
+{
+  "song_id": "sonhando-k-ximbinho",
+  "title": "Sonhando",
+  "composer": "K Ximbinho",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "A (Solm, reprise) — B (Solm, reprise) — D.S. al ⊕1 — C (Sol, reprise) — D.S. al ⊕ (Solm)",
+  "parts": [
+    {
+      "name": "A",
+      "tonic": "Gm",
+      "bars": "1–15 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "Gm"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm",
+          "D7"
+        ],
+        [
+          "Gm",
+          "Em7b5"
+        ],
+        [
+          "Dm"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "D7"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm",
+          "Am7b5"
+        ],
+        [
+          "Gm/Bb",
+          "Gm"
+        ],
+        [
+          "A7/E",
+          "D7/F#"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Gm",
+            "D7"
+          ]
+        ],
+        "2": [
+          [
+            "Gm"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Gm",
+      "bars": "18–32",
+      "repeat": true,
+      "sequence": [
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "Am7b5",
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "A7/E"
+        ],
+        [
+          "D7/F#"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "Cm"
+        ],
+        [
+          "F7"
+        ],
+        [
+          "Bb"
+        ],
+        [
+          "Am7b5",
+          "D7"
+        ],
+        [
+          "Gm"
+        ],
+        [
+          "A7/E",
+          "D7/F#"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Gm"
+          ]
+        ],
+        "2": [
+          [
+            "Gm",
+            "D7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "C",
+      "tonic": "G",
+      "bars": "36–50",
+      "repeat": true,
+      "transition_in": [
+        [
+          "Gm",
+          "D7"
+        ]
+      ],
+      "sequence": [
+        [
+          "G6"
+        ],
+        [],
+        [
+          "G/B",
+          "Bbdim7"
+        ],
+        [
+          "Am"
+        ],
+        [
+          "F#m7b5",
+          "B7(b9)"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "A7"
+        ],
+        [
+          "D7",
+          "D7(#5)"
+        ],
+        [
+          "G"
+        ],
+        [],
+        [
+          "Dm7",
+          "G7"
+        ],
+        [
+          "C6"
+        ],
+        [
+          "Cm6"
+        ],
+        [
+          "G6",
+          "E7"
+        ],
+        [
+          "A7",
+          "D7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "G6",
+            "D7"
+          ]
+        ],
+        "2": [
+          [
+            "G"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "Gm"
+    ]
+  ],
+  "notes": [
+    "Casa de Choro (Olivier Lob, 2022).",
+    "⊕1 (m. 35, Gm D7) mène à la partie C en Sol majeur ; ⊕ final (m. 53) : Gm."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/sonhando-k-ximbinho/c/page_1.webp",
+    "data/sonhando-k-ximbinho/c/page_2.webp"
+  ]
+}

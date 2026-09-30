@@ -1,13 +1,96 @@
 {
-  "description": "Grilles d'accords (transposition Ut/C) transcrites à la vue depuis data/<song>/c/page_*.webp. À vérifier — voir README.md.",
-  "generated": "2026-09-08",
-  "count": 19,
+  "description": "Grilles d'accords (transposition Ut/C) relevées sur data/<song>/c/page_*.webp — chiffrages repris du texte du PDF quand il est vectoriel, lus à la vue sinon. À vérifier — voir README.md.",
+  "generated": "2026-09-24",
+  "count": 52,
   "songs": [
+    {
+      "song_id": "acerta-o-passo-pixinguinha",
+      "title": "Acerta o Passo",
+      "composer": "Pixinguinha",
+      "file": "acerta-o-passo-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "apanhei-te-cavaquinho-ernesto-nazareth",
+      "title": "Apanhei-te cavaquinho",
+      "composer": "Ernesto Nazareth",
+      "file": "apanhei-te-cavaquinho-ernesto-nazareth.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "araponga-luiz-gonzaga",
+      "title": "Araponga",
+      "composer": "Luiz Gonzaga",
+      "file": "araponga-luiz-gonzaga.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "assim-mesmo-luiz-americano",
+      "title": "Assim mesmo",
+      "composer": "Luiz Americano",
+      "file": "assim-mesmo-luiz-americano.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
     {
       "song_id": "benzinho-jacob-do-bandolim",
       "title": "Benzinho",
       "composer": "Jacob do Bandolim",
       "file": "benzinho-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "bionne-chiquinha-gonzaga",
+      "title": "Bionne",
+      "composer": "Chiquinha Gonzaga",
+      "file": "bionne-chiquinha-gonzaga.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "bola-preta-jacob-do-bandolim",
+      "title": "Bola preta",
+      "composer": "Jacob do bandolim",
+      "file": "bola-preta-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "cadencia-juventino-maciel",
+      "title": "Cadencia",
+      "composer": "Juventino Maciel",
+      "file": "cadencia-juventino-maciel.json",
       "parts": [
         "A",
         "B"
@@ -39,6 +122,40 @@
       "confidence": "medium"
     },
     {
+      "song_id": "chorinho-na-gafieira-astor-silva",
+      "title": "Chorinho na Gafieira",
+      "composer": "Astor Silva",
+      "file": "chorinho-na-gafieira-astor-silva.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "cinema-mudo-waldyr-azevedo",
+      "title": "Cinema Mudo",
+      "composer": "Waldyr Azevedo",
+      "file": "cinema-mudo-waldyr-azevedo.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "clarinete-melodia-guio-de-morais",
+      "title": "Clarinete melodia",
+      "composer": "Guio de Morais",
+      "file": "clarinete-melodia-guio-de-morais.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "medium"
+    },
+    {
       "song_id": "cochichando-pixinguinha",
       "title": "Cochichando",
       "composer": "Pixinguinha (versão Jacob do Bandolim)",
@@ -51,6 +168,18 @@
       "confidence": "medium"
     },
     {
+      "song_id": "comecando-siqueira-lima",
+      "title": "Começando",
+      "composer": "Siqueira Lima",
+      "file": "comecando-siqueira-lima.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
       "song_id": "diabinho-maluco-jacob-do-bandolim",
       "title": "Diabinho maluco",
       "composer": "Jacob do Bandolim",
@@ -61,6 +190,17 @@
         "C"
       ],
       "confidence": "low"
+    },
+    {
+      "song_id": "diplomata-pixinguinha",
+      "title": "Diplomata",
+      "composer": "Pixinguinha",
+      "file": "diplomata-pixinguinha.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "medium"
     },
     {
       "song_id": "doce-de-coco-jacob-do-bandolim",
@@ -87,6 +227,76 @@
       "confidence": "low"
     },
     {
+      "song_id": "eu-quero-e-sossego-k-ximbinho",
+      "title": "Eu quero é sossego",
+      "composer": "K Ximbinho",
+      "file": "eu-quero-e-sossego-k-ximbinho.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "feira-de-mangaio-sivuca",
+      "title": "Feira de Mangaio",
+      "composer": "Sivuca",
+      "file": "feira-de-mangaio-sivuca.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "feitico-jacob-do-bandolim",
+      "title": "Feitiço",
+      "composer": "Jacob do Bandolim",
+      "file": "feitico-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "gostosinho-jacob-do-bandolim",
+      "title": "Gostosinho",
+      "composer": "Jacob do Bandolim",
+      "file": "gostosinho-jacob-do-bandolim.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "ja-te-digo-pixinguinha",
+      "title": "Já Te Digo",
+      "composer": "Pixinguinha",
+      "file": "ja-te-digo-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "lamentos-pixinguinha",
+      "title": "Lamentos",
+      "composer": "Pixinguinha",
+      "file": "lamentos-pixinguinha.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
       "song_id": "machucando-adalberto-de-souza",
       "title": "Machucando",
       "composer": "Adalberto de Souza",
@@ -108,6 +318,42 @@
         "B"
       ],
       "confidence": "medium"
+    },
+    {
+      "song_id": "murmurando-fon-fon",
+      "title": "Murmurando",
+      "composer": "Fon fon",
+      "file": "murmurando-fon-fon.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "na-gloria-raul-de-barros",
+      "title": "Na Glória",
+      "composer": "Raul de Barros",
+      "file": "na-gloria-raul-de-barros.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "nao-me-toques-zequinha-de-abreu",
+      "title": "Nao me toques",
+      "composer": "Zequinha de Abreu",
+      "file": "nao-me-toques-zequinha-de-abreu.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
     },
     {
       "song_id": "naquele-tempo-pixinguinha",
@@ -170,6 +416,18 @@
       "confidence": "low"
     },
     {
+      "song_id": "proezas-de-solon-pixinguinha",
+      "title": "Proezas de solon",
+      "composer": "Pixinguinha",
+      "file": "proezas-de-solon-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
       "song_id": "receita-de-samba-jacob-do-bandolim",
       "title": "Receita de samba",
       "composer": "Jacob do Bandolim",
@@ -180,6 +438,30 @@
         "B"
       ],
       "confidence": "low"
+    },
+    {
+      "song_id": "rio-antigo-altamiro-carrilho",
+      "title": "Rio Antigo",
+      "composer": "Altamiro Carrilho",
+      "file": "rio-antigo-altamiro-carrilho.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "rosa-pixinguinha",
+      "title": "Rosa",
+      "composer": "Pixinguinha",
+      "file": "rosa-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
     },
     {
       "song_id": "santa-morena-jacob-do-bandolim",
@@ -194,6 +476,30 @@
       "confidence": "low"
     },
     {
+      "song_id": "saxofone-por-que-choras-ratinho",
+      "title": "Saxofone por que choras",
+      "composer": "Ratinho",
+      "file": "saxofone-por-que-choras-ratinho.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "sonhando-k-ximbinho",
+      "title": "Sonhando",
+      "composer": "K Ximbinho",
+      "file": "sonhando-k-ximbinho.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
       "song_id": "sonoroso-k-ximbinho",
       "title": "Sonoroso",
       "composer": "K-Ximbinho / Del Loro",
@@ -204,6 +510,30 @@
         "C"
       ],
       "confidence": "medium"
+    },
+    {
+      "song_id": "tamoyo-chiquinha-gonzaga",
+      "title": "Tamoyo",
+      "composer": "Chiquinha Gonzaga",
+      "file": "tamoyo-chiquinha-gonzaga.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
+    },
+    {
+      "song_id": "ternura-k-ximbinho",
+      "title": "Ternura",
+      "composer": "K-Ximbinho",
+      "file": "ternura-k-ximbinho.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
     },
     {
       "song_id": "tico-tico-no-fuba-zequinha-de-abreu",
@@ -218,6 +548,43 @@
       "confidence": "medium"
     },
     {
+      "song_id": "um-a-zero-pixinguinha",
+      "title": "Um a zero",
+      "composer": "Pixinguinha",
+      "file": "um-a-zero-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "um-chorinho-em-cochabamba-eduardo-neves",
+      "title": "Um Chorinho em Cochabamba",
+      "composer": "Eduardo Neves",
+      "file": "um-chorinho-em-cochabamba-eduardo-neves.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "um-tom-pra-jobim-sivuca",
+      "title": "Um tom pra jobim",
+      "composer": "Sivuca",
+      "file": "um-tom-pra-jobim-sivuca.json",
+      "parts": [
+        "Intro",
+        "A",
+        "B"
+      ],
+      "confidence": "high"
+    },
+    {
       "song_id": "vibracoes-jacob-do-bandolim",
       "title": "Vibrações",
       "composer": "Jacob do Bandolim",
@@ -227,6 +594,30 @@
         "B"
       ],
       "confidence": "medium"
+    },
+    {
+      "song_id": "voluvel-pattapio-silva",
+      "title": "Volúvel",
+      "composer": "Pattápio Silva",
+      "file": "voluvel-pattapio-silva.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "song_id": "vou-vivendo-pixinguinha",
+      "title": "Vou vivendo",
+      "composer": "Pixinguinha",
+      "file": "vou-vivendo-pixinguinha.json",
+      "parts": [
+        "A",
+        "B",
+        "C"
+      ],
+      "confidence": "high"
     }
   ]
 }

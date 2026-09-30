@@ -15,6 +15,16 @@ import { el } from './dom';
 import { seededRandom } from './random';
 import { HINT_DURATION_MS } from './score';
 import type { Grille, GrilleCell, GrillePart, Instrument } from './types';
+import {
+  DEFAULT_GRILLE_ZOOM,
+  GRILLE_ZOOM_MAX,
+  GRILLE_ZOOM_MIN,
+  nearestGrilleZoom,
+  stepGrilleZoom,
+} from './grilleZoom';
+
+/** Fonte des chiffrages (voir `--grille-font` dans `style.css`), telle que `document.fonts` la désigne. */
+const GRILLE_FONT = '700 1em "Barlow Semi Condensed"';
 
 /** Opacité du masque pendant l'indice : l'accord redevient lisible. */
 const HINT_OPACITY = '0.12';
@@ -40,6 +50,10 @@ export interface Slot {
 
 export interface GrilleOptions {
   onHintUsed: () => void;
+  /** Palier de taille initial (voir `grilleZoom.ts`). */
+  zoom?: number;
+  /** Présent : la carte porte les boutons − / +, et chaque changement est remonté ici. */
+  onZoomChange?: (zoom: number) => void;
 }
 
 /**
@@ -292,11 +306,19 @@ export class GrilleView {
   private seed = '';
   /** Mention « accords en Ut » : posée quand l'instrument n'est pas en Ut. */
   private keyNote = false;
+  /** Palier de taille courant. */
+  private zoom: number;
+  private surface: HTMLElement | null = null;
+  private instrument: Instrument | null = null;
+  private zoomOut: HTMLButtonElement | null = null;
+  private zoomIn: HTMLButtonElement | null = null;
 
   constructor(
     private readonly container: HTMLElement,
     private readonly options: GrilleOptions,
-  ) {}
+  ) {
+    this.zoom = nearestGrilleZoom(options.zoom ?? DEFAULT_GRILLE_ZOOM);
+  }
 
   /**
    * Pose les données, une fois le fichier `data/grilles/<id>.json` chargé.
@@ -309,6 +331,7 @@ export class GrilleView {
 
   /** (Re)construit l'affichage pour la grille posée. */
   render(instrument: Instrument, seed: string, level: number): void {
+    this.instrument = instrument;
     this.clearHints();
     this.seed = seed;
     this.level = level;
@@ -326,15 +349,15 @@ export class GrilleView {
     this.slots = buildSlots(this.grille);
     this.masked = selectMasked(this.slots, level, seed);
     // Avant de composer quoi que ce soit : la largeur de chaque chiffrage, dont
-    // dépend le corps des mesures partagées.
+    // dépend le corps de chaque case. Mesurée sur une fonte de repli tant que
+    // celle de la grille n'est pas chargée, elle serait fausse : on recompose
+    // alors une fois la fonte arrivée.
+    this.redrawWhenFontReady();
     measureChords(collectChords(this.grille));
 
     const surface = el('div', { class: 'grille-surface' });
-    if (this.keyNote) {
-      surface.appendChild(
-        el('p', { class: 'grille-key-note' }, 'Accords en Ut (concert)'),
-      );
-    }
+    this.surface = surface;
+    this.applyZoom();
 
     const parts = el('div', { class: 'grille-parts' });
     let ordinal = 0;
@@ -343,12 +366,98 @@ export class GrilleView {
     }
     if (this.grille.coda && this.grille.coda.length > 0) {
       const grid = el('div', { class: 'grille-grid' });
-      pushLabeledRow(grid, 'Coda', this.grille.coda);
+      pushCodaRow(grid, this.grille.coda);
       parts.appendChild(el('section', { class: 'grille-part' }, grid));
+    }
+
+    // Les boutons − / + se logent dans l'en-tête de la première partie, à
+    // droite de sa lettre : une rangée de plus coûterait une ligne de grille.
+    // Il faut une rangée à part quand la mention « accords en Ut » doit y
+    // figurer, ou quand la première partie s'ouvre sur une transition.
+    const zoom = this.options.onZoomChange ? this.zoomControl() : null;
+    const firstHead = parts.querySelector('.grille-part-head');
+    if (this.keyNote || (zoom && !firstHead)) {
+      surface.appendChild(
+        el(
+          'div',
+          { class: 'grille-toolbar' },
+          this.keyNote
+            ? el('p', { class: 'grille-key-note' }, 'Accords en Ut (concert)')
+            : null,
+          zoom,
+        ),
+      );
+    } else if (zoom && firstHead) {
+      firstHead.appendChild(zoom);
     }
     surface.appendChild(parts);
 
     this.container.replaceChildren(surface);
+  }
+
+  private redrawWhenFontReady(): void {
+    if (typeof document === 'undefined' || !document.fonts) return;
+    if (document.fonts.check(GRILLE_FONT)) return;
+    const grille = this.grille;
+    document.fonts
+      .load(GRILLE_FONT)
+      .then(() => {
+        if (this.grille !== grille || !this.instrument) return;
+        if (!this.surface || !this.container.contains(this.surface)) return;
+        forgetChordWidths();
+        this.render(this.instrument, this.seed, this.level);
+      })
+      .catch(() => {
+        // Fonte indisponible (hors ligne) : la grille reste sur la fonte de repli.
+      });
+  }
+
+  /** Palier de taille courant (voir `grilleZoom.ts`). */
+  get zoomLevel(): number {
+    return this.zoom;
+  }
+
+  /**
+   * Change de palier sans redessiner : tout le dimensionnement vertical passe
+   * par `--grille-zoom` dans le CSS, et le corps ajusté à la largeur de chaque
+   * case (`--fit`) ne dépend pas du zoom.
+   */
+  setZoom(zoom: number): void {
+    const next = nearestGrilleZoom(zoom);
+    if (next === this.zoom) return;
+    this.zoom = next;
+    this.applyZoom();
+    this.options.onZoomChange?.(next);
+  }
+
+  private applyZoom(): void {
+    this.surface?.style.setProperty('--grille-zoom', String(this.zoom));
+    if (this.zoomOut) this.zoomOut.disabled = this.zoom <= GRILLE_ZOOM_MIN;
+    if (this.zoomIn) this.zoomIn.disabled = this.zoom >= GRILLE_ZOOM_MAX;
+  }
+
+  private zoomControl(): HTMLElement {
+    const zoomOut = el(
+      'button',
+      { type: 'button', class: 'grille-zoom-btn', 'aria-label': 'Réduire la grille' },
+      '−',
+    ) as HTMLButtonElement;
+    const zoomIn = el(
+      'button',
+      { type: 'button', class: 'grille-zoom-btn', 'aria-label': 'Agrandir la grille' },
+      '+',
+    ) as HTMLButtonElement;
+    zoomOut.addEventListener('click', () => this.setZoom(stepGrilleZoom(this.zoom, -1)));
+    zoomIn.addEventListener('click', () => this.setZoom(stepGrilleZoom(this.zoom, 1)));
+    this.zoomOut = zoomOut;
+    this.zoomIn = zoomIn;
+    this.applyZoom();
+    return el(
+      'div',
+      { class: 'grille-zoom', role: 'group', 'aria-label': 'Taille de la grille' },
+      zoomOut,
+      zoomIn,
+    );
   }
 
   private renderPart(
@@ -359,10 +468,14 @@ export class GrilleView {
     // La lettre de section, et rien d'autre : la reprise s'écrit sur la grille
     // en barres de reprise, et le centre tonal comme la plage de mesures
     // encombraient la lecture sans servir au jeu — ils restent dans les données.
+    // Une partie amenée par une transition n'a pas d'en-tête à elle : sa
+    // lettre s'écrit dans la rangée de la transition, juste après ses mesures,
+    // dans l'ordre où on les joue. C'est une ligne de gagnée à chaque fois.
+    const hasTransition = Boolean(part.transition_in && part.transition_in.length > 0);
     const section = el(
       'section',
       { class: 'grille-part' },
-      el('div', { class: 'grille-part-head' }, el('h3', {}, part.name)),
+      hasTransition ? null : el('div', { class: 'grille-part-head' }, el('h3', {}, part.name)),
     );
 
     const grid = el('div', { class: 'grille-grid' });
@@ -397,7 +510,7 @@ export class GrilleView {
     };
 
     if (part.transition_in && part.transition_in.length > 0) {
-      pushLabeledRow(grid, 'transition', part.transition_in);
+      pushTransitionRow(grid, part.transition_in, part.name);
     }
 
     const seq = normalizeSequence(part.sequence);
@@ -446,7 +559,7 @@ export class GrilleView {
     }
 
     if (part.coda && part.coda.length > 0) {
-      pushLabeledRow(grid, 'coda', part.coda);
+      pushCodaRow(grid, part.coda);
     }
 
     section.appendChild(grid);
@@ -555,68 +668,68 @@ export class GrilleView {
   }
 }
 
-/* --- Ajustement du corps dans une mesure partagée ------------------------ */
+/* --- Ajustement du corps à la largeur de la case ------------------------- */
 
 /**
- * Géométrie d'une case, en em du corps de la grille — une constante, et c'est
+ * Largeur d'une case, en em du corps de la grille — une constante, et c'est
  * tout l'intérêt : le CSS règle ce corps sur la largeur de la carte (`cqi`),
  * de sorte qu'une case garde les mêmes proportions sur un téléphone comme en
- * plein écran. Voir `.grille-grid` dans `style.css`, qui porte ces deux
- * valeurs : elles doivent bouger ensemble.
- */
-const CELL_W = 6.9;
-const CELL_H = 3.25;
-
-/** Retraits intérieurs d'une case, en em — ils mangent la place utile. */
-const PAD_X_DIAGONAL = 0.35;
-const PAD_X_INLINE = 0.3;
-/** Une case qui porte une barre de reprise doit lui laisser la place. */
-const PAD_X_REPEAT = 1.1;
-
-/**
- * Débord d'un chiffrage au-dessus de sa ligne, en multiples de son corps.
+ * plein écran. En quatre colonnes, une case fait 100cqi / 4 ÷ 3,44cqi ≈ 7,27 em ;
+ * en huit, 100cqi / 8 ÷ 1,77cqi ≈ 7,06 em. On retient la plus étroite, arrondie.
+ * Voir `.grille-grid` dans `style.css` : ces valeurs doivent bouger ensemble.
  *
- * La boîte d'une lettre ne fait pas la hauteur de son corps mais celle de la
- * fonte, hampes et jambages compris — environ 1,37 fois, dont 0,19 au-dessus.
- * Un chiffrage calé en haut de sa case déborderait donc par le haut, où
- * `overflow: hidden` le rognerait. Le retrait vertical des mesures partagées
- * suit le corps (`calc(var(--rt) * 0.19)` dans `style.css`) pour l'absorber,
- * et il faut le compter ici comme de la place perdue.
+ * La hauteur, elle, n'est pas comptée ici : c'est le CSS qui plafonne le corps
+ * d'après la hauteur de case, et le zoom (`--grille-zoom`) qui règle celle-ci.
+ * L'ajustement à la largeur ne dépend donc pas du zoom, qui change sans
+ * redessin.
  */
-const ASCENT_OVER_LINE = 0.19;
+const CELL_W = 7;
 
-/** Part de la case qu'un chiffrage s'autorise : le reste tient la coupe à distance. */
+/** Retrait latéral ordinaire d'une case, en em. */
+const PAD_X_INLINE = 0.3;
+/** Retrait du côté d'une barre de reprise ou d'un numéro de fin, qui prennent la place d'un chiffrage. */
+const PAD_X_MARK = 1.1;
+
+/** Part de sa place qu'un chiffrage s'autorise : le reste le tient à distance du filet. */
 const FILL = 0.93;
 
-/** Corps maximal dans une mesure partagée : un accord seul doit rester le plus gros. */
-const MAX_SHARED_ROOT = 1.85;
+/** Plafond de l'ajustement : au-delà, c'est la hauteur de case qui borne (CSS). */
+const MAX_FIT_ROOT = 6;
 
 /** Corps de repli quand la mesure est impossible (pas de rendu, pas de fonte). */
 const FALLBACK_ROOT = 1.2;
 
-/** Place prise par un filet de séparation entre deux chiffrages, en em. */
-const SEP_EM = 0.62;
+/** Place prise par le filet vertical d'une demi-mesure, en em. */
+const SEP_EM = 0.5;
 
 /**
  * Largeur d'un chiffrage, en multiples du corps de sa fondamentale.
  *
  * Mesurée sur la fonte réellement rendue, et non tabulée : les métriques
- * changent d'un système à l'autre, et une table figée finirait par mentir —
- * un chiffrage plus large que prévu traverserait la coupe de sa mesure.
+ * changent d'un système à l'autre (et selon que la fonte de la grille est
+ * déjà chargée ou non), et une table figée finirait par mentir — un chiffrage
+ * plus large que prévu passerait sous le filet de sa demi-mesure.
  */
 const chordWidths = new Map<string, number>();
 
 /** Chiffrages d'une case, pour pouvoir réajuster son corps après coup. */
 const cellChords = new WeakMap<HTMLElement, string[]>();
 
-/** Corps à donner à une case, d'après ses chiffrages et la place qui lui reste. */
-function fitCell(cell: HTMLElement, padX?: number): void {
+/**
+ * Corps à donner à une case, d'après ses chiffrages et la place qui lui reste.
+ * Les barres de reprise et le numéro de fin prennent la place d'un chiffrage :
+ * c'est pourquoi ils sont lus ici, sur la case, plutôt que passés en argument —
+ * une case peut porter à la fois une 1re fin et une barre fermante.
+ */
+function fitCell(cell: HTMLElement): void {
   const chords = cellChords.get(cell);
-  if (!chords || chords.length < 2) return;
+  if (!chords || chords.length === 0) return;
   const widths = chords.map((chord) => chordWidths.get(chord) ?? 0);
-  const root =
-    chords.length === 2 ? fitDiagonalRoot(widths, padX) : fitInlineRoot(widths, padX);
-  cell.style.setProperty('--rt', `${root}em`);
+  const marked = (name: string): boolean => cell.classList.contains(name);
+  const padLeft =
+    marked('chord-cell--repeat-open') || marked('chord-cell--labelled') ? PAD_X_MARK : PAD_X_INLINE;
+  const padRight = marked('chord-cell--repeat-close') ? PAD_X_MARK : PAD_X_INLINE;
+  cell.style.setProperty('--fit', `${fitInlineRoot(widths, padLeft, padRight)}em`);
 }
 
 /**
@@ -628,7 +741,7 @@ function fitCell(cell: HTMLElement, padX?: number): void {
  */
 function markRepeat(cell: HTMLElement, side: 'open' | 'close'): void {
   cell.classList.add(`chord-cell--repeat-${side}`);
-  fitCell(cell, PAD_X_REPEAT);
+  fitCell(cell);
 }
 
 /**
@@ -661,38 +774,36 @@ function measureChords(symbols: string[]): void {
   probe.remove();
 }
 
-/**
- * Corps de la fondamentale pour les deux chiffrages d'une mesure coupée en
- * diagonale, en em.
- *
- * Chacun doit tenir dans son triangle. Pour le chiffrage du haut, dont le coin
- * bas-droit est le point critique, cela s'écrit `largeur/W + hauteur/H < 1` —
- * et la coupe étant symétrique, la même inégalité borne celui du bas. La
- * hauteur d'un chiffrage valant son corps, il ne reste qu'à résoudre en `R`.
- *
- * C'est ce calcul qui permet à `Dm | A7` d'être écrit bien plus gros que
- * `C♯m7b5 | F♯7` : à corps égal pour tous, les mesures courtes gaspillaient la
- * moitié de leur place.
- */
-export function fitDiagonalRoot(widths: number[], padX = PAD_X_DIAGONAL): number {
-  const widest = Math.max(...widths);
-  if (!Number.isFinite(widest) || widest <= 0) return FALLBACK_ROOT;
-  const place = FILL - padX / CELL_W;
-  const root = place / (widest / CELL_W + (1 + ASCENT_OVER_LINE) / CELL_H);
-  return quantize(Math.min(root, MAX_SHARED_ROOT));
+/** Oublie les largeurs mesurées : à refaire une fois la fonte de la grille chargée. */
+function forgetChordWidths(): void {
+  chordWidths.clear();
 }
 
 /**
- * Corps de la fondamentale pour trois accords ou plus alignés sur une mesure.
+ * Corps de la fondamentale pour les accords d'une mesure, en em.
  *
- * Ceux-là se suivent horizontalement : seule la largeur borne, filets compris.
- * La case en gardait les trois quarts de la hauteur inutilisés.
+ * Chaque accord reçoit une part égale de la case, les parts étant séparées par
+ * un filet vertical. Égales et non proportionnelles à leur chiffrage : la
+ * place d'un accord dit sur quel temps il tombe, et les demi-mesures de deux
+ * rangées voisines doivent s'aligner. Le corps se règle donc sur le plus
+ * large des chiffrages, et s'applique à tous — deux accords d'une même mesure
+ * ne doivent pas sembler d'importance différente.
+ *
+ * Seule la largeur borne ici. La hauteur de case plafonne le corps côté CSS
+ * (`min(var(--fit), …)`), là où le zoom la règle.
  */
-export function fitInlineRoot(widths: number[], padX = PAD_X_INLINE): number {
-  const total = widths.reduce((sum, width) => sum + width, 0);
-  const place = CELL_W - PAD_X_INLINE - padX - SEP_EM * (widths.length - 1);
-  if (!Number.isFinite(total) || total <= 0 || place <= 0) return FALLBACK_ROOT;
-  return quantize(Math.min((FILL * place) / total, MAX_SHARED_ROOT));
+export function fitInlineRoot(
+  widths: number[],
+  padLeft = PAD_X_INLINE,
+  padRight = PAD_X_INLINE,
+): number {
+  const count = widths.length;
+  const widest = Math.max(...widths);
+  const place = CELL_W - padLeft - padRight - SEP_EM * (count - 1);
+  if (count === 0 || !Number.isFinite(widest) || widest <= 0 || place <= 0) {
+    return FALLBACK_ROOT;
+  }
+  return quantize(Math.min((FILL * place) / count / widest, MAX_FIT_ROOT));
 }
 
 /** Par paliers de 0,05 em : deux mesures voisines ne doivent pas sembler se contredire. */
@@ -700,50 +811,54 @@ function quantize(root: number): number {
   return Math.max(FALLBACK_ROOT, Math.floor(root * 20) / 20);
 }
 
-/** Un chiffrage écrit : fondamentale, qualité sur la ligne, chiffre en exposant. */
+/**
+ * Un chiffrage écrit : fondamentale, qualité sur la ligne, chiffre en exposant.
+ *
+ * Le diminué et le demi-diminué s'écrivent en signes, `C♯°` et `Bø`, comme dans
+ * les cifras : plus courts que `dim` et `m7♭5`, ils laissent la place à une
+ * fondamentale plus grosse, et se reconnaissent de loin.
+ */
 function chordSymbol(chord: string): HTMLElement {
   const { root, accidental, quality, sup } = splitChordSymbol(chord);
+  const dim = quality === 'dim' && sup === '';
+  const halfDim = quality === 'm' && sup === '7b5';
+  let suffix: HTMLElement | null = null;
+  if (dim) suffix = el('i', { class: 'dg' }, '°');
+  else if (halfDim) suffix = el('i', { class: 'hd' }, 'ø');
+  else if (quality) suffix = el('i', { class: 'qa' }, quality);
+  const exponent = !dim && !halfDim && sup ? sup.replace('b', '♭').replace('#', '♯') : '';
   return el(
     'span',
     { class: 'ch' },
     el('i', { class: 'rt' }, root),
     accidental ? el('i', { class: 'ac' }, accidental) : null,
-    quality ? el('i', { class: 'qa' }, quality) : null,
-    sup ? el('i', { class: 'sp' }, sup) : null,
+    suffix,
+    exponent ? el('i', { class: 'sp' }, exponent) : null,
   );
 }
 
 /**
  * Une cellule d'accords : `['A7']` ou `['A7', 'D7']` (mesure partagée).
  *
- * Deux accords se partagent la mesure en diagonale — le premier en haut à
- * gauche, le second en bas à droite, la coupe tracée par le CSS. C'est la
- * convention de la grille manuscrite, et elle tient dans la même case qu'un
- * accord seul, là où deux chiffrages côte à côte forçaient à rétrécir.
- *
- * Au-delà de deux (rare : `F7 E7 Eb7 D7` sur une mesure), la diagonale n'a
- * plus de sens : on revient à la file horizontale séparée par des filets.
+ * Plusieurs accords se partagent la mesure côte à côte, en parts égales
+ * séparées d'un filet vertical en pointillé. Retenu sur maquettes contre la
+ * diagonale : à hauteur de case égale, il laisse de plus grosses lettres —
+ * c'est la largeur qui borne, et elle ne change pas quand la case rapetisse —
+ * et il se lit dans l'ordre des temps.
  */
 function chordCell(chords: string[], variant?: 'ending'): HTMLElement {
-  const diagonal = chords.length === 2;
   const nodes: Node[] = [];
   chords.forEach((chord, index) => {
-    if (index > 0 && !diagonal) nodes.push(el('span', { class: 'sep' }));
+    if (index > 0) nodes.push(el('span', { class: 'sep' }));
     nodes.push(chordSymbol(chord));
   });
   const cls =
     'chord-cell' +
-    (diagonal ? ' multi' : chords.length > 2 ? ' multi multi-3' : '') +
+    (chords.length > 1 ? ' multi' : '') +
     (variant === 'ending' ? ' chord-cell--ending' : '');
   const cell = el('div', { class: cls }, ...nodes);
-
-  // Un accord seul garde le corps de la feuille de style, le plus grand que la
-  // case supporte. Une mesure partagée reçoit le sien, calculé sur la largeur
-  // de ses propres chiffrages.
-  if (chords.length > 1) {
-    cellChords.set(cell, chords);
-    fitCell(cell);
-  }
+  cellChords.set(cell, chords);
+  fitCell(cell);
   return cell;
 }
 
@@ -755,25 +870,66 @@ function simileCell(variant?: 'ending'): HTMLElement {
 
 /**
  * Cellule d'une mesure de fin de partie. `bracketed` trace le crochet (trait
- * supérieur) ; `label` (« 1. » / « 2. ») n'est posé que sur la première.
+ * supérieur) ; `label` (« 1. » / « 2. ») n'est posé que sur la première, dans
+ * son coin, et repousse le chiffrage d'autant.
  */
 function endingCell(chords: GrilleCell, bracketed: boolean, label: string): HTMLElement {
   const variant = bracketed ? 'ending' : undefined;
   const cell =
     chords.length === 0 ? simileCell(variant) : chordCell(chords, variant);
-  if (label) cell.appendChild(el('span', { class: 'grille-end-label' }, label));
+  if (label) {
+    cell.classList.add('chord-cell--labelled');
+    fitCell(cell);
+    cell.appendChild(el('span', { class: 'grille-end-label' }, label));
+  }
   return cell;
 }
 
-/** Rangée annexe (coda, transition) : un libellé pleine largeur puis les mesures. */
-function pushLabeledRow(grid: HTMLElement, label: string, seq: GrilleCell[]): void {
-  grid.appendChild(el('div', { class: 'grille-row-label' }, label));
-  const cells = normalizeSequence(seq).map((cell) =>
+/** Mesures d'une rangée annexe (transition, coda). */
+function annexCells(seq: GrilleCell[]): HTMLElement[] {
+  return normalizeSequence(seq).map((cell) =>
     cell.length === 0 ? simileCell() : chordCell(cell),
   );
-  while (cells.length % BARS_PER_LINE !== 0) {
-    cells.push(el('div', { class: 'chord-cell pad' }));
-  }
-  grid.append(...cells);
-  markEmptyHalfRows(cells);
+}
+
+/**
+ * Rangée de transition : ses mesures, puis la lettre de la partie qu'elle
+ * amène, étirée sur ce qui reste de la ligne.
+ *
+ * Les rangées annexes sont des lignes souples (`.grille-annex`, pleine largeur
+ * de la grille) plutôt que des cases de la grille elle-même : le JS ne sait pas
+ * si la carte est en huit ou en quatre colonnes — c'est une requête de
+ * conteneur qui en décide — et ne pourrait donc pas dire combien de colonnes
+ * la lettre doit couvrir. Chaque mesure y prend la largeur d'une colonne
+ * (`--grille-cols`), la lettre le reste, et la ligne se replie si besoin.
+ */
+function pushTransitionRow(grid: HTMLElement, seq: GrilleCell[], partName: string): void {
+  grid.appendChild(
+    el(
+      'div',
+      { class: 'grille-annex' },
+      ...annexCells(seq),
+      el(
+        'div',
+        { class: 'grille-tag grille-tag--part' },
+        el('span', { class: 'grille-tag-note' }, 'transition, puis'),
+        el('h3', { class: 'grille-tag-letter' }, partName),
+      ),
+    ),
+  );
+}
+
+/**
+ * Rangée de coda : le mot « Coda » à la place d'une première mesure, puis les
+ * mesures — au lieu d'une ligne de libellé entière.
+ */
+function pushCodaRow(grid: HTMLElement, seq: GrilleCell[]): void {
+  grid.appendChild(
+    el(
+      'div',
+      { class: 'grille-annex' },
+      el('div', { class: 'grille-tag grille-tag--coda' }, el('span', { class: 'grille-tag-note' }, 'Coda')),
+      ...annexCells(seq),
+    ),
+  );
 }

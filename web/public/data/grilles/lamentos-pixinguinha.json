@@ -1,0 +1,276 @@
+{
+  "song_id": "lamentos-pixinguinha",
+  "title": "Lamentos",
+  "composer": "Pixinguinha",
+  "transposition": "c",
+  "meter": "2/4",
+  "form": "Intro — A (Ré, reprise) — B (Sim, reprise) — D.S. al Coda (Ré)",
+  "parts": [
+    {
+      "name": "Intro",
+      "tonic": "D",
+      "bars": "1–4",
+      "repeat": false,
+      "sequence": [
+        [
+          "A7"
+        ],
+        [
+          "Bdim7"
+        ],
+        [
+          "A7/C#",
+          "Bdim7"
+        ],
+        [
+          "A7"
+        ]
+      ]
+    },
+    {
+      "name": "A",
+      "tonic": "D",
+      "bars": "5–26 (Segno)",
+      "repeat": true,
+      "sequence": [
+        [
+          "D6/F#"
+        ],
+        [],
+        [
+          "Fdim7"
+        ],
+        [],
+        [
+          "D"
+        ],
+        [
+          "F#m/C#"
+        ],
+        [
+          "Am/C"
+        ],
+        [
+          "B7"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "C#m7b5",
+          "F#7"
+        ],
+        [
+          "Bm"
+        ],
+        [
+          "G#m7b5",
+          "C#7"
+        ],
+        [
+          "F#",
+          "D#7"
+        ],
+        [
+          "G#7",
+          "C#7"
+        ],
+        [
+          "F#7",
+          "B7"
+        ],
+        [
+          "E9",
+          "A7"
+        ],
+        [
+          "D"
+        ],
+        [
+          "D/C"
+        ],
+        [
+          "G/B"
+        ],
+        [
+          "Gm6/Bb"
+        ],
+        [
+          "D/A",
+          "D"
+        ],
+        [
+          "E9",
+          "A7"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "D"
+          ],
+          [
+            "A9"
+          ]
+        ],
+        "2": [
+          [
+            "D"
+          ],
+          [
+            "F#7"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B",
+      "tonic": "Bm",
+      "bars": "31–60",
+      "repeat": true,
+      "sequence": [
+        [
+          "Bm"
+        ],
+        [
+          "Bm(maj7)"
+        ],
+        [
+          "Bm7"
+        ],
+        [
+          "Bm6",
+          "B7"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "Em(maj7)"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "Em6"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "F#7/A#"
+        ],
+        [
+          "Bm"
+        ],
+        [],
+        [
+          "G"
+        ],
+        [
+          "G7"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "F#7/A#"
+        ],
+        [
+          "Bm"
+        ],
+        [
+          "Bm(maj7)"
+        ],
+        [
+          "Bm7"
+        ],
+        [
+          "Bm6",
+          "B7"
+        ],
+        [
+          "Em"
+        ],
+        [
+          "Em(maj7)"
+        ],
+        [
+          "Em7"
+        ],
+        [
+          "Em6"
+        ],
+        [
+          "F#7"
+        ],
+        [
+          "F#7/A#"
+        ],
+        [
+          "Bm"
+        ],
+        [
+          "D7/A"
+        ],
+        [
+          "G"
+        ],
+        [
+          "C#7/G#",
+          "F#7/A#"
+        ]
+      ],
+      "endings": {
+        "1": [
+          [
+            "Bm"
+          ],
+          [
+            "F#7"
+          ]
+        ],
+        "2": [
+          [
+            "Bm",
+            "Bb7"
+          ],
+          [
+            "A9"
+          ]
+        ]
+      }
+    }
+  ],
+  "coda": [
+    [
+      "D",
+      "D7"
+    ],
+    [
+      "G"
+    ],
+    [
+      "D/F#",
+      "Bm7"
+    ],
+    [
+      "E9",
+      "A7"
+    ],
+    [
+      "D"
+    ],
+    []
+  ],
+  "notes": [
+    "Casa de Choro (Olivier Lob, 2014), mélodie et contrechant.",
+    "Intro en points d'orgue (A7, Bdim7).",
+    "Deux codas proposées après le ⊕ : (1) D D7 | G | D/F# Bm7 | E9 A7 en reprise puis D ; (2) D D7 | G7 | F#7 B7 | E9 A7 | Am7 D7 | Dmaj7. La grille retient la 1re."
+  ],
+  "confidence": "high",
+  "source": [
+    "data/lamentos-pixinguinha/c/page_1.webp",
+    "data/lamentos-pixinguinha/c/page_2.webp"
+  ]
+}
