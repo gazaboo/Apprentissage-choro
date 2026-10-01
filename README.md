@@ -409,6 +409,15 @@ monter et descendre ne s'acquièrent pas ensemble. La liste `roots` de chaque
 motif est le seul levier de volume : il n'y a aucune machinerie de
 déverrouillage, c'est le fichier qui décide de ce qu'on travaille.
 
+La famille **Dominantes** suit la relation gamme‑accord du choro et de la
+samba : le même V7 ne prend pas la même gamme selon sa destination —
+**mixolydien** vers un accord majeur, **mixolydien ♭9 ♭13** vers un mineur.
+Elle progresse des gammes seules aux **phrases sur plusieurs accords** (règles
+de basse V7 → I, baixaria qui pose la 7e sur la tierce, ii–V–I et iiø–V–i,
+cycle V/V–V–I), écrites une fois en do et dépliées dans les douze tonalités.
+Une phrase transpose chacun de ses accords, se joue dans le seul sens écrit, et
+lit chaque degré par rapport à l'accord qui sonne sous la note.
+
 La transposition conserve l'**orthographe** : un arpège écrit en ré donne `Bb` en
 sol mineur, jamais `A#`. Chaque note garde ses deux intervalles à la fondamentale
 — générique (distance de lettres) et chromatique (demi-tons) — et les reporte sur

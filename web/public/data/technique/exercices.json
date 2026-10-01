@@ -92,6 +92,171 @@
       "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
       "sens": ["montant", "descendant"],
       "note_de_travail": "Sur une seule position. Forme jazz : les 6e et 7e degrés restent haussés à la descente."
+    },
+    {
+      "id": "dom-gamme-mixo",
+      "famille": "Dominantes",
+      "nom": "1 · Gamme mixolydienne",
+      "reference": "G7",
+      "notes": ["G", "A", "B", "C", "D", "E", "F", "G"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
+      "sens": ["montant", "descendant"],
+      "note_de_travail": "La gamme du V7 qui va vers du majeur : la majeure, septième abaissée. Chanter par-dessus l'accord."
+    },
+    {
+      "id": "dom-gamme-mixo-b9b13",
+      "famille": "Dominantes",
+      "nom": "2 · Mixolydien ♭9 ♭13",
+      "reference": "G7(b9 b13)",
+      "notes": ["G", "Ab", "B", "C", "D", "Eb", "F", "G"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
+      "sens": ["montant", "descendant"],
+      "note_de_travail": "Le même V7, mais vers un mineur : ♭9 et ♭13 en plus. C'est la destination qui choisit la gamme."
+    },
+    {
+      "id": "dom-arp-b9",
+      "famille": "Dominantes",
+      "nom": "3 · Arpège V7(♭9)",
+      "reference": "G7(b9)",
+      "notes": ["G", "B", "D", "F", "Ab"],
+      "roots": ["A", "Bb", "B", "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#"],
+      "sens": ["aller-retour"],
+      "note_de_travail": "1‑3‑5‑7‑♭9 : l'arpège de dominante qui va vers un mineur. De la tierce à la ♭9, c'est un diminué."
+    },
+    {
+      "id": "dom-basse-maj",
+      "famille": "Dominantes",
+      "nom": "4 · Basse : V7 vers le majeur",
+      "reference": "C",
+      "segments": [
+        { "accord": "G7", "notes": ["G2"] },
+        { "accord": "C", "notes": ["C3"] },
+        { "accord": "G7", "notes": ["B2"] },
+        { "accord": "C", "notes": ["C3"] },
+        { "accord": "G7", "notes": ["D3"] },
+        { "accord": "C", "notes": ["C3"] },
+        { "accord": "G7", "notes": ["F3"] },
+        { "accord": "C", "notes": ["E3"] }
+      ],
+      "roots": ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
+      "note_de_travail": "Les quatre règles de basse : fondamentale → fondamentale, tierce → fondamentale (un demi-ton), quinte → fondamentale, 7e → tierce."
+    },
+    {
+      "id": "dom-dino-maj",
+      "famille": "Dominantes",
+      "nom": "5 · Baixaria : V7 vers le majeur",
+      "reference": "C",
+      "segments": [
+        { "accord": "G7", "notes": ["G2", "B2", "G3", "F3"] },
+        { "accord": "C", "notes": ["E3"] }
+      ],
+      "roots": ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
+      "note_de_travail": "Fondamentale, tierce, octave, puis la 7e descend sur la tierce de I."
+    },
+    {
+      "id": "dom-mixo-maj",
+      "famille": "Dominantes",
+      "nom": "6 · Mixolydien vers le majeur",
+      "reference": "C",
+      "segments": [
+        { "accord": "G7", "notes": ["G2", "A2", "B2", "C3", "D3", "E3", "F3"] },
+        { "accord": "C", "notes": ["E3"] }
+      ],
+      "roots": ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
+      "note_de_travail": "Le mixolydien monte jusqu'à la 7e, qui se résout un degré plus bas sur la tierce de I."
+    },
+    {
+      "id": "dom-basse-min",
+      "famille": "Dominantes",
+      "nom": "7 · Basse : V7 vers le mineur",
+      "reference": "Cm",
+      "segments": [
+        { "accord": "G7", "notes": ["G2"] },
+        { "accord": "Cm", "notes": ["C3"] },
+        { "accord": "G7", "notes": ["B2"] },
+        { "accord": "Cm", "notes": ["C3"] },
+        { "accord": "G7", "notes": ["D3"] },
+        { "accord": "Cm", "notes": ["C3"] },
+        { "accord": "G7", "notes": ["F3"] },
+        { "accord": "Cm", "notes": ["Eb3"] }
+      ],
+      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "note_de_travail": "Les mêmes règles vers un mineur : la 7e descend d'un ton entier sur la tierce mineure."
+    },
+    {
+      "id": "dom-dino-min",
+      "famille": "Dominantes",
+      "nom": "8 · Baixaria : V7 vers le mineur",
+      "reference": "Cm",
+      "segments": [
+        { "accord": "G7", "notes": ["G2", "B2", "G3", "F3"] },
+        { "accord": "Cm", "notes": ["Eb3"] }
+      ],
+      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "note_de_travail": "La même baixaria : la 7e tombe cette fois sur la tierce mineure."
+    },
+    {
+      "id": "dom-mixo-min",
+      "famille": "Dominantes",
+      "nom": "9 · Mixolydien ♭9 ♭13 vers le mineur",
+      "reference": "Cm",
+      "segments": [
+        { "accord": "G7(b9 b13)", "notes": ["G2", "Ab2", "B2", "C3", "D3", "Eb3", "F3"] },
+        { "accord": "Cm", "notes": ["Eb3"] }
+      ],
+      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "note_de_travail": "♭9 et ♭13 dans la gamme ; la 7e arrive sur la tierce mineure."
+    },
+    {
+      "id": "dom-b9-min",
+      "famille": "Dominantes",
+      "nom": "10 · Arpège ♭9 vers le mineur",
+      "reference": "Cm",
+      "segments": [
+        { "accord": "G7(b9)", "notes": ["G2", "B2", "D3", "F3", "Ab3"] },
+        { "accord": "Cm", "notes": ["G3"] }
+      ],
+      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "note_de_travail": "La ♭9 descend d'un demi-ton sur la quinte de l'accord mineur."
+    },
+    {
+      "id": "dom-251-maj",
+      "famille": "Dominantes",
+      "nom": "11 · ii–V–I majeur",
+      "reference": "C",
+      "segments": [
+        { "accord": "Dm7", "notes": ["D3", "F3", "A3", "C4"] },
+        { "accord": "G7", "notes": ["B3", "G3", "F3"] },
+        { "accord": "C", "notes": ["E3"] }
+      ],
+      "roots": ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
+      "note_de_travail": "La 7e du ii va à la tierce du V, la 7e du V à la tierce du I. Métronome lent, sans s'arrêter."
+    },
+    {
+      "id": "dom-251-min",
+      "famille": "Dominantes",
+      "nom": "12 · iiø–V–i mineur",
+      "reference": "Cm",
+      "segments": [
+        { "accord": "Dm7b5", "notes": ["D3", "F3", "Ab3", "C4"] },
+        { "accord": "G7", "notes": ["B3", "G3", "F3"] },
+        { "accord": "Cm", "notes": ["Eb3"] }
+      ],
+      "roots": ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
+      "note_de_travail": "Le ii devient demi-diminué (m7, quinte baissée). Même chemin : chaque 7e va à la tierce suivante."
+    },
+    {
+      "id": "dom-cycle",
+      "famille": "Dominantes",
+      "nom": "13 · Cycle V/V–V–I",
+      "reference": "C",
+      "segments": [
+        { "accord": "D7", "notes": ["F#3", "A3", "C4"] },
+        { "accord": "G7", "notes": ["B3", "G3", "F3"] },
+        { "accord": "C", "notes": ["E3"] }
+      ],
+      "roots": ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
+      "note_de_travail": "Chaque 7e descend d'un demi-ton sur la tierce de l'accord suivant : une ligne chromatique cachée dans les arpèges."
     }
   ]
 }

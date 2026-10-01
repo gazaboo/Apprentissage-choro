@@ -61,6 +61,7 @@ function carte(): ExerciceCarte {
     notes: ['D', 'F', 'A', 'C'],
     midi: [62, 65, 69, 72],
     noteDeTravail: null,
+    segments: null,
   };
 }
 

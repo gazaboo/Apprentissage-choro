@@ -17,7 +17,7 @@
 import { el, ui } from '../dom';
 import { deleteTechniqueSetlist, setActiveTechniqueSetlist, upsertTechniqueSetlist } from '../store';
 import type { Progress } from '../store';
-import { parAccord, parFamille, parMotif } from '../technique/catalogue';
+import { etiquetteTonalite, parAccord, parFamille, parMotif } from '../technique/catalogue';
 import type { ExerciceCarte } from '../technique/catalogue';
 import type { TechniqueSetlist } from '../types';
 import { deleteControl, enterSaves } from './section-ui';
@@ -94,12 +94,15 @@ export function openTechniqueSetlistEditor(
 
   function chip(cartesAccord: ExerciceCarte[]): HTMLElement {
     const ids = cartesAccord.map((carte) => carte.id);
-    const accord = cartesAccord[0]!.accord;
+    const accord = etiquetteTonalite(cartesAccord[0]!);
+    const complet = cartesAccord[0]!.accord;
     const selectedAll = ids.every((id) => selected.has(id));
     const button = el(
       'button',
       {
         type: 'button',
+        title: complet === accord ? undefined : complet,
+        'aria-label': complet === accord ? undefined : complet,
         role: 'checkbox',
         'aria-checked': String(selectedAll),
         class: `${CHIP_BASE} ${selectedAll ? CHIP_SELECTED : CHIP_UNSELECTED}`,

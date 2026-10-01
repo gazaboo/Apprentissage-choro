@@ -18,6 +18,7 @@ import { getTechniqueCard } from '../store';
 import type { SrsCard } from '../types';
 import type { NoteSpelling } from './theorie';
 import {
+  GUITAR_LOW_E,
   chordRoot,
   formatNote,
   layoutMotif,
@@ -29,17 +30,25 @@ import {
 
 const CATALOGUE_URL = 'data/technique/exercices.json';
 
-/** Sens de jeu. Une carte par sens : monter et descendre ne s'acquièrent pas ensemble. */
-export type Sens = 'montant' | 'descendant' | 'aller-retour';
+/**
+ * Sens de jeu. Une carte par sens : monter et descendre ne s'acquièrent pas
+ * ensemble. `phrase` joue les notes telles qu'écrites — le sens d'un
+ * enchaînement d'accords, qui ne se joue pas à l'envers : une résolution
+ * jouée en miroir n'en est plus une.
+ */
+export type Sens = 'montant' | 'descendant' | 'aller-retour' | 'phrase';
 
 export const SENS_LABELS: Record<Sens, string> = {
   montant: 'Montant',
   descendant: 'Descendant',
   'aller-retour': 'Aller-retour',
+  phrase: 'Phrase',
 };
 
 function isSens(value: unknown): value is Sens {
-  return value === 'montant' || value === 'descendant' || value === 'aller-retour';
+  return (
+    value === 'montant' || value === 'descendant' || value === 'aller-retour' || value === 'phrase'
+  );
 }
 
 /** Tonalités engendrées quand le motif n'en précise pas. */
@@ -47,6 +56,13 @@ export const DEFAULT_ROOTS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', '
 
 /** BPM proposé sur une carte jamais travaillée. */
 export const DEFAULT_BPM = 80;
+
+/** Une portion de phrase jouée sur un même accord. */
+interface SegmentSource {
+  accord: string;
+  /** Notes jouées sur cet accord, octave comprise (do central = `C4`). */
+  notes: string[];
+}
 
 /** Un motif tel qu'il est écrit dans le fichier. */
 interface MotifSource {
@@ -65,9 +81,23 @@ interface MotifSource {
    * déduire seule.
    */
   notes_descendant?: string[];
+  /**
+   * Phrase sur plusieurs accords (« G7 → C ») : les notes y sont rangées par
+   * accord, et remplacent alors `notes`. `reference` est le chiffrage de la
+   * **cible** — c'est sa tonalité que désigne `roots`.
+   */
+  segments?: SegmentSource[];
   roots?: string[];
   sens?: Sens[];
   note_de_travail?: string;
+}
+
+/** Début d'un accord dans les notes d'une carte. */
+export interface SegmentCarte {
+  /** Chiffrage transposé de l'accord. */
+  accord: string;
+  /** Indice de sa première note dans `notes` / `midi`. */
+  debut: number;
 }
 
 /** Une carte à réviser : un chiffrage, un sens, une suite de hauteurs. */
@@ -85,15 +115,59 @@ export interface ExerciceCarte {
   /** Hauteurs attendues, dans l'ordre de jeu — c'est ce que le micro compare. */
   midi: number[];
   noteDeTravail: string | null;
+  /** Accords successifs d'une phrase, ou `null` pour un motif sur un seul accord. */
+  segments: SegmentCarte[] | null;
+}
+
+/**
+ * Étiquette courte d'une tonalité, pour les puces des listes : l'accord
+ * d'arrivée d'une phrase (« Ebm » pour « Bb7 → Ebm »), qui tient dans une
+ * grille de puces étroites ; le chiffrage tel quel pour un motif sur un accord.
+ */
+export function etiquetteTonalite(carte: ExerciceCarte): string {
+  return carte.segments?.at(-1)?.accord ?? carte.accord;
+}
+
+/** Accord sous lequel tombe la note d'indice `index`. */
+export function accordDeLaNote(carte: ExerciceCarte, index: number): string {
+  if (!carte.segments) return carte.accord;
+  let accord = carte.segments[0]?.accord ?? carte.accord;
+  for (const segment of carte.segments) {
+    if (segment.debut <= index) accord = segment.accord;
+  }
+  return accord;
 }
 
 /**
  * Garde défensive : un catalogue absent ou mal formé masque la section
  * Technique, il ne casse pas l'application.
  */
+function isSegmentSource(value: unknown): value is SegmentSource {
+  if (typeof value !== 'object' || value === null) return false;
+  const raw = value as Partial<SegmentSource>;
+  return (
+    typeof raw.accord === 'string' &&
+    Array.isArray(raw.notes) &&
+    raw.notes.length > 0 &&
+    raw.notes.every((note) => typeof note === 'string')
+  );
+}
+
 function isMotifSource(value: unknown): value is MotifSource {
   if (typeof value !== 'object' || value === null) return false;
   const raw = value as Partial<MotifSource>;
+  if (raw.segments !== undefined) {
+    return (
+      typeof raw.id === 'string' &&
+      raw.id !== '' &&
+      typeof raw.famille === 'string' &&
+      typeof raw.nom === 'string' &&
+      typeof raw.reference === 'string' &&
+      Array.isArray(raw.segments) &&
+      raw.segments.length > 0 &&
+      raw.segments.every(isSegmentSource)
+    );
+  }
   return (
     typeof raw.id === 'string' &&
     raw.id !== '' &&
@@ -119,6 +193,7 @@ function applySens<T>(values: T[], sens: Sens): T[] {
 
 /** Déplie un motif en une carte par tonalité et par sens. Exporté pour les tests. */
 export function expandMotif(motif: MotifSource): ExerciceCarte[] {
+  if (motif.segments) return expandPhrase(motif, motif.segments);
   const from = chordRoot(motif.reference);
   if (!from) return [];
 
@@ -206,11 +281,98 @@ export function expandMotif(motif: MotifSource): ExerciceCarte[] {
         notes,
         midi,
         noteDeTravail: motif.note_de_travail ?? null,
+        segments: null,
       });
     }
   }
 
   return cartes;
+}
+
+/** Note la plus grave admise pour une phrase : le fa dièse grave (voir `expandPhrase`). */
+const PLANCHER_PHRASE = GUITAR_LOW_E + 2;
+
+/**
+ * Déplie une phrase sur plusieurs accords : une carte par tonalité, jouée
+ * telle qu'écrite (sens `phrase`).
+ *
+ * Tous les accords sont transposés du même intervalle que la cible — et non
+ * seulement le premier, comme le ferait `transposeChord` sur « G7 → C ».
+ *
+ * Registre : les notes portent leur octave, que `transposeNote` reporte en
+ * montant toujours (0 à 11 demi-tons). Une phrase transposée en si partirait
+ * donc près d'une octave plus haut qu'en do ; on la redescend par octaves
+ * entières jusqu'à ce que sa note la plus grave soit la plus basse possible
+ * à partir du fa dièse grave — le même registre dans toutes les tonalités.
+ * Pas du mi grave : un mi dièse y tomberait, et son dièse déborderait sous
+ * la portée, dont la hauteur est réglée pour le fa dièse (`portee.ts`).
+ */
+function expandPhrase(motif: MotifSource, segments: SegmentSource[]): ExerciceCarte[] {
+  const from = chordRoot(motif.reference);
+  if (!from) return [];
+
+  const parsed = segments.map((segment) => segment.notes.map(parseNote));
+  // L'octave est obligatoire : une phrase redescend, `layoutMotif` ne peut pas
+  // en deviner le registre.
+  if (parsed.some((notes) => notes.some((note) => note === null || note.octave === null))) {
+    return [];
+  }
+  const notesSource = parsed as NoteSpelling[][];
+
+  const roots =
+    Array.isArray(motif.roots) && motif.roots.length > 0 ? motif.roots : DEFAULT_ROOTS;
+  const cartes: ExerciceCarte[] = [];
+
+  for (const rootText of roots) {
+    const to = parseNote(rootText);
+    if (!to) continue;
+
+    const names: string[] = [];
+    let midi: number[] = [];
+    const segmentsCarte: SegmentCarte[] = [];
+    notesSource.forEach((notes, index) => {
+      segmentsCarte.push({
+        accord: transposeChord(segments[index]!.accord, from, to),
+        debut: names.length,
+      });
+      for (const note of notes) {
+        const transposed = transposeNote(note, from, to);
+        names.push(formatNote(transposed));
+        midi.push(midiOf(transposed));
+      }
+    });
+
+    const grave = Math.min(...midi);
+    const decalage = -12 * Math.floor((grave - PLANCHER_PHRASE) / 12);
+    midi = midi.map((value) => value + decalage);
+
+    cartes.push({
+      id: `${motif.id}::${formatNote(to)}::phrase`,
+      motifId: motif.id,
+      famille: motif.famille,
+      nom: motif.nom,
+      accord: enchainement(segmentsCarte),
+      sens: 'phrase',
+      notes: names,
+      midi,
+      noteDeTravail: motif.note_de_travail ?? null,
+      segments: segmentsCarte,
+    });
+  }
+
+  return cartes;
+}
+
+/**
+ * Titre d'une phrase : ses accords distincts, dans l'ordre d'apparition —
+ * « G7 → C » aussi pour une phrase qui fait l'aller-retour plusieurs fois.
+ */
+function enchainement(segments: SegmentCarte[]): string {
+  const vus: string[] = [];
+  for (const { accord } of segments) {
+    if (!vus.includes(accord)) vus.push(accord);
+  }
+  return vus.join(' → ');
 }
 
 /**
