@@ -22,6 +22,7 @@ import { activeTechniqueSetlist, getTechniqueCard, setActiveTechniqueSetlist } f
 import type { ExerciceCarte, Sens } from '../technique/catalogue';
 import {
   dernierBpm,
+  etiquetteTonalite,
   parAccord,
   parFamille,
   parMotif,
@@ -56,6 +57,7 @@ const SENS_FLECHES: Record<Sens, string> = {
   montant: '↑',
   descendant: '↓',
   'aller-retour': '↕',
+  phrase: '→',
 };
 
 /** Lignes montrées dans la carte ; le reste est annoncé en « et N autres ». */
@@ -218,11 +220,14 @@ export function renderTechniqueListe(
 
   /** Un bouton par tonalité : il lance une séance sur cet accord, deux sens compris. */
   function chip(cartesAccord: ExerciceCarte[]): HTMLElement {
-    const accord = cartesAccord[0]!.accord;
+    const accord = etiquetteTonalite(cartesAccord[0]!);
+    const complet = cartesAccord[0]!.accord;
     const button = el(
       'button',
       {
         type: 'button',
+        title: complet === accord ? undefined : complet,
+        'aria-label': complet === accord ? undefined : complet,
         class:
           'inline-flex min-h-11 items-center justify-center rounded-lg border px-1 text-sm ' +
           'font-medium transition hover:border-zinc-500 focus:outline-none ' +

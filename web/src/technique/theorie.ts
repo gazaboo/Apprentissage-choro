@@ -130,6 +130,24 @@ export function degre(note: NoteSpelling, root: NoteSpelling): string {
   return `${alteration}${distance + 1}`;
 }
 
+/** Tensions d'un accord de dominante, écrites comme le veut l'usage. */
+const TENSIONS: Record<string, string> = { '♭2': '♭9', '♯2': '♯9', '♯4': '♯11', '♭6': '♭13' };
+
+/**
+ * Degré tel qu'on l'écrit sous un accord : sur un accord de 7e de dominante
+ * (« G7 », « Bb7(b9 b13) »), les degrés altérés hors de l'accord sont des
+ * tensions — ♭9 et ♭13, pas ♭2 et ♭6 —, comme dans le nom même de la gamme
+ * mixolydienne ♭9 ♭13. Les degrés naturels (2, 4, 6) restent ceux d'une
+ * gamme qu'on parcourt. Ailleurs, le degré de `degre` tel quel.
+ */
+export function degreSousAccord(note: NoteSpelling, accord: string): string {
+  const root = chordRoot(accord);
+  if (!root) return '';
+  const brut = degre(note, root);
+  const dominante = /^[A-Ga-g](#{1,2}|b{1,2}|♯{1,2}|♭{1,2})?7/.test(accord.trim());
+  return dominante ? (TENSIONS[brut] ?? brut) : brut;
+}
+
 /**
  * Fondamentale d'un chiffrage : « Dm7 » → ré, « Bb7(b9) » → si bémol.
  * On ne lit que le début du symbole ; la qualité reste au chiffrage, qui est
