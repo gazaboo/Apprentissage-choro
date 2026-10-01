@@ -97,6 +97,7 @@ function carte(id: string): ExerciceCarte {
     notes: [],
     midi: [],
     noteDeTravail: null,
+    segments: null,
   };
 }
 
@@ -223,6 +224,7 @@ function carteGroupee(overrides: Partial<ExerciceCarte>): ExerciceCarte {
     notes: [],
     midi: [],
     noteDeTravail: null,
+    segments: null,
     ...overrides,
   };
 }

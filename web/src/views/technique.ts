@@ -28,10 +28,10 @@ import { review, statusOf } from '../srs';
 import type { Progress } from '../store';
 import { getTechniqueCard, putTechniqueCard } from '../store';
 import type { ExerciceCarte } from '../technique/catalogue';
-import { DEFAULT_BPM, SENS_LABELS, dernierBpm } from '../technique/catalogue';
+import { DEFAULT_BPM, SENS_LABELS, accordDeLaNote, dernierBpm } from '../technique/catalogue';
 import { detailLignes, meilleurDecalage, noter, resume } from '../technique/grader';
 import { mettreEnPortee, sommet, type MiseEnPortee } from '../technique/portee';
-import { chordRoot, degre, nameFromMidi, parseNote } from '../technique/theorie';
+import { degreSousAccord, nameFromMidi, parseNote } from '../technique/theorie';
 import { dessinerPortee } from './portee';
 import { askSrs } from './srsModal';
 
@@ -416,6 +416,13 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
       ),
     );
     accordLabel.textContent = current.accord;
+    // Un enchaînement (« Bb7(b9 b13) → Ebm ») est trois fois plus long qu'un
+    // chiffrage : en 7xl il occuperait tout l'écran d'un téléphone.
+    const phrase = current.segments !== null;
+    accordLabel.classList.toggle('text-7xl', !phrase);
+    accordLabel.classList.toggle('text-4xl', phrase);
+    accordLabel.classList.toggle('sm:text-6xl', phrase);
+    accordLabel.classList.toggle('text-balance', phrase);
     sensLabel.textContent = `${current.nom} · ${SENS_LABELS[current.sens]}`;
     workNote.textContent = current.noteDeTravail ?? '';
     workNote.classList.toggle('hidden', current.noteDeTravail === null);
@@ -425,11 +432,17 @@ export function renderTechnique(root: HTMLElement, context: TechniqueContext): (
     statusLabel.textContent =
       status === 'jamais' ? 'Jamais travaillé' : status === 'a-reviser' ? 'À réviser' : 'À jour';
 
-    mise = mettreEnPortee(current.notes, current.midi, sommet(current.midi, current.sens));
-    const root = chordRoot(current.accord);
-    degres = current.notes.map((name) => {
+    mise = mettreEnPortee(
+      current.notes,
+      current.midi,
+      sommet(current.midi, current.sens),
+      current.segments?.map((segment) => segment.debut) ?? [],
+    );
+    // Dans une phrase, chaque note se lit par rapport à l'accord qui sonne
+    // sous elle : le do de « G7 → C » est la fondamentale de C, pas la 4te de G.
+    degres = current.notes.map((name, index) => {
       const note = parseNote(name);
-      return note && root ? degre(note, root) : '';
+      return note ? degreSousAccord(note, accordDeLaNote(current, index)) : '';
     });
 
     paintNotes();

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  degreSousAccord,
   formatNote,
   frequencyOf,
   GUITAR_LOW_E,
@@ -135,5 +136,29 @@ describe('nameFromMidi', () => {
   it('arrondit au demi-ton le plus proche', () => {
     expect(nameFromMidi(59.6)).toBe('C4');
     expect(nameFromMidi(midiFromFrequency(frequencyOf(64)))).toBe('E4');
+  });
+});
+
+describe('degreSousAccord', () => {
+  const n = (text: string) => parseNote(text)!;
+
+  it('écrit les tensions altérées d’une dominante en 9e, 11e, 13e', () => {
+    expect(degreSousAccord(n('Ab'), 'G7(b9 b13)')).toBe('♭9');
+    expect(degreSousAccord(n('Eb'), 'G7(b9 b13)')).toBe('♭13');
+    expect(degreSousAccord(n('Cb'), 'Bb7(b9 b13)')).toBe('♭9');
+    expect(degreSousAccord(n('Gb'), 'Bb7')).toBe('♭13');
+    expect(degreSousAccord(n('A#'), 'G7')).toBe('♯9');
+  });
+
+  it('laisse les degrés naturels d’une gamme mixolydienne', () => {
+    expect(['G', 'A', 'B', 'C', 'D', 'E', 'F'].map((x) => degreSousAccord(n(x), 'G7'))).toEqual([
+      '1', '2', '3', '4', '5', '6', '♭7',
+    ]);
+  });
+
+  it('ne touche pas aux degrés hors dominante', () => {
+    expect(degreSousAccord(n('Ab'), 'Cm')).toBe('♭6');
+    expect(degreSousAccord(n('Db'), 'Cm7')).toBe('♭2');
+    expect(degreSousAccord(n('Eb'), 'C')).toBe('♭3');
   });
 });

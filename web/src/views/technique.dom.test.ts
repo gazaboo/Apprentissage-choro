@@ -14,6 +14,7 @@ function carte(overrides: Partial<ExerciceCarte> = {}): ExerciceCarte {
     notes: ['D', 'F', 'A', 'C'],
     midi: [62, 65, 69, 72],
     noteDeTravail: null,
+    segments: null,
     ...overrides,
   };
 }

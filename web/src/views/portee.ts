@@ -298,6 +298,20 @@ export function dessinerPortee(mise: MiseEnPortee, etat: EtatPortee): SVGSVGElem
     );
   }
 
+  for (const x of mise.barres) {
+    svg.append(
+      noeud('line', {
+        x1: x,
+        x2: x,
+        y1: mise.lignes[0]!,
+        y2: mise.lignes[4]!,
+        stroke: COULEUR.ligne,
+        'stroke-width': 1.2,
+        'data-barre-accord': '',
+      }),
+    );
+  }
+
   mise.notes.forEach((n, i) => {
     svg.append(note(n, i, mise, etat));
     const actif = i === etat.active;

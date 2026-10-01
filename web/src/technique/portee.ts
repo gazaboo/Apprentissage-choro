@@ -51,6 +51,12 @@ const APRES_CLE = 14;
 const FIN = 16;
 /** Jeu entre une altération et la tête qu'elle précède. */
 const JEU_ALTERATION = 3.5;
+/**
+ * Distance entre une tête et la barre d'accord qui la suit : au-delà de ses
+ * lignes supplémentaires, et en deçà de l'altération la plus large de la note
+ * suivante — la barre se glisse dans le pas, sans élargir la portée.
+ */
+export const ECART_BARRE = 11;
 
 /** Débord d'une ligne supplémentaire de part et d'autre de la tête. */
 export const DEBORD_LIGNE_SUPPLEMENTAIRE = 3;
@@ -131,6 +137,8 @@ export interface MiseEnPortee {
   notes: NotePlacee[];
   /** Abscisse du trait qui sépare montée et descente, s'il y en a un. */
   separation: number | null;
+  /** Abscisses des barres qui séparent les accords d'une phrase. */
+  barres: number[];
   /** Bas de la zone où une note peut tomber (tête, hampe, altération). */
   yPied: number;
   /** Lignes de base des deux rangées de texte. */
@@ -176,11 +184,15 @@ export function sommet(midis: number[], sens: string): number | null {
  *
  * `separationApres` : indice de la note qui clôt la montée d'un aller-retour
  * (la note du sommet), après laquelle un trait pointillé marque le demi-tour.
+ *
+ * `debutsAccords` : indices des notes qui ouvrent un nouvel accord dans une
+ * phrase ; une barre légère est tracée juste avant chacune (sauf la première).
  */
 export function mettreEnPortee(
   noms: string[],
   midis: number[],
   separationApres: number | null = null,
+  debutsAccords: number[] = [],
 ): MiseEnPortee {
   const demi = INTERLIGNE / 2;
   const echelons = noms.map((nom, i) => echelonEcrit(nom, midis[i] ?? 0));
@@ -250,6 +262,10 @@ export function mettreEnPortee(
     };
   });
 
+  const barres = debutsAccords
+    .filter((indice) => indice > 0 && indice < notes.length)
+    .map((indice) => notes[indice - 1]!.x + ECART_BARRE);
+
   const x1 = x + TETE_DEMI_LARGEUR + FIN;
   return {
     largeur: x1 + marge,
@@ -260,6 +276,7 @@ export function mettreEnPortee(
     x1,
     notes,
     separation,
+    barres,
     yPied,
     yNoms,
     yDegres,

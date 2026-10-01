@@ -8,6 +8,7 @@
  *   #/filage/run  filage de la setlist, audio enchaîné
  *   #/technique      arpèges et gammes : vue d'ensemble
  *   #/technique/run  séance d'arpèges et gammes, au métronome
+ *   #/technique/conseils/:id  fiche de conseils de travail (lecture, hors SRS)
  *   #/compte      accès au compte et à la synchro
  *
  * Tant qu'aucun choix de compte n'a été fait, l'écran d'accueil (`#/compte` en
@@ -54,6 +55,8 @@ import { renderOnboarding } from './views/onboarding';
 // L'édition des setlists est une modale ouverte depuis le tableau de bord,
 // plus une route dédiée.
 import { renderTechnique } from './views/technique';
+import { ficheConseils } from './technique/conseils';
+import { renderTechniqueConseils } from './views/technique-conseils';
 import { renderTechniqueListe } from './views/technique-liste';
 import { mountSectionShell, techniqueDueToday } from './views/nav';
 import type { Section } from './views/nav';
@@ -560,6 +563,18 @@ function render(): void {
       cartes: exercices,
       onStart: startTechnique,
       onStartTonalite: startTechniqueTonalite,
+    });
+    return;
+  }
+
+  const conseilsMatch = /^#\/technique\/conseils\/(.+)$/.exec(hash);
+  const fiche = conseilsMatch ? ficheConseils(conseilsMatch[1]!) : undefined;
+  if (fiche) {
+    teardown = renderTechniqueConseils(shell('technique'), {
+      fiche,
+      cartes: exercices,
+      onBack: () => navigate('#/technique'),
+      onTravailler: startTechniqueTonalite,
     });
     return;
   }

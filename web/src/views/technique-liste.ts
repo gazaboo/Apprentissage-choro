@@ -20,8 +20,10 @@ import type { Status } from '../srs';
 import type { Progress } from '../store';
 import { activeTechniqueSetlist, getTechniqueCard, setActiveTechniqueSetlist } from '../store';
 import type { ExerciceCarte, Sens } from '../technique/catalogue';
+import { fichesDeLaFamille } from '../technique/conseils';
 import {
   dernierBpm,
+  etiquetteTonalite,
   parAccord,
   parFamille,
   parMotif,
@@ -56,6 +58,7 @@ const SENS_FLECHES: Record<Sens, string> = {
   montant: '↑',
   descendant: '↓',
   'aller-retour': '↕',
+  phrase: '→',
 };
 
 /** Lignes montrées dans la carte ; le reste est annoncé en « et N autres ». */
@@ -218,11 +221,14 @@ export function renderTechniqueListe(
 
   /** Un bouton par tonalité : il lance une séance sur cet accord, deux sens compris. */
   function chip(cartesAccord: ExerciceCarte[]): HTMLElement {
-    const accord = cartesAccord[0]!.accord;
+    const accord = etiquetteTonalite(cartesAccord[0]!);
+    const complet = cartesAccord[0]!.accord;
     const button = el(
       'button',
       {
         type: 'button',
+        title: complet === accord ? undefined : complet,
+        'aria-label': complet === accord ? undefined : complet,
         class:
           'inline-flex min-h-11 items-center justify-center rounded-lg border px-1 text-sm ' +
           'font-medium transition hover:border-zinc-500 focus:outline-none ' +
@@ -307,6 +313,26 @@ export function renderTechniqueListe(
           'section',
           { class: 'flex flex-col gap-1' },
           el('h2', { class: ui.label }, famille),
+          ...fichesDeLaFamille(famille).map((fiche) =>
+            el(
+              'a',
+              {
+                href: `#/technique/conseils/${fiche.id}`,
+                class:
+                  'mt-1 flex min-h-11 items-center justify-between gap-3 rounded-lg border ' +
+                  'border-zinc-800 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-200 transition ' +
+                  'hover:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400',
+                'data-conseils': fiche.id,
+              },
+              el(
+                'span',
+                { class: 'min-w-0' },
+                el('span', { class: 'block text-xs text-zinc-500' }, 'Conseils de travail'),
+                el('span', { class: 'block' }, fiche.titre),
+              ),
+              el('span', { class: 'shrink-0 text-zinc-500', 'aria-hidden': 'true' }, '→'),
+            ),
+          ),
           el(
             'div',
             { class: 'flex flex-col divide-y divide-zinc-800/80' },
